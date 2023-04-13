@@ -6,8 +6,37 @@
     <link rel="stylesheet" href="/static/css/bootstrap.css" />
     <link rel="stylesheet" href="/static/css/style.css" />
 </head>
-<body>
+<body class="text-center mt-3">
     <h1>Image Review</h1>
+    <table class="table table-striped">
+            <thead class="thead-dark sticky-top">
+                <tr>
+                    <th scope="col">Concept</th>
+                    <th scope="col">Identity Certainty</th>
+                    <th scope="col">ID Reference #</th>
+                    <th scope="col">Comment</th>
+                    <th scope="col">Image</th>
+                    <th scope="col">Upon</th>
+                    <th scope="col">Recorded Timestamp</th>
+                    <th scope="col">Video Sequence</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in data %}
+                <tr>
+                    <td>{{ item.concept }}</td>
+                    <td>{{ item.identity_certainty }}</td>
+                    <td>{{ item.identity_reference }}</td>
+                    <td>{{ item.comment }}</td>
+                    <td><img src="{{ item.image_url }}" style="width: 500px;"/></td>
+                    <td>{{ item.upon }}</td>
+                    <td>{{ item.index_recorded_timestamp }}</td>
+                    <td>{{ item.video_sequence_name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+    </table>
+
     <script src="/static/js/bootstrap.bundle.js"></script>
 </body>
 </html>
