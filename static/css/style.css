@@ -6,4 +6,5 @@ body {
 table {
     color: #73d3b0 !important;
     --bs-table-striped-color: #73d3b0 !important;
+    vertical-align: middle !important;
 }

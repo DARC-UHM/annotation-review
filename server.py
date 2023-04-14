@@ -38,9 +38,10 @@ for annotation in response['annotations']:
                     vars_tree = \
                     vars_tax_res.json()['children'][0]['children'][0]['children'][0]['children'][0]['children'][0]
                     while 'children' in vars_tree.keys():
-                        concept_phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
+                        if 'rank' in vars_tree.keys():  # sometimes it's not
+                            concept_phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
                         vars_tree = vars_tree['children'][0]
-                    if 'rank' in vars_tree.keys():  # sometimes it's not
+                    if 'rank' in vars_tree.keys():
                         concept_phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
                 else:
                     print(f'Unable to find record for {annotation["concept"]}')
