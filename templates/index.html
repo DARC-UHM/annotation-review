@@ -9,7 +9,7 @@
 <body class="text-center mt-3">
     <h1>Image Review</h1>
     <table class="table table-striped">
-            <thead class="thead-dark sticky-top">
+            <thead class="thead-dark sticky-top" style="background-color: #1e2125; color: #c4d2b5">
                 <tr>
                     <th scope="col">Concept</th>
                     <th scope="col">Identity Certainty</th>
@@ -28,9 +28,13 @@
                     <td>{{ item.identity_certainty }}</td>
                     <td>{{ item.identity_reference }}</td>
                     <td>{{ item.comment }}</td>
-                    <td><img src="{{ item.image_url }}" style="width: 500px;"/></td>
+                    <td>
+                        <a href="{{ item.image_url }}" target="_blank">
+                            <img src="{{ item.image_url }}" style="width: 500px;"/>
+                        </a>
+                    </td>
                     <td>{{ item.upon }}</td>
-                    <td>{{ item.index_recorded_timestamp }}</td>
+                    <td>{{ item.recorded_timestamp }}</td>
                     <td>{{ item.video_sequence_name }}</td>
                 </tr>
                 {% endfor %}

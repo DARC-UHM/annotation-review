@@ -1,0 +1,9 @@
+body {
+    background-color: #2c3034;
+    color: #73d3b0;
+}
+
+table {
+    color: #73d3b0 !important;
+    --bs-table-striped-color: #73d3b0 !important;
+}
