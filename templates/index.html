@@ -6,66 +6,19 @@
     <link rel="stylesheet" href="/static/css/bootstrap.css" />
     <link rel="stylesheet" href="/static/css/style.css" />
 </head>
-<body class="text-center my-3 mx-5">
-    <h1>Image Review</h1>
-    <table class="table table-striped">
-            <thead class="thead-dark sticky-top" style="background-color: #1e2125; color: #c4d2b5">
-                <tr>
-                    <th scope="col">Timestamp/Video</th>
-                    <th scope="col">Info</th>
-                    <th scope="col">Image</th>
-                    <th scope="col">Comment</th>
-                </tr>
-            </thead>
-            <tbody class="text-start">
-                {% for item in data %}
-                <tr>
-                    <td>{{ item.recorded_timestamp }}<br>{{ item.video_sequence_name }}</td>
-                    <td>
-                        <div class="row">
-                            <div class="col">
-                                Concept:
-                            </div>
-                            <div class="col">
-                                <b>{{ item.concept }}</b><br>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col">
-                                ID Certainty:<br>
-                            </div>
-                            <div class="col">
-                                <b>{{ item.identity_certainty if item.identity_certainty else '-' }}</b><br>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col">
-                                ID Reference:<br>
-                            </div>
-                            <div class="col">
-                                <b>{{ item.identity_reference if item.identity_reference else '-' }}</b><br>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col">
-                                Upon:<br>
-                            </div>
-                            <div class="col">
-                                <b>{{ item.upon }}</b><br>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="text-center">
-                        <a href="{{ item.image_url }}" target="_blank">
-                            <img src="{{ item.image_url }}" style="width: 500px;"/>
-                        </a>
-                    </td>
-                    <td>{{ item.comment }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-    </table>
+<body id="index" class="text-center my-3 mx-5">
+    <img src="/static/img/logo_darc.png" width="30%" style="max-width: 300px; min-width: 200px"/>
+    <h1 class="mt-2">DARC Image Review</h1>
+    <form method="post" action="/view_images">
+        <label for="sequenceName">Enter a Sequence Name:</label><br>
+        <input type="text" id="sequenceName" name="sequenceName" placeholder="Hercules 1011715">
+        <br>
+        <input type="submit" value="Go" class="btn btn-success py-1 px-4 mt-3">
+    </form>
 
     <script src="/static/js/bootstrap.bundle.js"></script>
 </body>
 </html>
+
+<!-- list of all concepts in VARS http://hurlstor.soest.hawaii.edu:8083/kb/v1/concept -->
+<!-- list of all video sequences on HURLSTOR http://hurlstor.soest.hawaii.edu:8084/vam/v1/videosequences/names -->

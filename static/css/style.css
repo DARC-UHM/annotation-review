@@ -3,6 +3,10 @@ body {
     color: #73d3b0;
 }
 
+#index {
+    color: #c3ccdc;
+}
+
 table {
     color: #73d3b0 !important;
     --bs-table-striped-color: #73d3b0 !important;

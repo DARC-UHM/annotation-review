@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Image Review</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/static/css/bootstrap.css" />
+    <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body class="text-center my-3 mx-5">
+    <h1>Image Review</h1>
+    <table class="table table-striped">
+            <thead class="thead-dark sticky-top" style="background-color: #1e2125; color: #c4d2b5">
+                <tr>
+                    <th scope="col">Timestamp/Video</th>
+                    <th scope="col">Info</th>
+                    <th scope="col">Image</th>
+                    <th scope="col">Comment</th>
+                </tr>
+            </thead>
+            <tbody class="text-start">
+                {% for item in data %}
+                <tr>
+                    <td>{{ item.recorded_timestamp }}<br>{{ item.video_sequence_name }}</td>
+                    <td>
+                        <div class="row">
+                            <div class="col">
+                                Concept:
+                            </div>
+                            <div class="col">
+                                <b>{{ item.concept }}</b><br>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                ID Certainty:<br>
+                            </div>
+                            <div class="col">
+                                <b>{{ item.identity_certainty if item.identity_certainty else '-' }}</b><br>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                ID Reference:<br>
+                            </div>
+                            <div class="col">
+                                <b>{{ item.identity_reference if item.identity_reference else '-' }}</b><br>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                Upon:<br>
+                            </div>
+                            <div class="col">
+                                <b>{{ item.upon }}</b><br>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        <a href="{{ item.image_url }}" target="_blank">
+                            <img src="{{ item.image_url }}" style="width: 500px;"/>
+                        </a>
+                    </td>
+                    <td>{{ item.comment }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+    </table>
+
+    <script src="/static/js/bootstrap.bundle.js"></script>
+</body>
+</html>
