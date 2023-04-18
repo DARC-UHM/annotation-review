@@ -113,8 +113,7 @@ class ImageLoader:
 
             temp = get_association(record, 'upon')
             if temp:
-                code = temp['to_concept']
-                upon = translate_substrate_code(code) if translate_substrate_code(code) else code
+                upon = temp['to_concept']
 
             temp = get_association(record, 'comment')
             if temp:

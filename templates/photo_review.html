@@ -149,7 +149,7 @@
                             Guide Photo:
                         </div>
                         <div class="col">
-                            <input type="text" id="editGuidePhoto" name="editGuidePhoto">
+                            <select name="editGuidePhoto" id="editGuidePhoto"></select>
                         </div>
                     </div>
                 </div>
@@ -166,6 +166,7 @@
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/bootstrap.bundle.js"></script>
     <script>
+        const guidePhotoVals = ['1 best', '2 good', '3 okay', '']
         // get the annotation data and add it to the modal
         $(document).ready(function () {
             $('#editModal').on('show.bs.modal', function (e) {
@@ -175,8 +176,15 @@
                 $(this).find('#editIdRef').val(annotation.identity_reference);
                 $(this).find('#editUpon').val(annotation.upon);
                 $(this).find('#editComments').val(annotation.comments);
-                $(this).find('#editGuidePhoto').val(annotation.guide_photo);
-                console.log(annotation)
+
+                document.getElementById("editGuidePhoto").options.length = 0; // clear options
+                const guidePhotoSelect = $(this).find('#editGuidePhoto');
+                for (val of guidePhotoVals) { // append options back on with matching option selected
+                    const opt = $('<option/>', { value: val })
+                        .text(val)
+                        .prop('selected', annotation.guide_photo === val || val === '' && !annotation.guide_photo);
+                    opt.appendTo(guidePhotoSelect);
+                }
             });
         });
     </script>

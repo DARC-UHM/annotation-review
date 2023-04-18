@@ -20,6 +20,18 @@ thead, tbody, tfoot, tr, td, th {
     background-color: #222831;
 }
 
+.modal-content input {
+    background-color: #393E46;
+    color: white;
+    width: 300px;
+}
+
+.modal-content select {
+    background-color: #393E46;
+    color: white;
+    width: 300px;
+}
+
 .values {
     font-weight: 600;
 }
