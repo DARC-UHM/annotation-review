@@ -3,12 +3,21 @@ body {
     color: #73d3b0;
 }
 
-#index {
-    color: #c3ccdc;
-}
-
 table {
     color: #73d3b0 !important;
     --bs-table-striped-color: #73d3b0 !important;
     vertical-align: middle !important;
+}
+
+#index {
+    color: #c3ccdc;
+}
+
+#sequenceName {
+    width: 250px;
+}
+
+#goButton {
+    font-weight: 600;
+    font-size: 18px;
 }

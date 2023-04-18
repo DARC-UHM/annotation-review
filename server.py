@@ -2,6 +2,8 @@ import webbrowser
 from flask import Flask, render_template, request
 from jinja2 import Environment, FileSystemLoader
 
+from view_images import ImageLoader
+
 # initialize a flask object
 app = Flask(__name__)
 env = Environment(loader=FileSystemLoader("templates/"))
@@ -17,9 +19,9 @@ def index():
 
 @app.post("/view_images")
 def view_images():
-    print(request.values.get('sequenceName'))
+    image_loader = ImageLoader([request.values.get('sequenceName')])
     # return the rendered template
-    return render_template(images)
+    return render_template(images, data=image_loader.distilled_records)
 
 
 def open_browser():
