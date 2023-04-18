@@ -52,6 +52,7 @@ class ImageLoader:
             'concept',
             'identity-certainty',
             'identity-reference',
+            'guide-photo',
             'comment',
             'image_url',
             'upon',
@@ -78,6 +79,7 @@ class ImageLoader:
             # convert hyphens to underlines and remove excess data
             observation_uuid = record['observation_uuid']
             concept_name = record['concept']
+            guide_photo = None
             id_cert = None
             id_ref = None
             upon = None
@@ -100,16 +102,24 @@ class ImageLoader:
             temp = get_association(record, 'identity-certainty')
             if temp:
                 id_cert = temp['link_value']
+
             temp = get_association(record, 'identity-reference')
             if temp:
                 id_ref = temp['link_value']
+
+            temp = get_association(record, 'guide-photo')
+            if temp:
+                guide_photo = temp['to_concept']
+
             temp = get_association(record, 'upon')
             if temp:
                 code = temp['to_concept']
                 upon = translate_substrate_code(code) if translate_substrate_code(code) else code
+
             temp = get_association(record, 'comment')
             if temp:
                 comment = temp['link_value']
+
             if 'phylum' in concept_phylogeny[concept_name].keys():
                 phylum = concept_phylogeny[concept_name]['phylum']
             if 'subphylum' in concept_phylogeny[concept_name].keys():
@@ -153,6 +163,7 @@ class ImageLoader:
                 concept_name,
                 id_cert,
                 id_ref,
+                guide_photo,
                 comment,
                 url,
                 upon,
@@ -177,6 +188,7 @@ class ImageLoader:
                 'concept',
                 'identity-certainty',
                 'identity-reference',
+                'guide-photo',
                 'comment',
                 'image_url',
                 'upon',
@@ -227,6 +239,7 @@ class ImageLoader:
                 'concept': row['concept'],
                 'identity_certainty': row['identity-certainty'],
                 'identity_reference': row['identity-reference'],
+                'guide_photo': row['guide-photo'],
                 'comment': row['comment'],
                 'image_url': row['image_url'],
                 'upon': row['upon'],

@@ -62,6 +62,14 @@
                         </div>
                         <div class="row">
                             <div class="col">
+                                Guide Photo:<br>
+                            </div>
+                            <div class="col values">
+                                {{ annotation.guide_photo if annotation.guide_photo else '-' }}<br>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
                                 Timestamp:
                             </div>
                             <div class="col values">
@@ -89,7 +97,7 @@
         </table>
     </div>
     <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Edit Annotation</h5>
@@ -101,7 +109,7 @@
                             Concept:
                         </div>
                         <div class="col">
-                            cons
+                            <input type="text" id="editConceptName" name="editConceptName">
                         </div>
                     </div>
                     <div class="row">
@@ -109,7 +117,7 @@
                             ID Certainty:
                         </div>
                         <div class="col">
-                            cons
+                            <input type="text" id="editIdCert" name="editIdCert">
                         </div>
                     </div>
                     <div class="row">
@@ -117,7 +125,7 @@
                             ID Reference:
                         </div>
                         <div class="col">
-                            cons
+                            <input type="text" id="editIdRef" name="editIdRef">
                         </div>
                     </div>
                     <div class="row">
@@ -125,7 +133,7 @@
                             Upon:
                         </div>
                         <div class="col">
-                            cons
+                            <input type="text" id="editUpon" name="editUpon">
                         </div>
                     </div>
                     <div class="row">
@@ -133,7 +141,15 @@
                             Comments:
                         </div>
                         <div class="col">
-                            cons
+                            <input type="text" id="editComments" name="editComments">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            Guide Photo:
+                        </div>
+                        <div class="col">
+                            <input type="text" id="editGuidePhoto" name="editGuidePhoto">
                         </div>
                     </div>
                 </div>
@@ -141,7 +157,7 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <form action="/delivery/cancel" method="post">
                         <input type="hidden" id="cancelId" name="cancelId">
-                        <button class="btn btn-danger" type="submit">Save Changes</button>
+                        <button class="btn btn-success" type="submit">Save Changes</button>
                     </form>
                 </div>
             </div>
@@ -150,12 +166,19 @@
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/bootstrap.bundle.js"></script>
     <script>
-      // get the annotation data and add it to the modal
-      $(document).ready(function () {
-        $('#editModal').on('show.bs.modal', function (e) {
-          $(this).find('#cancelId').val($(e.relatedTarget).data('id'));
+        // get the annotation data and add it to the modal
+        $(document).ready(function () {
+            $('#editModal').on('show.bs.modal', function (e) {
+                const annotation = $(e.relatedTarget).data('id')
+                $(this).find('#editConceptName').val(annotation.concept);
+                $(this).find('#editIdCert').val(annotation.identity_certainty);
+                $(this).find('#editIdRef').val(annotation.identity_reference);
+                $(this).find('#editUpon').val(annotation.upon);
+                $(this).find('#editComments').val(annotation.comments);
+                $(this).find('#editGuidePhoto').val(annotation.guide_photo);
+                console.log(annotation)
+            });
         });
-      });
     </script>
 </body>
 </html>
