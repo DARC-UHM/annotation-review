@@ -17,7 +17,7 @@
                 </tr>
             </thead>
             <tbody class="text-start">
-                {% for item in data %}
+                {% for annotation in data %}
                 <tr>
                     <td class="ps-5">
                         <div class="row">
@@ -25,7 +25,7 @@
                                 Concept:
                             </div>
                             <div class="col values">
-                                {{ item.concept }}<br>
+                                {{ annotation.concept }}<br>
                             </div>
                         </div>
                         <div class="row">
@@ -33,7 +33,7 @@
                                 ID Certainty:<br>
                             </div>
                             <div class="col values">
-                                {{ item.identity_certainty if item.identity_certainty else '-' }}<br>
+                                {{ annotation.identity_certainty if annotation.identity_certainty else '-' }}<br>
                             </div>
                         </div>
                         <div class="row">
@@ -41,7 +41,7 @@
                                 ID Reference:<br>
                             </div>
                             <div class="col values">
-                                {{ item.identity_reference if item.identity_reference else '-' }}<br>
+                                {{ annotation.identity_reference if annotation.identity_reference else '-' }}<br>
                             </div>
                         </div>
                         <div class="row">
@@ -49,7 +49,7 @@
                                 Upon:<br>
                             </div>
                             <div class="col values">
-                                {{ item.upon if item.upon else '-' }}<br>
+                                {{ annotation.upon if annotation.upon else '-' }}<br>
                             </div>
                         </div>
                         <div class="row">
@@ -57,7 +57,7 @@
                                 Comments:<br>
                             </div>
                             <div class="col values">
-                                {{ item.comment if item.comment else '-' }}<br>
+                                {{ annotation.comment if annotation.comment else '-' }}<br>
                             </div>
                         </div>
                         <div class="row">
@@ -65,7 +65,7 @@
                                 Timestamp:
                             </div>
                             <div class="col values">
-                                {{ item.recorded_timestamp }}<br>
+                                {{ annotation.recorded_timestamp }}<br>
                             </div>
                         </div>
                         <div class="row">
@@ -73,14 +73,14 @@
                                 Video Sequence:
                             </div>
                             <div class="col values">
-                                {{ item.video_sequence_name }}<br>
+                                {{ annotation.video_sequence_name }}<br>
                             </div>
                         </div>
-                        <button type="button" class="editButton mt-2">Edit</button>
+                        <button type="button" data-bs-toggle="modal" data-id='{{ annotation | tojson }}' data-bs-target="#editModal" class="editButton mt-2">Edit</button>
                     </td>
                     <td class="text-center">
-                        <a href="{{ item.image_url }}" target="_blank">
-                            <img src="{{ item.image_url }}" style="width: 500px;"/>
+                        <a href="{{ annotation.image_url }}" target="_blank">
+                            <img src="{{ annotation.image_url }}" style="width: 500px;"/>
                         </a>
                     </td>
                 </tr>
@@ -88,6 +88,74 @@
             </tbody>
         </table>
     </div>
+    <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Annotation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col">
+                            Concept:
+                        </div>
+                        <div class="col">
+                            cons
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            ID Certainty:
+                        </div>
+                        <div class="col">
+                            cons
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            ID Reference:
+                        </div>
+                        <div class="col">
+                            cons
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            Upon:
+                        </div>
+                        <div class="col">
+                            cons
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            Comments:
+                        </div>
+                        <div class="col">
+                            cons
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form action="/delivery/cancel" method="post">
+                        <input type="hidden" id="cancelId" name="cancelId">
+                        <button class="btn btn-danger" type="submit">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/bootstrap.bundle.js"></script>
+    <script>
+      // get the annotation data and add it to the modal
+      $(document).ready(function () {
+        $('#editModal').on('show.bs.modal', function (e) {
+          $(this).find('#cancelId').val($(e.relatedTarget).data('id'));
+        });
+      });
+    </script>
 </body>
 </html>

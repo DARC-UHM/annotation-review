@@ -16,6 +16,10 @@ thead, tbody, tfoot, tr, td, th {
     border-bottom-color: #393E46 !important;
 }
 
+.modal {
+    background-color: #222831;
+}
+
 .values {
     font-weight: 600;
 }

@@ -48,6 +48,7 @@ class ImageLoader:
         Define dataframe for sorting data
         """
         annotation_df = pd.DataFrame(columns=[
+            'observation_uuid',
             'concept',
             'identity-certainty',
             'identity-reference',
@@ -75,6 +76,7 @@ class ImageLoader:
         # add the records to the dataframe
         for record in image_records:
             # convert hyphens to underlines and remove excess data
+            observation_uuid = record['observation_uuid']
             concept_name = record['concept']
             id_cert = None
             id_ref = None
@@ -94,7 +96,6 @@ class ImageLoader:
             subfamily = None
             genus = None
             species = None
-            url = ''
 
             temp = get_association(record, 'identity-certainty')
             if temp:
@@ -139,6 +140,7 @@ class ImageLoader:
                 species = concept_phylogeny[concept_name]['species']
 
             url = record['image_references'][0]['url']
+
             for i in range(1, len(record['image_references'])):
                 if '.png' in record['image_references'][i]['url']:
                     url = record['image_references'][i]['url']
@@ -147,6 +149,7 @@ class ImageLoader:
             url = url.replace('http://hurlstor.soest.hawaii.edu/imagearchive', 'https://hurlimage.soest.hawaii.edu')
 
             temp_df = pd.DataFrame([[
+                observation_uuid,
                 concept_name,
                 id_cert,
                 id_ref,
@@ -170,6 +173,7 @@ class ImageLoader:
                 genus,
                 species
             ]], columns=[
+                'observation_uuid',
                 'concept',
                 'identity-certainty',
                 'identity-reference',
@@ -219,6 +223,7 @@ class ImageLoader:
 
         for index, row in annotation_df.iterrows():
             self.distilled_records.append({
+                'observation_uuid': row['observation_uuid'],
                 'concept': row['concept'],
                 'identity_certainty': row['identity-certainty'],
                 'identity_reference': row['identity-reference'],

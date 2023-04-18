@@ -2,7 +2,7 @@ import webbrowser
 from flask import Flask, render_template, request
 from jinja2 import Environment, FileSystemLoader
 
-from view_images import ImageLoader
+from image_loader import ImageLoader
 
 # initialize a flask object
 app = Flask(__name__)
