@@ -1,16 +1,36 @@
 body {
-    background-color: #2c3034;
-    color: #73d3b0;
+    background-color: #222831;
+    color: #EEEEEE;
 }
 
 table {
-    color: #73d3b0 !important;
-    --bs-table-striped-color: #73d3b0 !important;
+    color: #EEEEEE !important;
+    --bs-table-striped-color: #EEEEEE !important;
     vertical-align: middle !important;
+    max-width: 1200px;
+    border-bottom: #393E46 !important;
 }
 
-#index {
-    color: #c3ccdc;
+thead, tbody, tfoot, tr, td, th {
+    border-bottom-width: 2px !important;
+    border-bottom-color: #393E46 !important;
+}
+
+.values {
+    font-weight: 600;
+}
+
+.editButton {
+    font-weight: 500;
+    color: #00ADB5;
+    text-decoration: none;
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+.editButton:hover {
+    color: #00c3cc;
 }
 
 #sequenceName {
