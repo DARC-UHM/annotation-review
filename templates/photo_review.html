@@ -17,7 +17,7 @@
                 </tr>
             </thead>
             <tbody class="text-start">
-                {% for annotation in data %}
+                {% for annotation in data.annotations %}
                 <tr>
                     <td class="ps-5">
                         <div class="row">
@@ -98,75 +98,79 @@
     </div>
     <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Edit Annotation</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <form action="/" method="post" autocomplete="off">
+                <div class="modal-content">
+                    <div class="modal-header text-center">
+                        <h5 class="modal-title mt-1 ms-4" style="font-weight: 600;">Edit Annotation</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-start">
+                        <div class="row pb-2">
+                            <div class="col-4 ms-4 ps-4 modal-label">
+                                Concept:
+                            </div>
+                            <div class="col">
+                                <input type="text" id="editConceptName" name="editConceptName">
+                            </div>
+                        </div>
+                        <div class="row pb-2">
+                            <div class="col-4 ms-4 ps-4 modal-label">
+                                ID Certainty:
+                            </div>
+                            <div class="col">
+                                <input type="text" id="editIdCert" name="editIdCert">
+                            </div>
+                        </div>
+                        <div class="row pb-2">
+                            <div class="col-4 ms-4 ps-4 modal-label">
+                                ID Reference:
+                            </div>
+                            <div class="col">
+                                <input type="text" id="editIdRef" name="editIdRef">
+                            </div>
+                        </div>
+                        <div class="row pb-2">
+                            <div class="col-4 ms-4 ps-4 modal-label">
+                                Upon:
+                            </div>
+                            <div class="col">
+                                <input type="text" id="editUpon" name="editUpon">
+                            </div>
+                        </div>
+                        <div class="row pb-2">
+                            <div class="col-4 ms-4 ps-4 modal-label">
+                                Comments:
+                            </div>
+                            <div class="col">
+                                <input type="text" id="editComments" name="editComments">
+                            </div>
+                        </div>
+                        <div class="row pb-2">
+                            <div class="col-4 ms-4 ps-4 modal-label">
+                                Guide Photo:
+                            </div>
+                            <div class="col">
+                                <select name="editGuidePhoto" id="editGuidePhoto"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+
+                            <input type="hidden" id="cancelId" name="cancelId">
+                            <button class="btn btn-success" type="submit">Save Changes</button>
+                    </div>
                 </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col">
-                            Concept:
-                        </div>
-                        <div class="col">
-                            <input type="text" id="editConceptName" name="editConceptName">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col">
-                            ID Certainty:
-                        </div>
-                        <div class="col">
-                            <input type="text" id="editIdCert" name="editIdCert">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col">
-                            ID Reference:
-                        </div>
-                        <div class="col">
-                            <input type="text" id="editIdRef" name="editIdRef">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col">
-                            Upon:
-                        </div>
-                        <div class="col">
-                            <input type="text" id="editUpon" name="editUpon">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col">
-                            Comments:
-                        </div>
-                        <div class="col">
-                            <input type="text" id="editComments" name="editComments">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col">
-                            Guide Photo:
-                        </div>
-                        <div class="col">
-                            <select name="editGuidePhoto" id="editGuidePhoto"></select>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <form action="/delivery/cancel" method="post">
-                        <input type="hidden" id="cancelId" name="cancelId">
-                        <button class="btn btn-success" type="submit">Save Changes</button>
-                    </form>
-                </div>
-            </div>
+            </form>
         </div>
     </div>
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/bootstrap.bundle.js"></script>
+    <script src="/static/js/autocomplete.js"></script>
     <script>
-        const guidePhotoVals = ['1 best', '2 good', '3 okay', '']
+        autocomplete(document.getElementById('editConceptName'), {{ data.concepts }});
+
+        const guidePhotoVals = ['1 best', '2 good', '3 okay', ''];
         // get the annotation data and add it to the modal
         $(document).ready(function () {
             $('#editModal').on('show.bs.modal', function (e) {

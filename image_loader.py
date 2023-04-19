@@ -1,6 +1,13 @@
 import requests
 import pandas as pd
-from util import *
+
+
+def get_association(annotation, link_name):
+    """ Obtains an association value from the annotation data structure """
+    for association in annotation['associations']:
+        if association['link_name'] == link_name:
+            return association
+    return None
 
 
 class ImageLoader:

@@ -1,4 +1,5 @@
 import webbrowser
+import requests
 from flask import Flask, render_template, request
 from jinja2 import Environment, FileSystemLoader
 
@@ -19,9 +20,14 @@ def index():
 
 @app.post("/view_images")
 def view_images():
+    # get images in sequence
     image_loader = ImageLoader([request.values.get('sequenceName')])
+    # get concept list from vars (for input validation)
+    with requests.get('http://hurlstor.soest.hawaii.edu:8083/kb/v1/concept') as r:
+        vars_concepts = r.json()
+    test = {'annotations': image_loader.distilled_records, 'concepts': vars_concepts}
     # return the rendered template
-    return render_template(images, data=image_loader.distilled_records)
+    return render_template(images, data=test)
 
 
 def open_browser():
