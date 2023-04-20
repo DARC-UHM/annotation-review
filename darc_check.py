@@ -8,7 +8,7 @@ from image_loader import ImageLoader
 app = Flask(__name__)
 env = Environment(loader=FileSystemLoader('templates/'))
 home = env.get_template('index.html')
-images = env.get_template('photo_review.html')
+images = env.get_template('internal_review.html')
 
 # get concept list from vars (for input validation)
 with requests.get('http://hurlstor.soest.hawaii.edu:8083/kb/v1/concept') as r:
