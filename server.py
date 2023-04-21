@@ -33,12 +33,18 @@ def view_images():
 @app.post('/update_annotation')
 def update_annotation():
     image_loader = ImageLoader([request.values.get('sequenceName')])
-    
-    print(request.values)
 
-    # get updated annotation from request
-    # delete old annotation
-    # push new annotation
+    updatedAnnotation = {
+        'observation_uuid': request.values.get('observation_uuid'),
+        'concept': request.values.get('editConceptName'),
+        'identity-certainty': request.values.get('editIdCert'),
+        'identity-reference': request.values.get('editIdRef'),
+        'upon': request.values.get('editUpon'),
+        'comment': request.values.get('editComments'),
+        'guide-photo': request.values.get('editGuidePhoto'),
+    }
+
+    updateAnnotation(updatedAnnotation)
 
     data = {'annotations': image_loader.distilled_records, 'concepts': vars_concepts, 'messages': 'Annotation updated!'}
     return render_template(images, data=data)
