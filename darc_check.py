@@ -15,6 +15,11 @@ with requests.get('http://hurlstor.soest.hawaii.edu:8083/kb/v1/concept') as r:
     vars_concepts = r.json()
 
 
+@app.route('/favicon.ico')
+def favicon():
+    return app.send_static_file('img/favicon.ico')
+
+
 @app.route('/')
 def index():
     # return the rendered template

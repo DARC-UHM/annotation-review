@@ -11,6 +11,11 @@ home = env.get_template('index.html')
 images = env.get_template('external_review.html')
 
 
+@app.route('/favicon.ico')
+def favicon():
+    return app.send_static_file('img/favicon.ico')
+
+
 @app.route('/')
 def index():
     # return the rendered template
