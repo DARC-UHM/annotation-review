@@ -1,6 +1,6 @@
 import requests
 import json
-from typing import Dict
+from typing import Dict, List
 from datetime import datetime
 
 
@@ -88,9 +88,9 @@ class Annosaurus(JWTAuthentication):
 
         url = "{}/annotations".format(self.base_url)
         r = requests.post(url, data=data, headers=headers)
-        # print(r)
-        # print(r.text)
-        # print(data)
+        print(r)
+        print(r.text)
+        print(data)
         return r.json()
 
         # return requests.post(url, data=data, headers=headers).json()
@@ -111,6 +111,23 @@ class Annosaurus(JWTAuthentication):
         headers = self._auth_header(jwt)
         return requests.post(url, data=association, headers=headers).json()
 
+    # this doesn't work :)
+    def update_annotation(self,
+                          annotation: Dict,
+                          client_secret: str = None,
+                          jwt: str = None) -> Dict:
+        jwt = self.authorize(client_secret, jwt)
+        url = "{}/annotations".format(self.base_url)
+        updated_annotation = {
+            "observation_uuid": annotation['observation_uuid'],
+            "concept": annotation['concept']
+        }
+        headers = self._auth_header(jwt)
+        r = requests.post(url, data=updated_annotation, headers=headers)
+        print(r)
+        print(r.text)
+        return r.json()
+
     def delete_annotation(self,
                           observation_uuid: str,
                           client_secret: str = None,
@@ -119,4 +136,3 @@ class Annosaurus(JWTAuthentication):
         headers = self._auth_header(jwt)
         url = "{}/observations/{}".format(self.base_url, observation_uuid)
         return requests.delete(url, headers=headers)
-

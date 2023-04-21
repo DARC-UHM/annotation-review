@@ -3,6 +3,8 @@ import requests
 from flask import Flask, render_template, request, redirect, url_for
 from jinja2 import Environment, FileSystemLoader
 from image_loader import ImageLoader
+from annosaurus import *
+from env.env import *
 
 # initialize a flask object
 app = Flask(__name__)
@@ -35,6 +37,39 @@ def view_images():
     return render_template(images, data=data)
 
 
+@app.post('/add_annotation')
+def add_annotation():
+    image_loader = ImageLoader(['Deep Discoverer 14040203'])
+    annosaurus = Annosaurus(ANNOSAURUS_URL)
+    '''
+    this doesn't work :)
+    annosaurus.update_annotation(
+        {
+            'observation_uuid': '5f41d4f8-62a1-464d-4f64-4b32c308de1e',
+            'concept': 'rob concept UPDATE',
+            'elapsed_time_millis': 4854851,
+            'recorded_date': '2021-11-29T13:18:17.851Z'
+        },
+        ANNOSAURUS_CLIENT_SECRET
+    )
+    '''
+    annosaurus.delete_annotation('5f41d4f8-62a1-464d-4f64-4b32c308de1e', ANNOSAURUS_CLIENT_SECRET)
+    '''
+    annosaurus.create_annotation(
+        video_reference_uuid='a6349903-d6c7-4c08-8343-f33fa06caa58',
+        concept='rob test concept',
+        observer='rob',
+        elapsed_time_millis=4854851,
+        recorded_timestamp=datetime.today(),
+        client_secret=ANNOSAURUS_CLIENT_SECRET
+    )
+    '''
+    data = {'annotations': image_loader.distilled_records}
+
+    return render_template(images, data=data)
+
+
+
 @app.post('/update_annotation')
 def update_annotation():
     image_loader = ImageLoader([request.values.get('sequenceName')])
@@ -49,7 +84,7 @@ def update_annotation():
         'guide-photo': request.values.get('editGuidePhoto'),
     }
 
-    updateAnnotation(updatedAnnotation)
+    # updateAnnotation(updatedAnnotation)
 
     data = {'annotations': image_loader.distilled_records, 'concepts': vars_concepts, 'messages': 'Annotation updated!'}
     return render_template(images, data=data)
