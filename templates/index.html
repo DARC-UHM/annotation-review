@@ -9,9 +9,9 @@
 <body id="index" class="text-center my-3 mx-5">
     <img src="/static/img/logo_darc.png" class="mt-4" width="30%" style="max-width: 300px; min-width: 200px"/>
     <h1 class="my-3">DARC Image Review</h1>
-    <form method="post" action="/view_images" class="mt-4">
+    <form method="get" action="/dive" class="mt-4">
         <label for="sequenceName" class="small">Enter a Sequence Name:</label><br>
-        <input type="text" id="sequenceName" name="sequenceName" placeholder="Hercules 1011715">
+        <input type="text" id="sequenceName" name="sequence" placeholder="Hercules 1011715">
         <br>
         <input type="submit" id="goButton" value="Go" class="btn btn-success py-1 px-5 mt-3">
     </form>

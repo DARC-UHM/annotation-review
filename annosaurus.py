@@ -111,19 +111,17 @@ class Annosaurus(JWTAuthentication):
         headers = self._auth_header(jwt)
         return requests.post(url, data=association, headers=headers).json()
 
-    # this doesn't work :)
     def update_annotation(self,
                           annotation: Dict,
                           client_secret: str = None,
                           jwt: str = None) -> Dict:
         jwt = self.authorize(client_secret, jwt)
-        url = "{}/annotations".format(self.base_url)
+        url = "{}/annotations/{}".format(self.base_url, annotation['observation_uuid'])
         updated_annotation = {
-            "observation_uuid": annotation['observation_uuid'],
             "concept": annotation['concept']
         }
         headers = self._auth_header(jwt)
-        r = requests.post(url, data=updated_annotation, headers=headers)
+        r = requests.put(url, data=updated_annotation, headers=headers)
         print(r)
         print(r.text)
         return r.json()

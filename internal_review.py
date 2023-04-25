@@ -28,15 +28,17 @@ def index():
     return render_template(home)
 
 
-@app.post('/view_images')
+@app.get('/dive')
 def view_images():
     # get images in sequence
-    image_loader = ImageLoader([request.values.get('sequenceName')])
+    sequence_name = request.args.get('sequence')
+    image_loader = ImageLoader([sequence_name.replace('%20', ' ')])
     data = {'annotations': image_loader.distilled_records, 'concepts': vars_concepts}
     # return the rendered template
     return render_template(images, data=data)
 
 
+""" FOR TESTING """
 @app.post('/add_annotation')
 def add_annotation():
     image_loader = ImageLoader(['Deep Discoverer 14040203'])
@@ -53,8 +55,8 @@ def add_annotation():
         ANNOSAURUS_CLIENT_SECRET
     )
     '''
-    annosaurus.delete_annotation('5f41d4f8-62a1-464d-4f64-4b32c308de1e', ANNOSAURUS_CLIENT_SECRET)
-    '''
+    # annosaurus.delete_annotation('5f41d4f8-62a1-464d-4f64-4b32c308de1e', ANNOSAURUS_CLIENT_SECRET)
+
     annosaurus.create_annotation(
         video_reference_uuid='a6349903-d6c7-4c08-8343-f33fa06caa58',
         concept='rob test concept',
@@ -63,31 +65,24 @@ def add_annotation():
         recorded_timestamp=datetime.today(),
         client_secret=ANNOSAURUS_CLIENT_SECRET
     )
-    '''
+
     data = {'annotations': image_loader.distilled_records}
 
     return render_template(images, data=data)
 
 
-
 @app.post('/update_annotation')
 def update_annotation():
-    image_loader = ImageLoader([request.values.get('sequenceName')])
+    annosaurus = Annosaurus(ANNOSAURUS_URL)
 
-    updatedAnnotation = {
+    updated_annotation = {
         'observation_uuid': request.values.get('observation_uuid'),
-        'concept': request.values.get('editConceptName'),
-        'identity-certainty': request.values.get('editIdCert'),
-        'identity-reference': request.values.get('editIdRef'),
-        'upon': request.values.get('editUpon'),
-        'comment': request.values.get('editComments'),
-        'guide-photo': request.values.get('editGuidePhoto'),
+        'concept': request.values.get('editConceptName')
     }
 
-    # updateAnnotation(updatedAnnotation)
+    annosaurus.update_annotation(annotation=updated_annotation, client_secret=ANNOSAURUS_CLIENT_SECRET)
 
-    data = {'annotations': image_loader.distilled_records, 'concepts': vars_concepts, 'messages': 'Annotation updated!'}
-    return render_template(images, data=data)
+    return redirect(f'dive?sequence={request.values.get("sequenceName")}')
 
 
 def open_browser():
