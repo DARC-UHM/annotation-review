@@ -97,7 +97,6 @@ class Annosaurus(JWTAuthentication):
         url = "{}/associations/{}".format(self.base_url, uuid)
         headers = self._auth_header(jwt)
         requests.delete(url, headers=headers)
-        print('Association deleted')
 
     def update_annotation(self,
                           observation_uuid: str,
@@ -105,13 +104,14 @@ class Annosaurus(JWTAuthentication):
                           client_secret: str = None,
                           jwt: str = None) -> str:
         possible_updates = ['identity-certainty', 'identity-reference', 'upon', 'comment', 'guide-photo']
-        update_str = None
+        update_str = ''
         jwt = self.authorize(client_secret, jwt)
 
         with requests.get(f'http://hurlstor.soest.hawaii.edu:8082/anno/v1/observations/{observation_uuid}') as r:
             if r.status_code != 200:
                 return 'Unable to connect'
             old_annotation = r.json()
+
             # check for concept name change
             if updated_annotation['concept'] != old_annotation['concept']:
                 url = "{}/annotations/{}".format(self.base_url, observation_uuid)
@@ -131,15 +131,57 @@ class Annosaurus(JWTAuthentication):
             # get list of new link_names
             link_names_to_update = []
             for association in possible_updates:
-                if updated_annotation[association] != '':
+                if updated_annotation[association] != '' or association in old_link_names:
                     link_names_to_update.append(association)
 
             for link_name in link_names_to_update:
+                old_association = \
+                    next((item for item in old_annotation['associations'] if item['link_name'] == link_name), None)
                 if link_name in old_link_names:
-                    # update the association
-                    update_str += f'Updated association {link_name}\n'
+                    if updated_annotation[link_name] == '':
+                        # delete the association
+                        self.delete_association(uuid=old_association["uuid"], client_secret=client_secret)
+                        update_str += f'Deleted association "{link_name}" UUID: {old_association["uuid"]}\n'
+                    else:
+                        # check if value actually changed
+                        if link_name == 'upon' or link_name == 'guide-photo':
+                            # 'upon' and 'guide-photo' use 'to_concept'
+                            if old_association['to_concept'] != updated_annotation[link_name]:
+                                # update the association
+                                new_association = {'to_concept': updated_annotation[link_name]}
+                                self.update_association(
+                                    uuid=old_association['uuid'],
+                                    association=new_association,
+                                    client_secret=client_secret
+                                )
+                                update_str += f'Updated association "{link_name}" UUID: {old_association["uuid"]}\n'
+                        else:
+                            # others use 'link_value'
+                            if old_association['link_value'] != updated_annotation[link_name]:
+                                # update the association
+                                new_association = {'link_value': updated_annotation[link_name]}
+                                self.update_association(
+                                    uuid=old_association['uuid'],
+                                    association=new_association,
+                                    client_secret=client_secret
+                                )
+                                update_str += f'Updated association "{link_name}" UUID: {old_association["uuid"]}\n'
                 else:
                     # create new association
-                    update_str += f'Added association {link_name}\n'
+                    to_concept = \
+                        updated_annotation[link_name] if link_name == 'upon' or link_name == 'guide-photo' else 'self'
+                    link_value = \
+                        'nil' if link_name == 'upon' or link_name == 'guide-photo' else updated_annotation[link_name]
+                    new_association = {
+                        'link_name': link_name,
+                        'to_concept': to_concept,
+                        'link_value': link_value
+                    }
+                    self.create_association(
+                        observation_uuid=observation_uuid,
+                        association=new_association,
+                        client_secret=client_secret
+                    )
+                    update_str += f'Added association "{link_name}"\n'
 
-        return update_str if update_str else 'No changes made'
+        print(update_str if update_str else 'No changes made')
