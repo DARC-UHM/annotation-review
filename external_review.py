@@ -1,6 +1,8 @@
 import webbrowser
 from flask import Flask, render_template, request, redirect, url_for
 from jinja2 import Environment, FileSystemLoader
+
+from image_loader import ImageLoader
 from review_image_loader import ReviewImageLoader
 from sequences import sequences
 
@@ -9,6 +11,7 @@ app = Flask(__name__)
 env = Environment(loader=FileSystemLoader('templates/'))
 home = env.get_template('index.html')
 images = env.get_template('external_review.html')
+err404 = env.get_template('404.html')
 
 
 @app.route('/favicon.ico')
@@ -43,6 +46,11 @@ def update_annotation():
 
     data = {'annotations': image_loader.distilled_records, 'messages': 'Annotation updated!'}
     return render_template(images, data=data)
+
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template(err404), 404
 
 
 def open_browser():

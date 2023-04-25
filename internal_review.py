@@ -1,5 +1,6 @@
 import webbrowser
-import requests
+from threading import Timer
+
 from flask import Flask, render_template, request, redirect, url_for
 from jinja2 import Environment, FileSystemLoader
 from image_loader import ImageLoader
@@ -11,6 +12,7 @@ app = Flask(__name__)
 env = Environment(loader=FileSystemLoader('templates/'))
 home = env.get_template('index.html')
 images = env.get_template('internal_review.html')
+err404 = env.get_template('404.html')
 
 # get concept list from vars (for input validation)
 with requests.get('http://hurlstor.soest.hawaii.edu:8083/kb/v1/concept') as r:
@@ -38,56 +40,6 @@ def view_images():
     return render_template(images, data=data)
 
 
-""" FOR TESTING """
-@app.post('/add_annotation')
-def add_annotation():
-    image_loader = ImageLoader(['Deep Discoverer 14040203'])
-    annosaurus = Annosaurus(ANNOSAURUS_URL)
-    '''
-    this doesn't work :)
-    annosaurus.update_annotation(
-        {
-            'observation_uuid': '5f41d4f8-62a1-464d-4f64-4b32c308de1e',
-            'concept': 'rob concept UPDATE',
-            'elapsed_time_millis': 4854851,
-            'recorded_date': '2021-11-29T13:18:17.851Z'
-        },
-        ANNOSAURUS_CLIENT_SECRET
-    )
-    '''
-    '''
-    annosaurus.create_annotation(
-        video_reference_uuid='a6349903-d6c7-4c08-8343-f33fa06caa58',
-        concept='rob test concept',
-        observer='rob',
-        elapsed_time_millis=4854851,
-        recorded_timestamp=datetime.today(),
-        client_secret=ANNOSAURUS_CLIENT_SECRET
-    )
-    
-    annosaurus.create_association(
-        observation_uuid='125e4bd4-25c4-44c0-fb68-32e24e39de1e',
-        association={
-            'link_name': 'test',
-            'to_concept': 'it\'s',
-            'link_value': 'WORKINGGG'
-        },
-        client_secret=ANNOSAURUS_CLIENT_SECRET
-    )
-    
-    
-    annosaurus.update_association(
-        uuid='1d6589f3-bc51-4dd2-796b-92fc173bde1e',
-        association={'link_value': 'Lets be serious'},
-        client_secret=ANNOSAURUS_CLIENT_SECRET
-    )
-    '''
-
-    data = {'annotations': image_loader.distilled_records}
-
-    return render_template(images, data=data)
-
-
 @app.post('/update_annotation')
 def update_annotation():
     annosaurus = Annosaurus(ANNOSAURUS_URL)
@@ -109,11 +61,16 @@ def update_annotation():
     return redirect(f'dive?sequence={request.values.get("sequenceName")}')
 
 
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template(err404), 404
+
+
 def open_browser():
     webbrowser.open_new('http://127.0.0.1:5000')
 
 
 # check to see if this is the main thread of execution
 if __name__ == '__main__':
-    # Timer(1, open_browser).start()
-    app.run(debug=True)
+    Timer(1, open_browser).start()
+    app.run()
