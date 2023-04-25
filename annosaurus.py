@@ -1,7 +1,6 @@
 import requests
 import json
-from typing import Dict, List
-from datetime import datetime
+from typing import Dict
 
 
 class AuthenticationError(Exception):
@@ -63,38 +62,6 @@ class Annosaurus(JWTAuthentication):
     def __init__(self, base_url: str):
         JWTAuthentication.__init__(self, base_url)
 
-    def create_annotation(self,
-                          video_reference_uuid: str,
-                          concept: str,
-                          observer: str,
-                          elapsed_time_millis: int = None,
-                          recorded_timestamp: datetime = None,
-                          timecode: str = None,
-                          client_secret: str = None,
-                          jwt: str = None) -> Dict:
-
-        jwt = self.authorize(client_secret, jwt)
-        headers = self._auth_header(jwt)
-        data = {"video_reference_uuid": video_reference_uuid,
-                "concept": concept,
-                "observer": observer}
-        if elapsed_time_millis:
-            data['elapsed_time_millis'] = elapsed_time_millis
-        elif recorded_timestamp:
-            data['recorded_timestamp'] = "{}".format(
-                recorded_timestamp.isoformat())
-        elif timecode:
-            data['timecode'] = timecode
-
-        url = "{}/annotations".format(self.base_url)
-        r = requests.post(url, data=data, headers=headers)
-        print(r)
-        print(r.text)
-        print(data)
-        return r.json()
-
-        # return requests.post(url, data=data, headers=headers).json()
-
     def create_association(self,
                            observation_uuid: str,
                            association: Dict,
@@ -111,13 +78,34 @@ class Annosaurus(JWTAuthentication):
         headers = self._auth_header(jwt)
         return requests.post(url, data=association, headers=headers).json()
 
+    def update_association(self,
+                           uuid: str,
+                           association: Dict,
+                           client_secret: str = None,
+                           jwt: str = None) -> Dict:
+
+        jwt = self.authorize(client_secret, jwt)
+        url = "{}/associations/{}".format(self.base_url, uuid)
+        headers = self._auth_header(jwt)
+        return requests.put(url, data=association, headers=headers).json()
+
+    def delete_association(self,
+                           uuid: str,
+                           client_secret: str = None,
+                           jwt: str = None) -> Dict:
+        jwt = self.authorize(client_secret, jwt)
+        url = "{}/associations/{}".format(self.base_url, uuid)
+        headers = self._auth_header(jwt)
+        requests.delete(url, headers=headers)
+        print('Association deleted')
+
     def update_annotation(self,
                           observation_uuid: str,
                           updated_annotation: Dict,
                           client_secret: str = None,
                           jwt: str = None) -> str:
         possible_updates = ['identity-certainty', 'identity-reference', 'upon', 'comment', 'guide-photo']
-        update_str = 'No changes made'
+        update_str = None
         jwt = self.authorize(client_secret, jwt)
 
         with requests.get(f'http://hurlstor.soest.hawaii.edu:8082/anno/v1/observations/{observation_uuid}') as r:
@@ -149,18 +137,9 @@ class Annosaurus(JWTAuthentication):
             for link_name in link_names_to_update:
                 if link_name in old_link_names:
                     # update the association
-                    pass
+                    update_str += f'Updated association {link_name}\n'
                 else:
                     # create new association
-                    pass
-                
-        return f'{update_str}'
+                    update_str += f'Added association {link_name}\n'
 
-    def delete_annotation(self,
-                          observation_uuid: str,
-                          client_secret: str = None,
-                          jwt: str = None):
-        jwt = self.authorize(client_secret, jwt)
-        headers = self._auth_header(jwt)
-        url = "{}/observations/{}".format(self.base_url, observation_uuid)
-        return requests.delete(url, headers=headers)
+        return update_str if update_str else 'No changes made'

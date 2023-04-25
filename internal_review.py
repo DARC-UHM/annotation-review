@@ -55,8 +55,7 @@ def add_annotation():
         ANNOSAURUS_CLIENT_SECRET
     )
     '''
-    # annosaurus.delete_annotation('5f41d4f8-62a1-464d-4f64-4b32c308de1e', ANNOSAURUS_CLIENT_SECRET)
-
+    '''
     annosaurus.create_annotation(
         video_reference_uuid='a6349903-d6c7-4c08-8343-f33fa06caa58',
         concept='rob test concept',
@@ -65,6 +64,24 @@ def add_annotation():
         recorded_timestamp=datetime.today(),
         client_secret=ANNOSAURUS_CLIENT_SECRET
     )
+    
+    annosaurus.create_association(
+        observation_uuid='125e4bd4-25c4-44c0-fb68-32e24e39de1e',
+        association={
+            'link_name': 'test',
+            'to_concept': 'it\'s',
+            'link_value': 'WORKINGGG'
+        },
+        client_secret=ANNOSAURUS_CLIENT_SECRET
+    )
+    
+    
+    annosaurus.update_association(
+        uuid='1d6589f3-bc51-4dd2-796b-92fc173bde1e',
+        association={'link_value': 'Lets be serious'},
+        client_secret=ANNOSAURUS_CLIENT_SECRET
+    )
+    '''
 
     data = {'annotations': image_loader.distilled_records}
 
