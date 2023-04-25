@@ -74,13 +74,20 @@ def add_annotation():
 @app.post('/update_annotation')
 def update_annotation():
     annosaurus = Annosaurus(ANNOSAURUS_URL)
-
     updated_annotation = {
-        'observation_uuid': request.values.get('observation_uuid'),
-        'concept': request.values.get('editConceptName')
+        'concept': request.values.get('editConceptName'),
+        'identity-certainty': request.values.get('editIdCert'),
+        'identity-reference': request.values.get('editIdRef'),
+        'upon': request.values.get('editUpon'),
+        'comment': request.values.get('editComments'),
+        'guide-photo': request.values.get('editGuidePhoto'),
     }
 
-    annosaurus.update_annotation(annotation=updated_annotation, client_secret=ANNOSAURUS_CLIENT_SECRET)
+    annosaurus.update_annotation(
+        observation_uuid=request.values.get('observation_uuid'),
+        updated_annotation=updated_annotation,
+        client_secret=ANNOSAURUS_CLIENT_SECRET
+    )
 
     return redirect(f'dive?sequence={request.values.get("sequenceName")}')
 

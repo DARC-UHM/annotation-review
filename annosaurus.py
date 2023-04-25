@@ -112,19 +112,49 @@ class Annosaurus(JWTAuthentication):
         return requests.post(url, data=association, headers=headers).json()
 
     def update_annotation(self,
-                          annotation: Dict,
+                          observation_uuid: str,
+                          updated_annotation: Dict,
                           client_secret: str = None,
-                          jwt: str = None) -> Dict:
+                          jwt: str = None) -> str:
+        possible_updates = ['identity-certainty', 'identity-reference', 'upon', 'comment', 'guide-photo']
+        update_str = 'No changes made'
         jwt = self.authorize(client_secret, jwt)
-        url = "{}/annotations/{}".format(self.base_url, annotation['observation_uuid'])
-        updated_annotation = {
-            "concept": annotation['concept']
-        }
-        headers = self._auth_header(jwt)
-        r = requests.put(url, data=updated_annotation, headers=headers)
-        print(r)
-        print(r.text)
-        return r.json()
+
+        with requests.get(f'http://hurlstor.soest.hawaii.edu:8082/anno/v1/observations/{observation_uuid}') as r:
+            if r.status_code != 200:
+                return 'Unable to connect'
+            old_annotation = r.json()
+            # check for concept name change
+            if updated_annotation['concept'] != old_annotation['concept']:
+                url = "{}/annotations/{}".format(self.base_url, observation_uuid)
+                update_str = 'Updated concept name\n'
+                new_name = {
+                    "concept": updated_annotation['concept']
+                }
+                headers = self._auth_header(jwt)
+                requests.put(url, data=new_name, headers=headers)
+
+            # get list of old association link_names that we can change
+            old_link_names = []
+            for old_association in old_annotation['associations']:
+                if old_association['link_name'] in possible_updates:
+                    old_link_names.append(old_association['link_name'])
+
+            # get list of new link_names
+            link_names_to_update = []
+            for association in possible_updates:
+                if updated_annotation[association] != '':
+                    link_names_to_update.append(association)
+
+            for link_name in link_names_to_update:
+                if link_name in old_link_names:
+                    # update the association
+                    pass
+                else:
+                    # create new association
+                    pass
+                
+        return f'{update_str}'
 
     def delete_annotation(self,
                           observation_uuid: str,
