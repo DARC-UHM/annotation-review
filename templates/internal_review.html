@@ -170,6 +170,15 @@
     <script>
         autocomplete(document.getElementById('editConceptName'), {{ data.concepts }});
 
+        // save scroll position
+        document.addEventListener("DOMContentLoaded", function(event) {
+            var scrollpos = localStorage.getItem('scrollpos');
+            if (scrollpos) window.scrollTo(0, scrollpos);
+        });
+        window.onbeforeunload = function(e) {
+            localStorage.setItem('scrollpos', window.scrollY);
+        };
+
         const guidePhotoVals = ['1 best', '2 good', '3 okay', ''];
         // get the annotation data and add it to the modal
         $(document).ready(function () {
