@@ -93,6 +93,13 @@ thead, tbody, tfoot, tr, td, th {
     color: #00c3cc;
 }
 
+.reviewer {
+    width: 400px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+
 #sequenceName {
     width: 250px;
 }
@@ -102,8 +109,8 @@ thead, tbody, tfoot, tr, td, th {
     font-size: 18px;
 }
 
-.reviewer {
-    width: 400px;
-    padding-left: 10px;
-    padding-right: 10px;
+#reviewerSubmit {
+    padding: 15px 40px;
+    font-weight: 600;
+    font-size: larger;
 }
