@@ -1,4 +1,6 @@
 flask
+gunicorn
 jinja2
 pandas
 requests
+
