@@ -7,7 +7,6 @@ table {
     color: #EEEEEE !important;
     --bs-table-striped-color: #EEEEEE !important;
     vertical-align: middle !important;
-    max-width: 1200px;
     border-bottom: #393E46 !important;
 }
 
@@ -101,4 +100,10 @@ thead, tbody, tfoot, tr, td, th {
 #goButton {
     font-weight: 600;
     font-size: 18px;
+}
+
+.reviewer {
+    width: 400px;
+    padding-left: 10px;
+    padding-right: 10px;
 }

@@ -33,26 +33,29 @@ class ReviewImageLoader:
         for annotation in response['annotations']:
             concept_name = annotation['concept']
             if annotation['image_references'] and concept_name[0].isupper():
-                if 'comment' not in annotation['associations']:
-                    break
-                image_records.append(annotation)
-                if concept_name not in concept_phylogeny.keys():
-                    # get the phylogeny from VARS kb
-                    concept_phylogeny[concept_name] = {}
-                    with requests.get(f'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/{concept_name}') \
-                            as vars_tax_res:
-                        if vars_tax_res.status_code == 200:
-                            # this get us to phylum
-                            vars_tree = \
-                                vars_tax_res.json()['children'][0]['children'][0]['children'][0]['children'][0]['children'][0]
-                            while 'children' in vars_tree.keys():
-                                if 'rank' in vars_tree.keys():  # sometimes it's not
+                match_name = False
+                for association in annotation['associations']:
+                    if association['link_name'] == 'comment' and self.reviewer_name in association['link_value']:
+                        match_name = True
+                if match_name:
+                    image_records.append(annotation)
+                    if concept_name not in concept_phylogeny.keys():
+                        # get the phylogeny from VARS kb
+                        concept_phylogeny[concept_name] = {}
+                        with requests.get(f'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/{concept_name}') \
+                                as vars_tax_res:
+                            if vars_tax_res.status_code == 200:
+                                # this get us to phylum
+                                vars_tree = \
+                                    vars_tax_res.json()['children'][0]['children'][0]['children'][0]['children'][0]['children'][0]
+                                while 'children' in vars_tree.keys():
+                                    if 'rank' in vars_tree.keys():  # sometimes it's not
+                                        concept_phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
+                                    vars_tree = vars_tree['children'][0]
+                                if 'rank' in vars_tree.keys():
                                     concept_phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
-                                vars_tree = vars_tree['children'][0]
-                            if 'rank' in vars_tree.keys():
-                                concept_phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
-                        else:
-                            print(f'Unable to find record for {annotation["concept"]}')
+                            else:
+                                print(f'Unable to find record for {annotation["concept"]}')
 
         """
         Define dataframe for sorting data

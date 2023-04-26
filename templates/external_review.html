@@ -9,12 +9,14 @@
 <body class="text-center my-3 mx-5">
     <h1>Image Review</h1>
     <span>Please click "Submit Review" at the bottom of the page to save your comments.</span>
+    <form action="/save_comments" method="post" autocomplete="off">
     <div class="col d-flex justify-content-center mt-3">
          <table class="table table-striped">
-            <thead class="thead-dark" style="background-color: #393E46; color: #EEEEEE">
+            <thead class="thead-dark sticky-top" style="background-color: #393E46; color: #EEEEEE">
                 <tr>
                     <th scope="col">Info</th>
                     <th scope="col">Image</th>
+                    <th scope="col">Comments</th>
                 </tr>
             </thead>
             <tbody class="text-start">
@@ -85,20 +87,25 @@
                                 {{ annotation.video_sequence_name }}<br>
                             </div>
                         </div>
-                      <label class="mt-2" for="reviewer">Reviewer comments:</label>
-                      <textarea id="reviewer" name="reviewer" rows="4" style="width: 100%;">
-                      </textarea>
                     </td>
                     <td class="text-center">
                         <a href="{{ annotation.image_url }}" target="_blank">
                             <img src="{{ annotation.image_url }}" style="width: 500px;"/>
                         </a>
                     </td>
+                    <td>
+                        <div class="col d-flex justify-content-center">
+                            <textarea class="reviewer" name="{{ annotation.observation_uuid }}" rows="9" placeholder="Enter comments"></textarea>
+                        </div>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+    <input type="hidden" name="reviewer_name" value="{{ data.reviewer }}">
+    <input type="submit" value="Submit Review">
+    </form>
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/bootstrap.bundle.js"></script>
     <script src="/static/js/autocomplete.js"></script>

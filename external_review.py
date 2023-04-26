@@ -1,3 +1,4 @@
+import json
 import webbrowser
 from flask import Flask, render_template, request, redirect, url_for
 from jinja2 import Environment, FileSystemLoader
@@ -34,18 +35,19 @@ def review(reviewer_name):
     return render_template(images, data=data)
 
 
-@app.post('/update_annotation')
-def update_annotation():
-    image_loader = ImageLoader([request.values.get('sequenceName')])
-    
-    print(request.values)
+@app.post('/save_comments')
+def save_comments():
+    reviewer_name = request.values.get('reviewer_name')
+    comments = {'reviewer_name': reviewer_name}
 
-    # get updated annotation from request
-    # delete old annotation
-    # push new annotation
+    for value in request.values:
+        comments[value] = request.values.get(value)
 
-    data = {'annotations': image_loader.distilled_records, 'messages': 'Annotation updated!'}
-    return render_template(images, data=data)
+    with open(f'comments/{reviewer_name.replace(" ", "_")}.comments', 'w') as file:
+        json.dump(comments, file)
+
+    reviewer_name = reviewer_name.replace(' ', '%20')
+    return redirect(f'/review/{reviewer_name}')
 
 
 @app.errorhandler(404)
