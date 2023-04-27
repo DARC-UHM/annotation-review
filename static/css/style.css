@@ -31,7 +31,7 @@ thead, tbody, tfoot, tr, td, th {
 
 ::-webkit-scrollbar-thumb:hover {
     background-color: #686869;
-    border-radius: 5px;
+    border-radius: 10px;
 }
 
 ::-webkit-scrollbar-corner {
@@ -90,6 +90,11 @@ thead, tbody, tfoot, tr, td, th {
     padding: 0;
 }
 
+.autocomplete {
+  position: relative;
+  display: inline-block;
+}
+
 .autocomplete-items {
     max-height: 600px;
     overflow: auto;
@@ -125,9 +130,13 @@ thead, tbody, tfoot, tr, td, th {
     padding-right: 10px;
 }
 
-
 #sequenceName {
     width: 250px;
+}
+
+#sequenceNameautocomplete-list {
+    width: 250px;
+    max-height: 300px;
 }
 
 #goButton {

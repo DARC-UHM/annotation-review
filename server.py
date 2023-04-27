@@ -18,6 +18,10 @@ err404 = env.get_template('404.html')
 with requests.get('http://hurlstor.soest.hawaii.edu:8083/kb/v1/concept') as r:
     vars_concepts = r.json()
 
+# get list of sequences from vars
+with requests.get('http://hurlstor.soest.hawaii.edu:8084/vam/v1/videosequences/names') as r:
+    video_sequences = r.json()
+
 
 @app.route('/favicon.ico')
 def favicon():
@@ -27,7 +31,7 @@ def favicon():
 @app.route('/')
 def index():
     # return the rendered template
-    return render_template(home)
+    return render_template(home, sequences=video_sequences)
 
 
 @app.get('/dive')
@@ -67,7 +71,7 @@ def page_not_found(e):
 
 
 def open_browser():
-    webbrowser.open_new('http://127.0.0.1:8000')
+    #webbrowser.open_new('http://127.0.0.1:8000')
     print('\n\033[1;32;48mApplication live. Press CTRL + C to stop.\033[1;37;0m\n')
 
 

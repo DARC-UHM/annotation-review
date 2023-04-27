@@ -9,16 +9,33 @@
 <body id="index" class="text-center my-3 mx-5">
     <img src="/static/img/logo_darc.png" class="mt-4" width="30%" style="max-width: 300px; min-width: 200px"/>
     <h1 class="my-3">DARC Image Review</h1>
-    <form method="get" action="/dive" class="mt-4">
+    <form method="get" action="/dive" >
         <label for="sequenceName" class="small">Enter a Sequence Name:</label><br>
-        <input type="text" id="sequenceName" name="sequence" placeholder="Hercules 1011715">
+        <div class="autocomplete">
+            <input type="text" id="sequenceName" name="sequence" placeholder="Hercules 1011715" autocomplete="off">
+        </div>
         <br>
-        <input type="submit" id="goButton" value="Go" class="btn btn-success py-1 px-5 mt-3">
+        <input type="submit" id="goButton" value="Go" class="btn btn-success py-1 px-5 mt-3" disabled>
     </form>
 
     <script src="/static/js/bootstrap.bundle.js"></script>
+    <script src="/static/js/autocomplete.js"></script>
+    <script>
+        sequenceNameInput = document.getElementById('sequenceName')
+        autocomplete(sequenceNameInput, {{ sequences }});
+
+        function checkSequence() {
+            if ({{ sequences }}.includes(sequenceNameInput.value)) {
+                console.log('enabled')
+                document.getElementById('goButton').disabled = false;
+            } else {
+                console.log('disabled')
+                document.getElementById('goButton').disabled = true;
+            }
+        }
+
+        sequenceNameInput.addEventListener('input', checkSequence);
+        document.getElementById('index').addEventListener('click', checkSequence);
+    </script>
 </body>
 </html>
-
-<!-- list of all concepts in VARS http://hurlstor.soest.hawaii.edu:8083/kb/v1/concept -->
-<!-- list of all video sequences on HURLSTOR http://hurlstor.soest.hawaii.edu:8084/vam/v1/videosequences/names -->
