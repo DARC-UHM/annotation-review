@@ -16,6 +16,14 @@ thead, tbody, tfoot, tr, td, th {
     border-bottom-color: #393E46 !important;
 }
 
+ul {
+    padding-left: 0;
+}
+
+li {
+    list-style-type: none;
+}
+
 ::-webkit-scrollbar {
     width: 12px;
 }
@@ -130,7 +138,35 @@ thead, tbody, tfoot, tr, td, th {
     padding-right: 10px;
 }
 
-#sequenceName {
+.plusButton {
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    border: 0;
+    color: #eeeeee;
+}
+
+.plusButton:hover {
+    color: white;
+}
+
+.xButton {
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    border: 0;
+    color: #41464f;
+}
+
+.xButton:hover {
+    color: #585e67;
+}
+
+#index input {
+    border-radius: 3px;
+}
+
+.sequenceName {
     width: 250px;
 }
 

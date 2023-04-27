@@ -10,30 +10,74 @@
     <img src="/static/img/logo_darc.png" class="mt-4" width="30%" style="max-width: 300px; min-width: 200px"/>
     <h1 class="my-3">DARC Image Review</h1>
     <form method="get" action="/dive" >
-        <label for="sequenceName" class="small">Enter a Sequence Name:</label><br>
-        <div class="autocomplete">
-            <input type="text" id="sequenceName" name="sequence" placeholder="Hercules 1011715" autocomplete="off">
-        </div>
+        <label id="seqNameLabel" for="sequence1" class="small">Sequence Name:</label><br>
+        <ul id="sequenceList" class="ms-2">
+            <li>
+                <div class="autocomplete ms-4 mt-1">
+                    <input type="text" id="sequence1" name="sequence1" class="sequenceName" placeholder="Hercules 1011715" autocomplete="off">
+                </div>
+                <button id="plusButton1" type="button" class="plusButton">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
+                      <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                    </svg>
+                </button>
+            </li>
+        </ul>
         <br>
         <input type="submit" id="goButton" value="Go" class="btn btn-success py-1 px-5 mt-3" disabled>
     </form>
-
+    <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/bootstrap.bundle.js"></script>
     <script src="/static/js/autocomplete.js"></script>
     <script>
-        sequenceNameInput = document.getElementById('sequenceName')
-        autocomplete(sequenceNameInput, {{ sequences }});
+        let numSequences = 1;
+        const sequenceNameLabel = $('#seqNameLabel');
+        let sequenceNameInput = document.getElementById('sequence1');
+        let plusButton = document.getElementById('plusButton1');
 
         function checkSequence() {
-            if ({{ sequences }}.includes(sequenceNameInput.value)) {
-                console.log('enabled')
-                document.getElementById('goButton').disabled = false;
-            } else {
-                console.log('disabled')
-                document.getElementById('goButton').disabled = true;
+            let disabled = false;
+            for (let i = 1; i <= numSequences; i++) {
+                if (!{{ sequences }}.includes($(`#sequence${i}`)[0].value)) {
+                    disabled = true;
+                }
             }
+            $('#goButton')[0].disabled = disabled;
         }
 
+        function plusClick() {
+            sequenceNameLabel.innerText = 'Sequence Names:';
+            numSequences++;
+            plusButton.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
+                  <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                </svg>
+            `;
+            plusButton.classList.remove('plusButton');
+            plusButton.classList.add('xButton');
+
+
+            $('#sequenceList').append(`
+                    <li>
+                        <div class="autocomplete ms-4 mt-1">
+                            <input type="text" id="sequence${numSequences}" name="sequence${numSequences}" class="sequenceName" placeholder="Hercules 1011715" autocomplete="off">
+                        </div>
+                        <button id="plusButton${numSequences}" type="button" class="plusButton">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
+                              <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                            </svg>
+                        </button>
+                    </li>
+                `);
+
+            plusButton = document.getElementById(`plusButton${numSequences}`);
+            plusButton.addEventListener('click', plusClick);
+            document.getElementById(`sequence${numSequences}`).addEventListener('input', checkSequence);
+        }
+
+        autocomplete(sequenceNameInput, {{ sequences }});
+
+        plusButton.addEventListener('click', plusClick);
         sequenceNameInput.addEventListener('input', checkSequence);
         document.getElementById('index').addEventListener('click', checkSequence);
     </script>
