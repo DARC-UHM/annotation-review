@@ -38,6 +38,8 @@ def index():
 def view_images():
     # get images in sequence
     sequence_name = request.args.get('sequence')
+    if sequence_name not in video_sequences:
+        return render_template(err404, err='dive'), 404
     image_loader = ImageLoader([sequence_name.replace('%20', ' ')])
     data = {'annotations': image_loader.distilled_records, 'concepts': vars_concepts}
     # return the rendered template
@@ -67,7 +69,7 @@ def update_annotation():
 
 @app.errorhandler(404)
 def page_not_found(e):
-    return render_template(err404), 404
+    return render_template(err404, err=''), 404
 
 
 def open_browser():
