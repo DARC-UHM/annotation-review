@@ -171,6 +171,7 @@
     <script src="/static/js/autocomplete.js"></script>
     <script>
         autocomplete(document.getElementById('editConceptName'), {{ data.concepts }});
+        autocomplete(document.getElementById('editUpon'), {{ data.concepts }});
 
         // save scroll position
         document.addEventListener("DOMContentLoaded", function(event) {

@@ -68,8 +68,10 @@ def page_not_found(e):
 
 def open_browser():
     webbrowser.open_new('http://127.0.0.1:8000')
+    print('\n\033[1;32;48mApplication live. Press CTRL + C to stop.\033[1;37;0m\n')
 
 
+print('\nLaunching application...')
 Timer(1, open_browser).start()
 
 # check to see if this is the main thread of execution
