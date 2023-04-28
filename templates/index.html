@@ -52,7 +52,6 @@
 
         function xClick(num) {
             $(`#seqList${num}`)[0].remove();
-            console.log(`sequence ${num} removed`);
         }
 
         function nextDive(inputDive) {
@@ -85,7 +84,6 @@
                     </div>
                 `);
             $(`#sequence${numSequences}`).val(nextDive(inputDive));
-            console.log(`added seq ${numSequences}`);
 
             const currentNum = numSequences;
             $(`#xButton${numSequences}`).on('click', () => xClick(currentNum));
