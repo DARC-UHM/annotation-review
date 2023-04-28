@@ -37,10 +37,12 @@ def index():
 @app.get('/dive')
 def view_images():
     # get images in sequence
-    sequence_name = request.args.get('sequence')
+    sequence_name = request.args.get('sequence1')
     if sequence_name not in video_sequences:
         return render_template(err404, err='dive'), 404
     image_loader = ImageLoader([sequence_name.replace('%20', ' ')])
+    if len(image_loader.distilled_records) < 1:
+        return render_template(err404, err='pics'), 404
     data = {'annotations': image_loader.distilled_records, 'concepts': vars_concepts}
     # return the rendered template
     return render_template(images, data=data)
@@ -74,7 +76,7 @@ def page_not_found(e):
 
 def open_browser():
     #webbrowser.open_new('http://127.0.0.1:8000')
-    print('\n\033[1;32;48mApplication live. Press CTRL + C to stop.\033[1;37;0m\n')
+    print('\n\033[1;32;48mApplication running. Press CTRL + C to stop.\033[1;37;0m\n')
 
 
 print('\nLaunching application...')

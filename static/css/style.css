@@ -180,8 +180,6 @@ li {
     font-size: 18px;
 }
 
-#reviewerSubmit {
-    padding: 15px 40px;
-    font-weight: 600;
-    font-size: larger;
+#sequenceList {
+    flex-wrap: nowrap;
 }
