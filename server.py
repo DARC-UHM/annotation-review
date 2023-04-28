@@ -11,7 +11,7 @@ from env.env import *
 app = Flask(__name__)
 env = Environment(loader=FileSystemLoader('templates/'))
 home = env.get_template('index.html')
-images = env.get_template('internal_review.html')
+images = env.get_template('image_review.html')
 err404 = env.get_template('404.html')
 
 # get concept list from vars (for input validation)

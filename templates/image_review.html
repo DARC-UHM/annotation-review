@@ -14,14 +14,14 @@
         Total Images: {{ data.num_records }}
     </div>
     <div class="col d-flex justify-content-center mt-3">
-         <table class="table table-striped">
+        <table class="table table-striped">
             <thead class="thead-dark" style="background-color: #393E46; color: #EEEEEE">
                 <tr>
                     <th scope="col">Info</th>
                     <th scope="col">Image</th>
                 </tr>
             </thead>
-            <tbody class="text-start">
+            <tbody id="annotationTable" class="text-start">
                 {% for annotation in data.annotations %}
                 <tr>
                     <td class="ps-5">
@@ -101,6 +101,18 @@
             </tbody>
         </table>
     </div>
+    <div class="pagination-container">
+        <button class="pagination-button" id="prev-button" title="Previous page" aria-label="Previous page">
+            &lt;
+        </button>
+
+        <div id="pagination-numbers">
+        </div>
+
+        <button class="pagination-button" id="next-button" title="Next page" aria-label="Next page">
+            &gt;
+        </button>
+    </div>
     <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <form action="/update_annotation" method="post" autocomplete="off">
@@ -173,19 +185,117 @@
     <script src="/static/js/bootstrap.bundle.js"></script>
     <script src="/static/js/autocomplete.js"></script>
     <script>
+        const paginationNumbers = document.getElementById('pagination-numbers');
+        const paginatedList = document.getElementById('annotationTable');
+        const tableItems = paginatedList.querySelectorAll('tr');
+        const nextButton = document.getElementById('next-button');
+        const prevButton = document.getElementById('prev-button');
+        const guidePhotoVals = ['1 best', '2 good', '3 okay', ''];
+
+        const paginationLimit = 25;
+        const pageCount = Math.ceil(tableItems.length / paginationLimit);
+        let currentPage;
+
+        const appendPageNumber = (index) => {
+            const pageNumber = document.createElement('button');
+            pageNumber.className = 'pagination-number';
+            pageNumber.innerHTML = index;
+            pageNumber.setAttribute('page-index', index);
+            pageNumber.setAttribute('aria-label', 'Page ' + index);
+            paginationNumbers.appendChild(pageNumber);
+        };
+
+        const getPaginationNumbers = () => {
+            for (let i = 1; i <= pageCount; i++) {
+                appendPageNumber(i);
+            }
+        };
+
+        const handleActivePageNumber = () => {
+            document.querySelectorAll('.pagination-number').forEach((button) => {
+                button.classList.remove('active');
+
+                const pageIndex = Number(button.getAttribute('page-index'));
+                if (pageIndex === currentPage) {
+                  button.classList.add('active');
+                }
+            });
+        };
+
+        const setCurrentPage = (pageNum) => {
+            const prevRange = (pageNum - 1) * paginationLimit;
+            const currRange = pageNum * paginationLimit;
+            currentPage = pageNum;
+
+            handleActivePageNumber();
+            handlePageButtonsStatus();
+
+            tableItems.forEach((item, index) => {
+                item.style.visibility = 'collapse';
+                if (index >= prevRange && index < currRange) {
+                    item.style.visibility = '';
+                }
+            });
+        };
+
+        const disableButton = (button) => {
+            button.classList.add('disabled');
+            button.setAttribute('disabled', true);
+        };
+        const enableButton = (button) => {
+            button.classList.remove('disabled');
+            button.removeAttribute('disabled');
+        };
+        const handlePageButtonsStatus = () => {
+            if (currentPage === 1) {
+                disableButton(prevButton);
+            } else {
+                enableButton(prevButton);
+            }
+            if (pageCount === currentPage) {
+                disableButton(nextButton);
+            } else {
+                enableButton(nextButton);
+            }
+        };
+
         autocomplete(document.getElementById('editConceptName'), {{ data.concepts }});
         autocomplete(document.getElementById('editUpon'), {{ data.concepts }});
 
         // save scroll position
-        document.addEventListener("DOMContentLoaded", function(event) {
-            var scrollpos = localStorage.getItem('scrollpos');
+        document.addEventListener('DOMContentLoaded', function(event) {
+            let scrollpos = localStorage.getItem('scrollpos');
             if (scrollpos) window.scrollTo(0, scrollpos);
+
         });
+
+        // set up pagination
+        window.addEventListener("load", () => {
+            getPaginationNumbers();
+            setCurrentPage(1);
+
+            prevButton.addEventListener("click", () => {
+                setCurrentPage(currentPage - 1);
+            });
+
+            nextButton.addEventListener("click", () => {
+                setCurrentPage(currentPage + 1);
+            });
+
+            document.querySelectorAll('.pagination-number').forEach((button) => {
+                const pageIndex = Number(button.getAttribute('page-index'));
+                if (pageIndex) {
+                    button.addEventListener("click", () => {
+                        setCurrentPage(pageIndex);
+                    });
+                }
+            });
+        });
+
         window.onbeforeunload = function(e) {
             localStorage.setItem('scrollpos', window.scrollY);
         };
 
-        const guidePhotoVals = ['1 best', '2 good', '3 okay', ''];
         // get the annotation data and add it to the modal
         $(document).ready(function () {
             $('#editModal').on('show.bs.modal', function (e) {
