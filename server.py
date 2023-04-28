@@ -37,14 +37,20 @@ def index():
 @app.get('/dive')
 def view_images():
     # get images in sequence
-    sequence_name = request.args.get('sequence1')
-    if sequence_name not in video_sequences:
-        return render_template(err404, err='dive'), 404
-    image_loader = ImageLoader([sequence_name.replace('%20', ' ')])
+    sequences = []
+    for key, val in request.args.items():
+        sequences.append(val)
+    for sequence_name in sequences:
+        if sequence_name not in video_sequences:
+            return render_template(err404, err='dive'), 404
+    image_loader = ImageLoader(sequences)
     if len(image_loader.distilled_records) < 1:
         return render_template(err404, err='pics'), 404
-    data = {'annotations': image_loader.distilled_records, 'concepts': vars_concepts}
-    # return the rendered template
+    data = {
+        'annotations': image_loader.distilled_records,
+        'concepts': vars_concepts,
+        'num_records': len(image_loader.distilled_records)
+    }
     return render_template(images, data=data)
 
 
