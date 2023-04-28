@@ -170,7 +170,7 @@ li {
     width: 250px;
 }
 
-#sequenceNameautocomplete-list {
+#index .autocomplete-items {
     width: 250px;
     max-height: 300px;
 }

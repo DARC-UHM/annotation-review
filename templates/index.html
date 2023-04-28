@@ -30,12 +30,13 @@
             </svg>
         </button>
         <br>
-        <input type="submit" id="goButton" value="Go" class="btn btn-success py-1 px-5 mt-2" disabled>
+        <input type="submit" id="goButton" value="Go" class="btn btn-success py-1 px-5 mt-4 mb-5" disabled>
     </form>
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/bootstrap.bundle.js"></script>
     <script src="/static/js/autocomplete.js"></script>
     <script>
+        const sequences = {{ sequences }};
         let numSequences = 1;
         let sequenceNameInput = $('#sequence1');
 
@@ -54,8 +55,14 @@
             console.log(`sequence ${num} removed`);
         }
 
+        function nextDive(inputDive) {
+            let index = sequences.indexOf(inputDive);
+            return index < 0 ? '' : sequences[index + 1];
+        }
+
         function plusClick() {
             $('#seqNameLabel')[0].innerText = 'Sequence Names:';
+            const inputDive = $(`#sequence${numSequences}`).val();
             numSequences++;
 
             $('#sequenceList').append(`
@@ -77,15 +84,16 @@
                         </div>
                     </div>
                 `);
-            console.log(`added seq ${numSequences}`)
+            $(`#sequence${numSequences}`).val(nextDive(inputDive));
+            console.log(`added seq ${numSequences}`);
 
             const currentNum = numSequences;
             $(`#xButton${numSequences}`).on('click', () => xClick(currentNum));
             $(`#sequence${numSequences}`).on('input', checkSequence);
-            autocomplete($(`#sequence${numSequences}`)[0], {{ sequences }});
+            autocomplete($(`#sequence${numSequences}`)[0], sequences);
         }
 
-        autocomplete(sequenceNameInput[0], {{ sequences }});
+        autocomplete(sequenceNameInput[0], sequences);
 
         $('#plusButton').on('click', plusClick);
         sequenceNameInput.on('input', checkSequence);
