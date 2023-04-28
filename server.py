@@ -77,7 +77,7 @@ def page_not_found(e):
 
 
 def open_browser():
-    #webbrowser.open_new('http://127.0.0.1:8000')
+    webbrowser.open_new('http://127.0.0.1:8000')
     print('\n\033[1;32;48mApplication running. Press CTRL + C to stop.\033[1;37;0m\n')
 
 

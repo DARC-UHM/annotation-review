@@ -7,29 +7,29 @@
     <link rel="stylesheet" href="/static/css/style.css" />
 </head>
 <body id="index" class="text-center my-3 mx-5">
-    <img src="/static/img/logo_darc.png" class="mt-4" width="30%" style="max-width: 300px; min-width: 200px"/>
+    <img src="/static/img/logo_darc.png" class="mt-4" width="30%" style="max-width: 300px; min-width: 200px; pointer-events: none;" alt="DARC logo"/>
     <h1 class="my-3">DARC Image Review</h1>
     <form method="get" action="/dive" >
-        <label id="seqNameLabel" for="sequence1" class="small mb-2">Sequence Name:</label><br>
         <div id="sequenceList" class="ms-2">
             <div id="seqList1">
                 <div class="row d-inline-flex">
                     <div class="col-1"></div>
                     <div class="col-10 p-0">
+                        <label id="seqNameLabel" for="sequence1" class="small mb-2">Sequence Name:</label><br>
                         <div class="autocomplete">
                             <input type="text" id="sequence1" name="sequence1" class="sequenceName" placeholder="Hercules 1011715" autocomplete="off">
                         </div>
                     </div>
-                    <div class="col-1"></div>
+                    <div class="col-1 ps-0 mt-auto">
+                        <button id="plusButton" type="button" class="plusButton">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
+                              <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-        <button id="plusButton" type="button" class="plusButton">
-            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
-              <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
-            </svg>
-        </button>
-        <br>
         <input type="submit" id="goButton" value="Go" class="btn btn-success py-1 px-5 mt-4 mb-5" disabled>
     </form>
     <script src="/static/js/jquery.min.js"></script>

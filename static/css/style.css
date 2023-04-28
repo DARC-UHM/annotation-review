@@ -89,15 +89,6 @@ li {
     font-weight: 600;
 }
 
-.editButton {
-    font-weight: 500;
-    color: #00ADB5;
-    text-decoration: none;
-    background: transparent;
-    border: none;
-    padding: 0;
-}
-
 .autocomplete {
   position: relative;
   display: inline-block;
@@ -128,6 +119,16 @@ li {
     color: #ffffff;
 }
 
+.editButton {
+    font-weight: 500;
+    color: #00ADB5;
+    text-decoration: none;
+    background: transparent;
+    border: none;
+    padding: 0;
+    transition: 0.2s;
+}
+
 .editButton:hover {
     color: #00c3cc;
 }
@@ -143,11 +144,12 @@ li {
     margin: 0;
     background: transparent;
     border: 0;
-    color: #eeeeee;
+    color: #4c525d;
+    transition: 0.2s;
 }
 
 .plusButton:hover {
-    color: white;
+    color: #dddddd;
 }
 
 .xButton {
@@ -160,6 +162,7 @@ li {
 
 .xButton:hover {
     color: #585e67;
+    transition: 0.2s;
 }
 
 .pagination-container {
