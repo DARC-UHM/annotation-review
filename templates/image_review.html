@@ -11,94 +11,16 @@
         <h1>Image Review</h1>
     </a>
     <div>
-        Total Images: {{ data.num_records }}
+        Total Images: <span id="annotationCount"></span>
     </div>
     <div class="col d-flex justify-content-center mt-3">
-        <table class="table table-striped">
+        <table id="annotationTable" class="table table-striped">
             <thead class="thead-dark" style="background-color: #393E46; color: #EEEEEE">
                 <tr>
                     <th scope="col">Info</th>
                     <th scope="col">Image</th>
                 </tr>
             </thead>
-            <tbody id="annotationTable" class="text-start">
-                {% for annotation in data.annotations %}
-                <tr>
-                    <td class="ps-5">
-                        <div class="row">
-                            <div class="col">
-                                Concept:
-                            </div>
-                            <div class="col values">
-                                {{ annotation.concept }}<br>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col">
-                                ID Certainty:<br>
-                            </div>
-                            <div class="col values">
-                                {{ annotation.identity_certainty if annotation.identity_certainty else '-' }}<br>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col">
-                                ID Reference:<br>
-                            </div>
-                            <div class="col values">
-                                {{ annotation.identity_reference if annotation.identity_reference else '-' }}<br>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col">
-                                Upon:<br>
-                            </div>
-                            <div class="col values">
-                                {{ annotation.upon if annotation.upon else '-' }}<br>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col">
-                                Comments:<br>
-                            </div>
-                            <div class="col values">
-                                {{ annotation.comment if annotation.comment else '-' }}<br>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col">
-                                Guide Photo:<br>
-                            </div>
-                            <div class="col values">
-                                {{ annotation.guide_photo if annotation.guide_photo else '-' }}<br>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col">
-                                Timestamp:
-                            </div>
-                            <div class="col values">
-                                {{ annotation.recorded_timestamp }}<br>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col">
-                                Video Sequence:
-                            </div>
-                            <div class="col values">
-                                {{ annotation.video_sequence_name }}<br>
-                            </div>
-                        </div>
-                        <button type="button" data-bs-toggle="modal" data-id='{{ annotation | tojson }}' data-bs-target="#editModal" class="editButton mt-2">Edit</button>
-                    </td>
-                    <td class="text-center">
-                        <a href="{{ annotation.image_url }}" target="_blank">
-                            <img src="{{ annotation.image_url }}" style="width: 500px;"/>
-                        </a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
         </table>
     </div>
     <div class="pagination-container">
@@ -186,14 +108,14 @@
     <script src="/static/js/autocomplete.js"></script>
     <script>
         const paginationNumbers = document.getElementById('pagination-numbers');
-        const paginatedList = document.getElementById('annotationTable');
-        const tableItems = paginatedList.querySelectorAll('tr');
         const nextButton = document.getElementById('next-button');
         const prevButton = document.getElementById('prev-button');
         const guidePhotoVals = ['1 best', '2 good', '3 okay', ''];
+        const None = null;
+        const annotations = {{ data.annotations }};
 
         const paginationLimit = 25;
-        const pageCount = Math.ceil(tableItems.length / paginationLimit);
+        const pageCount = Math.ceil(annotations.length / paginationLimit);
         let currentPage;
 
         const appendPageNumber = (index) => {
@@ -226,16 +148,96 @@
             const prevRange = (pageNum - 1) * paginationLimit;
             const currRange = pageNum * paginationLimit;
             currentPage = pageNum;
+            location.hash = "#pg=" + pageNum;
 
             handleActivePageNumber();
             handlePageButtonsStatus();
 
-            tableItems.forEach((item, index) => {
-                item.style.visibility = 'collapse';
+            $('#annotationTable tbody').remove();
+            $('#annotationTable').append('<tbody class="text-start"></tbody>');
+
+            annotations.forEach((annotation, index) => {
                 if (index >= prevRange && index < currRange) {
-                    item.style.visibility = '';
+                    console.log('add em!')
+                    $('#annotationTable').find('tbody').append(`
+                    <tr>
+                        <td class="ps-5">
+                            <div class="row">
+                                <div class="col">
+                                    Concept:
+                                </div>
+                                <div class="col values">
+                                    ${annotation.concept}<br>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    ID Certainty:<br>
+                                </div>
+                                <div class="col values">
+                                    ${annotation.identity_certainty ? annotation.identity_certainty : '-'}<br>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    ID Reference:<br>
+                                </div>
+                                <div class="col values">
+                                    ${annotation.identity_reference ? annotation.identity_reference : '-'}<br>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    Upon:<br>
+                                </div>
+                                <div class="col values">
+                                    ${annotation.upon ? annotation.upon : '-'}<br>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    Comments:<br>
+                                </div>
+                                <div class="col values">
+                                    ${annotation.comment ? annotation.comment : '-'}<br>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    Guide Photo:<br>
+                                </div>
+                                <div class="col values">
+                                    ${annotation.guide_photo ? annotation.guide_photo : '-'}<br>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    Timestamp:
+                                </div>
+                                <div class="col values">
+                                    ${annotation.recorded_timestamp}<br>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    Video Sequence:
+                                </div>
+                                <div class="col values">
+                                    ${annotation.video_sequence_name}<br>
+                                </div>
+                            </div>
+                            <button type="button" data-bs-toggle="modal" data-anno='${ JSON.stringify(annotation) }' data-bs-target="#editModal" class="editButton mt-2">Edit</button>
+                        </td>
+                        <td class="text-center">
+                            <a href="${annotation.image_url}" target="_blank">
+                                <img src="${annotation.image_url}" style="width: 500px;"/>
+                            </a>
+                        </td>
+                    </tr>
+                    `);
                 }
             });
+            window.scrollTo({top: 0, left: 0, behavior: "instant"})
         };
 
         const disableButton = (button) => {
@@ -264,13 +266,14 @@
 
         // save scroll position
         document.addEventListener('DOMContentLoaded', function(event) {
+            const url = new URL(window.location.href);
+            const getParam = url.searchParams.get('pg');
+            console.log(getParam);
+
+
+
             let scrollpos = localStorage.getItem('scrollpos');
-            if (scrollpos) window.scrollTo(0, scrollpos);
-
-        });
-
-        // set up pagination
-        window.addEventListener("load", () => {
+            //if (scrollpos) window.scrollTo(0, scrollpos);
             getPaginationNumbers();
             setCurrentPage(1);
 
@@ -290,6 +293,8 @@
                     });
                 }
             });
+
+            $('#annotationCount').html(annotations.length);
         });
 
         window.onbeforeunload = function(e) {
@@ -299,7 +304,8 @@
         // get the annotation data and add it to the modal
         $(document).ready(function () {
             $('#editModal').on('show.bs.modal', function (e) {
-                const annotation = $(e.relatedTarget).data('id')
+                const annotation = $(e.relatedTarget).data('anno');
+                console.log(annotation);
                 $(this).find('#editConceptName').val(annotation.concept);
                 $(this).find('#editIdCert').val(annotation.identity_certainty);
                 $(this).find('#editIdRef').val(annotation.identity_reference);

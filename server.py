@@ -46,11 +46,7 @@ def view_images():
     image_loader = ImageLoader(sequences)
     if len(image_loader.distilled_records) < 1:
         return render_template(err404, err='pics'), 404
-    data = {
-        'annotations': image_loader.distilled_records,
-        'concepts': vars_concepts,
-        'num_records': len(image_loader.distilled_records)
-    }
+    data = {'annotations': image_loader.distilled_records, 'concepts': vars_concepts}
     return render_template(images, data=data)
 
 
