@@ -107,7 +107,7 @@
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                         <input type="hidden" name="sequenceName" value="{{ data.annotations[0].video_sequence_name }}">
                         <input type="hidden" id="observationUuid" name="observation_uuid">
-                        <input type="submit" class="btn btn-success py-2" value="Save Changes">
+                        <input type="submit" id="modalSubmitButton" class="btn btn-success py-2" value="Save Changes">
                     </div>
                 </div>
             </form>
@@ -123,6 +123,7 @@
         const guidePhotoVals = ['1 best', '2 good', '3 okay', ''];
         const None = null;
         const annotations = {{ data.annotations }};
+        const allConcepts = {{ data.concepts }};
 
         const paginationLimit = 25;
         const pageCount = Math.ceil(annotations.length / paginationLimit);
@@ -281,8 +282,16 @@
             }
         };
 
-        autocomplete(document.getElementById('editConceptName'), {{ data.concepts }});
-        autocomplete(document.getElementById('editUpon'), {{ data.concepts }});
+        function validateName(name) {
+            let disabled = false;
+            if (name && !allConcepts.includes(name)) {
+                disabled = true;
+            }
+            $('#modalSubmitButton')[0].disabled = disabled;
+        }
+
+        autocomplete(document.getElementById('editConceptName'), allConcepts);
+        autocomplete(document.getElementById('editUpon'), allConcepts);
 
         // load scroll position
         document.addEventListener('DOMContentLoaded', function(event) {
@@ -342,12 +351,18 @@
         $(document).ready(function () {
             $('#editModal').on('show.bs.modal', function (e) {
                 const annotation = $(e.relatedTarget).data('anno');
-                $(this).find('#editConceptName').val(annotation.concept);
+                const conceptNameField = $(this).find('#editConceptName');
+                const uponField = $(this).find('#editUpon');
+
+                conceptNameField.val(annotation.concept);
+                uponField.val(annotation.upon);
                 $(this).find('#editIdCert').val(annotation.identity_certainty);
                 $(this).find('#editIdRef').val(annotation.identity_reference);
-                $(this).find('#editUpon').val(annotation.upon);
                 $(this).find('#editComments').val(annotation.comment);
                 $(this).find('#observationUuid').val(annotation.observation_uuid);
+
+                conceptNameField.on('input', () => { validateName(conceptNameField.val()) });
+                uponField.on('input', () => { validateName(uponField.val()) });
 
                 document.getElementById("editGuidePhoto").options.length = 0; // clear options
                 const guidePhotoSelect = $(this).find('#editGuidePhoto');
