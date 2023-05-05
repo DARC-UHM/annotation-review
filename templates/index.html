@@ -31,16 +31,16 @@
             </div>
         </div>
         <div class="col d-flex justify-content-center">
-            <div class="accordion accordion-flush py-2" id="accordion">
+            <div class="accordion accordion-flush py-2" id="filterAccordion">
                 <div class="accordion-item">
                     <div class="accordion-header" id="flush-headingOne">
                         <button type="button" class="small plusButton" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne">Filter By</button>
                     </div>
-                    <div id="flush-collapseOne" class="accordion-collapse collapse" aria-labelledby="flush-headingOne" data-bs-parent="#accordion">
+                    <div id="flush-collapseOne" class="accordion-collapse collapse" aria-labelledby="flush-headingOne" data-bs-parent="#filterAccordion">
                         <div class="accordion-body">
-                            <div class="row">
-                                <div class="col">
-                                    <select id="rankList" name="rankList">
+                            <div class="row pb-3 pt-2">
+                                <div class="col p-0">
+                                    <select id="taxonRankSelect" name="taxonRankSelect">
                                         <option>Phylum</option>
                                         <option>Class</option>
                                         <option>Order</option>
@@ -49,8 +49,8 @@
                                         <option>Species</option>
                                     </select>
                                 </div>
-                                <div class="col">
-                                    <input type="text" id="rankInput" name="classification" class="sequenceName" placeholder="Rank" autocomplete="off">
+                                <div class="col p-0">
+                                    <input type="text" id="taxonRankEntry" name="taxonRankEntry" placeholder="Enter phylum" autocomplete="off">
                                 </div>
                             </div>
 

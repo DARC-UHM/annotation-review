@@ -219,11 +219,23 @@ li {
     flex-wrap: nowrap;
 }
 
-#accordion {
-    width: 400px;
+#filterAccordion {
+    width: 300px;
 }
 
-#rankInput {
+#filterAccordion .accordion-body {
+    padding: 0;
+}
+
+#filterAccordion select {
+    padding: 6px 5px;
+    background-color: #393E46;
+    color: white;
+    width: 150px;
+    border-radius: 3px;
+}
+
+#taxonRankEntry {
     padding: 5px 10px;
     background-color: #393E46;
     color: white;
