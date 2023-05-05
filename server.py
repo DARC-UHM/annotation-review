@@ -39,7 +39,8 @@ def view_images():
     # get images in sequence
     sequences = []
     for key, val in request.args.items():
-        sequences.append(val)
+        if key != 'rank' and key != 'phylogeny':
+            sequences.append(val)
     for sequence_name in sequences:
         if sequence_name not in video_sequences:
             return render_template(err404, err='dive'), 404

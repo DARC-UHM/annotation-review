@@ -58,3 +58,9 @@ $('#plusButton').on('click', plusClick);
 sequenceNameInput.on('input', checkSequence);
 $('#index').on('click', checkSequence);
 $('#taxonRankSelect').on('change', () => $('#taxonRankEntry').attr('placeholder', `Enter ${$('#taxonRankSelect').val().toLowerCase()}`));
+$('#indexForm').submit(() => {
+    if ($('#taxonRankEntry').val().length < 1) {
+        $('#taxonRankEntry').prop('name', '');
+        $('#taxonRankSelect').prop('name', '');
+    }
+});

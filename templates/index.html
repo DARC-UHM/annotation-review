@@ -9,7 +9,7 @@
 <body id="index" class="text-center my-3 mx-5">
     <img src="/static/img/logo_darc.png" class="mt-4" width="30%" style="max-width: 300px; min-width: 200px; pointer-events: none;" alt="DARC logo"/>
     <h1 class="my-3">DARC Image Review</h1>
-    <form method="get" action="/dive" >
+    <form id="indexForm" method="get" action="/dive" >
         <div id="sequenceList" class="ms-2">
             <div id="seqList1">
                 <div class="row d-inline-flex">
@@ -40,7 +40,7 @@
                         <div class="accordion-body">
                             <div class="row pb-3 pt-2">
                                 <div class="col p-0">
-                                    <select id="taxonRankSelect" name="taxonRankSelect">
+                                    <select id="taxonRankSelect" name="rank">
                                         <option>Phylum</option>
                                         <option>Class</option>
                                         <option>Order</option>
@@ -50,7 +50,7 @@
                                     </select>
                                 </div>
                                 <div class="col p-0">
-                                    <input type="text" id="taxonRankEntry" name="taxonRankEntry" placeholder="Enter phylum" autocomplete="off">
+                                    <input type="text" id="taxonRankEntry" name="phylogeny" placeholder="Enter phylum" autocomplete="off">
                                 </div>
                             </div>
 
