@@ -204,7 +204,10 @@ document.addEventListener('DOMContentLoaded', function(event) {
     const url = new URL(window.location.href);
     url.searchParams.forEach((param) => {
         param = param.split(' ');
-        sequences.push(param.pop());
+        const temp = param.pop();
+        if (/\d/.test(temp)) {
+            sequences.push(temp);
+        }
         if (!vesselName) {
             vesselName = param.join(' ');
         }

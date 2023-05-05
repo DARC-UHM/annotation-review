@@ -38,12 +38,18 @@ def index():
 def view_images():
     # get images in sequence
     sequences = []
+    rank = None
+    phylogeny = None
     for key, val in request.args.items():
-        sequences.append(val)
+        if key != 'rank' and key != 'phylogeny':
+            sequences.append(val)
     for sequence_name in sequences:
         if sequence_name not in video_sequences:
             return render_template(err404, err='dive'), 404
-    image_loader = ImageLoader(sequences)
+    if 'rank' in request.args.keys():
+        rank = request.args.get('rank').lower()
+        phylogeny = request.args.get('phylogeny')
+    image_loader = ImageLoader(sequences, rank, phylogeny)
     if len(image_loader.distilled_records) < 1:
         return render_template(err404, err='pics'), 404
     data = {'annotations': image_loader.distilled_records, 'concepts': vars_concepts}
@@ -77,7 +83,7 @@ def page_not_found(e):
 
 
 def open_browser():
-    webbrowser.open_new('http://127.0.0.1:8000')
+    # webbrowser.open_new('http://127.0.0.1:8000')
     print('\n\033[1;32;48mApplication running. Press CTRL + C to stop.\033[1;37;0m\n')
 
 

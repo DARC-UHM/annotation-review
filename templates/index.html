@@ -9,7 +9,7 @@
 <body id="index" class="text-center my-3 mx-5">
     <img src="/static/img/logo_darc.png" class="mt-4" width="30%" style="max-width: 300px; min-width: 200px; pointer-events: none;" alt="DARC logo"/>
     <h1 class="my-3">DARC Image Review</h1>
-    <form method="get" action="/dive" >
+    <form id="indexForm" method="get" action="/dive" >
         <div id="sequenceList" class="ms-2">
             <div id="seqList1">
                 <div class="row d-inline-flex">
@@ -30,8 +30,36 @@
                 </div>
             </div>
         </div>
+        <div class="col d-flex justify-content-center">
+            <div class="accordion accordion-flush py-2" id="filterAccordion">
+                <div class="accordion-item">
+                    <div class="accordion-header" id="flush-headingOne">
+                        <button type="button" class="small plusButton" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne">Filter By</button>
+                    </div>
+                    <div id="flush-collapseOne" class="accordion-collapse collapse" aria-labelledby="flush-headingOne" data-bs-parent="#filterAccordion">
+                        <div class="accordion-body">
+                            <div class="row pb-3 pt-2">
+                                <div class="col p-0">
+                                    <select id="taxonRankSelect" name="rank">
+                                        <option>Phylum</option>
+                                        <option>Class</option>
+                                        <option>Order</option>
+                                        <option>Family</option>
+                                        <option>Genus</option>
+                                        <option>Species</option>
+                                    </select>
+                                </div>
+                                <div class="col p-0">
+                                    <input type="text" id="taxonRankEntry" name="phylogeny" placeholder="Enter phylum" autocomplete="off">
+                                </div>
+                            </div>
 
-        <input type="submit" id="goButton" value="Go" class="btn btn-success py-1 px-5 mt-4 mb-5" disabled>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <input type="submit" id="goButton" value="Go" class="btn btn-success py-1 px-5 mt-2 mb-5" disabled>
     </form>
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/bootstrap.bundle.js"></script>

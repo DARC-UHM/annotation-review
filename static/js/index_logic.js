@@ -56,4 +56,11 @@ autocomplete(sequenceNameInput[0], sequences);
 
 $('#plusButton').on('click', plusClick);
 sequenceNameInput.on('input', checkSequence);
-document.getElementById('index').addEventListener('click', checkSequence);
+$('#index').on('click', checkSequence);
+$('#taxonRankSelect').on('change', () => $('#taxonRankEntry').attr('placeholder', `Enter ${$('#taxonRankSelect').val().toLowerCase()}`));
+$('#indexForm').submit(() => {
+    if ($('#taxonRankEntry').val().length < 1) {
+        $('#taxonRankEntry').prop('name', '');
+        $('#taxonRankSelect').prop('name', '');
+    }
+});
