@@ -12,8 +12,10 @@ def get_association(annotation, link_name):
 
 class ImageLoader:
 
-    def __init__(self, sequence_names: list):
+    def __init__(self, sequence_names: list, rank: str, phylogeny: str):
         self.distilled_records = []
+        self.rank = rank
+        self.phylogeny = phylogeny
         for name in sequence_names:
             self.load_images(name)
 
@@ -217,6 +219,9 @@ class ImageLoader:
             ])
 
             annotation_df = pd.concat([annotation_df, temp_df], ignore_index=True)
+
+        if self.rank:
+            annotation_df = annotation_df[annotation_df[self.rank] == self.phylogeny]
 
         annotation_df = annotation_df.sort_values(by=[
             'phylum',

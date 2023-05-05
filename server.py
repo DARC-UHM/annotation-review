@@ -38,13 +38,18 @@ def index():
 def view_images():
     # get images in sequence
     sequences = []
+    rank = None
+    phylogeny = None
     for key, val in request.args.items():
         if key != 'rank' and key != 'phylogeny':
             sequences.append(val)
     for sequence_name in sequences:
         if sequence_name not in video_sequences:
             return render_template(err404, err='dive'), 404
-    image_loader = ImageLoader(sequences)
+    if 'rank' in request.args.keys():
+        rank = request.args.get('rank').lower()
+        phylogeny = request.args.get('phylogeny')
+    image_loader = ImageLoader(sequences, rank, phylogeny)
     if len(image_loader.distilled_records) < 1:
         return render_template(err404, err='pics'), 404
     data = {'annotations': image_loader.distilled_records, 'concepts': vars_concepts}
