@@ -30,7 +30,36 @@
                 </div>
             </div>
         </div>
-        <input type="submit" id="goButton" value="Go" class="btn btn-success py-1 px-5 mt-4 mb-5" disabled>
+        <div class="col d-flex justify-content-center">
+            <div class="accordion accordion-flush py-2" id="accordion">
+                <div class="accordion-item">
+                    <div class="accordion-header" id="flush-headingOne">
+                        <button type="button" class="small plusButton" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne">Filter By</button>
+                    </div>
+                    <div id="flush-collapseOne" class="accordion-collapse collapse" aria-labelledby="flush-headingOne" data-bs-parent="#accordion">
+                        <div class="accordion-body">
+                            <div class="row">
+                                <div class="col">
+                                    <select id="rankList" name="rankList">
+                                        <option>Phylum</option>
+                                        <option>Class</option>
+                                        <option>Order</option>
+                                        <option>Family</option>
+                                        <option>Genus</option>
+                                        <option>Species</option>
+                                    </select>
+                                </div>
+                                <div class="col">
+                                    <input type="text" id="rankInput" name="classification" class="sequenceName" placeholder="Rank" autocomplete="off">
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <input type="submit" id="goButton" value="Go" class="btn btn-success py-1 px-5 mt-2 mb-5" disabled>
     </form>
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/bootstrap.bundle.js"></script>

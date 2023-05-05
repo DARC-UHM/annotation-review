@@ -144,7 +144,7 @@ li {
     margin: 0;
     background: transparent;
     border: 0;
-    color: #4c525d;
+    color: #5d6470;
     transition: 0.2s;
 }
 
@@ -191,12 +191,18 @@ li {
     font-weight: 600;
 }
 
+.accordion-item {
+    background-color: transparent;
+}
+
 #index input {
     border-radius: 3px;
 }
 
 .sequenceName {
+    padding: 3px 8px;
     width: 250px;
+    border: 0;
 }
 
 #index .autocomplete-items {
@@ -211,4 +217,16 @@ li {
 
 #sequenceList {
     flex-wrap: nowrap;
+}
+
+#accordion {
+    width: 400px;
+}
+
+#rankInput {
+    padding: 5px 10px;
+    background-color: #393E46;
+    color: white;
+    border: 0;
+    width: 150px;
 }
