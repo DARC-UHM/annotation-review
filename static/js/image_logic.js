@@ -177,9 +177,17 @@ document.addEventListener('DOMContentLoaded', function(event) {
     }
 
     getPaginationNumbers();
-    setCurrentPage(1);
+    if (window.location.hash) {
+      setCurrentPage(window.location.hash.substring(4));
+    } else {
+      setCurrentPage(1);
+    }
 
-    prevButton.addEventListener("click", () => {
+    if (sessionStorage.getItem(`scrollPos${currentPage}`)) {
+      window.scrollTo({top: sessionStorage.getItem(`scrollPos${currentPage}`), left: 0, behavior: 'instant'});
+    }
+
+  prevButton.addEventListener("click", () => {
         setCurrentPage(currentPage - 1);
     });
 
@@ -252,5 +260,7 @@ $(document).ready(function () {
                 .prop('selected', annotation.guide_photo === val || val === '' && !annotation.guide_photo);
             opt.appendTo(guidePhotoSelect);
         }
+
+        $('#params').val(`${window.location.search}${window.location.hash}`);
     });
 });

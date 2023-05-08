@@ -74,7 +74,7 @@ def update_annotation():
         client_secret=ANNOSAURUS_CLIENT_SECRET
     )
 
-    return redirect(f'dive?sequence={request.values.get("sequenceName")}')
+    return redirect(f'dive{request.values.get("params")}')
 
 
 @app.errorhandler(404)
