@@ -1,14 +1,12 @@
-import webbrowser
-from threading import Timer
-
-from flask import Flask, render_template, request, redirect, url_for
+import os
+from flask import render_template, request, redirect
 from jinja2 import Environment, FileSystemLoader
+
+from application import app
 from image_loader import ImageLoader
 from annosaurus import *
 from env.env import *
 
-# initialize a flask object
-app = Flask(__name__)
 env = Environment(loader=FileSystemLoader('templates/'))
 home = env.get_template('index.html')
 images = env.get_template('image_review.html')
@@ -80,16 +78,3 @@ def update_annotation():
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template(err404, err=''), 404
-
-
-def open_browser():
-    webbrowser.open_new('http://127.0.0.1:8000')
-    print('\n\033[1;32;48mApplication running. Press CTRL + C to stop.\033[1;37;0m\n')
-
-
-print('\nLaunching application...')
-Timer(1, open_browser).start()
-
-# check to see if this is the main thread of execution
-if __name__ == '__main__':
-    app.run()
