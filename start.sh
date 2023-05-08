@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
-gunicorn server:app
+gunicorn run:app
 

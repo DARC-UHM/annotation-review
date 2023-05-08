@@ -2,6 +2,8 @@ import requests
 import json
 from typing import Dict
 
+from requests import Response
+
 
 class AuthenticationError(Exception):
     """
@@ -66,37 +68,36 @@ class Annosaurus(JWTAuthentication):
                            observation_uuid: str,
                            association: Dict,
                            client_secret: str = None,
-                           jwt: str = None) -> Dict:
+                           jwt: str = None) -> int:
 
         if 'link_name' not in association:
             raise ValueError(
                 "association dict needs at least a 'link_name' key")
-
         jwt = self.authorize(client_secret, jwt)
         url = "{}/associations".format(self.base_url)
         association['observation_uuid'] = observation_uuid
         headers = self._auth_header(jwt)
-        return requests.post(url, data=association, headers=headers).json()
+        return requests.post(url, data=association, headers=headers).status_code
 
     def update_association(self,
                            uuid: str,
                            association: Dict,
                            client_secret: str = None,
-                           jwt: str = None) -> Dict:
+                           jwt: str = None) -> int:
 
         jwt = self.authorize(client_secret, jwt)
         url = "{}/associations/{}".format(self.base_url, uuid)
         headers = self._auth_header(jwt)
-        return requests.put(url, data=association, headers=headers).json()
+        return requests.put(url, data=association, headers=headers).status_code
 
     def delete_association(self,
                            uuid: str,
                            client_secret: str = None,
-                           jwt: str = None) -> Dict:
+                           jwt: str = None) -> int:
         jwt = self.authorize(client_secret, jwt)
         url = "{}/associations/{}".format(self.base_url, uuid)
         headers = self._auth_header(jwt)
-        return requests.delete(url, headers=headers).json()
+        return requests.delete(url, headers=headers).status_code
 
     def update_annotation(self,
                           observation_uuid: str,
@@ -121,8 +122,7 @@ class Annosaurus(JWTAuthentication):
                     "concept": updated_annotation['concept']
                 }
                 headers = self._auth_header(jwt)
-                status = requests.put(url, data=new_name, headers=headers).status_code
-                if status != 200:
+                if requests.put(url, data=new_name, headers=headers) != 200:
                     success = False
 
             # get list of old association link_names that we can change
@@ -143,8 +143,7 @@ class Annosaurus(JWTAuthentication):
                 if link_name in old_link_names:
                     if updated_annotation[link_name] == '':
                         # delete the association
-                        status = self.delete_association(uuid=old_association["uuid"], client_secret=client_secret)
-                        if status != 200:
+                        if self.delete_association(uuid=old_association["uuid"], client_secret=client_secret) != 204:
                             success = False
                         update_str += f'Deleted association "{link_name}" UUID: {old_association["uuid"]}\n'
                     else:

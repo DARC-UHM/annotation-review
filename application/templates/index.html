@@ -3,6 +3,7 @@
 <head>
     <title>DARC Image Review</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <link rel="stylesheet" href="/static/css/bootstrap.css" />
     <link rel="stylesheet" href="/static/css/style.css" />
 </head>
@@ -65,7 +66,7 @@
     <script src="/static/js/bootstrap.bundle.js"></script>
     <script src="/static/js/autocomplete.js"></script>
     <script>
-        const sequences = {{ sequences }};
+        const sequences = {{ sequences|safe }};
     </script>
     <script src="/static/js/index_logic.js"></script>
 </body>

@@ -1,16 +1,14 @@
 import os
-from flask import render_template, request, redirect
-from jinja2 import Environment, FileSystemLoader
+from flask import render_template, request, redirect, flash
 
 from application import app
 from image_loader import ImageLoader
 from annosaurus import *
-from env.env import *
 
-env = Environment(loader=FileSystemLoader('templates/'))
-home = env.get_template('index.html')
-images = env.get_template('image_review.html')
-err404 = env.get_template('404.html')
+ANNOSAURUS_URL = os.environ.get('ANNOSAURUS_URL')
+ANNOSAURUS_CLIENT_SECRET = os.environ.get('ANNOSAURUS_CLIENT_SECRET')
+
+app.secret_key = 'darc'
 
 # get concept list from vars (for input validation)
 with requests.get('http://hurlstor.soest.hawaii.edu:8083/kb/v1/concept') as r:
@@ -18,7 +16,11 @@ with requests.get('http://hurlstor.soest.hawaii.edu:8083/kb/v1/concept') as r:
 
 # get list of sequences from vars
 with requests.get('http://hurlstor.soest.hawaii.edu:8084/vam/v1/videosequences/names') as r:
-    video_sequences = r.json()
+    sequences = r.json()
+
+video_sequences = []
+for video in sequences:
+    video_sequences.append(video)
 
 
 @app.route('/favicon.ico')
@@ -29,7 +31,7 @@ def favicon():
 @app.route('/')
 def index():
     # return the rendered template
-    return render_template(home, sequences=video_sequences)
+    return render_template('index.html', sequences=video_sequences)
 
 
 @app.get('/dive')
@@ -43,15 +45,15 @@ def view_images():
             sequences.append(val)
     for sequence_name in sequences:
         if sequence_name not in video_sequences:
-            return render_template(err404, err='dive'), 404
+            return render_template('404.html', err='dive'), 404
     if 'rank' in request.args.keys():
         rank = request.args.get('rank').lower()
         phylogeny = request.args.get('phylogeny')
     image_loader = ImageLoader(sequences, rank, phylogeny)
     if len(image_loader.distilled_records) < 1:
-        return render_template(err404, err='pics'), 404
+        return render_template('404.html', err='pics'), 404
     data = {'annotations': image_loader.distilled_records, 'concepts': vars_concepts}
-    return render_template(images, data=data)
+    return render_template('image_review.html', data=data)
 
 
 @app.post('/update_annotation')
@@ -66,15 +68,19 @@ def update_annotation():
         'guide-photo': request.values.get('editGuidePhoto'),
     }
 
-    annosaurus.update_annotation(
+    success = annosaurus.update_annotation(
         observation_uuid=request.values.get('observation_uuid'),
         updated_annotation=updated_annotation,
         client_secret=ANNOSAURUS_CLIENT_SECRET
     )
+    if success:
+        flash('Annotation successfully updated')
+    else:
+        flash('Failed to update annotation - please try again')
 
     return redirect(f'dive{request.values.get("params")}')
 
 
 @app.errorhandler(404)
 def page_not_found(e):
-    return render_template(err404, err=''), 404
+    return render_template('404.html', err=''), 404

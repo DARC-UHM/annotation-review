@@ -3,4 +3,4 @@ gunicorn
 jinja2
 pandas
 requests
-
+python-dotenv
