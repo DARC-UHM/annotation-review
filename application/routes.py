@@ -1,9 +1,12 @@
 import os
 from flask import render_template, request, redirect, flash
+from dotenv import load_dotenv
 
 from application import app
 from image_loader import ImageLoader
 from annosaurus import *
+
+load_dotenv()
 
 ANNOSAURUS_URL = os.environ.get('ANNOSAURUS_URL')
 ANNOSAURUS_CLIENT_SECRET = os.environ.get('ANNOSAURUS_CLIENT_SECRET')
@@ -74,9 +77,9 @@ def update_annotation():
         client_secret=ANNOSAURUS_CLIENT_SECRET
     )
     if success:
-        flash('Annotation successfully updated')
+        flash('Annotation successfully updated', 'success')
     else:
-        flash('Failed to update annotation - please try again')
+        flash('Failed to update annotation - please try again', 'danger')
 
     return redirect(f'dive{request.values.get("params")}')
 
