@@ -6,117 +6,124 @@
     <link rel="stylesheet" href="/static/css/bootstrap.css" />
     <link rel="stylesheet" href="/static/css/style.css" />
 </head>
-<body class="text-center my-3 mx-5">
-    {% for cat, msg in get_flashed_messages(with_categories=true) %}
-      <div class="alert alert-{{ cat }} alert-dismissible px-5" style="position:fixed; left: 50%; transform: translate(-50%, 0);">
-        <span class="px-2" style="font-weight: 500;">{{ msg }}</span>
-        <button type="button" class="btn-close small" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    {% endfor %}
-    <div class="col mt-3 m-auto" style="max-width: 1200px;">
-        <div class="row m-auto">
-            <div class="col-9 text-start">
-                <a href="/" style="color: #EEEEEE; text-decoration: none">
-                    <h3 id="vesselName" class="m-0 p-0" style="font-weight: 600;"></h3>
-                </a>
-                <span id="sequenceList"></span>
-            </div>
-            <div class="col-3 text-end mt-auto">
-                Page:&nbsp;&nbsp;<span id="currentPageNum" style="font-weight: 600;"></span>/<span id="totalPageNum" style="font-weight: 600;"></span><br>
-                Total Images:&nbsp;&nbsp;<span id="annotationCount" style="font-weight: 600;"f></span><br>
-            </div>
+<body>
+    <div id="load-overlay" class="loader-bg-hidden">
+        <div class="col d-flex justify-content-center">
+            <div class="loader"></div>
         </div>
     </div>
-    <div class="col d-flex justify-content-center mt-3">
-        <table id="annotationTable" class="table table-striped">
-            <thead class="thead-dark" style="background-color: #393E46; color: #EEEEEE">
-                <tr>
-                    <th scope="col">Info</th>
-                    <th scope="col">Image</th>
-                </tr>
-            </thead>
-        </table>
-    </div>
-    <div class="container">
-        <div class="pagination-container">
-            <button class="pagination-button" id="prev-button" title="Previous page" aria-label="Previous page">
-                &lt;
-            </button>
-
-            <div id="pagination-numbers">
-            </div>
-
-            <button class="pagination-button" id="next-button" title="Next page" aria-label="Next page">
-                &gt;
-            </button>
+    <div class="text-center my-3 mx-5">
+        {% for cat, msg in get_flashed_messages(with_categories=true) %}
+        <div class="alert alert-{{ cat }} alert-dismissible px-5" style="position:fixed; left: 50%; transform: translate(-50%, 0);">
+            <span class="px-2" style="font-weight: 500;">{{ msg }}</span>
+            <button type="button" class="btn-close small" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-    </div>
-    <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <form action="/update_annotation" method="post" autocomplete="off">
-                <div class="modal-content">
-                    <div class="modal-header text-center">
-                        <h5 class="modal-title mt-1 ms-4" style="font-weight: 600;">Edit Annotation</h5>
-                        <button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body text-start">
-                        <div class="row pb-2">
-                            <div class="col-4 ms-4 ps-4 modal-label">
-                                Concept:
-                            </div>
-                            <div class="col">
-                                <input type="text" id="editConceptName" name="editConceptName">
-                            </div>
-                        </div>
-                        <div class="row pb-2">
-                            <div class="col-4 ms-4 ps-4 modal-label">
-                                ID Certainty:
-                            </div>
-                            <div class="col">
-                                <input type="text" id="editIdCert" name="editIdCert">
-                            </div>
-                        </div>
-                        <div class="row pb-2">
-                            <div class="col-4 ms-4 ps-4 modal-label">
-                                ID Reference:
-                            </div>
-                            <div class="col">
-                                <input type="text" id="editIdRef" name="editIdRef">
-                            </div>
-                        </div>
-                        <div class="row pb-2">
-                            <div class="col-4 ms-4 ps-4 modal-label">
-                                Upon:
-                            </div>
-                            <div class="col">
-                                <input type="text" id="editUpon" name="editUpon">
-                            </div>
-                        </div>
-                        <div class="row pb-2">
-                            <div class="col-4 ms-4 ps-4 modal-label">
-                                Comments:
-                            </div>
-                            <div class="col">
-                                <input type="text" id="editComments" name="editComments">
-                            </div>
-                        </div>
-                        <div class="row pb-2">
-                            <div class="col-4 ms-4 ps-4 modal-label">
-                                Guide Photo:
-                            </div>
-                            <div class="col">
-                                <select name="editGuidePhoto" id="editGuidePhoto"></select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <input type="hidden" id="params" name="params" value="">
-                        <input type="hidden" id="observationUuid" name="observation_uuid">
-                        <input type="submit" id="modalSubmitButton" class="btn btn-success py-2" value="Save Changes">
-                    </div>
+        {% endfor %}
+        <div class="col mt-3 m-auto" style="max-width: 1200px;">
+            <div class="row m-auto">
+                <div class="col-9 text-start">
+                    <a href="/" style="color: #EEEEEE; text-decoration: none">
+                        <h3 id="vesselName" class="m-0 p-0" style="font-weight: 600;"></h3>
+                    </a>
+                    <span id="sequenceList"></span>
                 </div>
-            </form>
+                <div class="col-3 text-end mt-auto">
+                    Page:&nbsp;&nbsp;<span id="currentPageNum" style="font-weight: 600;"></span>/<span id="totalPageNum" style="font-weight: 600;"></span><br>
+                    Total Images:&nbsp;&nbsp;<span id="annotationCount" style="font-weight: 600;"f></span><br>
+                </div>
+            </div>
+        </div>
+        <div class="col d-flex justify-content-center mt-3">
+            <table id="annotationTable" class="table table-striped">
+                <thead class="thead-dark" style="background-color: #393E46; color: #EEEEEE">
+                    <tr>
+                        <th scope="col">Info</th>
+                        <th scope="col">Image</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+        <div class="container">
+            <div class="pagination-container">
+                <button class="pagination-button" id="prev-button" title="Previous page" aria-label="Previous page">
+                    &lt;
+                </button>
+
+                <div id="pagination-numbers">
+                </div>
+
+                <button class="pagination-button" id="next-button" title="Next page" aria-label="Next page">
+                    &gt;
+                </button>
+            </div>
+        </div>
+        <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <form action="/update_annotation" method="post" autocomplete="off">
+                    <div class="modal-content">
+                        <div class="modal-header text-center">
+                            <h5 class="modal-title mt-1 ms-4" style="font-weight: 600;">Edit Annotation</h5>
+                            <button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body text-start">
+                            <div class="row pb-2">
+                                <div class="col-4 ms-4 ps-4 modal-label">
+                                    Concept:
+                                </div>
+                                <div class="col">
+                                    <input type="text" id="editConceptName" name="editConceptName">
+                                </div>
+                            </div>
+                            <div class="row pb-2">
+                                <div class="col-4 ms-4 ps-4 modal-label">
+                                    ID Certainty:
+                                </div>
+                                <div class="col">
+                                    <input type="text" id="editIdCert" name="editIdCert">
+                                </div>
+                            </div>
+                            <div class="row pb-2">
+                                <div class="col-4 ms-4 ps-4 modal-label">
+                                    ID Reference:
+                                </div>
+                                <div class="col">
+                                    <input type="text" id="editIdRef" name="editIdRef">
+                                </div>
+                            </div>
+                            <div class="row pb-2">
+                                <div class="col-4 ms-4 ps-4 modal-label">
+                                    Upon:
+                                </div>
+                                <div class="col">
+                                    <input type="text" id="editUpon" name="editUpon">
+                                </div>
+                            </div>
+                            <div class="row pb-2">
+                                <div class="col-4 ms-4 ps-4 modal-label">
+                                    Comments:
+                                </div>
+                                <div class="col">
+                                    <input type="text" id="editComments" name="editComments">
+                                </div>
+                            </div>
+                            <div class="row pb-2">
+                                <div class="col-4 ms-4 ps-4 modal-label">
+                                    Guide Photo:
+                                </div>
+                                <div class="col">
+                                    <select name="editGuidePhoto" id="editGuidePhoto"></select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <input type="hidden" id="params" name="params" value="">
+                            <input type="hidden" id="observationUuid" name="observation_uuid">
+                            <input type="submit" id="modalSubmitButton" class="btn btn-success py-2" value="Save Changes">
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
     <script src="/static/js/jquery.min.js"></script>

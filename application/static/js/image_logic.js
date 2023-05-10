@@ -187,7 +187,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
       window.scrollTo({top: sessionStorage.getItem(`scrollPos${currentPage}`), left: 0, behavior: 'instant'});
     }
 
-  prevButton.addEventListener("click", () => {
+    prevButton.addEventListener("click", () => {
         setCurrentPage(currentPage - 1);
     });
 
@@ -222,6 +222,12 @@ document.addEventListener('DOMContentLoaded', function(event) {
     });
     $('#vesselName').html(vesselName);
     $('#sequenceList').html(sequences.join(', '));
+
+    $('#modalSubmitButton').on('click', () => {
+        $('#load-overlay').removeClass('loader-bg-hidden');
+        $('#load-overlay').addClass('loader-bg');
+        $('#editModal').modal('hide');
+    });
 });
 
 window.onbeforeunload = function(e) {
