@@ -104,7 +104,7 @@ class Annosaurus(JWTAuthentication):
                           updated_annotation: Dict,
                           client_secret: str = None,
                           jwt: str = None) -> bool:
-        possible_updates = ['identity-certainty', 'identity-reference', 'upon', 'comment', 'guide-photo']
+        possible_association_updates = ['identity-certainty', 'identity-reference', 'upon', 'comment', 'guide-photo']
         update_str = ''
         jwt = self.authorize(client_secret, jwt)
         success = True
@@ -122,18 +122,18 @@ class Annosaurus(JWTAuthentication):
                     "concept": updated_annotation['concept']
                 }
                 headers = self._auth_header(jwt)
-                if requests.put(url, data=new_name, headers=headers) != 200:
+                if requests.put(url, data=new_name, headers=headers).status_code != 200:
                     success = False
 
             # get list of old association link_names that we can change
             old_link_names = []
             for old_association in old_annotation['associations']:
-                if old_association['link_name'] in possible_updates:
+                if old_association['link_name'] in possible_association_updates:
                     old_link_names.append(old_association['link_name'])
 
             # get list of new link_names
             link_names_to_update = []
-            for association in possible_updates:
+            for association in possible_association_updates:
                 if updated_annotation[association] != '' or association in old_link_names:
                     link_names_to_update.append(association)
 
