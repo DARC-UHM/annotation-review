@@ -71,13 +71,15 @@ def update_annotation():
         'guide-photo': request.values.get('editGuidePhoto'),
     }
 
-    success = annosaurus.update_annotation(
+    status = annosaurus.update_annotation(
         observation_uuid=request.values.get('observation_uuid'),
         updated_annotation=updated_annotation,
         client_secret=ANNOSAURUS_CLIENT_SECRET
     )
-    if success:
+    if status == 1:
         flash('Annotation successfully updated', 'success')
+    elif status == 0:
+        flash('No changes made', 'secondary')
     else:
         flash('Failed to update annotation - please try again', 'danger')
 

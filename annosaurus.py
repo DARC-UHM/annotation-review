@@ -103,27 +103,31 @@ class Annosaurus(JWTAuthentication):
                           observation_uuid: str,
                           updated_annotation: Dict,
                           client_secret: str = None,
-                          jwt: str = None) -> bool:
+                          jwt: str = None) -> int:
+        """ Returns status: -1 = failed, 0 = no changes made, 1 = success """
         possible_association_updates = ['identity-certainty', 'identity-reference', 'upon', 'comment', 'guide-photo']
-        update_str = ''
+        update_str = f'UUID: {observation_uuid}\n'
         jwt = self.authorize(client_secret, jwt)
-        success = True
+        ret_status = 0
 
         with requests.get(f'http://hurlstor.soest.hawaii.edu:8082/anno/v1/observations/{observation_uuid}') as r:
             if r.status_code != 200:
-                return False
+                print(f'{update_str}Unable to find annotation on server')
+                return -1
             old_annotation = r.json()
 
             # check for concept name change
             if updated_annotation['concept'] != old_annotation['concept']:
                 url = "{}/annotations/{}".format(self.base_url, observation_uuid)
-                update_str = 'Updated concept name\n'
                 new_name = {
                     "concept": updated_annotation['concept']
                 }
                 headers = self._auth_header(jwt)
                 if requests.put(url, data=new_name, headers=headers).status_code != 200:
-                    success = False
+                    print(f'{update_str}Unable to update concept name')
+                    return -1
+                ret_status = 1
+                update_str = f'Updated concept name\n'
 
             # get list of old association link_names that we can change
             old_link_names = []
@@ -144,8 +148,10 @@ class Annosaurus(JWTAuthentication):
                     if updated_annotation[link_name] == '':
                         # delete the association
                         if self.delete_association(uuid=old_association["uuid"], client_secret=client_secret) != 204:
-                            success = False
-                        update_str += f'Deleted association "{link_name}" UUID: {old_association["uuid"]}\n'
+                            print(f'{update_str}Unable to remove association "{link_name}"')
+                            return -1
+                        ret_status = 1
+                        update_str += f'Deleted association "{link_name}"\n'
                     else:
                         # check if value actually changed
                         if link_name == 'upon' or link_name == 'guide-photo':
@@ -159,8 +165,10 @@ class Annosaurus(JWTAuthentication):
                                     client_secret=client_secret
                                 )
                                 if status != 200:
-                                    success = False
-                                update_str += f'Updated association "{link_name}" UUID: {old_association["uuid"]}\n'
+                                    print(f'{update_str}Unable to update association "{link_name}"')
+                                    return -1
+                                ret_status = 1
+                                update_str += f'Updated association "{link_name}"\n'
                         else:
                             # others use 'link_value'
                             if old_association['link_value'] != updated_annotation[link_name]:
@@ -172,8 +180,10 @@ class Annosaurus(JWTAuthentication):
                                     client_secret=client_secret
                                 )
                                 if status != 200:
-                                    success = False
-                                update_str += f'Updated association "{link_name}" UUID: {old_association["uuid"]}\n'
+                                    print(f'{update_str}Unable to update association "{link_name}"')
+                                    return -1
+                                ret_status = 1
+                                update_str += f'Updated association "{link_name}"\n'
                 else:
                     # create new association
                     to_concept = \
@@ -191,8 +201,10 @@ class Annosaurus(JWTAuthentication):
                         client_secret=client_secret
                     )
                     if status != 200:
-                        success = False
+                        print(f'{update_str}Unable to add association "{link_name}"')
+                        return -1
+                    ret_status = 1
                     update_str += f'Added association "{link_name}"\n'
 
         print(update_str if update_str else 'No changes made')
-        return success
+        return ret_status
