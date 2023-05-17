@@ -12,10 +12,10 @@ def get_association(annotation, link_name):
 
 class ImageLoader:
 
-    def __init__(self, sequence_names: list, rank: str, phylogeny: str):
+    def __init__(self, sequence_names: list, filter_type: str, filter_: str):
         self.distilled_records = []
-        self.rank = rank
-        self.phylogeny = phylogeny
+        self.filter_type = filter_type
+        self.filter_ = filter_
         for name in sequence_names:
             self.load_images(name)
 
@@ -220,8 +220,11 @@ class ImageLoader:
 
             annotation_df = pd.concat([annotation_df, temp_df], ignore_index=True)
 
-        if self.rank:
-            annotation_df = annotation_df[annotation_df[self.rank] == self.phylogeny]
+        if self.filter_type:
+            if self.filter_type != 'comment':
+                annotation_df = annotation_df[annotation_df[self.filter_type] == self.filter_]
+            else:
+                annotation_df = annotation_df[annotation_df['comment'].str.lower().str.contains(self.filter_.lower(), na=False)]
 
         annotation_df = annotation_df.sort_values(by=[
             'phylum',
@@ -248,6 +251,7 @@ class ImageLoader:
             self.distilled_records.append({
                 'observation_uuid': row['observation_uuid'],
                 'concept': row['concept'],
+                'phylum': row['phylum'],
                 'identity_certainty': row['identity-certainty'],
                 'identity_reference': row['identity-reference'],
                 'guide_photo': row['guide-photo'],

@@ -208,20 +208,27 @@ document.addEventListener('DOMContentLoaded', function(event) {
     $('#totalPageNum').html(pageCount);
 
     const sequences = [];
+    const filter = [];
     let vesselName = null;
     const url = new URL(window.location.href);
-    url.searchParams.forEach((param) => {
-        param = param.split(' ');
-        const temp = param.pop();
-        if (/\d/.test(temp)) {
-            sequences.push(temp);
+
+    for (let pair of url.searchParams.entries()) {
+        if (pair[0].includes('sequence')) {
+            const param = pair[1].split(' ');
+            sequences.push(param.pop());
+            if (!vesselName) {
+                vesselName = param.join(' ');
+            }
+        } else {
+            filter.push(pair[0]);
+            filter.push(pair[1]);
         }
-        if (!vesselName) {
-            vesselName = param.join(' ');
-        }
-    });
+    }
     $('#vesselName').html(vesselName);
     $('#sequenceList').html(sequences.join(', '));
+    if (filter.length > 0) {
+        $('#sequenceList').append(`<br><span class="small">Filtered by ${filter.join(': ')}</span>`);
+    }
 
     $('#modalSubmitButton').on('click', () => {
         $('#load-overlay').removeClass('loader-bg-hidden');

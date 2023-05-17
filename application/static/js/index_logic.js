@@ -63,10 +63,11 @@ $('#goButton').on('click', () => {
     $('#load-overlay').addClass('loader-bg');
 });
 
-$('#taxonRankSelect').on('change', () => $('#taxonRankEntry').attr('placeholder', `Enter ${$('#taxonRankSelect').val().toLowerCase()}`));
+$('#filterSelect').on('change', () => $('#filterEntry').attr('placeholder', `Enter ${$('#filterSelect').val().toLowerCase()}`));
 $('#indexForm').submit(() => {
-    if ($('#taxonRankEntry').val().length < 1) {
-        $('#taxonRankEntry').prop('name', '');
-        $('#taxonRankSelect').prop('name', '');
+    if ($('#filterEntry').val().length < 1) {
+        $('#filterEntry').prop('name', '');
+    } else {
+        $('#filterEntry').prop('name', $('#filterSelect').val().toLowerCase());
     }
 });
