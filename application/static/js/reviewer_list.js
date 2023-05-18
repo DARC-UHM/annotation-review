@@ -1,7 +1,8 @@
 
-function reviewerList(inp, arr) {
+function reviewerList(button, arr) {
     let currentFocus;
-    inp.addEventListener("input", function(e) {
+    let menuOpen = true;
+    button.addEventListener("input", function(e) {
         /* close any already open lists of autocompleted values */
         closeAllLists();
         currentFocus = -1;
@@ -12,6 +13,7 @@ function reviewerList(inp, arr) {
         /* append the DIV element as a child of the autocomplete container */
         this.parentNode.appendChild(div);
         for (let i = 0; i < arr.length; i++) {
+            console.log('heyooo')
             let row = document.createElement("DIV");
             row.innerHTML = `
                 <strong>${arr[i].name}</strong><br>                
@@ -23,8 +25,8 @@ function reviewerList(inp, arr) {
             /* execute a function when someone clicks on the item value (DIV element) */
             row.addEventListener("click", function(e) {
                 /* insert the value for the autocomplete text field */
-                inp.value = this.getElementsByTagName("input")[0].value;
-                inp.dispatchEvent(new Event('change'));
+                button.innerHTML = this.getElementsByTagName("input")[0].value;
+                button.dispatchEvent(new Event('change'));
                 /* close the list of autocompleted values,
                 (or any other open lists of autocompleted values */
                 closeAllLists();
@@ -33,7 +35,7 @@ function reviewerList(inp, arr) {
         }
     });
     /*execute a function presses a key on the keyboard:*/
-    inp.addEventListener("keydown", function(e) {
+    button.addEventListener("keydown", function(e) {
       let x = document.getElementById(this.id + "autocomplete-list");
       if (x) {
           x = x.getElementsByTagName("div");
@@ -75,22 +77,29 @@ function reviewerList(inp, arr) {
     }
     function removeActive(x) {
     /*a function to remove the "active" class from all autocomplete items:*/
-    for (let i = 0; i < x.length; i++) {
-      x[i].classList.remove("autocomplete-active");
-    }
+        for (let i = 0; i < x.length; i++) {
+            x[i].classList.remove("autocomplete-active");
+        }
     }
     function closeAllLists(elmnt) {
         /*close all autocomplete lists in the document,
         except the one passed as an argument:*/
         const x = document.getElementsByClassName("autocomplete-items");
         for (let i = 0; i < x.length; i++) {
-            if (elmnt !== x[i] && elmnt !== inp) {
+            if (elmnt !== x[i] && elmnt !== button) {
                 x[i].parentNode.removeChild(x[i]);
             }
         }
     }
-    /*execute a function when someone clicks in the document:*/
+
     document.addEventListener("click", function (e) {
-        closeAllLists(e.target);
+        if (menuOpen) {
+            closeAllLists(e.target);
+            menuOpen = false;
+        } else {
+            button.dispatchEvent(new Event('input'));
+            console.log('dispatched event')
+            menuOpen = true;
+        }
     });
 }
