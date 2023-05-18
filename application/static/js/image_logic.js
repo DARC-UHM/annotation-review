@@ -123,7 +123,14 @@ const setCurrentPage = (pageNum) => {
                             ${annotation.video_sequence_name}<br>
                         </div>
                     </div>
-                    <button type="button" data-bs-toggle="modal" data-anno='${ JSON.stringify(annotation) }' data-bs-target="#editModal" class="editButton mt-2">Edit</button>
+                    <div class="row">
+                        <div class="col">
+                            <button type="button" data-bs-toggle="modal" data-anno='${ JSON.stringify(annotation) }' data-bs-target="#editModal" class="editButton mt-2">Edit</button><br>
+                        </div>
+                        <div class="col values">
+                            <button type="button" data-bs-toggle="modal" data-anno='${ JSON.stringify(annotation) }' data-bs-target="#addForReviewModal" class="editButton mt-2">Add to external review</button>
+                        </div>
+                    </div>
                 </td>
                 <td class="text-center">
                     <a href="${annotation.image_url}" target="_blank">
@@ -164,7 +171,7 @@ function validateName(name) {
     if (name && !allConcepts.includes(name)) {
         disabled = true;
     }
-    $('#modalSubmitButton')[0].disabled = disabled;
+    $('#editModalSubmitButton')[0].disabled = disabled;
 }
 
 autocomplete(document.getElementById('editConceptName'), allConcepts);
@@ -230,7 +237,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
         $('#sequenceList').append(`<br><span class="small">Filtered by ${filter.join(': ')}</span>`);
     }
 
-    $('#modalSubmitButton').on('click', () => {
+    $('#editModalSubmitButton').on('click', () => {
         $('#load-overlay').removeClass('loader-bg-hidden');
         $('#load-overlay').addClass('loader-bg');
         $('#editModal').modal('hide');
@@ -260,10 +267,12 @@ $(document).ready(function () {
         $(this).find('#editIdCert').val(annotation.identity_certainty);
         $(this).find('#editIdRef').val(annotation.identity_reference);
         $(this).find('#editComments').val(annotation.comment);
-        $(this).find('#observationUuid').val(annotation.observation_uuid);
+        $(this).find('#editObservationUuid').val(annotation.observation_uuid);
 
-        conceptNameField.on('input', () => { validateName(conceptNameField.val()) });
-        uponField.on('input', () => { validateName(uponField.val()) });
+        conceptNameField.on('input', () => validateName(conceptNameField.val()));
+        conceptNameField.on('change', () => validateName(conceptNameField.val()));
+        uponField.on('input', () => validateName(uponField.val()));
+        uponField.on('change', () => validateName(uponField.val()));
 
         document.getElementById("editGuidePhoto").options.length = 0; // clear options
         const guidePhotoSelect = $(this).find('#editGuidePhoto');
@@ -274,6 +283,6 @@ $(document).ready(function () {
             opt.appendTo(guidePhotoSelect);
         }
 
-        $('#params').val(`${window.location.search}${window.location.hash}`);
+        $('#editParams').val(`${window.location.search}${window.location.hash}`);
     });
 });

@@ -17,6 +17,10 @@ app.secret_key = 'darc'
 with requests.get('http://hurlstor.soest.hawaii.edu:8083/kb/v1/concept') as r:
     vars_concepts = r.json()
 
+# get list of reviewers from external review db
+with requests.get('http://localhost:8000/reviewer/all') as r:
+    reviewers = r.json()
+
 # get list of sequences from vars
 with requests.get('http://hurlstor.soest.hawaii.edu:8084/vam/v1/videosequences/names') as r:
     sequences = r.json()
@@ -55,7 +59,7 @@ def view_images():
     image_loader = ImageLoader(sequences, filter_type, filter_)
     if len(image_loader.distilled_records) < 1:
         return render_template('404.html', err='pics'), 404
-    data = {'annotations': image_loader.distilled_records, 'concepts': vars_concepts}
+    data = {'annotations': image_loader.distilled_records, 'concepts': vars_concepts, 'reviewers': reviewers}
     return render_template('image_review.html', data=data)
 
 

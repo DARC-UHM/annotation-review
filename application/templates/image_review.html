@@ -117,9 +117,37 @@
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <input type="hidden" id="params" name="params" value="">
-                            <input type="hidden" id="observationUuid" name="observation_uuid">
-                            <input type="submit" id="modalSubmitButton" class="btn btn-success py-2" value="Save Changes">
+                            <input type="hidden" id="editParams" name="params" value="">
+                            <input type="hidden" id="editObservationUuid" name="observation_uuid">
+                            <input type="submit" id="editModalSubmitButton" class="btn btn-success py-2" value="Save Changes">
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="modal fade" id="addForReviewModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <form action="/update_annotation" method="post" autocomplete="off">
+                    <div class="modal-content">
+                        <div class="modal-header text-center">
+                            <h5 class="modal-title mt-1 ms-4" style="font-weight: 600;">External Review</h5>
+                            <button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body text-start">
+                            <div class="row pb-2">
+                                <div class="col-4 ms-4 ps-4 modal-label">
+                                    Reviewer:
+                                </div>
+                                <div class="col">
+                                    <input type="text" id="reviewerName" name="reviewerName">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <input type="hidden" id="externalParams" name="params" value="">
+                            <input type="hidden" id="externalObservationUuid" name="observation_uuid">
+                            <input type="submit" id="externalModalSubmitButton" class="btn btn-success py-2" value="Save Changes">
                         </div>
                     </div>
                 </form>
@@ -133,6 +161,7 @@
         const None = null;
         const annotations = {{ data.annotations|safe }};
         const allConcepts = {{ data.concepts|safe }};
+        const reviewers = {{ data.reviewers|safe }};
     </script>
     <script src="/static/js/image_logic.js"></script>
 </body>
