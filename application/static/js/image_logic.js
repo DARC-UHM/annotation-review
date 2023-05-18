@@ -128,7 +128,7 @@ const setCurrentPage = (pageNum) => {
                             <button type="button" data-bs-toggle="modal" data-anno='${ JSON.stringify(annotation) }' data-bs-target="#editModal" class="editButton mt-2">Edit</button><br>
                         </div>
                         <div class="col values">
-                            <button type="button" data-bs-toggle="modal" data-anno='${ JSON.stringify(annotation) }' data-bs-target="#addForReviewModal" class="editButton mt-2">Add to external review</button>
+                            <button type="button" data-bs-toggle="modal" data-phylum='${ JSON.stringify(annotation.phylum) }' data-bs-target="#externalReviewModal" class="editButton mt-2">Add to external review</button>
                         </div>
                     </div>
                 </td>
@@ -284,5 +284,13 @@ $(document).ready(function () {
         }
 
         $('#editParams').val(`${window.location.search}${window.location.hash}`);
+    });
+
+    $('#externalReviewModal').on('show.bs.modal', function (e) {
+        const phylum = $(e.relatedTarget).data('phylum').toLowerCase().slice(1, -1);
+        const recommendedReviewers = reviewers.filter((obj) => {
+            return obj.phylum.toLowerCase().includes(phylum);
+        });
+        reviewerList(document.getElementById('reviewerName'), recommendedReviewers);
     });
 });

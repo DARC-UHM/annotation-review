@@ -125,7 +125,7 @@
                 </form>
             </div>
         </div>
-        <div class="modal fade" id="addForReviewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal fade" id="externalReviewModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg">
                 <form action="/update_annotation" method="post" autocomplete="off">
                     <div class="modal-content">
@@ -157,6 +157,7 @@
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/bootstrap.bundle.js"></script>
     <script src="/static/js/autocomplete.js"></script>
+    <script src="/static/js/reviewer_list.js"></script>
     <script>
         const None = null;
         const annotations = {{ data.annotations|safe }};
