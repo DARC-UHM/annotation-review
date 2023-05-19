@@ -125,17 +125,48 @@ const setCurrentPage = (pageNum) => {
                     </div>
                     <div class="row">
                         <div class="col">
-                            <a type="button" class="editButton mt-2"" href="${annotation.video_url}" target="_blank">See Video</a><br>
-                            <button type="button" data-bs-toggle="modal" data-anno='${ JSON.stringify(annotation) }' data-bs-target="#editModal" class="editButton">Edit Annotation</button><br>
+                            <a type="button" class="editButton mt-2"" href="${annotation.video_url}" target="_blank">See Video</a>
+                            <br>
+                            <button 
+                                type="button" 
+                                data-bs-toggle="modal" 
+                                data-anno='${ JSON.stringify(annotation) }' 
+                                data-bs-target="#editModal" 
+                                class="editButton">
+                                    Edit Annotation
+                            </button>
+                            <br>
                         </div>
                         <div class="col values">
                             ${ Object.keys(comment_uuids).includes(annotation.observation_uuid) ?
                             `<div class="col">
-                                <button type="button" data-bs-toggle="modal" data-phylum='${ JSON.stringify(annotation.phylum) }' data-bs-target="#externalReviewModal" class="editButton mt-2" onclick="updateReviewerName('${comment_uuids[annotation.observation_uuid]}')">Change Reviewer</button><br>
-                                <a type="button" class="editButton" href="http://127.0.0.1:8000/review/${comment_uuids[annotation.observation_uuid]}" target="_blank">View Reviewer Comments</a>
+                                <button 
+                                    type="button" 
+                                    data-bs-toggle="modal" 
+                                    data-phylum='${ JSON.stringify(annotation.phylum) }' 
+                                    data-bs-target="#externalReviewModal" 
+                                    class="editButton mt-2" 
+                                    onclick="updateReviewerName('${comment_uuids[annotation.observation_uuid]}')">
+                                        Change Reviewer
+                                </button>
+                                <br>
+                                <a 
+                                    type="button" 
+                                    class="editButton" 
+                                    href="http://127.0.0.1:8000/review/${comment_uuids[annotation.observation_uuid]}" 
+                                    target="_blank">
+                                        View Reviewer Comments
+                                </a>
                             </div>`
                             : 
-                            `<button type="button" data-bs-toggle="modal" data-phylum='${ JSON.stringify(annotation.phylum) }' data-bs-target="#externalReviewModal" class="editButton mt-2">Add to External Review</button>`
+                            `<button 
+                                type="button" 
+                                data-bs-toggle="modal" 
+                                data-anno='${ JSON.stringify(annotation) }' 
+                                data-bs-target="#externalReviewModal" 
+                                class="editButton mt-2">
+                                    Add to External Review
+                            </button>`
                             }
                         </div>
                     </div>
@@ -254,6 +285,12 @@ document.addEventListener('DOMContentLoaded', function(event) {
         $('#load-overlay').addClass('loader-bg');
         $('#editModal').modal('hide');
     });
+
+    $('#externalModalSubmitButton').on('click', () => {
+        $('#load-overlay').removeClass('loader-bg-hidden');
+        $('#load-overlay').addClass('loader-bg');
+        $('#externalReviewModal').modal('hide');
+    });
 });
 
 window.onbeforeunload = function(e) {
@@ -299,10 +336,22 @@ $(document).ready(function () {
     });
 
     $('#externalReviewModal').on('show.bs.modal', function (e) {
-        const phylum = $(e.relatedTarget).data('phylum').toLowerCase().slice(1, -1);
+        const annotation = $(e.relatedTarget).data('anno');
+        const phylum = annotation.phylum.toLowerCase().slice(1, -1);
         const recommendedReviewers = reviewers.filter((obj) => {
             return obj.phylum.toLowerCase().includes(phylum);
         });
         reviewerList(document.getElementById('reviewerNameButton'), recommendedReviewers);
+
+        $('#externalParams').val(`${window.location.search}${window.location.hash}`);
+        $('#externalObservationUuid').val(annotation.observation_uuid);
+        $('#externalSequence').val(annotation.video_sequence_name);
+        $('#externalTimestamp').val(annotation.recorded_timestamp);
+        $('#externalImageUrl').val(annotation.image_url);
+        $('#externalConcept').val(annotation.concept);
+        $('#externalVideoUrl').val(annotation.video_url);
+        $('#externalIdCertainty').val(annotation.identity_certainty);
+        $('#externalIdReference').val(annotation.identity_reference);
+        $('#externalUpon').val(annotation.upon);
     });
 });

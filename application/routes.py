@@ -1,4 +1,5 @@
 import os
+
 from flask import render_template, request, redirect, flash
 from dotenv import load_dotenv
 
@@ -70,6 +71,36 @@ def view_images():
         'comment_uuids': comment_uuids
     }
     return render_template('image_review.html', data=data)
+
+
+@app.post('/update_reviewer')
+def update_reviewer():
+    data = {
+        'uuid': request.values.get('observation_uuid'),
+        'sequence': request.values.get('sequence'),
+        'timestamp': request.values.get('timestamp'),
+        'image_url': request.values.get('image_url'),
+        'concept': request.values.get('concept'),
+        'reviewer': request.values.get('reviewer'),
+        'video_url': request.values.get('video_url'),
+        'id_certainty': request.values.get('id_certainty'),
+        'id_reference': request.values.get('id_reference'),
+        'upon': request.values.get('upon'),
+    }
+    with requests.post('http://127.0.0.1:8000/comment/add', data=data) as r:
+        print(r.json())
+        if r.status_code == 409:
+            req = requests.put(f'http://127.0.0.1:8000/comment/update_reviewer/{data["uuid"]}', data=data)
+            if req.status_code == 200:
+                flash('Reviewer successfully updated', 'success')
+            else:
+                flash('Failed to update reviewer - please try again', 'danger')
+        elif r.status_code == 201:
+            flash('Successfully added for review', 'success')
+        else:
+            flash('Failed to add for review - please try again', 'danger')
+
+    return redirect(f'dive{request.values.get("params")}')
 
 
 @app.post('/update_annotation')
