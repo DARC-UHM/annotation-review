@@ -66,12 +66,17 @@ li {
     background-color: #222831;
 }
 
-.modal-content input {
-    padding: 5px 10px;
+.modal-button {
+    padding: 6px 40px;
+    font-weight: 450;
+}
+
+.modal-text {
     background-color: #393E46;
     color: white;
     border: 0;
     width: 300px;
+    padding: 5px 10px;
 }
 
 .modal-content select {
@@ -275,4 +280,12 @@ li {
     color: white;
     border: 0;
     width: 150px;
+}
+
+#reviewerNameButton {
+    width: 300px;
+    background: #393E46;
+    color: white;
+    border: solid #7f8088 1px;
+    border-radius: 1px;
 }

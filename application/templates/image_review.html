@@ -71,7 +71,7 @@
                                     Concept:
                                 </div>
                                 <div class="col">
-                                    <input type="text" id="editConceptName" name="editConceptName">
+                                    <input type="text" id="editConceptName" name="editConceptName" class="modal-text">
                                 </div>
                             </div>
                             <div class="row pb-2">
@@ -79,7 +79,7 @@
                                     ID Certainty:
                                 </div>
                                 <div class="col">
-                                    <input type="text" id="editIdCert" name="editIdCert">
+                                    <input type="text" id="editIdCert" name="editIdCert" class="modal-text">
                                 </div>
                             </div>
                             <div class="row pb-2">
@@ -87,7 +87,7 @@
                                     ID Reference:
                                 </div>
                                 <div class="col">
-                                    <input type="text" id="editIdRef" name="editIdRef">
+                                    <input type="text" id="editIdRef" name="editIdRef" class="modal-text">
                                 </div>
                             </div>
                             <div class="row pb-2">
@@ -95,7 +95,7 @@
                                     Upon:
                                 </div>
                                 <div class="col">
-                                    <input type="text" id="editUpon" name="editUpon">
+                                    <input type="text" id="editUpon" name="editUpon" class="modal-text">
                                 </div>
                             </div>
                             <div class="row pb-2">
@@ -103,7 +103,7 @@
                                     Comments:
                                 </div>
                                 <div class="col">
-                                    <input type="text" id="editComments" name="editComments">
+                                    <input type="text" id="editComments" name="editComments" class="modal-text">
                                 </div>
                             </div>
                             <div class="row pb-2">
@@ -116,10 +116,10 @@
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Cancel</button>
                             <input type="hidden" id="editParams" name="params" value="">
                             <input type="hidden" id="editObservationUuid" name="observation_uuid">
-                            <input type="submit" id="editModalSubmitButton" class="btn btn-success py-2" value="Save Changes">
+                            <input type="submit" id="editModalSubmitButton" class="btn btn-success modal-button" value="Save Changes">
                         </div>
                     </div>
                 </form>
@@ -139,15 +139,27 @@
                                     Reviewer:
                                 </div>
                                 <div class="col">
-                                    <button type="button" id="reviewerName" name="reviewerName">Select v</button>
+                                    <button type="button" id="reviewerNameButton" class="btn" name="reviewerName">
+                                        <div class="row">
+                                            <div class="col-1 ms-2"></div>
+                                            <div id="reviewerName" class="col">
+                                                Select
+                                            </div>
+                                            <div class="col-1 me-2">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
+                                                  <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </button>
                                 </div>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Cancel</button>
                             <input type="hidden" id="externalParams" name="params" value="">
                             <input type="hidden" id="externalObservationUuid" name="observation_uuid">
-                            <input type="submit" id="externalModalSubmitButton" class="btn btn-success py-2" value="Save Changes">
+                            <input type="submit" id="externalModalSubmitButton" class="btn btn-success modal-button" value="Save Changes">
                         </div>
                     </div>
                 </form>

@@ -291,6 +291,6 @@ $(document).ready(function () {
         const recommendedReviewers = reviewers.filter((obj) => {
             return obj.phylum.toLowerCase().includes(phylum);
         });
-        reviewerList(document.getElementById('reviewerName'), recommendedReviewers);
+        reviewerList(document.getElementById('reviewerNameButton'), recommendedReviewers);
     });
 });

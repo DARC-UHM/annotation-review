@@ -26,7 +26,7 @@ function reviewerList(button, arr) {
             /* execute a function when someone clicks on the item value (DIV element) */
             row.addEventListener("click", function(e) {
                 /* insert the value for the autocomplete text field */
-                button.innerHTML = row.getElementsByTagName('input')[0].value;
+                $('#reviewerName').html(row.getElementsByTagName('input')[0].value);
                 button.dispatchEvent(new Event('change'));
                 /* close the list of autocompleted values,
                 (or any other open lists of autocompleted values */
