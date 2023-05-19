@@ -45,11 +45,15 @@ def index():
 def view_images():
     # get images in sequence
     sequences = []
+    comment_uuids = {}
     filter_type = None
     filter_ = None
     for key, val in request.args.items():
         if 'sequence' in key:
             sequences.append(val)
+            with requests.get(f'http://localhost:8000/comment/sequence/{val}') as r:
+                for comment in r.json():
+                    comment_uuids[comment['uuid']] = comment['reviewer']
         else:
             filter_type = key
             filter_ = val
@@ -59,7 +63,12 @@ def view_images():
     image_loader = ImageLoader(sequences, filter_type, filter_)
     if len(image_loader.distilled_records) < 1:
         return render_template('404.html', err='pics'), 404
-    data = {'annotations': image_loader.distilled_records, 'concepts': vars_concepts, 'reviewers': reviewers}
+    data = {
+        'annotations': image_loader.distilled_records,
+        'concepts': vars_concepts,
+        'reviewers': reviewers,
+        'comment_uuids': comment_uuids
+    }
     return render_template('image_review.html', data=data)
 
 

@@ -128,7 +128,14 @@ const setCurrentPage = (pageNum) => {
                             <button type="button" data-bs-toggle="modal" data-anno='${ JSON.stringify(annotation) }' data-bs-target="#editModal" class="editButton mt-2">Edit</button><br>
                         </div>
                         <div class="col values">
-                            <button type="button" data-bs-toggle="modal" data-phylum='${ JSON.stringify(annotation.phylum) }' data-bs-target="#externalReviewModal" class="editButton mt-2">Add to external review</button>
+                            ${ Object.keys(comment_uuids).includes(annotation.observation_uuid) ?
+                            `<div class="col">
+                                <button type="button" data-bs-toggle="modal" data-phylum='${ JSON.stringify(annotation.phylum) }' data-bs-target="#externalReviewModal" class="editButton mt-2" onclick="updateReviewerName('${comment_uuids[annotation.observation_uuid]}')">Change reviewer</button><br>
+                                <a type="button" class="editButton" href="http://127.0.0.1:8000/review/${comment_uuids[annotation.observation_uuid]}" target="_blank">View reviewer comments</a>
+                            </div>`
+                            : 
+                            `<button type="button" data-bs-toggle="modal" data-phylum='${ JSON.stringify(annotation.phylum) }' data-bs-target="#externalReviewModal" class="editButton mt-2">Add to external review</button>`
+                            }
                         </div>
                     </div>
                 </td>
@@ -172,6 +179,10 @@ function validateName(name) {
         disabled = true;
     }
     $('#editModalSubmitButton')[0].disabled = disabled;
+}
+
+function updateReviewerName(name) {
+    $('#reviewerName').html(name);
 }
 
 autocomplete(document.getElementById('editConceptName'), allConcepts);

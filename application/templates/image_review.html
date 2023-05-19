@@ -127,7 +127,7 @@
         </div>
         <div class="modal fade" id="externalReviewModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg">
-                <form action="/update_annotation" method="post" autocomplete="off">
+                <form action="/external_review" method="post" autocomplete="off">
                     <div class="modal-content">
                         <div class="modal-header text-center">
                             <h5 class="modal-title mt-1 ms-4" style="font-weight: 600;">External Review</h5>
@@ -175,6 +175,7 @@
         const annotations = {{ data.annotations|safe }};
         const allConcepts = {{ data.concepts|safe }};
         const reviewers = {{ data.reviewers|safe }};
+        const comment_uuids = {{ data.comment_uuids|safe }};
     </script>
     <script src="/static/js/image_logic.js"></script>
 </body>
