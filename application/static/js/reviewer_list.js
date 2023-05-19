@@ -2,19 +2,20 @@
 function reviewerList(button, arr) {
     let currentFocus;
     let menuOpen = true;
-    button.addEventListener("input", function(e) {
+
+    function showMenu() {
         /* close any already open lists of autocompleted values */
         closeAllLists();
         currentFocus = -1;
         /* create a DIV element that will contain the items (values) */
-        const div = document.createElement("DIV");
-        div.setAttribute("id", this.id + "autocomplete-list");
-        div.setAttribute("class", "autocomplete-items");
+        const div = document.createElement('DIV');
+        div.setAttribute('id', button.id + 'autocomplete-list');
+        div.setAttribute('class', 'autocomplete-items');
         /* append the DIV element as a child of the autocomplete container */
-        this.parentNode.appendChild(div);
+        console.log('in event listener...')
+        button.parentNode.appendChild(div);
         for (let i = 0; i < arr.length; i++) {
-            console.log('heyooo')
-            let row = document.createElement("DIV");
+            let row = document.createElement('DIV');
             row.innerHTML = `
                 <strong>${arr[i].name}</strong><br>                
                 <span class="small">${arr[i].focus}</span><br>
@@ -25,7 +26,7 @@ function reviewerList(button, arr) {
             /* execute a function when someone clicks on the item value (DIV element) */
             row.addEventListener("click", function(e) {
                 /* insert the value for the autocomplete text field */
-                button.innerHTML = this.getElementsByTagName("input")[0].value;
+                button.innerHTML = row.getElementsByTagName('input')[0].value;
                 button.dispatchEvent(new Event('change'));
                 /* close the list of autocompleted values,
                 (or any other open lists of autocompleted values */
@@ -33,38 +34,33 @@ function reviewerList(button, arr) {
             });
             div.appendChild(row);
         }
-    });
-    /*execute a function presses a key on the keyboard:*/
-    button.addEventListener("keydown", function(e) {
-      let x = document.getElementById(this.id + "autocomplete-list");
-      if (x) {
-          x = x.getElementsByTagName("div");
+        menuOpen = true;
+    }
+    /* execute a function presses a key on the keyboard */
+    button.addEventListener('keydown', function(e) {
+      let list = document.getElementById(this.id + 'autocomplete-list');
+      if (list) {
+          list = list.getElementsByTagName("div");
       }
       if (e.keyCode === 40) {
-        /*If the arrow DOWN key is pressed,
-        increase the currentFocus variable */
+        /* If the arrow DOWN key is pressed, increase the currentFocus variable */
         currentFocus++;
-        /* and make the current item more visible */
-        addActive(x);
+        addActive(list);
       } else if (e.keyCode === 38) { //up
-        /*If the arrow UP key is pressed,
-        decrease the currentFocus variable */
+        /* If the arrow UP key is pressed, decrease the currentFocus variable */
         currentFocus--;
-        /* and make the current item more visible */
-        addActive(x);
+        addActive(list);
       } else if (e.keyCode === 13) {
-        /*If the ENTER key is pressed, prevent the form from being submitted,*/
+        /* If the ENTER key is pressed, prevent the form from being submitted */
         e.preventDefault();
-        if (currentFocus > -1) {
-          /*and simulate a click on the "active" item:*/
-          if (x) x[currentFocus].click();
+        if (currentFocus > -1 && list) {
+          list[currentFocus].click();
         }
       }
     });
     function addActive(x) {
-        /*a function to classify an item as "active":*/
+        /* classifies an item as "active" */
         if (!x) return false;
-        /*start by removing the "active" class on all items:*/
         removeActive(x);
         if (currentFocus >= x.length) {
             currentFocus = 0;
@@ -72,34 +68,33 @@ function reviewerList(button, arr) {
         if (currentFocus < 0) {
             currentFocus = (x.length - 1);
         }
-        /*add class "autocomplete-active":*/
-        x[currentFocus].classList.add("autocomplete-active");
+        x[currentFocus].classList.add('autocomplete-active');
     }
     function removeActive(x) {
     /*a function to remove the "active" class from all autocomplete items:*/
         for (let i = 0; i < x.length; i++) {
-            x[i].classList.remove("autocomplete-active");
+            x[i].classList.remove('autocomplete-active');
         }
     }
-    function closeAllLists(elmnt) {
-        /*close all autocomplete lists in the document,
-        except the one passed as an argument:*/
-        const x = document.getElementsByClassName("autocomplete-items");
-        for (let i = 0; i < x.length; i++) {
-            if (elmnt !== x[i] && elmnt !== button) {
-                x[i].parentNode.removeChild(x[i]);
-            }
+    function closeAllLists() {
+        /* close all autocomplete lists in the document */
+        const list = document.getElementsByClassName('autocomplete-items');
+        for (let i = 0; i < list.length; i++) {
+            list[i].parentNode.removeChild(list[i]);
         }
+        menuOpen = false;
     }
-
-    document.addEventListener("click", function (e) {
+    button.addEventListener('click', function (e) {
+        e.stopPropagation();  // can't believe this works
         if (menuOpen) {
-            closeAllLists(e.target);
-            menuOpen = false;
+            closeAllLists();
         } else {
-            button.dispatchEvent(new Event('input'));
-            console.log('dispatched event')
-            menuOpen = true;
+            showMenu();
+        }
+    });
+    document.addEventListener('click', function (e) {
+        if (menuOpen) {
+            closeAllLists();
         }
     });
 }
