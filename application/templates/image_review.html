@@ -127,7 +127,7 @@
         </div>
         <div class="modal fade" id="externalReviewModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg">
-                <form action="/external_review" method="post" autocomplete="off">
+                <form action="/update_reviewer" method="post" autocomplete="off">
                     <div class="modal-content">
                         <div class="modal-header text-center">
                             <h5 class="modal-title mt-1 ms-4" style="font-weight: 600;">External Review</h5>
@@ -159,7 +159,15 @@
                             <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Cancel</button>
                             <input type="hidden" id="externalParams" name="params" value="">
                             <input type="hidden" id="externalObservationUuid" name="observation_uuid">
-                            <input type="submit" id="externalModalSubmitButton" class="btn btn-success modal-button" value="Save Changes">
+                            <input type="hidden" id="externalSequence" name="sequence">
+                            <input type="hidden" id="externalTimestamp" name="timestamp">
+                            <input type="hidden" id="externalImageUrl" name="image_url">
+                            <input type="hidden" id="externalConcept" name="concept">
+                            <input type="hidden" id="externalVideoUrl" name="video_url">
+                            <input type="hidden" id="externalIdCertainty" name="id_certainty">
+                            <input type="hidden" id="externalIdReference" name="id_reference">
+                            <input type="hidden" id="externalUpon" name="upon">
+                            <input type="submit" id="externalModalSubmitButton" class="btn btn-success modal-button" value="Save">
                         </div>
                     </div>
                 </form>

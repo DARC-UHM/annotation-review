@@ -1,6 +1,20 @@
 import requests
 import pandas as pd
 
+from datetime import datetime
+
+
+def parse_datetime(timestamp: str) -> datetime:
+    """
+    Returns a datetime object given a timestamp string.
+
+    :param str timestamp: The timestamp to parse.
+    :return datetime: The timestamp parsed as a datetime object.
+    """
+    if '.' in timestamp:
+        return datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S.%fZ')
+    return datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%SZ')
+
 
 def get_association(annotation, link_name):
     """ Obtains an association value from the annotation data structure """
@@ -22,9 +36,16 @@ class ImageLoader:
     def load_images(self, name: str):
         concept_phylogeny = {}
         image_records = []
+        videos = []
 
         with requests.get(f'http://hurlstor.soest.hawaii.edu:8086/query/dive/{name.replace(" ", "%20")}') as r:
             response = r.json()
+
+        # get list of video links and start timestamps
+        for video in response['media']:
+            if 'urn:imagecollection:org' not in video['uri']:
+                videos.append([parse_datetime(video['start_timestamp']),
+                    video['uri'].replace('http://hurlstor.soest.hawaii.edu/videoarchive', 'https://hurlvideo.soest.hawaii.edu')])
 
         video_sequence_name = response['media'][0]['video_sequence_name']
 
@@ -157,14 +178,23 @@ class ImageLoader:
             if 'species' in concept_phylogeny[concept_name].keys():
                 species = concept_phylogeny[concept_name]['species']
 
-            url = record['image_references'][0]['url']
+            image_url = record['image_references'][0]['url']
 
             for i in range(1, len(record['image_references'])):
                 if '.png' in record['image_references'][i]['url']:
                     url = record['image_references'][i]['url']
                     break
+            image_url = image_url.replace('http://hurlstor.soest.hawaii.edu/imagearchive', 'https://hurlimage.soest.hawaii.edu')
 
-            url = url.replace('http://hurlstor.soest.hawaii.edu/imagearchive', 'https://hurlimage.soest.hawaii.edu')
+            # get video reference url
+            timestamp = parse_datetime(record['recorded_timestamp'])
+            video_url = videos[0]
+            for video in videos:
+                if video[0] > timestamp:
+                    break
+                video_url = video
+            time_diff = timestamp - video_url[0]
+            video_url = f'{video_url[1]}#t={int(time_diff.total_seconds()) - 5}'
 
             temp_df = pd.DataFrame([[
                 observation_uuid,
@@ -173,7 +203,8 @@ class ImageLoader:
                 id_ref,
                 guide_photo,
                 comment,
-                url,
+                image_url,
+                video_url,
                 upon,
                 record['recorded_timestamp'],
                 video_sequence_name,
@@ -199,6 +230,7 @@ class ImageLoader:
                 'guide-photo',
                 'comment',
                 'image_url',
+                'video_url',
                 'upon',
                 'recorded_timestamp',
                 'video_sequence_name',
@@ -257,6 +289,7 @@ class ImageLoader:
                 'guide_photo': row['guide-photo'],
                 'comment': row['comment'],
                 'image_url': row['image_url'],
+                'video_url': row['video_url'],
                 'upon': row['upon'],
                 'recorded_timestamp': row['recorded_timestamp'],
                 'video_sequence_name': row['video_sequence_name']

@@ -125,16 +125,17 @@ const setCurrentPage = (pageNum) => {
                     </div>
                     <div class="row">
                         <div class="col">
-                            <button type="button" data-bs-toggle="modal" data-anno='${ JSON.stringify(annotation) }' data-bs-target="#editModal" class="editButton mt-2">Edit</button><br>
+                            <a type="button" class="editButton mt-2"" href="${annotation.video_url}" target="_blank">See Video</a><br>
+                            <button type="button" data-bs-toggle="modal" data-anno='${ JSON.stringify(annotation) }' data-bs-target="#editModal" class="editButton">Edit Annotation</button><br>
                         </div>
                         <div class="col values">
                             ${ Object.keys(comment_uuids).includes(annotation.observation_uuid) ?
                             `<div class="col">
-                                <button type="button" data-bs-toggle="modal" data-phylum='${ JSON.stringify(annotation.phylum) }' data-bs-target="#externalReviewModal" class="editButton mt-2" onclick="updateReviewerName('${comment_uuids[annotation.observation_uuid]}')">Change reviewer</button><br>
-                                <a type="button" class="editButton" href="http://127.0.0.1:8000/review/${comment_uuids[annotation.observation_uuid]}" target="_blank">View reviewer comments</a>
+                                <button type="button" data-bs-toggle="modal" data-phylum='${ JSON.stringify(annotation.phylum) }' data-bs-target="#externalReviewModal" class="editButton mt-2" onclick="updateReviewerName('${comment_uuids[annotation.observation_uuid]}')">Change Reviewer</button><br>
+                                <a type="button" class="editButton" href="http://127.0.0.1:8000/review/${comment_uuids[annotation.observation_uuid]}" target="_blank">View Reviewer Comments</a>
                             </div>`
                             : 
-                            `<button type="button" data-bs-toggle="modal" data-phylum='${ JSON.stringify(annotation.phylum) }' data-bs-target="#externalReviewModal" class="editButton mt-2">Add to external review</button>`
+                            `<button type="button" data-bs-toggle="modal" data-phylum='${ JSON.stringify(annotation.phylum) }' data-bs-target="#externalReviewModal" class="editButton mt-2">Add to External Review</button>`
                             }
                         </div>
                     </div>
