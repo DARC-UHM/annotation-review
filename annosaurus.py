@@ -127,7 +127,7 @@ class Annosaurus(JWTAuthentication):
                     print(f'{update_str}Unable to update concept name')
                     return -1
                 ret_status = 1
-                update_str = f'Updated concept name\n'
+                update_str += f'Updated concept name\n'
 
             # get list of old association link_names that we can change
             old_link_names = []
@@ -208,3 +208,62 @@ class Annosaurus(JWTAuthentication):
 
         print(update_str if update_str else 'No changes made')
         return ret_status
+
+    def update_annotation_comment(self,
+                                  observation_uuid: str,
+                                  reviewer: str,
+                                  client_secret: str = None,
+                                  jwt: str = None):
+        update_str = f'UUID: {observation_uuid}\n'
+        jwt = self.authorize(client_secret, jwt)
+
+        with requests.get(f'http://hurlstor.soest.hawaii.edu:8082/anno/v1/observations/{observation_uuid}') as r:
+            if r.status_code != 200:
+                print(f'{update_str}Unable to find annotation on server')
+                return -1
+
+            old_association = \
+                next((item for item in r.json()['associations'] if item['link_name'] == 'comment'), None)
+
+            if old_association:
+                # there's already a comment
+                old_comment = old_association['link_value'].split('; ')
+                old_comment = [cmt for cmt in old_comment if 'send to' not in cmt.lower()]
+                old_comment = [cmt for cmt in old_comment if 'added for review' not in cmt.lower()]
+                old_comment = '; '.join(old_comment)
+                if old_comment:
+                    new_comment = f'{old_comment}; Added for review: {reviewer}'
+                else:
+                    new_comment = f'Added for review: {reviewer}'
+
+                new_association = {'link_value': new_comment}
+                status = self.update_association(
+                    uuid=old_association['uuid'],
+                    association=new_association,
+                    client_secret=client_secret
+                )
+                if status != 200:
+                    print(f'{update_str}Unable to update comment')
+                    return -1
+                else:
+                    update_str += 'Added comment'
+            else:
+                # make a new comment
+                new_comment = f'Added for review: {reviewer}'
+                new_association = {
+                    'link_name': 'comment',
+                    'link_value': new_comment
+                }
+                status = self.create_association(
+                    observation_uuid=observation_uuid,
+                    association=new_association,
+                    client_secret=client_secret
+                )
+                if status != 200:
+                    print(f'{update_str}Unable to add comment')
+                    return -1
+                else:
+                    update_str += 'Added comment'
+
+        print(update_str if update_str else 'No changes made')
+        return None

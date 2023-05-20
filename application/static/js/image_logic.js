@@ -69,7 +69,7 @@ const setCurrentPage = (pageNum) => {
                     </div>
                     <div class="row">
                         <div class="col">
-                            ID Certainty:<br>
+                            ID certainty:<br>
                         </div>
                         <div class="col values">
                             ${annotation.identity_certainty ? annotation.identity_certainty : '-'}<br>
@@ -77,7 +77,7 @@ const setCurrentPage = (pageNum) => {
                     </div>
                     <div class="row">
                         <div class="col">
-                            ID Reference:<br>
+                            ID reference:<br>
                         </div>
                         <div class="col values">
                             ${annotation.identity_reference ? annotation.identity_reference : '-'}<br>
@@ -101,7 +101,7 @@ const setCurrentPage = (pageNum) => {
                     </div>
                     <div class="row">
                         <div class="col">
-                            Guide Photo:<br>
+                            Guide photo:<br>
                         </div>
                         <div class="col values">
                             ${annotation.guide_photo ? annotation.guide_photo : '-'}<br>
@@ -117,7 +117,7 @@ const setCurrentPage = (pageNum) => {
                     </div>
                     <div class="row">
                         <div class="col">
-                            Video Sequence:
+                            Video sequence:
                         </div>
                         <div class="col values">
                             ${annotation.video_sequence_name}<br>
@@ -125,7 +125,7 @@ const setCurrentPage = (pageNum) => {
                     </div>
                     <div class="row">
                         <div class="col">
-                            <a type="button" class="editButton mt-2"" href="${annotation.video_url}" target="_blank">See Video</a>
+                            <a type="button" class="editButton mt-2"" href="${annotation.video_url}" target="_blank">See video</a>
                             <br>
                             <button 
                                 type="button" 
@@ -133,7 +133,7 @@ const setCurrentPage = (pageNum) => {
                                 data-anno='${ JSON.stringify(annotation) }' 
                                 data-bs-target="#editModal" 
                                 class="editButton">
-                                    Edit Annotation
+                                    Edit annotation
                             </button>
                             <br>
                         </div>
@@ -143,11 +143,11 @@ const setCurrentPage = (pageNum) => {
                                 <button 
                                     type="button" 
                                     data-bs-toggle="modal" 
-                                    data-phylum='${ JSON.stringify(annotation.phylum) }' 
+                                    data-anno='${ JSON.stringify(annotation) }'
                                     data-bs-target="#externalReviewModal" 
                                     class="editButton mt-2" 
                                     onclick="updateReviewerName('${comment_uuids[annotation.observation_uuid]}')">
-                                        Change Reviewer
+                                        Change reviewer
                                 </button>
                                 <br>
                                 <a 
@@ -155,7 +155,7 @@ const setCurrentPage = (pageNum) => {
                                     class="editButton" 
                                     href="http://127.0.0.1:8000/review/${comment_uuids[annotation.observation_uuid]}" 
                                     target="_blank">
-                                        View Reviewer Comments
+                                        View reviewer comments
                                 </a>
                             </div>`
                             : 
@@ -165,7 +165,7 @@ const setCurrentPage = (pageNum) => {
                                 data-anno='${ JSON.stringify(annotation) }' 
                                 data-bs-target="#externalReviewModal" 
                                 class="editButton mt-2">
-                                    Add to External Review
+                                    Add to external review
                             </button>`
                             }
                         </div>

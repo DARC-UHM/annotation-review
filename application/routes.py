@@ -92,15 +92,36 @@ def update_reviewer():
         if r.status_code == 409:
             req = requests.put(f'http://127.0.0.1:8000/comment/update_reviewer/{data["uuid"]}', data=data)
             if req.status_code == 200:
+                new_comment = {
+                    'observation_uuid': request.values.get('observation_uuid'),
+                    'reviewer': request.values.get("reviewer")
+                }
+                requests.post('http://127.0.0.1:5000/update_annotation_comment', new_comment)
                 flash('Reviewer successfully updated', 'success')
             else:
                 flash('Failed to update reviewer - please try again', 'danger')
         elif r.status_code == 201:
+            new_comment = {
+                'observation_uuid': request.values.get('observation_uuid'),
+                'reviewer': request.values.get("reviewer")
+            }
+            requests.post('http://127.0.0.1:5000/update_annotation_comment', new_comment)
             flash('Successfully added for review', 'success')
         else:
             flash('Failed to add for review - please try again', 'danger')
 
     return redirect(f'dive{request.values.get("params")}')
+
+
+@app.post('/update_annotation_comment')
+def update_annotation_comment():
+    annosaurus = Annosaurus(ANNOSAURUS_URL)
+    annosaurus.update_annotation_comment(
+        observation_uuid=request.values.get('observation_uuid'),
+        reviewer=request.values.get('reviewer'),
+        client_secret=ANNOSAURUS_CLIENT_SECRET
+    )
+    return ''
 
 
 @app.post('/update_annotation')

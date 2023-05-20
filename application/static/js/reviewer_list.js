@@ -12,7 +12,6 @@ function reviewerList(button, arr) {
         div.setAttribute('id', button.id + 'autocomplete-list');
         div.setAttribute('class', 'autocomplete-items');
         /* append the DIV element as a child of the autocomplete container */
-        console.log('in event listener...')
         button.parentNode.appendChild(div);
         for (let i = 0; i < arr.length; i++) {
             let row = document.createElement('DIV');
