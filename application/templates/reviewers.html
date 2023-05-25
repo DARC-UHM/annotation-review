@@ -40,7 +40,6 @@
                         <th style="font-weight: 500;" scope="col">Focus Area</th>
                         <th style="font-weight: 500;" scope="col">Organization</th>
                         <th style="font-weight: 500;" scope="col">Email</th>
-                        <th style="font-weight: 500;" scope="col">Contacted</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -98,14 +97,6 @@
                             </div>
                             <div class="row pb-2">
                                 <div class="col-4 ms-4 ps-4 modal-label">
-                                    Last Contacted:
-                                </div>
-                                <div class="col">
-                                    <input type="date" id="lastContacted" name="lastContacted" class="modal-text">
-                                </div>
-                            </div>
-                            <div class="row pb-2">
-                                <div class="col-4 ms-4 ps-4 modal-label">
                                     <button
                                         type="button"
                                         class="editButton"
@@ -119,7 +110,7 @@
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Cancel</button>
-                            <input type="hidden" id="ogReviewerName">
+                            <input type="hidden" id="ogReviewerName" name="ogReviewerName">
                             <input type="submit" id="editModalSubmitButton" class="btn btn-success modal-button" value="Save Changes">
                         </div>
                     </div>

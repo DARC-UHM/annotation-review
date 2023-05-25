@@ -82,7 +82,34 @@ def all_reviewers():
 
 @app.post('/update_reviewer_info')
 def update_reviewer_info():
-    return ''
+    name = request.values.get('ogReviewerName')
+    print(f'name: {name}')
+    data = {
+        'new_name': request.values.get('editReviewerName'),
+        'phylum': request.values.get('editPhylum'),
+        'focus': request.values.get('editFocus'),
+        'organization': request.values.get('editOrganization'),
+        'email': request.values.get('editEmail')
+    }
+    req = requests.put(f'http://hurlstor.soest.hawaii.edu:5000/reviewer/update/{name}', data=data)
+    if req.status_code == 404:
+        print(404)
+        print(req.text)
+        data['name'] = data['new_name']
+        req = requests.post('http://hurlstor.soest.hawaii.edu:5000/reviewer/add', data=data)
+        if req.status_code == 201:
+            flash('Successfully added reviewer', 'success')
+        else:
+            flash('Unable to add reviewer', 'danger')
+    elif req.status_code == 200:
+        print(200)
+        print(req.text)
+        flash('Successfully updated reviewer', 'success')
+    else:
+        print(req.status_code)
+        print(req.text)
+        flash('Unable to update reviewer', 'danger')
+    return redirect('/all_reviewers')
 
 
 @app.get('/delete_reviewer/<name>')
@@ -92,7 +119,6 @@ def delete_reviewer(name):
         flash('Reviewer successfully deleted', 'success')
     else:
         flash('Error deleting reviewer', 'danger')
-        print(req)
     return redirect('/all_reviewers')
 
 

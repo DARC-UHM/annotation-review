@@ -7,7 +7,6 @@ $(document).ready(function () {
             <td>${reviewer.focus}</td>
             <td>${reviewer.organization}</td>
             <td>${reviewer.email}</td>
-            <td>${reviewer.last_contacted ? reviewer.last_contacted : 'NA'}</td>
             <td class="text-center">
                 <button 
                     type="button" 
