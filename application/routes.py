@@ -77,7 +77,7 @@ def view_images():
 def all_reviewers():
     with requests.get('http://hurlstor.soest.hawaii.edu:5000/reviewer/all') as r:
         reviewers = r.json()
-    return reviewers
+    return render_template('reviewers.html', reviewers=reviewers)
 
 
 # updates the reviewer for an annotation in the hurl db

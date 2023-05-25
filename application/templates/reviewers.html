@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>DARC Image Review | External Reviewers</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/static/css/bootstrap.css" />
+    <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+    <div class="my-3 mx-5">
+        {% for cat, msg in get_flashed_messages(with_categories=true) %}
+        <div class="alert alert-{{ cat }} alert-dismissible px-5" style="position:fixed; left: 50%; transform: translate(-50%, 0);">
+            <span class="px-2" style="font-weight: 500;">{{ msg }}</span>
+            <button type="button" class="btn-close small" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+        <div class="row mt-3 px-3">
+            <div class="col">
+                <h3>
+                    External Reviewers
+                </h3>
+            </div>
+            <div class="col text-end mt-2">
+                <button id="plusButton" type="button" class="plusButton">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-plus mb-1" viewBox="0 0 16 16">
+                      <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                    </svg>
+                    <span style="font-weight: 600;">Add New</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="col d-flex justify-content-center mt-2">
+            <table id="reviewerTable" class="table table-striped" style="max-width: 2500px !important;">
+                <thead class="thead-dark sticky-top" style="background-color: #393E46; color: #EEEEEE;">
+                    <tr>
+                        <th style="font-weight: 500;" scope="col">Name</th>
+                        <th style="font-weight: 500;" scope="col">Phylum</th>
+                        <th style="font-weight: 500;" scope="col">Focus Area</th>
+                        <th style="font-weight: 500;" scope="col">Organization</th>
+                        <th style="font-weight: 500;" scope="col">Email</th>
+                        <th style="font-weight: 500;" scope="col">Contacted</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="modal fade" id="editReviewerModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <form action="/update_annotation" method="post" autocomplete="off">
+                    <div class="modal-content">
+                        <div class="modal-header text-center">
+                            <h5 class="modal-title mt-1 ms-4" style="font-weight: 600;">Edit Annotation</h5>
+                            <button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body text-start">
+                            <div class="row pb-2">
+                                <div class="col-4 ms-4 ps-4 modal-label">
+                                    Concept:
+                                </div>
+                                <div class="col">
+                                    <input type="text" id="editConceptName" name="editConceptName" class="modal-text">
+                                </div>
+                            </div>
+                            <div class="row pb-2">
+                                <div class="col-4 ms-4 ps-4 modal-label">
+                                    ID Certainty:
+                                </div>
+                                <div class="col">
+                                    <input type="text" id="editIdCert" name="editIdCert" class="modal-text">
+                                </div>
+                            </div>
+                            <div class="row pb-2">
+                                <div class="col-4 ms-4 ps-4 modal-label">
+                                    ID Reference:
+                                </div>
+                                <div class="col">
+                                    <input type="text" id="editIdRef" name="editIdRef" class="modal-text">
+                                </div>
+                            </div>
+                            <div class="row pb-2">
+                                <div class="col-4 ms-4 ps-4 modal-label">
+                                    Upon:
+                                </div>
+                                <div class="col">
+                                    <input type="text" id="editUpon" name="editUpon" class="modal-text">
+                                </div>
+                            </div>
+                            <div class="row pb-2">
+                                <div class="col-4 ms-4 ps-4 modal-label">
+                                    Comments:
+                                </div>
+                                <div class="col">
+                                    <input type="text" id="editComments" name="editComments" class="modal-text">
+                                </div>
+                            </div>
+                            <div class="row pb-2">
+                                <div class="col-4 ms-4 ps-4 modal-label">
+                                    Guide Photo:
+                                </div>
+                                <div class="col">
+                                    <select name="editGuidePhoto" id="editGuidePhoto"></select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Cancel</button>
+                            <input type="hidden" id="editParams" name="params" value="">
+                            <input type="hidden" id="editObservationUuid" name="observation_uuid">
+                            <input type="submit" id="editModalSubmitButton" class="btn btn-success modal-button" value="Save Changes">
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/bootstrap.bundle.js"></script>
+    <script src="/static/js/autocomplete.js"></script>
+    <script>
+        const None = null;
+        const reviewers = {{ reviewers|safe }};
+    </script>
+    <script src="/static/js/reviewer_logic.js"></script>
+</body>
+</html>
