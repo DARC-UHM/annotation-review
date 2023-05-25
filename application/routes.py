@@ -82,7 +82,7 @@ def all_reviewers():
 
 @app.post('/update_reviewer_info')
 def update_reviewer_info():
-    name = request.values.get('ogReviewerName')
+    name = request.values.get('ogReviewerName') or 'nobody'
     print(f'name: {name}')
     data = {
         'new_name': request.values.get('editReviewerName'),
@@ -100,6 +100,7 @@ def update_reviewer_info():
         if req.status_code == 201:
             flash('Successfully added reviewer', 'success')
         else:
+            print(req.text)
             flash('Unable to add reviewer', 'danger')
     elif req.status_code == 200:
         print(200)

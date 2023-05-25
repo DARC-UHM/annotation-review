@@ -123,9 +123,9 @@ const setCurrentPage = (pageNum) => {
                             ${annotation.video_sequence_name}<br>
                         </div>
                     </div>
-                    <div class="row">
+                    <div class="row mt-2">
                         <div class="col">
-                            <a type="button" class="editButton mt-2"" href="${annotation.video_url}" target="_blank">See video</a>
+                            <a class="editButton" href="${annotation.video_url}" target="_blank">See video</a>
                             <br>
                             <button 
                                 type="button" 
@@ -145,7 +145,7 @@ const setCurrentPage = (pageNum) => {
                                     data-bs-toggle="modal" 
                                     data-anno='${ JSON.stringify(annotation) }'
                                     data-bs-target="#externalReviewModal" 
-                                    class="editButton mt-2" 
+                                    class="editButton" 
                                     onclick="updateReviewerName('${comment_uuids[annotation.observation_uuid]}')">
                                         Change reviewer
                                 </button>
@@ -164,7 +164,7 @@ const setCurrentPage = (pageNum) => {
                                 data-bs-toggle="modal" 
                                 data-anno='${ JSON.stringify(annotation) }' 
                                 data-bs-target="#externalReviewModal" 
-                                class="editButton mt-2">
+                                class="editButton">
                                     Add to external review
                             </button>`
                             }
@@ -337,8 +337,10 @@ $(document).ready(function () {
 
     $('#externalReviewModal').on('show.bs.modal', function (e) {
         const annotation = $(e.relatedTarget).data('anno');
-        const phylum = annotation.phylum.toLowerCase().slice(1, -1);
+        const phylum = annotation.phylum.toLowerCase();
+        console.log(phylum)
         const recommendedReviewers = reviewers.filter((obj) => {
+            console.log(obj.phylum)
             return obj.phylum.toLowerCase().includes(phylum);
         });
         reviewerList(document.getElementById('reviewerNameButton'), recommendedReviewers);

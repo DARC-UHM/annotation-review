@@ -22,7 +22,7 @@
                 </h3>
             </div>
             <div class="col-2 text-end mt-2">
-                <button id="plusButton" type="button" class="plusButton">
+                <button type="button" class="plusButton" data-bs-toggle="modal" data-reviewer="" data-bs-target="#editReviewerModal">
                     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-plus mb-1" viewBox="0 0 16 16">
                       <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
                     </svg>
@@ -57,18 +57,18 @@
                         <div class="modal-body text-start">
                             <div class="row pb-2">
                                 <div class="col-4 ms-4 ps-4 modal-label">
-                                    Name:
+                                    *Name:
                                 </div>
                                 <div class="col">
-                                    <input type="text" id="editReviewerName" name="editReviewerName" class="modal-text">
+                                    <input type="text" id="editReviewerName" name="editReviewerName" class="modal-text" placeholder="Required">
                                 </div>
                             </div>
                             <div class="row pb-2">
                                 <div class="col-4 ms-4 ps-4 modal-label">
-                                    Phylum:
+                                    *Phylum:
                                 </div>
                                 <div class="col">
-                                    <input type="text" id="editPhylum" name="editPhylum" class="modal-text">
+                                    <input type="text" id="editPhylum" name="editPhylum" class="modal-text" placeholder="Required">
                                 </div>
                             </div>
                             <div class="row pb-2">
@@ -111,7 +111,7 @@
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Cancel</button>
                             <input type="hidden" id="ogReviewerName" name="ogReviewerName">
-                            <input type="submit" id="editModalSubmitButton" class="btn btn-success modal-button" value="Save Changes">
+                            <input type="submit" id="editReviewerSubmitButton" class="btn btn-success modal-button" value="Save Changes">
                         </div>
                     </div>
                 </form>
@@ -130,7 +130,7 @@
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Cancel</button>
-                            <a type="button" id="deleteReviewerButton" class="btn btn-danger modal-button">Delete</a>
+                            <a id="deleteReviewerButton" class="btn btn-danger modal-button">Delete</a>
                         </div>
                     </div>
                 </form>

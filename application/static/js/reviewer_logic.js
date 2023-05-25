@@ -1,3 +1,7 @@
+function checkEmpty(str1, str2) {
+    $('#editReviewerSubmitButton')[0].disabled = !(str1.length > 0 && str2.length > 0);
+}
+
 $(document).ready(function () {
     for (const reviewer of reviewers) {
         $('#reviewerTable').find('tbody').append(`
@@ -23,10 +27,12 @@ $(document).ready(function () {
 
     $('#editReviewerModal').on('show.bs.modal', function (e) {
         const reviewer = $(e.relatedTarget).data('reviewer');
+        const nameField = $(this).find('#editReviewerName');
+        const phylumField = $(this).find('#editPhylum');
 
-        $(this).find('#editReviewerName').val(reviewer.name);
+        nameField.val(reviewer.name);
+        phylumField.val(reviewer.phylum);
         $(this).find('#ogReviewerName').val(reviewer.name);
-        $(this).find('#editPhylum').val(reviewer.phylum);
         $(this).find('#editFocus').val(reviewer.focus);
         $(this).find('#editOrganization').val(reviewer.organization);
         $(this).find('#editEmail').val(reviewer.email);
@@ -34,6 +40,10 @@ $(document).ready(function () {
 
         $('#deleteReviewerName').html(reviewer.name);
         $('#deleteReviewerButton').attr('href', `/delete_reviewer/${reviewer.name}`);
+
+        nameField.on('input', () => checkEmpty(phylumField.val(), nameField.val()));
+        phylumField.on('input', () => checkEmpty(phylumField.val(), nameField.val()));
+        checkEmpty(phylumField.val(), nameField.val());
     });
 
 });
