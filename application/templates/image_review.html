@@ -127,16 +127,17 @@
         </div>
         <div class="modal fade" id="externalReviewModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg">
-                <form action="/update_reviewer" method="post" autocomplete="off">
+                <form action="/update_annotation_reviewer" method="post" autocomplete="off">
                     <div class="modal-content">
                         <div class="modal-header text-center">
                             <h5 class="modal-title mt-1 ms-4" style="font-weight: 600;">External Review</h5>
                             <button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body text-start">
-                            <div class="row pb-2">
-                                <div class="col-4 ms-4 ps-4 modal-label">
-                                    Reviewer:
+                            <div class="row">
+                                <div class="col-4 ms-4 ps-4 mt-2 modal-label">
+                                    Reviewer:<br>
+                                    <a type="button" class="small editButton mt-2" href="/reviewers" target="_blank">See all reviewers</a>
                                 </div>
                                 <div class="col">
                                     <button type="button" id="reviewerNameButton" class="btn" name="reviewerName">

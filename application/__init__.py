@@ -11,6 +11,6 @@ def open_browser():
 app = Flask(__name__)
 
 print('\nLaunching application...')
-Timer(1, open_browser).start()
+#Timer(1, open_browser).start()
 
 from application import routes

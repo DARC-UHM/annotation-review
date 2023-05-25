@@ -18,10 +18,6 @@ app.secret_key = 'darc'
 with requests.get('http://hurlstor.soest.hawaii.edu:8083/kb/v1/concept') as r:
     vars_concepts = r.json()
 
-# get list of reviewers from external review db
-with requests.get('http://localhost:8000/reviewer/all') as r:
-    reviewers = r.json()
-
 # get list of sequences from vars
 with requests.get('http://hurlstor.soest.hawaii.edu:8084/vam/v1/videosequences/names') as r:
     sequences = r.json()
@@ -44,6 +40,9 @@ def index():
 
 @app.get('/dive')
 def view_images():
+    # get list of reviewers from external review db
+    with requests.get('http://hurlstor.soest.hawaii.edu:5000/reviewer/all') as r:
+        reviewers = r.json()
     # get images in sequence
     sequences = []
     comment_uuids = {}
@@ -52,7 +51,7 @@ def view_images():
     for key, val in request.args.items():
         if 'sequence' in key:
             sequences.append(val)
-            with requests.get(f'http://localhost:8000/comment/sequence/{val}') as r:
+            with requests.get(f'http://hurlstor.soest.hawaii.edu:5000/comment/sequence/{val}') as r:
                 for comment in r.json():
                     comment_uuids[comment['uuid']] = comment['reviewer']
         else:
@@ -73,8 +72,17 @@ def view_images():
     return render_template('image_review.html', data=data)
 
 
-@app.post('/update_reviewer')
-def update_reviewer():
+# displays information about all the reviewers in the hurl db
+@app.get('/all_reviewers')
+def all_reviewers():
+    with requests.get('http://hurlstor.soest.hawaii.edu:5000/reviewer/all') as r:
+        reviewers = r.json()
+    return reviewers
+
+
+# updates the reviewer for an annotation in the hurl db
+@app.post('/update_annotation_reviewer')
+def update_annotation_reviewer():
     data = {
         'uuid': request.values.get('observation_uuid'),
         'sequence': request.values.get('sequence'),
@@ -87,10 +95,10 @@ def update_reviewer():
         'id_reference': request.values.get('id_reference'),
         'upon': request.values.get('upon'),
     }
-    with requests.post('http://127.0.0.1:8000/comment/add', data=data) as r:
+    with requests.post('http://hurlstor.soest.hawaii.edu:5000/comment/add', data=data) as r:
         print(r.json())
         if r.status_code == 409:
-            req = requests.put(f'http://127.0.0.1:8000/comment/update_reviewer/{data["uuid"]}', data=data)
+            req = requests.put(f'http://hurlstor.soest.hawaii.edu:5000/comment/update_reviewer/{data["uuid"]}', data=data)
             if req.status_code == 200:
                 new_comment = {
                     'observation_uuid': request.values.get('observation_uuid'),
@@ -113,6 +121,7 @@ def update_reviewer():
     return redirect(f'dive{request.values.get("params")}')
 
 
+# updates the comment in the vars db to reflect that the record has been added to the comment db
 @app.post('/update_annotation_comment')
 def update_annotation_comment():
     annosaurus = Annosaurus(ANNOSAURUS_URL)

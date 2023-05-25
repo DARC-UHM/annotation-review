@@ -153,7 +153,7 @@ const setCurrentPage = (pageNum) => {
                                 <a 
                                     type="button" 
                                     class="editButton" 
-                                    href="http://127.0.0.1:8000/review/${comment_uuids[annotation.observation_uuid]}" 
+                                    href="#" 
                                     target="_blank">
                                         View reviewer comments
                                 </a>
