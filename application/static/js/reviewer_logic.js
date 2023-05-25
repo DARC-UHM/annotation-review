@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function(event) {
+$(document).ready(function () {
     for (const reviewer of reviewers) {
         $('#reviewerTable').find('tbody').append(`
         <tr>
@@ -16,17 +16,21 @@ document.addEventListener('DOMContentLoaded', function(event) {
                     data-bs-target="#editReviewerModal" 
                     class="editButton">
                         Edit
-                </button><br>
-                <button 
-                    type="button" 
-                    data-bs-toggle="modal" 
-                    data-reviewer='${ JSON.stringify(reviewer) }' 
-                    data-bs-target="#deleteReviewerModal" 
-                    class="editButton">
-                        Remove
                 </button>
             </td>
         </tr>
         `);
     }
+
+    $('#editReviewerModal').on('show.bs.modal', function (e) {
+        const reviewer = $(e.relatedTarget).data('reviewer');
+
+        $(this).find('#editReviewerName').val(reviewer.name);
+        $(this).find('#editPhylum').val(reviewer.phylum);
+        $(this).find('#editFocus').val(reviewer.focus);
+        $(this).find('#editOrganization').val(reviewer.organization);
+        $(this).find('#editEmail').val(reviewer.email);
+        $(this).find('#lastContacted').val(reviewer.last_contacted);
+
+    });
 });
