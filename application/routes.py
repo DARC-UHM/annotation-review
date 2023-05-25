@@ -80,6 +80,22 @@ def all_reviewers():
     return render_template('reviewers.html', reviewers=reviewers)
 
 
+@app.post('/update_reviewer_info')
+def update_reviewer_info():
+    return ''
+
+
+@app.get('/delete_reviewer/<name>')
+def delete_reviewer(name):
+    req = requests.delete(f'http://hurlstor.soest.hawaii.edu:5000/reviewer/delete/{name}')
+    if req.status_code == 200:
+        flash('Reviewer successfully deleted', 'success')
+    else:
+        flash('Error deleting reviewer', 'danger')
+        print(req)
+    return redirect('/all_reviewers')
+
+
 # updates the reviewer for an annotation in the hurl db
 @app.post('/update_annotation_reviewer')
 def update_annotation_reviewer():

@@ -26,11 +26,15 @@ $(document).ready(function () {
         const reviewer = $(e.relatedTarget).data('reviewer');
 
         $(this).find('#editReviewerName').val(reviewer.name);
+        $(this).find('#ogReviewerName').val(reviewer.name);
         $(this).find('#editPhylum').val(reviewer.phylum);
         $(this).find('#editFocus').val(reviewer.focus);
         $(this).find('#editOrganization').val(reviewer.organization);
         $(this).find('#editEmail').val(reviewer.email);
         $(this).find('#lastContacted').val(reviewer.last_contacted);
 
+        $('#deleteReviewerName').html(reviewer.name);
+        $('#deleteReviewerButton').attr('href', `/delete_reviewer/${reviewer.name}`);
     });
+
 });
