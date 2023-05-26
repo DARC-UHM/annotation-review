@@ -5,7 +5,7 @@ Method for easily viewing and editing image annotations on HURLSTOR.
 
 ### Installation instructions
 
-_Requirements: Python 3_
+_Requirements: Python 3.9_
 
 1. Clone this repository
 2. `cd` into the root of the repository and run the command `pip3 install -r requirements.txt`

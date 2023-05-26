@@ -38,6 +38,7 @@ def index():
     return render_template('index.html', sequences=video_sequences)
 
 
+# view the annotations with images in a specified dive (or dives) with optional filters
 @app.get('/dive')
 def view_images():
     # get list of reviewers from external review db
@@ -45,15 +46,14 @@ def view_images():
         reviewers = r.json()
     # get images in sequence
     sequences = []
-    comment_uuids = {}
+    comments = {}
     filter_type = None
     filter_ = None
     for key, val in request.args.items():
         if 'sequence' in key:
             sequences.append(val)
             with requests.get(f'http://hurlstor.soest.hawaii.edu:5000/comment/sequence/{val}') as r:
-                for comment in r.json():
-                    comment_uuids[comment['uuid']] = comment['reviewer']
+                comments = comments | r.json()  # merge dicts
         else:
             filter_type = key
             filter_ = val
@@ -67,9 +67,35 @@ def view_images():
         'annotations': image_loader.distilled_records,
         'concepts': vars_concepts,
         'reviewers': reviewers,
-        'comment_uuids': comment_uuids
+        'comments': comments
     }
     return render_template('image_review.html', data=data)
+
+
+# displays all comments in the comment db
+@app.get('/comments/all')
+def all_comments():
+    # get list of reviewers from external review db
+    with requests.get('http://hurlstor.soest.hawaii.edu:5000/reviewer/all') as r:
+        reviewers = r.json()
+    # get a list of comments from external review db
+    with requests.get('http://hurlstor.soest.hawaii.edu:5000/comment/all') as r:
+        comments = r.json()
+    annotations = []
+    for comment in comments:
+        uuid = comment['uuid']
+    data = {
+        'comments': comments,
+        'concepts': vars_concepts,
+        'reviewers': reviewers
+    }
+    return render_template('view_all_comments.html', data=data)
+
+
+# displays all comments for a specific reviewer and/or a specific sequence (or sequences)
+@app.get('/comments')
+def reviewer_comments(name):
+    pass
 
 
 # displays information about all the reviewers in the hurl db
@@ -80,6 +106,7 @@ def all_reviewers():
     return render_template('reviewers.html', reviewers=reviewers)
 
 
+# update a reviewer's information
 @app.post('/update_reviewer_info')
 def update_reviewer_info():
     name = request.values.get('ogReviewerName') or 'nobody'
@@ -113,6 +140,7 @@ def update_reviewer_info():
     return redirect('/all_reviewers')
 
 
+# delete a reviewer
 @app.get('/delete_reviewer/<name>')
 def delete_reviewer(name):
     req = requests.delete(f'http://hurlstor.soest.hawaii.edu:5000/reviewer/delete/{name}')

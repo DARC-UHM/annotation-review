@@ -8,10 +8,9 @@
 </head>
 <body class="text-center my-3 mx-5">
     <h1>All Reviewer Comments</h1>
-    {{ data }}
-    {% if data.annotations|length > 0 %}
+    {% if data.comments|length > 0 %}
     <div class="col d-flex justify-content-center mt-3">
-         <table class="table table-striped">
+         <table class="table table-striped" style="max-width: 2500px !important;">
             <thead class="thead-dark sticky-top" style="background-color: #393E46; color: #EEEEEE">
                 <tr>
                     <th scope="col">Info</th>
@@ -20,7 +19,7 @@
                 </tr>
             </thead>
             <tbody class="text-start">
-                {% for annotation in data.annotations %}
+                {% for annotation in data.comments %}
                 <tr>
                     <td class="ps-5">
                         <div class="row">
@@ -36,7 +35,7 @@
                                 ID Certainty:<br>
                             </div>
                             <div class="col values">
-                                {{ annotation.identity_certainty if annotation.identity_certainty else '-' }}<br>
+                                {{ annotation.id_certainty if annotation.id_certainty else '-' }}<br>
                             </div>
                         </div>
                         <div class="row">
@@ -44,7 +43,7 @@
                                 ID Reference:<br>
                             </div>
                             <div class="col values">
-                                {{ annotation.identity_reference if annotation.identity_reference else '-' }}<br>
+                                {{ annotation.id_reference if annotation.id_reference else '-' }}<br>
                             </div>
                         </div>
                         <div class="row">
@@ -57,26 +56,10 @@
                         </div>
                         <div class="row">
                             <div class="col">
-                                Comments:<br>
-                            </div>
-                            <div class="col values">
-                                {{ annotation.comment if annotation.comment else '-' }}<br>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col">
-                                Guide Photo:<br>
-                            </div>
-                            <div class="col values">
-                                {{ annotation.guide_photo if annotation.guide_photo else '-' }}<br>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col">
                                 Timestamp:
                             </div>
                             <div class="col values">
-                                {{ annotation.recorded_timestamp }}<br>
+                                {{ annotation.timestamp }}<br>
                             </div>
                         </div>
                         <div class="row">
@@ -84,7 +67,7 @@
                                 Video Sequence:
                             </div>
                             <div class="col values">
-                                {{ annotation.video_sequence_name }}<br>
+                                {{ annotation.sequence }}<br>
                             </div>
                         </div>
                     </td>
@@ -93,25 +76,14 @@
                             <img src="{{ annotation.image_url }}" style="width: 500px;"/>
                         </a>
                     </td>
-                    <td>
-                        <div style="width: 400px;">
-                            <div class="values">
-                                {{ data.comments[annotation.observation_uuid].text }}
-                            </div>
-                            <br><br>
-                            Updated
-                            <span class="values">
-                                {{ data.comments[annotation.observation_uuid].time }}
-                            </span>
-                        </div>
-                    </td>
+                    <td>{{ annotation.comment if annotation.comment else '-' }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
     {% else %}
-    No images found.
+    No comments found.
     {% endif %}
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/bootstrap.bundle.js"></script>

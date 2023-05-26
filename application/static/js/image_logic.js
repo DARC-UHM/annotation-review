@@ -123,6 +123,21 @@ const setCurrentPage = (pageNum) => {
                             ${annotation.video_sequence_name}<br>
                         </div>
                     </div>
+                    ${ Object.keys(comments).includes(annotation.observation_uuid) ?
+                    `
+                    <div class="row mt-2">
+                        <div class="col">
+                            Reviewer comments:
+                        </div>
+                        <div class="col values">
+                            ${comments[annotation.observation_uuid].comment 
+                            ? 
+                            `${comments[annotation.observation_uuid].comment}<br>${comments[annotation.observation_uuid].date}` 
+                            :
+                            '-'}<br>
+                        </div>
+                    </div>
+                    ` : '' }
                     <div class="row mt-2">
                         <div class="col">
                             <a class="editButton" href="${annotation.video_url}" target="_blank">See video</a>
@@ -138,26 +153,16 @@ const setCurrentPage = (pageNum) => {
                             <br>
                         </div>
                         <div class="col values">
-                            ${ Object.keys(comment_uuids).includes(annotation.observation_uuid) ?
-                            `<div class="col">
-                                <button 
-                                    type="button" 
-                                    data-bs-toggle="modal" 
-                                    data-anno='${ JSON.stringify(annotation) }'
-                                    data-bs-target="#externalReviewModal" 
-                                    class="editButton" 
-                                    onclick="updateReviewerName('${comment_uuids[annotation.observation_uuid]}')">
-                                        Change reviewer
-                                </button>
-                                <br>
-                                <a 
-                                    type="button" 
-                                    class="editButton" 
-                                    href="#" 
-                                    target="_blank">
-                                        View reviewer comments
-                                </a>
-                            </div>`
+                            ${ Object.keys(comments).includes(annotation.observation_uuid) ?
+                            `<button 
+                                type="button" 
+                                data-bs-toggle="modal" 
+                                data-anno='${ JSON.stringify(annotation) }'
+                                data-bs-target="#externalReviewModal" 
+                                class="editButton" 
+                                onclick="updateReviewerName('${comments[annotation.observation_uuid].reviewer}')">
+                                    Change reviewer
+                            </button>`
                             : 
                             `<button 
                                 type="button" 
