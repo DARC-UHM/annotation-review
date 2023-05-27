@@ -132,7 +132,7 @@ const setCurrentPage = (pageNum) => {
                         <div class="col values">
                             ${comments[annotation.observation_uuid].comment 
                             ? 
-                            `${comments[annotation.observation_uuid].comment}<br>${comments[annotation.observation_uuid].date}` 
+                            `${comments[annotation.observation_uuid].comment}<br>${comments[annotation.observation_uuid].date_modified}` 
                             :
                             '-'}<br>
                         </div>
@@ -140,8 +140,6 @@ const setCurrentPage = (pageNum) => {
                     ` : '' }
                     <div class="row mt-2">
                         <div class="col">
-                            <a class="editButton" href="${annotation.video_url}" target="_blank">See video</a>
-                            <br>
                             <button 
                                 type="button" 
                                 data-bs-toggle="modal" 
@@ -150,6 +148,8 @@ const setCurrentPage = (pageNum) => {
                                 class="editButton">
                                     Edit annotation
                             </button>
+                            <br>
+                            <a class="editButton" href="${annotation.video_url}" target="_blank">See video</a>
                             <br>
                         </div>
                         <div class="col values">

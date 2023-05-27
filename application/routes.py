@@ -4,7 +4,7 @@ from flask import render_template, request, redirect, flash
 from dotenv import load_dotenv
 
 from application import app
-from image_loader import ImageLoader
+from image_loader import ImageLoader, parse_datetime
 from annosaurus import *
 
 load_dotenv()
@@ -81,9 +81,6 @@ def all_comments():
     # get a list of comments from external review db
     with requests.get('http://hurlstor.soest.hawaii.edu:5000/comment/all') as r:
         comments = r.json()
-    annotations = []
-    for comment in comments:
-        uuid = comment['uuid']
     data = {
         'comments': comments,
         'concepts': vars_concepts,
@@ -157,7 +154,7 @@ def update_annotation_reviewer():
     data = {
         'uuid': request.values.get('observation_uuid'),
         'sequence': request.values.get('sequence'),
-        'timestamp': request.values.get('timestamp'),
+        'timestamp': parse_datetime(request.values.get('timestamp')).strftime('%d %b %y %H:%M UTC'),
         'image_url': request.values.get('image_url'),
         'concept': request.values.get('concept'),
         'reviewer': request.values.get('reviewer'),
