@@ -34,13 +34,15 @@ class ImageLoader:
             self.load_images(name)
 
     def load_images(self, name: str):
+        print(f'Fetching annotations for sequence {name} from VARS...')
         concept_phylogeny = {}
         image_records = []
         videos = []
 
         with requests.get(f'http://hurlstor.soest.hawaii.edu:8086/query/dive/{name.replace(" ", "%20")}') as r:
             response = r.json()
-
+            print('Fetched annotations')
+        print('Processing annotations...')
         # get list of video links and start timestamps
         for video in response['media']:
             if 'urn:imagecollection:org' not in video['uri']:
@@ -294,3 +296,4 @@ class ImageLoader:
                 'recorded_timestamp': row['recorded_timestamp'],
                 'video_sequence_name': row['video_sequence_name']
             })
+        print('Annotations processed')
