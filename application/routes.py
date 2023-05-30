@@ -84,7 +84,7 @@ def external_review():
         comments = r.json()
     comment_loader = CommentLoader(comments)
     if len(comment_loader.annotations) < 1:
-        return render_template('404.html', err='pics'), 404
+        return render_template('404.html', err='comments'), 404
     data = {
         'annotations': comment_loader.annotations,
         'concepts': vars_concepts,

@@ -241,6 +241,16 @@ li {
     margin-bottom: 50px;
 }
 
+.aquaLink {
+    color: #00ADB5;
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.aquaLink:hover {
+    color: #00c3cc;
+}
+
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
@@ -300,14 +310,4 @@ li {
     color: white;
     border: solid #7f8088 1px;
     border-radius: 1px;
-}
-
-#viewCommentsA {
-    color: #00ADB5;
-    text-decoration: none;
-    transition: 0.2s;
-}
-
-#viewCommentsA:hover {
-    color: #00c3cc;
 }
