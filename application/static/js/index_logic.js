@@ -71,3 +71,15 @@ $('#indexForm').submit(() => {
         $('#filterEntry').prop('name', $('#filterSelect').val().toLowerCase());
     }
 });
+
+$('#filterButton').on('click', () => {
+    const filterButton = $('#filterButton');
+    console.log(filterButton.css('color'));
+
+    if (filterButton.attr('class').split(/\s+/).includes('filterButtonActive')) {
+        filterButton.removeClass('filterButtonActive');
+    } else {
+        filterButton.addClass('filterButtonActive');
+    }
+
+});
