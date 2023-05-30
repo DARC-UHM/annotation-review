@@ -81,5 +81,9 @@ $('#filterButton').on('click', () => {
     } else {
         filterButton.addClass('filterButtonActive');
     }
-
 });
+
+window.onbeforeunload = function(e) {
+    $('#load-overlay').removeClass('loader-bg');
+    $('#load-overlay').addClass('loader-bg-hidden');
+};

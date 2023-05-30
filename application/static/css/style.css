@@ -24,6 +24,21 @@ li {
     list-style-type: none;
 }
 
+select {
+    -webkit-appearance: none;
+    padding: 5px 10px;
+    background-color: #393E46;
+    color: #EEEEEE;
+    width: 150px;
+    height: 34px;
+    border: 0;
+    border-radius: 3px;
+}
+
+select:active {
+    border: 0;
+}
+
 ::-webkit-scrollbar {
     width: 12px;
 }
@@ -73,7 +88,7 @@ li {
 
 .modal-text {
     background-color: #393E46;
-    color: white;
+    color: #EEEEEE;
     border: 0;
     width: 300px;
     padding: 5px 10px;
@@ -81,7 +96,7 @@ li {
 
 .modal-content select {
     background-color: #393E46;
-    color: white;
+    color: #EEEEEE;
     padding: 5px 10px;
     width: 300px;
 }
@@ -288,18 +303,10 @@ li {
     padding: 0;
 }
 
-#filterAccordion select {
-    padding: 6px 5px;
-    background-color: #393E46;
-    color: white;
-    width: 150px;
-    border-radius: 3px;
-}
-
 #filterEntry {
     padding: 5px 10px;
     background-color: #393E46;
-    color: white;
+    color: #EEEEEE;
     border: 0;
     width: 150px;
 }
@@ -307,7 +314,7 @@ li {
 #reviewerNameButton {
     width: 300px;
     background: #393E46;
-    color: white;
+    color: #EEEEEE;
     border: solid #7f8088 1px;
     border-radius: 1px;
 }
