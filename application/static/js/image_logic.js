@@ -279,7 +279,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
             filter.push(pair[1]);
         }
     }
-    $('#vesselName').html(vesselName);
+    $('#vesselName').html(vesselName || 'Active Comments');
     $('#sequenceList').html(sequences.join(', '));
     if (filter.length > 0) {
         $('#sequenceList').append(`<br><span class="small">Filtered by ${filter.join(': ')}</span>`);

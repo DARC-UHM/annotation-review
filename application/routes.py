@@ -4,8 +4,9 @@ from flask import render_template, request, redirect, flash
 from dotenv import load_dotenv
 
 from application import app
-from image_loader import ImageLoader, parse_datetime
-from annosaurus import *
+from application.server.comment_loader import CommentLoader
+from application.server.image_loader import ImageLoader, parse_datetime
+from application.server.annosaurus import *
 
 load_dotenv()
 
@@ -81,12 +82,16 @@ def all_comments():
     # get a list of comments from external review db
     with requests.get('http://hurlstor.soest.hawaii.edu:5000/comment/all') as r:
         comments = r.json()
+    comment_loader = CommentLoader(comments)
+    if len(comment_loader.annotations) < 1:
+        return render_template('404.html', err='pics'), 404
     data = {
-        'comments': comments,
+        'annotations': comment_loader.annotations,
         'concepts': vars_concepts,
-        'reviewers': reviewers
+        'reviewers': reviewers,
+        'comments': comments
     }
-    return render_template('view_all_comments.html', data=data)
+    return render_template('image_review.html', data=data)
 
 
 # displays all comments for a specific reviewer and/or a specific sequence (or sequences)
@@ -225,7 +230,7 @@ def update_annotation():
     else:
         flash('Failed to update annotation - please try again', 'danger')
 
-    return redirect(f'dive{request.values.get("params")}')
+    return redirect(request.url)
 
 
 @app.errorhandler(404)
