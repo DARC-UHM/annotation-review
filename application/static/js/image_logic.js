@@ -153,7 +153,16 @@ const setCurrentPage = (pageNum) => {
                             <br>
                         </div>
                         <div class="col values">
-                            ${ Object.keys(comments).includes(annotation.observation_uuid) ?
+                            ${ !Object.keys(comments).includes(annotation.observation_uuid) ?
+                            `<button 
+                                type="button" 
+                                data-bs-toggle="modal" 
+                                data-anno='${ JSON.stringify(annotation) }' 
+                                data-bs-target="#externalReviewModal" 
+                                class="editButton">
+                                    Add to external review
+                            </button>`
+                                :
                             `<button 
                                 type="button" 
                                 data-bs-toggle="modal" 
@@ -162,15 +171,16 @@ const setCurrentPage = (pageNum) => {
                                 class="editButton" 
                                 onclick="updateReviewerName('${comments[annotation.observation_uuid].reviewer}')">
                                     Change reviewer
-                            </button>`
-                            : 
-                            `<button 
+                            </button>
+                            <br>
+                            <button 
                                 type="button" 
                                 data-bs-toggle="modal" 
-                                data-anno='${ JSON.stringify(annotation) }' 
-                                data-bs-target="#externalReviewModal" 
-                                class="editButton">
-                                    Add to external review
+                                data-anno='${JSON.stringify(annotation)}'
+                                data-bs-target="#deleteReviewModal" 
+                                class="editButton" 
+                                onclick="updateReviewerName('${comments[annotation.observation_uuid].reviewer}')">
+                                    Delete from external review
                             </button>`
                             }
                         </div>
@@ -279,7 +289,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
             filter.push(pair[1]);
         }
     }
-    $('#vesselName').html(vesselName || 'Active Comments');
+    $('#vesselName').html(vesselName || 'Active External Review ');
     $('#sequenceList').html(sequences.join(', '));
     if (filter.length > 0) {
         $('#sequenceList').append(`<br><span class="small">Filtered by ${filter.join(': ')}</span>`);
@@ -295,6 +305,12 @@ document.addEventListener('DOMContentLoaded', function(event) {
         $('#load-overlay').removeClass('loader-bg-hidden');
         $('#load-overlay').addClass('loader-bg');
         $('#externalReviewModal').modal('hide');
+    });
+
+    $('#externalModalDeleteButton').on('click', () => {
+        $('#load-overlay').removeClass('loader-bg-hidden');
+        $('#load-overlay').addClass('loader-bg');
+        $('#externalModalDeleteButton').modal('hide');
     });
 });
 
@@ -360,5 +376,10 @@ $(document).ready(function () {
         $('#externalIdCertainty').val(annotation.identity_certainty);
         $('#externalIdReference').val(annotation.identity_reference);
         $('#externalUpon').val(annotation.upon);
+    });
+
+    $('#deleteReviewModal').on('show.bs.modal', function (e) {
+        $('#externalDeleteParams').val(`${window.location.search}${window.location.hash}`);
+        $('#externalDeleteUuid').val($(e.relatedTarget).data('anno').observation_uuid);
     });
 });

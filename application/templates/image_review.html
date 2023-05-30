@@ -137,7 +137,7 @@
                             <div class="row">
                                 <div class="col-4 ms-4 ps-4 mt-2 modal-label">
                                     Reviewer:<br>
-                                    <a class="small editButton mt-2" style="font-weight: 500;" href="/all_reviewers" target="_blank">See all reviewers</a>
+                                    <a class="small editButton mt-2" style="font-weight: 500;" href="/reviewers" target="_blank">See all reviewers</a>
                                 </div>
                                 <div class="col">
                                     <button type="button" id="reviewerNameButton" class="btn" name="reviewerName">
@@ -170,6 +170,27 @@
                             <input type="hidden" id="externalUpon" name="upon">
                             <input type="hidden" id="externalReviewer" name="reviewer">
                             <input type="submit" id="externalModalSubmitButton" class="btn btn-success modal-button" value="Save">
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+         <div class="modal fade" id="deleteReviewModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <form action="/delete_external_comment" method="post" autocomplete="off">
+                    <div class="modal-content">
+                        <div class="modal-header text-center">
+                            <h5 class="modal-title mt-1 ms-4" style="font-weight: 600;">Delete From External Review</h5>
+                            <button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body text-start mx-4">
+                            Are you sure you want to delete this record from the external review database?
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Cancel</button>
+                            <input type="hidden" id="externalDeleteUuid" name="uuid">
+                            <input type="hidden" id="externalDeleteParams" name="params" value="">
+                            <input type="submit" id="externalModalDeleteButton" class="btn btn-danger modal-button" value="Delete">
                         </div>
                     </div>
                 </form>

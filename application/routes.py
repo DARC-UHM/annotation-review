@@ -73,9 +73,9 @@ def view_images():
     return render_template('image_review.html', data=data)
 
 
-# displays all comments in the comment db
-@app.get('/comments/all')
-def all_comments():
+# displays all comments in the external review db
+@app.get('/external_review')
+def external_review():
     # get list of reviewers from external review db
     with requests.get('http://hurlstor.soest.hawaii.edu:5000/reviewer/all') as r:
         reviewers = r.json()
@@ -94,25 +94,31 @@ def all_comments():
     return render_template('image_review.html', data=data)
 
 
-# displays all comments for a specific reviewer and/or a specific sequence (or sequences)
-@app.get('/comments')
-def reviewer_comments(name):
-    pass
+# deletes an item from the external review db
+@app.post('/delete_external_comment')
+def delete_external_comment():
+    req = requests.delete(f'http://hurlstor.soest.hawaii.edu:5000/comment/delete/{request.values.get("uuid")}')
+    if req.status_code == 200:
+        flash('Comment successfully deleted', 'success')
+    else:
+        flash('Error deleting comment', 'danger')
+    if 'sequence' in request.values.get("params"):
+        return redirect(f'dive{request.values.get("params")}')
+    return redirect(f'/external_review')
 
 
 # displays information about all the reviewers in the hurl db
-@app.get('/all_reviewers')
-def all_reviewers():
+@app.get('/reviewers')
+def reviewers():
     with requests.get('http://hurlstor.soest.hawaii.edu:5000/reviewer/all') as r:
-        reviewers = r.json()
-    return render_template('reviewers.html', reviewers=reviewers)
+        reviewer_list = r.json()
+    return render_template('reviewers.html', reviewers=reviewer_list)
 
 
 # update a reviewer's information
 @app.post('/update_reviewer_info')
 def update_reviewer_info():
     name = request.values.get('ogReviewerName') or 'nobody'
-    print(f'name: {name}')
     data = {
         'new_name': request.values.get('editReviewerName'),
         'phylum': request.values.get('editPhylum'),
@@ -122,24 +128,17 @@ def update_reviewer_info():
     }
     req = requests.put(f'http://hurlstor.soest.hawaii.edu:5000/reviewer/update/{name}', data=data)
     if req.status_code == 404:
-        print(404)
-        print(req.text)
         data['name'] = data['new_name']
         req = requests.post('http://hurlstor.soest.hawaii.edu:5000/reviewer/add', data=data)
         if req.status_code == 201:
             flash('Successfully added reviewer', 'success')
         else:
-            print(req.text)
             flash('Unable to add reviewer', 'danger')
     elif req.status_code == 200:
-        print(200)
-        print(req.text)
         flash('Successfully updated reviewer', 'success')
     else:
-        print(req.status_code)
-        print(req.text)
         flash('Unable to update reviewer', 'danger')
-    return redirect('/all_reviewers')
+    return redirect('/reviewers')
 
 
 # delete a reviewer
@@ -150,7 +149,7 @@ def delete_reviewer(name):
         flash('Reviewer successfully deleted', 'success')
     else:
         flash('Error deleting reviewer', 'danger')
-    return redirect('/all_reviewers')
+    return redirect('/reviewers')
 
 
 # updates the reviewer for an annotation in the hurl db
@@ -169,7 +168,6 @@ def update_annotation_reviewer():
         'upon': request.values.get('upon'),
     }
     with requests.post('http://hurlstor.soest.hawaii.edu:5000/comment/add', data=data) as r:
-        print(r.json())
         if r.status_code == 409:
             req = requests.put(f'http://hurlstor.soest.hawaii.edu:5000/comment/update_reviewer/{data["uuid"]}', data=data)
             if req.status_code == 200:
@@ -191,7 +189,9 @@ def update_annotation_reviewer():
         else:
             flash('Failed to add for review - please try again', 'danger')
 
-    return redirect(f'dive{request.values.get("params")}')
+    if 'sequence' in request.values.get("params"):
+        return redirect(f'dive{request.values.get("params")}')
+    return redirect(f'/external_review')
 
 
 # updates the comment in the vars db to reflect that the record has been added to the comment db
@@ -230,7 +230,9 @@ def update_annotation():
     else:
         flash('Failed to update annotation - please try again', 'danger')
 
-    return redirect(request.url)
+    if 'sequence' in request.values.get("params"):
+        return redirect(f'dive{request.values.get("params")}')
+    return redirect(f'/external_review')
 
 
 @app.errorhandler(404)
