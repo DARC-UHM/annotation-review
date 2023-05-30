@@ -212,6 +212,7 @@ class Annosaurus(JWTAuthentication):
     def update_annotation_comment(self,
                                   observation_uuid: str,
                                   reviewer: str,
+                                  action: str,
                                   client_secret: str = None,
                                   jwt: str = None):
         update_str = f'UUID: {observation_uuid}\n'
@@ -232,9 +233,14 @@ class Annosaurus(JWTAuthentication):
                 old_comment = [cmt for cmt in old_comment if 'added for review' not in cmt.lower()]
                 old_comment = '; '.join(old_comment)
                 if old_comment:
-                    new_comment = f'{old_comment}; Added for review: {reviewer}'
-                else:
+                    if action == 'ADD':
+                        new_comment = f'{old_comment}; Added for review: {reviewer}'
+                    else:
+                        new_comment = old_comment
+                elif action == 'ADD':
                     new_comment = f'Added for review: {reviewer}'
+                else:
+                    new_comment = ''
 
                 new_association = {'link_value': new_comment}
                 status = self.update_association(
@@ -246,7 +252,7 @@ class Annosaurus(JWTAuthentication):
                     print(f'{update_str}Unable to update comment')
                     return -1
                 else:
-                    update_str += 'Added comment'
+                    update_str += 'Updated comment'
             else:
                 # make a new comment
                 new_comment = f'Added for review: {reviewer}'
@@ -260,10 +266,10 @@ class Annosaurus(JWTAuthentication):
                     client_secret=client_secret
                 )
                 if status != 200:
-                    print(f'{update_str}Unable to add comment')
+                    print(f'{update_str}Unable to update comment')
                     return -1
                 else:
-                    update_str += 'Added comment'
+                    update_str += 'Updated comment'
 
         print(update_str if update_str else 'No changes made')
         return None

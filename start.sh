@@ -1,4 +1,3 @@
 #!/usr/bin/env bash
 
-gunicorn run:app
-
+gunicorn run:app --threads 2

@@ -99,6 +99,13 @@ def external_review():
 def delete_external_comment():
     req = requests.delete(f'http://hurlstor.soest.hawaii.edu:5000/comment/delete/{request.values.get("uuid")}')
     if req.status_code == 200:
+        new_comment = {
+            'observation_uuid': request.values.get('uuid'),
+            'reviewer': '',
+            'action': 'DELETE'
+        }
+        requests.post('http://127.0.0.1:8000/update_annotation_comment', new_comment)
+        flash('Reviewer successfully updated', 'success')
         flash('Comment successfully deleted', 'success')
     else:
         flash('Error deleting comment', 'danger')
@@ -169,26 +176,29 @@ def update_annotation_reviewer():
     }
     with requests.post('http://hurlstor.soest.hawaii.edu:5000/comment/add', data=data) as r:
         if r.status_code == 409:
+
             req = requests.put(f'http://hurlstor.soest.hawaii.edu:5000/comment/update_reviewer/{data["uuid"]}', data=data)
             if req.status_code == 200:
                 new_comment = {
                     'observation_uuid': request.values.get('observation_uuid'),
-                    'reviewer': request.values.get("reviewer")
+                    'reviewer': request.values.get("reviewer"),
+                    'action': 'ADD'
                 }
-                requests.post('http://127.0.0.1:5000/update_annotation_comment', new_comment)
+                requests.post('http://127.0.0.1:8000/update_annotation_comment', new_comment)
                 flash('Reviewer successfully updated', 'success')
             else:
                 flash('Failed to update reviewer - please try again', 'danger')
         elif r.status_code == 201:
             new_comment = {
                 'observation_uuid': request.values.get('observation_uuid'),
-                'reviewer': request.values.get("reviewer")
+                'reviewer': request.values.get("reviewer"),
+                'action': 'ADD'
             }
-            requests.post('http://127.0.0.1:5000/update_annotation_comment', new_comment)
+            requests.post('http://127.0.0.1:8000/update_annotation_comment', new_comment)
             flash('Successfully added for review', 'success')
         else:
             flash('Failed to add for review - please try again', 'danger')
-
+        print('ayoo')
     if 'sequence' in request.values.get("params"):
         return redirect(f'dive{request.values.get("params")}')
     return redirect(f'/external_review')
@@ -201,6 +211,7 @@ def update_annotation_comment():
     annosaurus.update_annotation_comment(
         observation_uuid=request.values.get('observation_uuid'),
         reviewer=request.values.get('reviewer'),
+        action=request.values.get('action'),
         client_secret=ANNOSAURUS_CLIENT_SECRET
     )
     return ''
