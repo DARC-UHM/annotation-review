@@ -105,7 +105,6 @@ def delete_external_comment():
             'action': 'DELETE'
         }
         requests.post('http://127.0.0.1:8000/update-annotation-comment', new_comment)
-        flash('Reviewer successfully updated', 'success')
         flash('Comment successfully deleted', 'success')
     else:
         flash('Error deleting comment', 'danger')

@@ -4,13 +4,14 @@ function checkEmpty(str1, str2) {
 
 $(document).ready(function () {
     for (const reviewer of reviewers) {
+        const url = `http://hurlstor.soest.hawaii.edu:5000/review/${reviewer.name.replace(/ /g, '-')}`
         $('#reviewerTable').find('tbody').append(`
         <tr>
-            <td>${reviewer.name}</td>
+            <td><a href="${url}" class="aquaLink" style="font-weight: 500;">${reviewer.name}</a></td>
             <td>${reviewer.phylum}</td>
             <td>${reviewer.focus}</td>
             <td>${reviewer.organization}</td>
-            <td>${reviewer.email}</td>
+            <td><a href="mailto:${reviewer.email}?subject=${url}" class="aquaLink">${reviewer.email}</a></td>
             <td class="text-center">
                 <button 
                     type="button" 
