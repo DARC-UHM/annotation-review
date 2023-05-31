@@ -74,7 +74,7 @@ def view_images():
 
 
 # displays all comments in the external review db
-@app.get('/external_review')
+@app.get('/external-review')
 def external_review():
     # get list of reviewers from external review db
     with requests.get('http://hurlstor.soest.hawaii.edu:5000/reviewer/all') as r:
@@ -95,7 +95,7 @@ def external_review():
 
 
 # deletes an item from the external review db
-@app.post('/delete_external_comment')
+@app.post('/delete-external-comment')
 def delete_external_comment():
     req = requests.delete(f'http://hurlstor.soest.hawaii.edu:5000/comment/delete/{request.values.get("uuid")}')
     if req.status_code == 200:
@@ -104,14 +104,14 @@ def delete_external_comment():
             'reviewer': '',
             'action': 'DELETE'
         }
-        requests.post('http://127.0.0.1:8000/update_annotation_comment', new_comment)
+        requests.post('http://127.0.0.1:8000/update-annotation-comment', new_comment)
         flash('Reviewer successfully updated', 'success')
         flash('Comment successfully deleted', 'success')
     else:
         flash('Error deleting comment', 'danger')
     if 'sequence' in request.values.get("params"):
         return redirect(f'dive{request.values.get("params")}')
-    return redirect(f'/external_review')
+    return redirect(f'/external-review')
 
 
 # displays information about all the reviewers in the hurl db
@@ -123,7 +123,7 @@ def reviewers():
 
 
 # update a reviewer's information
-@app.post('/update_reviewer_info')
+@app.post('/update-reviewer-info')
 def update_reviewer_info():
     name = request.values.get('ogReviewerName') or 'nobody'
     data = {
@@ -160,7 +160,7 @@ def delete_reviewer(name):
 
 
 # updates the reviewer for an annotation in the hurl db
-@app.post('/update_annotation_reviewer')
+@app.post('/update-annotation-reviewer')
 def update_annotation_reviewer():
     data = {
         'uuid': request.values.get('observation_uuid'),
@@ -177,14 +177,14 @@ def update_annotation_reviewer():
     with requests.post('http://hurlstor.soest.hawaii.edu:5000/comment/add', data=data) as r:
         if r.status_code == 409:
 
-            req = requests.put(f'http://hurlstor.soest.hawaii.edu:5000/comment/update_reviewer/{data["uuid"]}', data=data)
+            req = requests.put(f'http://hurlstor.soest.hawaii.edu:5000/comment/update-reviewer/{data["uuid"]}', data=data)
             if req.status_code == 200:
                 new_comment = {
                     'observation_uuid': request.values.get('observation_uuid'),
                     'reviewer': request.values.get("reviewer"),
                     'action': 'ADD'
                 }
-                requests.post('http://127.0.0.1:8000/update_annotation_comment', new_comment)
+                requests.post('http://127.0.0.1:8000/update-annotation-comment', new_comment)
                 flash('Reviewer successfully updated', 'success')
             else:
                 flash('Failed to update reviewer - please try again', 'danger')
@@ -194,18 +194,17 @@ def update_annotation_reviewer():
                 'reviewer': request.values.get("reviewer"),
                 'action': 'ADD'
             }
-            requests.post('http://127.0.0.1:8000/update_annotation_comment', new_comment)
+            requests.post('http://127.0.0.1:8000/update-annotation-comment', new_comment)
             flash('Successfully added for review', 'success')
         else:
             flash('Failed to add for review - please try again', 'danger')
-        print('ayoo')
     if 'sequence' in request.values.get("params"):
         return redirect(f'dive{request.values.get("params")}')
-    return redirect(f'/external_review')
+    return redirect(f'/external-review')
 
 
 # updates the comment in the vars db to reflect that the record has been added to the comment db
-@app.post('/update_annotation_comment')
+@app.post('/update-annotation-comment')
 def update_annotation_comment():
     annosaurus = Annosaurus(ANNOSAURUS_URL)
     annosaurus.update_annotation_comment(
@@ -217,7 +216,7 @@ def update_annotation_comment():
     return ''
 
 
-@app.post('/update_annotation')
+@app.post('/update-annotation')
 def update_annotation():
     annosaurus = Annosaurus(ANNOSAURUS_URL)
     updated_annotation = {
@@ -243,7 +242,7 @@ def update_annotation():
 
     if 'sequence' in request.values.get("params"):
         return redirect(f'dive{request.values.get("params")}')
-    return redirect(f'/external_review')
+    return redirect(f'/external-review')
 
 
 @app.errorhandler(404)
