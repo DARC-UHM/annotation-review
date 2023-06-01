@@ -1,5 +1,6 @@
 import requests
 import pandas as pd
+import re
 
 from datetime import datetime
 
@@ -148,7 +149,7 @@ class ImageLoader:
                 get_association(record, 'upon')['to_concept'] if get_association(record, 'upon') else None,
                 record['recorded_timestamp'],
                 video_sequence_name,
-                record['observer'],
+                re.sub('([a-zA-Z]+)([A-Z])', r'\1 \2', record['observer']),
                 int(record['ancillary_data']['depth_meters']) if 'ancillary_data' in record.keys() else None,
                 int(record['ancillary_data']['latitude'] * 2) / 2 if 'ancillary_data' in record.keys() else None,
                 round(record['ancillary_data']['longitude'], 2) if 'ancillary_data' in record.keys() else None,
@@ -244,7 +245,7 @@ class ImageLoader:
                 'image_url': row['image_url'],
                 'video_url': row['video_url'],
                 'upon': row['upon'],
-                'recorded_timestamp': row['recorded_timestamp'],
+                'recorded_timestamp': parse_datetime(row['recorded_timestamp']).strftime('%d %b %y %H:%M:%S UTC'),
                 'video_sequence_name': row['video_sequence_name']
             })
         print('Annotations processed')

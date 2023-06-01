@@ -69,6 +69,14 @@ const setCurrentPage = (pageNum) => {
                     </div>
                     <div class="row">
                         <div class="col">
+                            Annotator:
+                        </div>
+                        <div class="col values">
+                            ${annotation.annotator}<br>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
                             ID certainty:<br>
                         </div>
                         <div class="col values">

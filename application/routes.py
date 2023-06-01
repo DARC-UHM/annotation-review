@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 from application import app
 from application.server.comment_loader import CommentLoader
-from application.server.image_loader import ImageLoader, parse_datetime
+from application.server.image_loader import ImageLoader
 from application.server.annosaurus import *
 
 load_dotenv()
@@ -164,7 +164,7 @@ def update_annotation_reviewer():
     data = {
         'uuid': request.values.get('observation_uuid'),
         'sequence': request.values.get('sequence'),
-        'timestamp': parse_datetime(request.values.get('timestamp')).strftime('%d %b %y %H:%M:%S UTC'),
+        'timestamp': request.values.get('timestamp'),
         'image_url': request.values.get('image_url'),
         'concept': request.values.get('concept'),
         'reviewer': request.values.get('reviewer'),
