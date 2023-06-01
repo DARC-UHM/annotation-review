@@ -175,7 +175,6 @@ def update_annotation_reviewer():
     }
     with requests.post('http://hurlstor.soest.hawaii.edu:5000/comment/add', data=data) as r:
         if r.status_code == 409:
-
             req = requests.put(f'http://hurlstor.soest.hawaii.edu:5000/comment/update-reviewer/{data["uuid"]}', data=data)
             if req.status_code == 200:
                 new_comment = {

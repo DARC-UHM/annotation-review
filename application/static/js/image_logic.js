@@ -373,9 +373,10 @@ $(document).ready(function () {
         $('#externalImageUrl').val(annotation.image_url);
         $('#externalConcept').val(annotation.concept);
         $('#externalVideoUrl').val(annotation.video_url);
-        $('#externalIdCertainty').val(annotation.identity_certainty);
-        $('#externalIdReference').val(annotation.identity_reference);
-        $('#externalUpon').val(annotation.upon);
+        $('#externalAnnotator').val(annotation.annotator);
+        $('#externalLat').val(annotation.lat);
+        $('#externalLong').val(annotation.long);
+        $('#externalDepth').val(annotation.depth);
     });
 
     $('#deleteReviewModal').on('show.bs.modal', function (e) {

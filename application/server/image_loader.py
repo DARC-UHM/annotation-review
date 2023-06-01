@@ -47,7 +47,8 @@ class ImageLoader:
         for video in response['media']:
             if 'urn:imagecollection:org' not in video['uri']:
                 videos.append([parse_datetime(video['start_timestamp']),
-                    video['uri'].replace('http://hurlstor.soest.hawaii.edu/videoarchive', 'https://hurlvideo.soest.hawaii.edu')])
+                               video['uri'].replace('http://hurlstor.soest.hawaii.edu/videoarchive',
+                                                    'https://hurlvideo.soest.hawaii.edu')])
 
         video_sequence_name = response['media'][0]['video_sequence_name']
 
@@ -66,7 +67,8 @@ class ImageLoader:
                         if vars_tax_res.status_code == 200:
                             # this get us to phylum
                             vars_tree = \
-                                vars_tax_res.json()['children'][0]['children'][0]['children'][0]['children'][0]['children'][0]
+                                vars_tax_res.json()['children'][0]['children'][0]['children'][0]['children'][0][
+                                    'children'][0]
                             while 'children' in vars_tree.keys():
                                 if 'rank' in vars_tree.keys():  # sometimes it's not
                                     concept_phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
@@ -87,9 +89,14 @@ class ImageLoader:
             'guide-photo',
             'comment',
             'image_url',
+            'video_url',
             'upon',
             'recorded_timestamp',
             'video_sequence_name',
+            'annotator',
+            'depth',
+            'lat',
+            'long',
             'phylum',
             'subphylum',
             'superclass',
@@ -106,87 +113,18 @@ class ImageLoader:
             'species'
         ])
 
-        # add the records to the dataframe
+        # add the records to the dataframe, converts hyphens to underlines and remove excess data
         for record in image_records:
-            # convert hyphens to underlines and remove excess data
-            observation_uuid = record['observation_uuid']
             concept_name = record['concept']
-            guide_photo = None
-            id_cert = None
-            id_ref = None
-            upon = None
-            comment = None
-            phylum = None
-            subphylum = None
-            superclass = None
-            class_ = None
-            subclass = None
-            superorder = None
-            order = None
-            suborder = None
-            infraorder = None
-            superfamily = None
-            family = None
-            subfamily = None
-            genus = None
-            species = None
 
-            temp = get_association(record, 'identity-certainty')
-            if temp:
-                id_cert = temp['link_value']
-
-            temp = get_association(record, 'identity-reference')
-            if temp:
-                id_ref = temp['link_value']
-
-            temp = get_association(record, 'guide-photo')
-            if temp:
-                guide_photo = temp['to_concept']
-
-            temp = get_association(record, 'upon')
-            if temp:
-                upon = temp['to_concept']
-
-            temp = get_association(record, 'comment')
-            if temp:
-                comment = temp['link_value']
-
-            if 'phylum' in concept_phylogeny[concept_name].keys():
-                phylum = concept_phylogeny[concept_name]['phylum']
-            if 'subphylum' in concept_phylogeny[concept_name].keys():
-                subphylum = concept_phylogeny[concept_name]['subphylum']
-            if 'superclass' in concept_phylogeny[concept_name].keys():
-                superclass = concept_phylogeny[concept_name]['superclass']
-            if 'class' in concept_phylogeny[concept_name].keys():
-                class_ = concept_phylogeny[concept_name]['class']
-            if 'subclass' in concept_phylogeny[concept_name].keys():
-                subclass = concept_phylogeny[concept_name]['subclass']
-            if 'superorder' in concept_phylogeny[concept_name].keys():
-                superorder = concept_phylogeny[concept_name]['superorder']
-            if 'order' in concept_phylogeny[concept_name].keys():
-                order = concept_phylogeny[concept_name]['order']
-            if 'suborder' in concept_phylogeny[concept_name].keys():
-                suborder = concept_phylogeny[concept_name]['suborder']
-            if 'infraorder' in concept_phylogeny[concept_name].keys():
-                infraorder = concept_phylogeny[concept_name]['infraorder']
-            if 'superfamily' in concept_phylogeny[concept_name].keys():
-                superfamily = concept_phylogeny[concept_name]['superfamily']
-            if 'family' in concept_phylogeny[concept_name].keys():
-                family = concept_phylogeny[concept_name]['family']
-            if 'subfamily' in concept_phylogeny[concept_name].keys():
-                subfamily = concept_phylogeny[concept_name]['subfamily']
-            if 'genus' in concept_phylogeny[concept_name].keys():
-                genus = concept_phylogeny[concept_name]['genus']
-            if 'species' in concept_phylogeny[concept_name].keys():
-                species = concept_phylogeny[concept_name]['species']
-
+            # get image url
             image_url = record['image_references'][0]['url']
-
             for i in range(1, len(record['image_references'])):
                 if '.png' in record['image_references'][i]['url']:
-                    url = record['image_references'][i]['url']
+                    image_url = record['image_references'][i]['url']
                     break
-            image_url = image_url.replace('http://hurlstor.soest.hawaii.edu/imagearchive', 'https://hurlimage.soest.hawaii.edu')
+            image_url = image_url.replace('http://hurlstor.soest.hawaii.edu/imagearchive',
+                                          'https://hurlimage.soest.hawaii.edu')
 
             # get video reference url
             timestamp = parse_datetime(record['recorded_timestamp'])
@@ -199,31 +137,35 @@ class ImageLoader:
             video_url = f'{video_url[1]}#t={int(time_diff.total_seconds()) - 5}'
 
             temp_df = pd.DataFrame([[
-                observation_uuid,
+                record['observation_uuid'],
                 concept_name,
-                id_cert,
-                id_ref,
-                guide_photo,
-                comment,
+                get_association(record, 'identity-certainty')['link_value'] if get_association(record, 'identity-certainty') else None,
+                get_association(record, 'identity-reference')['link_value'] if get_association(record, 'identity-reference') else None,
+                get_association(record, 'guide-photo')['to_concept'] if get_association(record, 'guide-photo') else None,
+                get_association(record, 'comment')['link_value'] if get_association(record, 'comment') else None,
                 image_url,
                 video_url,
-                upon,
+                get_association(record, 'upon')['to_concept'] if get_association(record, 'upon') else None,
                 record['recorded_timestamp'],
                 video_sequence_name,
-                phylum,
-                subphylum,
-                superclass,
-                class_,
-                subclass,
-                superorder,
-                order,
-                suborder,
-                infraorder,
-                superfamily,
-                family,
-                subfamily,
-                genus,
-                species
+                record['observer'],
+                int(record['ancillary_data']['depth_meters']) if 'ancillary_data' in record.keys() else None,
+                int(record['ancillary_data']['latitude'] * 2) / 2 if 'ancillary_data' in record.keys() else None,
+                round(record['ancillary_data']['longitude'], 2) if 'ancillary_data' in record.keys() else None,
+                concept_phylogeny[concept_name]['phylum'] if 'phylum' in concept_phylogeny[concept_name].keys() else None,
+                concept_phylogeny[concept_name]['subphylum'] if 'subphylum' in concept_phylogeny[concept_name].keys() else None,
+                concept_phylogeny[concept_name]['superclass'] if 'superclass' in concept_phylogeny[concept_name].keys() else None,
+                concept_phylogeny[concept_name]['class'] if 'class' in concept_phylogeny[concept_name].keys() else None,
+                concept_phylogeny[concept_name]['subclass'] if 'subclass' in concept_phylogeny[concept_name].keys() else None,
+                concept_phylogeny[concept_name]['superorder'] if 'superorder' in concept_phylogeny[concept_name].keys() else None,
+                concept_phylogeny[concept_name]['order'] if 'order' in concept_phylogeny[concept_name].keys() else None,
+                concept_phylogeny[concept_name]['suborder'] if 'suborder' in concept_phylogeny[concept_name].keys() else None,
+                concept_phylogeny[concept_name]['infraorder'] if 'infraorder' in concept_phylogeny[concept_name].keys() else None,
+                concept_phylogeny[concept_name]['superfamily'] if 'superfamily' in concept_phylogeny[concept_name].keys() else None,
+                concept_phylogeny[concept_name]['family'] if 'family' in concept_phylogeny[concept_name].keys() else None,
+                concept_phylogeny[concept_name]['subfamily'] if 'subfamily' in concept_phylogeny[concept_name].keys() else None,
+                concept_phylogeny[concept_name]['genus'] if 'genus' in concept_phylogeny[concept_name].keys() else None,
+                concept_phylogeny[concept_name]['species'] if 'species' in concept_phylogeny[concept_name].keys() else None,
             ]], columns=[
                 'observation_uuid',
                 'concept',
@@ -236,6 +178,10 @@ class ImageLoader:
                 'upon',
                 'recorded_timestamp',
                 'video_sequence_name',
+                'annotator',
+                'depth',
+                'lat',
+                'long',
                 'phylum',
                 'subphylum',
                 'superclass',
@@ -258,7 +204,8 @@ class ImageLoader:
             if self.filter_type != 'comment':
                 annotation_df = annotation_df[annotation_df[self.filter_type] == self.filter_]
             else:
-                annotation_df = annotation_df[annotation_df['comment'].str.lower().str.contains(self.filter_.lower(), na=False)]
+                annotation_df = annotation_df[
+                    annotation_df['comment'].str.lower().str.contains(self.filter_.lower(), na=False)]
 
         annotation_df = annotation_df.sort_values(by=[
             'phylum',
@@ -285,6 +232,10 @@ class ImageLoader:
             self.distilled_records.append({
                 'observation_uuid': row['observation_uuid'],
                 'concept': row['concept'],
+                'annotator': row['annotator'],
+                'depth': row['depth'],
+                'lat': row['lat'],
+                'long': row['long'],
                 'phylum': row['phylum'],
                 'identity_certainty': row['identity-certainty'],
                 'identity_reference': row['identity-reference'],
