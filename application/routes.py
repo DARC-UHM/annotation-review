@@ -169,9 +169,10 @@ def update_annotation_reviewer():
         'concept': request.values.get('concept'),
         'reviewer': request.values.get('reviewer'),
         'video_url': request.values.get('video_url'),
-        'id_certainty': request.values.get('id_certainty'),
-        'id_reference': request.values.get('id_reference'),
-        'upon': request.values.get('upon'),
+        'annotator': request.values.get('annotator'),
+        'depth': request.values.get('depth'),
+        'lat': request.values.get('lat'),
+        'long': request.values.get('long')
     }
     with requests.post('http://hurlstor.soest.hawaii.edu:5000/comment/add', data=data) as r:
         if r.status_code == 409:

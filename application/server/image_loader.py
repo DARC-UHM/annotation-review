@@ -151,7 +151,7 @@ class ImageLoader:
                 video_sequence_name,
                 re.sub('([a-zA-Z]+)([A-Z])', r'\1 \2', record['observer']),
                 int(record['ancillary_data']['depth_meters']) if 'ancillary_data' in record.keys() else None,
-                int(record['ancillary_data']['latitude'] * 2) / 2 if 'ancillary_data' in record.keys() else None,
+                round(record['ancillary_data']['latitude'], 2) if 'ancillary_data' in record.keys() else None,
                 round(record['ancillary_data']['longitude'], 2) if 'ancillary_data' in record.keys() else None,
                 concept_phylogeny[concept_name]['phylum'] if 'phylum' in concept_phylogeny[concept_name].keys() else None,
                 concept_phylogeny[concept_name]['subphylum'] if 'subphylum' in concept_phylogeny[concept_name].keys() else None,

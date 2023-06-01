@@ -1,6 +1,9 @@
+import re
+import requests
+
 from typing import Dict
 
-import requests
+from application.server.image_loader import parse_datetime
 
 
 def get_association(annotation, link_name):
@@ -30,29 +33,20 @@ class CommentLoader:
 
             joined_annotation['observation_uuid'] = annotation['observation_uuid']
             joined_annotation['concept'] = annotation['concept']
-            joined_annotation['recorded_timestamp'] = annotation['recorded_timestamp']
+            joined_annotation['annotator'] = re.sub('([a-zA-Z]+)([A-Z])', r'\1 \2', annotation['observer'])
+            joined_annotation['recorded_timestamp'] = parse_datetime(annotation['recorded_timestamp']).strftime('%d %b %y %H:%M:%S UTC')
             joined_annotation['video_url'] = self.comments[comment]['video_url']
             joined_annotation['image_url'] = self.comments[comment]['image_url']
             joined_annotation['video_sequence_name'] = self.comments[comment]['sequence']
-
-            temp = get_association(annotation, 'identity_certainty')
-            if temp:
-                joined_annotation['identity_certainty'] = temp['link_value']
-
-            temp = get_association(annotation, 'identity_reference')
-            if temp:
-                joined_annotation['identity_reference'] = temp['link_value']
-
-            temp = get_association(annotation, 'upon')
-            if temp:
-                joined_annotation['upon'] = temp['to_concept']
-
-            temp = get_association(annotation, 'comment')
-            if temp:
-                joined_annotation['comment'] = temp['link_value']
-
-            temp = get_association(annotation, 'guide_photo')
-            if temp:
-                joined_annotation['guide_photo'] = temp['to_concept']
+            if get_association(annotation, 'identity_certainty'):
+                joined_annotation['identity_certainty'] = get_association(annotation, 'identity_certainty')['link_value']
+            if get_association(annotation, 'identity_reference'):
+                joined_annotation['identity_reference'] = get_association(annotation, 'identity_reference')['link_value']
+            if get_association(annotation, 'upon'):
+                joined_annotation['upon'] = get_association(annotation, 'upon')['to_concept']
+            if get_association(annotation, 'comment'):
+                joined_annotation['comment'] = get_association(annotation, 'comment')['link_value']
+            if get_association(annotation, 'guide_photo'):
+                joined_annotation['guide_photo'] = get_association(annotation, 'guide_photo')['to_concept']
 
             self.annotations.append(joined_annotation)

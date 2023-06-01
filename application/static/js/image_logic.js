@@ -60,7 +60,7 @@ const setCurrentPage = (pageNum) => {
             <tr>
                 <td class="ps-5">
                     <div class="row">
-                        <div class="col">
+                        <div class="col-4">
                             Concept:
                         </div>
                         <div class="col values">
@@ -68,7 +68,7 @@ const setCurrentPage = (pageNum) => {
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col">
+                        <div class="col-4">
                             Annotator:
                         </div>
                         <div class="col values">
@@ -76,7 +76,7 @@ const setCurrentPage = (pageNum) => {
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col">
+                        <div class="col-4">
                             ID certainty:<br>
                         </div>
                         <div class="col values">
@@ -84,7 +84,7 @@ const setCurrentPage = (pageNum) => {
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col">
+                        <div class="col-4">
                             ID reference:<br>
                         </div>
                         <div class="col values">
@@ -92,7 +92,7 @@ const setCurrentPage = (pageNum) => {
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col">
+                        <div class="col-4">
                             Upon:<br>
                         </div>
                         <div class="col values">
@@ -100,7 +100,7 @@ const setCurrentPage = (pageNum) => {
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col">
+                        <div class="col-4">
                             Comments:<br>
                         </div>
                         <div class="col values">
@@ -108,7 +108,7 @@ const setCurrentPage = (pageNum) => {
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col">
+                        <div class="col-4">
                             Guide photo:<br>
                         </div>
                         <div class="col values">
@@ -116,7 +116,7 @@ const setCurrentPage = (pageNum) => {
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col">
+                        <div class="col-4">
                             Timestamp:
                         </div>
                         <div class="col values">
@@ -124,7 +124,7 @@ const setCurrentPage = (pageNum) => {
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col">
+                        <div class="col-4">
                             Video sequence:
                         </div>
                         <div class="col values">
@@ -134,20 +134,25 @@ const setCurrentPage = (pageNum) => {
                     ${ Object.keys(comments).includes(annotation.observation_uuid) ?
                     `
                     <div class="row mt-2">
-                        <div class="col">
-                            Reviewer comments:
+                        <div class="col-4">
+                            Reviewer comments:<br>
+                            ${comments[annotation.observation_uuid].unread ? 
+                            `<a class="editButton" href="http://hurlstor.soest.hawaii.edu:5000/comment/mark-read/${annotation.observation_uuid}">Mark read</a>` 
+                            : ''}
                         </div>
                         <div class="col values">
                             ${comments[annotation.observation_uuid].comment 
                             ? 
-                            `${comments[annotation.observation_uuid].comment}<br>${comments[annotation.observation_uuid].date_modified}` 
+                            `${comments[annotation.observation_uuid].comment}
+                            <br>
+                            ${comments[annotation.observation_uuid].date_modified}`
                             :
                             '-'}<br>
                         </div>
                     </div>
                     ` : '' }
                     <div class="row mt-2">
-                        <div class="col">
+                        <div class="col-4">
                             <button 
                                 type="button" 
                                 data-bs-toggle="modal" 
@@ -196,7 +201,7 @@ const setCurrentPage = (pageNum) => {
                 </td>
                 <td class="text-center">
                     <a href="${annotation.image_url}" target="_blank">
-                        <img src="${annotation.image_url}" style="width: 500px;"/>
+                        <img src="${annotation.image_url}" style="width: 580px;"/>
                     </a>
                 </td>
             </tr>
