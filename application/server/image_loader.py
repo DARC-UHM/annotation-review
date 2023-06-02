@@ -128,6 +128,8 @@ class ImageLoader:
                                           'https://hurlimage.soest.hawaii.edu')
 
             # get video reference url
+            if 'recorded_timestamp' not in record.keys():
+                break
             timestamp = parse_datetime(record['recorded_timestamp'])
             video_url = videos[0]
             for video in videos:

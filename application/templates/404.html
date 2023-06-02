@@ -7,20 +7,25 @@
     <link rel="stylesheet" href="/static/css/style.css" />
 </head>
 <body id="index" class="text-center my-3 mx-5">
+    {% for cat, msg in get_flashed_messages(with_categories=true) %}
+    <div class="alert alert-{{ cat }} alert-dismissible px-5" style="position:fixed; left: 50%; transform: translate(-50%, 0);">
+        <span class="px-2" style="font-weight: 500;">{{ msg }}</span>
+        <button type="button" class="btn-close small" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
     <img src="/static/img/logo_darc.png" class="mt-4" width="30%" style="max-width: 300px; min-width: 200px; pointer-events: none;"/>
-    <h1 class="my-3 mt-4">404</h1>
-
     {% if err == 'dive' %}
-    <h5>Dive not found<br></h5>
-    <div>Check the sequence number and try again.<br></div>
+    <h1 class="mt-4">Dive not found<br></h1>
+    <div>Check the sequence number and try again<br></div>
     {% elif err == 'pics' %}
-    <h5>No photos found for the dive with the given sequence number.<br></h5>
+    <h3 class="mt-4">No photos found for the dive with the given sequence number<br></h3>
     <div id="details"></div>
     {% elif err == 'unread' %}
-    <h5>No unread comments in external review database.</h5>
+    <h2 class="mt-4">No unread comments in external review database</h2>
     {% elif err == 'comments' %}
-    <h5>No comments saved in external review database.</h5>
+    <h2 class="mt-4">No comments saved in external review database</h2>
     {% else %}
+    <h1 class="my-3 mt-4">404</h1>
     <h5>Page not found</h5>
     {% endif %}
     <br>
