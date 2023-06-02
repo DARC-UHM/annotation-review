@@ -94,6 +94,21 @@ def external_review():
     return render_template('image_review.html', data=data)
 
 
+# marks a comment in the external review db as 'read'
+@app.post('/mark-comment-read')
+def mark_read():
+    req = requests.put(f'http://hurlstor.soest.hawaii.edu:5000/comment/mark-read/{request.values.get("uuid")}')
+    print(request.values.get('uuid'))
+    print(req.status_code)
+    print(req.text)
+    if req.status_code == 200:
+        flash('Comment marked as read', 'success')
+    else:
+        flash('Unable to mark comment as read - please try again', 'danger')
+    print(request.values.get('url'))
+    return redirect(request.values.get('url'))
+
+
 # deletes an item from the external review db
 @app.post('/delete-external-comment')
 def delete_external_comment():

@@ -136,8 +136,13 @@ const setCurrentPage = (pageNum) => {
                     <div class="row mt-2">
                         <div class="col-4">
                             Reviewer comments:<br>
-                            ${comments[annotation.observation_uuid].unread ? 
-                            `<a class="editButton" href="http://hurlstor.soest.hawaii.edu:5000/comment/mark-read/${annotation.observation_uuid}">Mark read</a>` 
+                            ${comments[annotation.observation_uuid].unread ?
+                            `<form action="/mark-comment-read" method="post">
+                                <input type="hidden" name="uuid" value="${annotation.observation_uuid}">
+                                <input type="hidden" name="url" value="${window.location.href}">
+                                <input type="submit" value="Mark read">
+                            </form>
+                            `
                             : ''}
                         </div>
                         <div class="col values">
