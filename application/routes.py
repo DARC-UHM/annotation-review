@@ -50,21 +50,19 @@ def view_images():
     with requests.get('http://hurlstor.soest.hawaii.edu:5000/reviewer/all') as r:
         reviewers = r.json()
     # get images in sequence
-    sequences = []
     comments = {}
     filter_type = None
     filter_ = None
-    for key, val in request.args.items():
-        if 'sequence' in key:
-            sequences.append(val)
-            with requests.get(f'http://hurlstor.soest.hawaii.edu:5000/comment/sequence/{val}') as r:
-                comments = comments | r.json()  # merge dicts
-        else:
+    sequences = request.args.getlist('sequence')
+    for sequence in sequences:
+        with requests.get(f'http://hurlstor.soest.hawaii.edu:5000/comment/sequence/{sequence}') as r:
+            comments = comments | r.json()  # merge dicts
+        if sequence not in video_sequences:
+            return render_template('404.html', err='dive'), 404
+    for key, val in request.args.items():  # get filter
+        if 'sequence' not in key:
             filter_type = key
             filter_ = val
-    for sequence_name in sequences:
-        if sequence_name not in video_sequences:
-            return render_template('404.html', err='dive'), 404
     image_loader = ImageLoader(sequences, filter_type, filter_)
     if len(image_loader.distilled_records) < 1:
         return render_template('404.html', err='pics'), 404

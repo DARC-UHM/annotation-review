@@ -31,7 +31,7 @@ function plusClick() {
                     <div class="col-1"></div>
                     <div class="col-10 p-0">
                         <div class="autocomplete">
-                            <input type="text" id="sequence${numSequences}" name="sequence${numSequences}" class="sequenceName" placeholder="Hercules 1011715" autocomplete="off">
+                            <input type="text" id="sequence${numSequences}" name="sequence" class="sequenceName" placeholder="Hercules 1011715" autocomplete="off">
                         </div>
                     </div>
                     <div class="col-1 ps-0">
@@ -82,8 +82,3 @@ $('#filterButton').on('click', () => {
         filterButton.addClass('filterButtonActive');
     }
 });
-
-window.onbeforeunload = function(e) {
-    $('#load-overlay').removeClass('loader-bg');
-    $('#load-overlay').addClass('loader-bg-hidden');
-};
