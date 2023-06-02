@@ -16,7 +16,7 @@ _Requirements: Python ≥ 3.9_
 2. Enter a sequence number in the text field.
    1. To view images from multiple dives, select the `+` icon to the right of the sequence number text field.
    2. To filter by phylogeny or by comment, select `Filter By` and enter a filter.
-   3. To view all annotations added for external review, select `Filter By` and then click the link below the filter options.
+   3. To view all annotations added for external review, select `External Review` in the top right corner.
 3. After entering the appropriate dives/filters, select `Go`. A page will load displaying all image records that match the search criteria.
 4. Select an annotation's `Edit annotation` button to edit the annotation. A popup window will appear where you can enter updated information. Edits here are saved to the VARS database when you click `Save Changes`.
 5. Select `See video` to see the video where the image was captured. 
