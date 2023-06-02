@@ -345,7 +345,6 @@ window.onhashchange = () => {
 
 // get the annotation data and add it to the modal
 $(document).ready(function () {
-    const url = new URL(window.location.href);
 
     $('#editModal').on('show.bs.modal', function (e) {
         const annotation = $(e.relatedTarget).data('anno');
@@ -373,7 +372,7 @@ $(document).ready(function () {
             opt.appendTo(guidePhotoSelect);
         }
 
-        $('#editUrl').val(url);
+        $('#editUrl').val(window.location.href);
     });
 
     $('#externalReviewModal').on('show.bs.modal', function (e) {
@@ -386,7 +385,7 @@ $(document).ready(function () {
         });
         reviewerList(document.getElementById('reviewerNameButton'), recommendedReviewers);
 
-        $('#externalUrl').val(url);
+        $('#externalUrl').val(window.location.href);
         $('#externalObservationUuid').val(annotation.observation_uuid);
         $('#externalSequence').val(annotation.video_sequence_name);
         $('#externalTimestamp').val(annotation.recorded_timestamp);
@@ -400,7 +399,7 @@ $(document).ready(function () {
     });
 
     $('#deleteReviewModal').on('show.bs.modal', function (e) {
-        $('#externalDeleteUrl').val(url);
+        $('#externalDeleteUrl').val(window.location.href);
         $('#externalDeleteUuid').val($(e.relatedTarget).data('anno').observation_uuid);
     });
 });

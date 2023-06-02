@@ -105,9 +105,6 @@ def external_review():
 @app.post('/mark-comment-read')
 def mark_read():
     req = requests.put(f'http://hurlstor.soest.hawaii.edu:5000/comment/mark-read/{request.values.get("uuid")}')
-    print(request.values.get('uuid'))
-    print(req.status_code)
-    print(req.text)
     if req.status_code == 200:
         flash('Comment marked as read', 'success')
     else:
