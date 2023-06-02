@@ -35,8 +35,9 @@ def favicon():
 
 @app.route('/')
 def index():
-    # return the rendered template
-    return render_template('index.html', sequences=video_sequences)
+    with requests.get('http://hurlstor.soest.hawaii.edu:5000/reviewer/all') as r:
+        unread_comments = r.json()
+    return render_template('index.html', sequences=video_sequences, unread_comments=unread_comments)
 
 
 # view the annotations with images in a specified dive (or dives) with optional filters
@@ -105,7 +106,6 @@ def mark_read():
         flash('Comment marked as read', 'success')
     else:
         flash('Unable to mark comment as read - please try again', 'danger')
-    print(request.values.get('url'))
     return redirect(request.values.get('url'))
 
 
@@ -123,9 +123,7 @@ def delete_external_comment():
         flash('Comment successfully deleted', 'success')
     else:
         flash('Error deleting comment', 'danger')
-    if 'sequence' in request.values.get("params"):
-        return redirect(f'dive{request.values.get("params")}')
-    return redirect(f'/external-review')
+    return redirect(request.values.get('url'))
 
 
 # displays information about all the reviewers in the hurl db
@@ -212,9 +210,7 @@ def update_annotation_reviewer():
             flash('Successfully added for review', 'success')
         else:
             flash('Failed to add for review - please try again', 'danger')
-    if 'sequence' in request.values.get("params"):
-        return redirect(f'dive{request.values.get("params")}')
-    return redirect(f'/external-review')
+    return redirect(request.values.get('url'))
 
 
 # updates the comment in the vars db to reflect that the record has been added to the comment db
@@ -241,7 +237,6 @@ def update_annotation():
         'comment': request.values.get('editComments'),
         'guide-photo': request.values.get('editGuidePhoto'),
     }
-
     status = annosaurus.update_annotation(
         observation_uuid=request.values.get('observation_uuid'),
         updated_annotation=updated_annotation,
@@ -253,10 +248,7 @@ def update_annotation():
         flash('No changes made', 'secondary')
     else:
         flash('Failed to update annotation - please try again', 'danger')
-
-    if 'sequence' in request.values.get("params"):
-        return redirect(f'dive{request.values.get("params")}')
-    return redirect(f'/external-review')
+    return redirect(request.values.get('url'))
 
 
 @app.errorhandler(404)

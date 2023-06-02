@@ -345,6 +345,8 @@ window.onhashchange = () => {
 
 // get the annotation data and add it to the modal
 $(document).ready(function () {
+    const url = new URL(window.location.href);
+
     $('#editModal').on('show.bs.modal', function (e) {
         const annotation = $(e.relatedTarget).data('anno');
         const conceptNameField = $(this).find('#editConceptName');
@@ -371,7 +373,7 @@ $(document).ready(function () {
             opt.appendTo(guidePhotoSelect);
         }
 
-        $('#editParams').val(`${window.location.search}${window.location.hash}`);
+        $('#editUrl').val(url);
     });
 
     $('#externalReviewModal').on('show.bs.modal', function (e) {
@@ -384,7 +386,7 @@ $(document).ready(function () {
         });
         reviewerList(document.getElementById('reviewerNameButton'), recommendedReviewers);
 
-        $('#externalParams').val(`${window.location.search}${window.location.hash}`);
+        $('#externalUrl').val(url);
         $('#externalObservationUuid').val(annotation.observation_uuid);
         $('#externalSequence').val(annotation.video_sequence_name);
         $('#externalTimestamp').val(annotation.recorded_timestamp);
@@ -398,7 +400,7 @@ $(document).ready(function () {
     });
 
     $('#deleteReviewModal').on('show.bs.modal', function (e) {
-        $('#externalDeleteParams').val(`${window.location.search}${window.location.hash}`);
+        $('#externalDeleteUrl').val(url);
         $('#externalDeleteUuid').val($(e.relatedTarget).data('anno').observation_uuid);
     });
 });
