@@ -21,11 +21,7 @@ with requests.get('http://hurlstor.soest.hawaii.edu:8083/kb/v1/concept') as r:
 
 # get list of sequences from vars
 with requests.get('http://hurlstor.soest.hawaii.edu:8084/vam/v1/videosequences/names') as r:
-    sequences = r.json()
-
-video_sequences = []
-for video in sequences:
-    video_sequences.append(video)
+    video_sequences = r.json()
 
 
 @app.route('/favicon.ico')
@@ -35,9 +31,16 @@ def favicon():
 
 @app.route('/')
 def index():
-    with requests.get('http://hurlstor.soest.hawaii.edu:5000/reviewer/all') as r:
-        unread_comments = r.json()
-    return render_template('index.html', sequences=video_sequences, unread_comments=unread_comments)
+    with requests.get('http://hurlstor.soest.hawaii.edu:5000/comment/unread') as r:
+        unread_comments = len(r.json())
+    with requests.get('http://hurlstor.soest.hawaii.edu:5000/comment/all') as r:
+        total_comments = len(r.json())
+    return render_template(
+        'index.html',
+        sequences=video_sequences,
+        unread_comment_count=unread_comments,
+        total_comment_count=total_comments
+    )
 
 
 # view the annotations with images in a specified dive (or dives) with optional filters
@@ -81,10 +84,15 @@ def external_review():
     with requests.get('http://hurlstor.soest.hawaii.edu:5000/reviewer/all') as r:
         reviewers = r.json()
     # get a list of comments from external review db
-    with requests.get('http://hurlstor.soest.hawaii.edu:5000/comment/all') as r:
-        comments = r.json()
+    if request.args.get('unread'):
+        req = requests.get('http://hurlstor.soest.hawaii.edu:5000/comment/unread')
+    else:
+        req = requests.get('http://hurlstor.soest.hawaii.edu:5000/comment/all')
+    comments = req.json()
     comment_loader = CommentLoader(comments)
     if len(comment_loader.annotations) < 1:
+        if request.args.get('unread'):
+            return render_template('404.html', err='unread'), 404
         return render_template('404.html', err='comments'), 404
     data = {
         'annotations': comment_loader.annotations,

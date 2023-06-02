@@ -16,6 +16,8 @@
     {% elif err == 'pics' %}
     <h5>No photos found for the dive with the given sequence number.<br></h5>
     <div id="details"></div>
+    {% elif err == 'unread' %}
+    <h5>No unread comments in external review database.</h5>
     {% elif err == 'comments' %}
     <h5>No comments saved in external review database.</h5>
     {% else %}

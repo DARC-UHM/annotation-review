@@ -8,8 +8,21 @@
     <link rel="stylesheet" href="/static/css/style.css" />
 </head>
 <body id="index">
-    <div class="text-center my-3 mx-5">
-        <img src="/static/img/logo_darc.png" class="mt-4" width="30%" style="max-width: 300px; min-width: 200px; pointer-events: none;" alt="DARC logo"/>
+    <div class="container mt-3 text-end small">
+        {% if unread_comment_count > 0 %}
+        <a href="/external-review" class="aquaLink me-2" style="font-weight: 500;">External Review</a>
+        <a href="/external-review?unread=true" id="notif">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#eeeeee" class="bi bi-chat-right-fill mt-1" viewBox="0 0 16 16">
+              <path d="M14 0a2 2 0 0 1 2 2v12.793a.5.5 0 0 1-.854.353l-2.853-2.853a1 1 0 0 0-.707-.293H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12z"/>
+            </svg>
+            <span id="notif-inner">{{ unread_comment_count }}</span>
+        </a>
+        {% else %}
+        <a href="/external-review" class="aquaLink" style="font-weight: 500;">External Review</a>
+        {% endif %}
+    </div>
+    <div class="text-center mb-3 mx-5">
+        <img src="/static/img/logo_darc.png" class="mt-2" width="30%" style="max-width: 300px; min-width: 200px; pointer-events: none;" alt="DARC logo"/>
         <h1 class="my-3">DARC Image Review</h1>
         <form id="indexForm" method="get" action="/dive" >
             <div id="sequenceList" class="ms-2">
@@ -57,9 +70,6 @@
                                     <div class="col p-0">
                                         <input type="text" id="filterEntry" name="blank" placeholder="Enter phylum" autocomplete="off">
                                     </div>
-                                </div>
-                                <div class="row small">
-                                    <a href="/external-review" class="aquaLink" style="font-weight: 500;">Annotations added to external review</a>
                                 </div>
                             </div>
                         </div>

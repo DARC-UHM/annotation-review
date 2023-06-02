@@ -140,7 +140,7 @@ const setCurrentPage = (pageNum) => {
                             `<form action="/mark-comment-read" method="post">
                                 <input type="hidden" name="uuid" value="${annotation.observation_uuid}">
                                 <input type="hidden" name="url" value="${window.location.href}">
-                                <input type="submit" value="Mark read">
+                                <input type="submit" class="editButton" value="Mark read">
                             </form>
                             `
                             : ''}
@@ -307,7 +307,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
             filter.push(pair[1]);
         }
     }
-    $('#vesselName').html(vesselName || 'Active External Review ');
+    $('#vesselName').html(vesselName || 'Annotations Added for External Review');
     $('#sequenceList').html(sequences.join(', '));
     if (filter.length > 0) {
         $('#sequenceList').append(`<br><span class="small">Filtered by ${filter.join(': ')}</span>`);
