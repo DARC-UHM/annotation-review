@@ -101,6 +101,44 @@ def external_review():
     return render_template('image_review.html', data=data)
 
 
+# syncs ctd from vars db with external review db
+@app.get('/sync-external-ctd')
+def sync_external_ctd():
+    updated_ctd = {}
+    sequences = {}
+    missing_ctd_total = 0
+    req = requests.get('http://hurlstor.soest.hawaii.edu:5000/comment/all')
+    comments = req.json()
+    for key, val in comments.items():
+        if val['sequence'] not in sequences.keys():
+            sequences[val['sequence']] = [key]
+        else:
+            sequences[val['sequence']].append(key)
+    for sequence in sequences.keys():
+        print(sequence)
+        with requests.get(f'http://hurlstor.soest.hawaii.edu:8086/query/dive/{sequence.replace(" ", "%20")}') as r:
+            response = r.json()
+            for annotation in response['annotations']:
+                if annotation['observation_uuid'] in sequences[sequence]:
+                    if 'ancillary_data' in annotation.keys():
+                        updated_ctd[annotation['observation_uuid']] = {
+                            'depth': round(annotation['ancillary_data']['depth_meters']),
+                            'lat': round(annotation['ancillary_data']['latitude'], 3),
+                            'long': round(annotation['ancillary_data']['longitude'], 3)
+                        }
+                    else:
+                        missing_ctd_total += 1
+    req = requests.put('http://hurlstor.soest.hawaii.edu:5000/sync-ctd', data={updated_ctd: updated_ctd})
+    if req.status_code == 200:
+        msg = 'CTD synced'
+        if missing_ctd_total > 0:
+            msg += f' - still missing CTD for {missing_ctd_total} annotation{"s" if missing_ctd_total > 1 else ""}'
+        flash(msg, 'success')
+    else:
+        flash('Unable to sync CTD - please try again', 'danger')
+    return redirect('/external-review')
+
+
 # marks a comment in the external review db as 'read'
 @app.post('/mark-comment-read')
 def mark_read():
@@ -174,7 +212,7 @@ def delete_reviewer(name):
     return redirect('/reviewers')
 
 
-# updates the reviewer for an annotation in the hurl db
+# adds an annotation for review/updates the reviewer for an annotation
 @app.post('/update-annotation-reviewer')
 def update_annotation_reviewer():
     data = {
@@ -182,7 +220,6 @@ def update_annotation_reviewer():
         'sequence': request.values.get('sequence'),
         'timestamp': request.values.get('timestamp'),
         'image_url': request.values.get('image_url'),
-        'concept': request.values.get('concept'),
         'reviewer': request.values.get('reviewer'),
         'video_url': request.values.get('video_url'),
         'annotator': request.values.get('annotator'),

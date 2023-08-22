@@ -307,9 +307,27 @@ document.addEventListener('DOMContentLoaded', function(event) {
             filter.push(pair[1]);
         }
     }
-    $('#vesselName').html(vesselName || 'Annotations Added for External Review');
+    if (!vesselName) {
+        // external review page
+        if (filter.includes('unread')) {
+            $('#vesselName').html('External Review List (Unread)');
+            document.title = 'DARC Image Review | External Review List (Unread Comments)';
+            $('#changeExternalView').html('View All');
+            $('#changeExternalView').attr('href', '/external-review');
+        } else {
+            $('#vesselName').html('External Review List (All)');
+            document.title = 'DARC Image Review | External Review List (All)';
+            $('#changeExternalView').html('View Unread');
+            $('#changeExternalView').attr('href', '/external-review?unread=true');
+        }
+    } else {
+        $('#syncCTD').hide();
+        $('#changeExternalView').hide();
+        $('#vesselName').html(vesselName);
+    }
+
     $('#sequenceList').html(sequences.join(', '));
-    if (filter.length > 0) {
+    if (filter.length > 0 && !filter.includes('unread')) {
         $('#sequenceList').append(`<br><span class="small">Filtered by ${filter.join(': ')}</span>`);
     }
 
@@ -378,9 +396,7 @@ $(document).ready(function () {
     $('#externalReviewModal').on('show.bs.modal', function (e) {
         const annotation = $(e.relatedTarget).data('anno');
         const phylum = annotation.phylum.toLowerCase();
-        console.log(phylum)
         const recommendedReviewers = reviewers.filter((obj) => {
-            console.log(obj.phylum)
             return obj.phylum.toLowerCase().includes(phylum);
         });
         reviewerList(document.getElementById('reviewerNameButton'), recommendedReviewers);
