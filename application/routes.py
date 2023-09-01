@@ -14,7 +14,7 @@ ANNOSAURUS_URL = os.environ.get('ANNOSAURUS_URL')
 ANNOSAURUS_CLIENT_SECRET = os.environ.get('ANNOSAURUS_CLIENT_SECRET')
 HURLSTOR_URL = 'http://hurlstor.soest.hawaii.edu'
 LOCAL_APP_URL = 'http://127.0.0.1:8000'
-DARC_REVIEW_PORT = 5000
+DARC_REVIEW_URL = 'http://hurlstor.soest.hawaii.edu:5000'
 
 app.secret_key = 'darc'
 
@@ -34,9 +34,9 @@ def favicon():
 
 @app.route('/')
 def index():
-    with requests.get(f'{HURLSTOR_URL}:{DARC_REVIEW_PORT}/comment/unread') as r:
+    with requests.get(f'{DARC_REVIEW_URL}/comment/unread') as r:
         unread_comments = len(r.json())
-    with requests.get(f'{HURLSTOR_URL}:{DARC_REVIEW_PORT}/comment/all') as r:
+    with requests.get(f'{DARC_REVIEW_URL}/comment/all') as r:
         total_comments = len(r.json())
     return render_template(
         'index.html',
@@ -50,7 +50,7 @@ def index():
 @app.get('/dive')
 def view_images():
     # get list of reviewers from external review db
-    with requests.get(f'{HURLSTOR_URL}:{DARC_REVIEW_PORT}/reviewer/all') as r:
+    with requests.get(f'{DARC_REVIEW_URL}/reviewer/all') as r:
         reviewers = r.json()
     # get images in sequence
     comments = {}
@@ -58,7 +58,7 @@ def view_images():
     filter_ = None
     sequences = request.args.getlist('sequence')
     for sequence in sequences:
-        with requests.get(f'{HURLSTOR_URL}:{DARC_REVIEW_PORT}/comment/sequence/{sequence}') as r:
+        with requests.get(f'{DARC_REVIEW_URL}/comment/sequence/{sequence}') as r:
             comments = comments | r.json()  # merge dicts
         if sequence not in video_sequences:
             return render_template('404.html', err='dive'), 404
@@ -82,13 +82,13 @@ def view_images():
 @app.get('/external-review')
 def external_review():
     # get list of reviewers from external review db
-    with requests.get(f'{HURLSTOR_URL}:{DARC_REVIEW_PORT}/reviewer/all') as r:
+    with requests.get(f'{DARC_REVIEW_URL}/reviewer/all') as r:
         reviewers = r.json()
     # get a list of comments from external review db
     if request.args.get('unread'):
-        req = requests.get(f'{HURLSTOR_URL}:{DARC_REVIEW_PORT}/comment/unread')
+        req = requests.get(f'{DARC_REVIEW_URL}/comment/unread')
     else:
-        req = requests.get(f'{HURLSTOR_URL}:{DARC_REVIEW_PORT}/comment/all')
+        req = requests.get(f'{DARC_REVIEW_URL}/comment/all')
     comments = req.json()
     comment_loader = CommentLoader(comments)
     if len(comment_loader.annotations) < 1:
@@ -110,7 +110,7 @@ def sync_external_ctd():
     updated_ctd = {}
     sequences = {}
     missing_ctd_total = 0
-    req = requests.get(f'{HURLSTOR_URL}:{DARC_REVIEW_PORT}/comment/all')
+    req = requests.get(f'{DARC_REVIEW_URL}/comment/all')
     comments = req.json()
     for key, val in comments.items():
         if val['sequence'] not in sequences.keys():
@@ -118,7 +118,6 @@ def sync_external_ctd():
         else:
             sequences[val['sequence']].append(key)
     for sequence in sequences.keys():
-        print(sequence)
         with requests.get(f'{HURLSTOR_URL}:8086/query/dive/{sequence.replace(" ", "%20")}') as r:
             response = r.json()
             for annotation in response['annotations']:
@@ -131,7 +130,7 @@ def sync_external_ctd():
                         }
                     else:
                         missing_ctd_total += 1
-    req = requests.put(f'{HURLSTOR_URL}:{DARC_REVIEW_PORT}/sync-ctd', data=updated_ctd)
+    req = requests.put(f'{DARC_REVIEW_URL}/sync-ctd', data=json.dumps(updated_ctd))
     if req.status_code == 200:
         msg = 'CTD synced'
         if missing_ctd_total > 0:
@@ -145,7 +144,7 @@ def sync_external_ctd():
 # marks a comment in the external review db as 'read'
 @app.post('/mark-comment-read')
 def mark_read():
-    req = requests.put(f'{HURLSTOR_URL}:{DARC_REVIEW_PORT}/comment/mark-read/{request.values.get("uuid")}')
+    req = requests.put(f'{DARC_REVIEW_URL}/comment/mark-read/{request.values.get("uuid")}')
     if req.status_code == 200:
         flash('Comment marked as read', 'success')
     else:
@@ -156,7 +155,7 @@ def mark_read():
 # deletes an item from the external review db
 @app.post('/delete-external-comment')
 def delete_external_comment():
-    req = requests.delete(f'{HURLSTOR_URL}:{DARC_REVIEW_PORT}/comment/delete/{request.values.get("uuid")}')
+    req = requests.delete(f'{DARC_REVIEW_URL}/comment/delete/{request.values.get("uuid")}')
     if req.status_code == 200:
         new_comment = {
             'observation_uuid': request.values.get('uuid'),
@@ -173,7 +172,7 @@ def delete_external_comment():
 # displays information about all the reviewers in the hurl db
 @app.get('/reviewers')
 def reviewers():
-    with requests.get(f'{HURLSTOR_URL}:{DARC_REVIEW_PORT}/reviewer/all') as r:
+    with requests.get(f'{DARC_REVIEW_URL}/reviewer/all') as r:
         reviewer_list = r.json()
     return render_template('reviewers.html', reviewers=reviewer_list)
 
@@ -189,10 +188,10 @@ def update_reviewer_info():
         'organization': request.values.get('editOrganization'),
         'email': request.values.get('editEmail')
     }
-    req = requests.put(f'{HURLSTOR_URL}:{DARC_REVIEW_PORT}/reviewer/update/{name}', data=data)
+    req = requests.put(f'{DARC_REVIEW_URL}/reviewer/update/{name}', data=data)
     if req.status_code == 404:
         data['name'] = data['new_name']
-        req = requests.post(f'{HURLSTOR_URL}:{DARC_REVIEW_PORT}/reviewer/add', data=data)
+        req = requests.post(f'{DARC_REVIEW_URL}/reviewer/add', data=data)
         if req.status_code == 201:
             flash('Successfully added reviewer', 'success')
         else:
@@ -207,7 +206,7 @@ def update_reviewer_info():
 # delete a reviewer
 @app.get('/delete_reviewer/<name>')
 def delete_reviewer(name):
-    req = requests.delete(f'{HURLSTOR_URL}:{DARC_REVIEW_PORT}/reviewer/delete/{name}')
+    req = requests.delete(f'{DARC_REVIEW_URL}/reviewer/delete/{name}')
     if req.status_code == 200:
         flash('Reviewer successfully deleted', 'success')
     else:
@@ -230,9 +229,9 @@ def update_annotation_reviewer():
         'lat': request.values.get('lat'),
         'long': request.values.get('long')
     }
-    with requests.post(f'{HURLSTOR_URL}:{DARC_REVIEW_PORT}/comment/add', data=data) as r:
+    with requests.post(f'{DARC_REVIEW_URL}/comment/add', data=data) as r:
         if r.status_code == 409:
-            req = requests.put(f'{HURLSTOR_URL}:{DARC_REVIEW_PORT}/comment/update-reviewer/{data["uuid"]}', data=data)
+            req = requests.put(f'{DARC_REVIEW_URL}/comment/update-reviewer/{data["uuid"]}', data=data)
             if req.status_code == 200:
                 new_comment = {
                     'observation_uuid': request.values.get('observation_uuid'),
