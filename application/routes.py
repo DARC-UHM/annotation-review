@@ -225,6 +225,7 @@ def update_annotation_reviewer():
         'reviewer': request.values.get('reviewer'),
         'video_url': request.values.get('video_url'),
         'annotator': request.values.get('annotator'),
+        'id_ref': request.values.get('id_ref'),
         'depth': request.values.get('depth'),
         'lat': request.values.get('lat'),
         'long': request.values.get('long')

@@ -409,6 +409,7 @@ $(document).ready(function () {
         $('#externalConcept').val(annotation.concept);
         $('#externalVideoUrl').val(annotation.video_url);
         $('#externalAnnotator').val(annotation.annotator);
+        $('#externalIdRef').val(`${annotation.video_sequence_name.slice(-2)}:${annotation.identity_reference}`);
         $('#externalLat').val(annotation.lat);
         $('#externalLong').val(annotation.long);
         $('#externalDepth').val(annotation.depth);
