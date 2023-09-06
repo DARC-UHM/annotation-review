@@ -61,6 +61,10 @@
                 </button>
             </div>
         </div>
+        <div class="text-center mt-auto py-3 small">
+            Page:&nbsp;&nbsp;<span id="currentPageNumBottom" style="font-weight: 600;"></span>/<span id="totalPageNumBottom" style="font-weight: 600;"></span><br>
+            Total Images:&nbsp;&nbsp;<span id="annotationCountBottom" style="font-weight: 600;"></span><br>
+        </div>
         <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg">
                 <form action="/update-annotation" method="post" autocomplete="off">

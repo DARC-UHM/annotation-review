@@ -31,6 +31,7 @@ const handleActivePageNumber = () => {
         }
     });
     $('#currentPageNum').html(currentPage);
+    $('#currentPageNumBottom').html(currentPage);
 };
 
 const setCurrentPage = (pageNum) => {
@@ -288,7 +289,9 @@ document.addEventListener('DOMContentLoaded', function(event) {
     });
 
     $('#annotationCount').html(annotations.length);
+    $('#annotationCountBottom').html(annotations.length);
     $('#totalPageNum').html(pageCount);
+    $('#totalPageNumBottom').html(pageCount);
 
     const sequences = [];
     const filter = [];
