@@ -2,22 +2,20 @@ const paginationNumbers = document.getElementById('pagination-numbers');
 const nextButton = document.getElementById('next-button');
 const prevButton = document.getElementById('prev-button');
 const guidePhotoVals = ['1 best', '2 good', '3 okay', ''];
-const paginationLimit = 25;
-const pageCount = Math.ceil(annotations.length / paginationLimit);
-let currentPage;
 
-const appendPageNumber = (index) => {
-    const pageNumber = document.createElement('button');
-    pageNumber.className = 'pagination-number';
-    pageNumber.innerHTML = index;
-    pageNumber.setAttribute('page-index', index);
-    pageNumber.setAttribute('aria-label', 'Page ' + index);
-    paginationNumbers.appendChild(pageNumber);
-};
+let currentPage;
+let paginationLimit = 25;
+let pageCount = Math.ceil(annotations.length / paginationLimit);
 
 const getPaginationNumbers = () => {
+    $('#pagination-numbers').empty();
     for (let i = 1; i <= pageCount; i++) {
-        appendPageNumber(i);
+        const pageNumber = document.createElement('button');
+        pageNumber.className = 'pagination-number';
+        pageNumber.innerHTML = i;
+        pageNumber.setAttribute('page-index', i);
+        pageNumber.setAttribute('aria-label', 'Page ' + i);
+        paginationNumbers.appendChild(pageNumber);;
     }
 };
 
@@ -350,6 +348,15 @@ document.addEventListener('DOMContentLoaded', function(event) {
         $('#load-overlay').removeClass('loader-bg-hidden');
         $('#load-overlay').addClass('loader-bg');
         $('#externalModalDeleteButton').modal('hide');
+    });
+
+    $('#paginationSelect').on('change', () => {
+        paginationLimit = $('#paginationSelect').val();
+        pageCount = Math.ceil(annotations.length / paginationLimit);
+        getPaginationNumbers();
+        setCurrentPage(1);
+        $('#totalPageNum').html(pageCount);
+        $('#totalPageNumBottom').html(pageCount);
     });
 });
 
