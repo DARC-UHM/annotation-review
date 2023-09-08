@@ -81,3 +81,9 @@ $('#filterButton').on('click', () => {
         filterButton.addClass('filterButtonActive');
     }
 });
+
+// get rid of loading screen if back button is pressed (firefox)
+$(window).bind('pageshow', (event) => {
+    $('#load-overlay').removeClass('loader-bg');
+    $('#load-overlay').addClass('loader-bg-hidden');
+});

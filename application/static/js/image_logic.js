@@ -48,7 +48,7 @@ const setCurrentPage = (pageNum) => {
     sessionStorage.setItem(`scrollPos${currentPage}`, window.scrollY);
 
     currentPage = pageNum;
-    location.hash = "#pg=" + pageNum;
+    location.replace(`#pg=${pageNum}`);
 
     if (sessionStorage.getItem(`scrollPos${currentPage}`)) {
         window.scrollTo({top: sessionStorage.getItem(`scrollPos${currentPage}`), left: 0, behavior: 'instant'});
@@ -434,11 +434,12 @@ document.addEventListener('DOMContentLoaded', function(event) {
         setCurrentPage(1);
         $('#totalPageNum').html(pageCount);
         $('#totalPageNumBottom').html(pageCount);
-        window.scrollTo({top: 0, left: 0, behavior: 'instant'});
     });
+
+    $('#imageFilterSelect').on('change', () => $('#imageFilterEntry').attr('placeholder', `Enter ${$('#imageFilterSelect').val().toLowerCase()}`));
 });
 
-window.onbeforeunload = function(e) {
+window.onbeforeunload = (e) => {
     sessionStorage.setItem(`scrollPos${currentPage}`, window.scrollY);
 };
 
@@ -447,7 +448,7 @@ window.onhashchange = () => {
     if (currentPage !== hashNum) {
         setCurrentPage(hashNum);
     }
-}
+};
 
 // get the annotation data and add it to the modal
 $(document).ready(function () {
