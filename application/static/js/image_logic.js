@@ -4,8 +4,9 @@ const prevButton = document.getElementById('prev-button');
 const guidePhotoVals = ['1 best', '2 good', '3 okay', ''];
 
 let currentPage;
+let pageCount;
 let paginationLimit = 25;
-let pageCount = Math.ceil(annotations.length / paginationLimit);
+let annotationsToDisplay = annotations;
 
 const getPaginationNumbers = () => {
     $('#pagination-numbers').empty();
@@ -15,7 +16,7 @@ const getPaginationNumbers = () => {
         pageNumber.innerHTML = i;
         pageNumber.setAttribute('page-index', i);
         pageNumber.setAttribute('aria-label', 'Page ' + i);
-        paginationNumbers.appendChild(pageNumber);;
+        paginationNumbers.appendChild(pageNumber);
     }
     document.querySelectorAll('.pagination-number').forEach((button) => {
         const pageIndex = Number(button.getAttribute('page-index'));
@@ -61,7 +62,7 @@ const setCurrentPage = (pageNum) => {
     $('#annotationTable tbody').remove();
     $('#annotationTable').append('<tbody class="text-start"></tbody>');
 
-    annotations.forEach((annotation, index) => {
+    annotationsToDisplay.forEach((annotation, index) => {
         if (index >= prevRange && index < currRange) {
             $('#annotationTable').find('tbody').append(`
             <tr>
@@ -262,6 +263,52 @@ autocomplete(document.getElementById('editUpon'), allConcepts);
 
 // load scroll position
 document.addEventListener('DOMContentLoaded', function(event) {
+    const sequences = [];
+    const filter = {};
+    const url = new URL(window.location.href);
+    let vesselName;
+
+    for (const pair of url.searchParams.entries()) {
+        if (pair[0].includes('sequence')) {
+            const param = pair[1].split(' ');
+            sequences.push(param.pop());
+            if (!vesselName) {
+                vesselName = param.join(' ');
+            }
+        } else {
+            filter[pair[0]] = pair[1];
+        }
+    }
+    if (filter['phylum']) {
+        annotationsToDisplay = annotations.filter((anno) => anno['phylum'] === filter['phylum']);
+    }
+    if (filter['class']){
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['class'] === filter['class']);
+    }
+    if (filter['order']){
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['order'] === filter['order']);
+    }
+    if (filter['family']){
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['family'] === filter['family']);
+    }
+    if (filter['genus']){
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['genus'] === filter['genus']);
+    }
+    if (filter['species']){
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['species'] === filter['species']);
+    }
+    if (filter['comment']){
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['comment'] === filter['comment']);
+    }
+
+    if (!annotationsToDisplay.length) {
+        $('#404').show();
+    } else {
+        $('#404').hide();
+    }
+
+    pageCount = Math.ceil(annotationsToDisplay.length / paginationLimit);
+
     if (sessionStorage.getItem(`scrollPos${currentPage}`)) {
         window.scrollTo({top: sessionStorage.getItem(`scrollPos${currentPage}`), left: 0, behavior: 'instant'});
     }
@@ -285,31 +332,14 @@ document.addEventListener('DOMContentLoaded', function(event) {
         setCurrentPage(currentPage + 1);
     });
 
-    $('#annotationCount').html(annotations.length);
-    $('#annotationCountBottom').html(annotations.length);
+    $('#annotationCount').html(annotationsToDisplay.length);
+    $('#annotationCountBottom').html(annotationsToDisplay.length);
     $('#totalPageNum').html(pageCount);
     $('#totalPageNumBottom').html(pageCount);
 
-    const sequences = [];
-    const filter = [];
-    let vesselName = null;
-    const url = new URL(window.location.href);
-
-    for (let pair of url.searchParams.entries()) {
-        if (pair[0].includes('sequence')) {
-            const param = pair[1].split(' ');
-            sequences.push(param.pop());
-            if (!vesselName) {
-                vesselName = param.join(' ');
-            }
-        } else {
-            filter.push(pair[0]);
-            filter.push(pair[1]);
-        }
-    }
     if (!vesselName) {
         // external review page
-        if (filter.includes('unread')) {
+        if (filter['unread']) {
             $('#vesselName').html('External Review List (Unread)');
             document.title = 'DARC Image Review | External Review List (Unread Comments)';
             $('#changeExternalView').html('View All');
@@ -327,8 +357,18 @@ document.addEventListener('DOMContentLoaded', function(event) {
     }
 
     $('#sequenceList').html(sequences.join(', '));
-    if (filter.length > 0 && !filter.includes('unread')) {
-        $('#sequenceList').append(`<br><span class="small">Filtered by ${filter.join(': ')}</span>`);
+
+    console.log(filter)
+    console.log(jQuery.isEmptyObject(filter))
+    if (!jQuery.isEmptyObject(filter) && !filter['unread']) {
+        let filterStr = '';
+        for (const key of Object.keys(filter)) {
+            if (filterStr.length) {
+                filterStr += ', ';
+            }
+            filterStr += `${key}: ${filter[key]}`;
+        }
+        $('#sequenceList').append(`<br><span class="small">Filtered by ${filterStr}</span>`);
     }
 
     $('#editModalSubmitButton').on('click', () => {
@@ -351,11 +391,12 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
     $('#paginationSelect').on('change', () => {
         paginationLimit = $('#paginationSelect').val();
-        pageCount = Math.ceil(annotations.length / paginationLimit);
+        pageCount = Math.ceil(annotationsToDisplay.length / paginationLimit);
         getPaginationNumbers();
         setCurrentPage(1);
         $('#totalPageNum').html(pageCount);
         $('#totalPageNumBottom').html(pageCount);
+        window.scrollTo({top: 0, left: 0, behavior: 'instant'});
     });
 });
 

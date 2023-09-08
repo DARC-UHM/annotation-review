@@ -74,7 +74,6 @@ $('#indexForm').submit(() => {
 
 $('#filterButton').on('click', () => {
     const filterButton = $('#filterButton');
-    console.log(filterButton.css('color'));
 
     if (filterButton.attr('class').split(/\s+/).includes('filterButtonActive')) {
         filterButton.removeClass('filterButtonActive');
