@@ -266,6 +266,29 @@ select:active {
     color: #00c3cc;
 }
 
+.filter-pill {
+    margin-left: 12px;
+    padding: 5px 15px;
+    background: #393E46;
+    border-radius: 5px;
+}
+
+.filter-x {
+    color: #79858f;
+    background: #2b343d;
+    padding: 0 8px 2px 8px;
+    border: none;
+    border-radius: 20px;
+    top: -5px;
+    right: -8px;
+    transition: 0.2s;
+}
+
+.filter-x:hover {
+    color: white;
+    background: #414b56;
+}
+
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }

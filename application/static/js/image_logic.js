@@ -258,6 +258,13 @@ function updateReviewerName(name) {
     $('#reviewerName').html(name);
 }
 
+// remove filter from url parameter and reload the page
+function removeFilter(key, value) {
+    const url = new URL(window.location.href);
+    const index = url.toString().indexOf(key);
+    window.location.href = `${url.toString().substring(0, index - 1)}${url.toString().substring(index + key.length + value.length + 1)}`;
+}
+
 autocomplete(document.getElementById('editConceptName'), allConcepts);
 autocomplete(document.getElementById('editUpon'), allConcepts);
 
@@ -280,25 +287,25 @@ document.addEventListener('DOMContentLoaded', function(event) {
         }
     }
     if (filter['phylum']) {
-        annotationsToDisplay = annotations.filter((anno) => anno['phylum'] === filter['phylum']);
+        annotationsToDisplay = annotations.filter((anno) => anno['phylum']?.toLowerCase() === filter['phylum'].toLowerCase());
     }
     if (filter['class']){
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['class'] === filter['class']);
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['class']?.toLowerCase() === filter['class'].toLowerCase());
     }
     if (filter['order']){
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['order'] === filter['order']);
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['order']?.toLowerCase() === filter['order'].toLowerCase());
     }
     if (filter['family']){
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['family'] === filter['family']);
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['family']?.toLowerCase() === filter['family'].toLowerCase());
     }
     if (filter['genus']){
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['genus'] === filter['genus']);
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['genus']?.toLowerCase() === filter['genus'].toLowerCase());
     }
     if (filter['species']){
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['species'] === filter['species']);
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['species']?.toLowerCase() === filter['species'].toLowerCase());
     }
     if (filter['comment']){
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['comment'] === filter['comment']);
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['comment']?.toLowerCase().includes(filter['comment'].toLowerCase()));
     }
 
     if (!annotationsToDisplay.length) {
@@ -336,6 +343,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
     $('#annotationCountBottom').html(annotationsToDisplay.length);
     $('#totalPageNum').html(pageCount);
     $('#totalPageNumBottom').html(pageCount);
+    $('#sequenceList').html(sequences.join(', '));
 
     if (!vesselName) {
         // external review page
@@ -351,24 +359,19 @@ document.addEventListener('DOMContentLoaded', function(event) {
             $('#changeExternalView').attr('href', '/external-review?unread=true');
         }
     } else {
+        // regular dive page
         $('#syncCTD').hide();
         $('#changeExternalView').hide();
         $('#vesselName').html(vesselName);
-    }
-
-    $('#sequenceList').html(sequences.join(', '));
-
-    console.log(filter)
-    console.log(jQuery.isEmptyObject(filter))
-    if (!jQuery.isEmptyObject(filter) && !filter['unread']) {
-        let filterStr = '';
+        $('#sequenceList').append(`<br><span class="small">Filters: ${Object.keys(filter).length ? '' : 'None'}</span>`);
         for (const key of Object.keys(filter)) {
-            if (filterStr.length) {
-                filterStr += ', ';
-            }
-            filterStr += `${key}: ${filter[key]}`;
+            $('#sequenceList').append(`
+                <span class="small filter-pill position-relative">
+                    ${key[0].toUpperCase()}${key.substring(1)}: ${filter[key]}
+                    <button type="button" class="position-absolute filter-x" onclick="removeFilter('${key}', '${filter[key]}')">×</button>
+                </span>
+            `);
         }
-        $('#sequenceList').append(`<br><span class="small">Filtered by ${filterStr}</span>`);
     }
 
     $('#editModalSubmitButton').on('click', () => {
