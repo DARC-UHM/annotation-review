@@ -334,6 +334,22 @@ select:active {
     width: 150px;
 }
 
+#imageFilterEntry {
+    padding: 3px 8px;
+    background-color: #393E46;
+    color: #EEEEEE;
+    border: 0;
+    width: 120px;
+}
+
+#imageFilterSelect {
+    padding: 3px 8px;
+    width: 100px;
+    height: 28px;
+    border: 0;
+    border-radius: 0;
+}
+
 #reviewerNameButton {
     width: 300px;
     background: #393E46;

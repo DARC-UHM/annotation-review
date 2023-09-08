@@ -265,10 +265,23 @@ function removeFilter(key, value) {
     window.location.href = `${url.toString().substring(0, index - 1)}${url.toString().substring(index + key.length + value.length + 1)}`;
 }
 
+function showAddFilter() {
+    $('#addFilterRow').show();
+    $('#addFilterButton').hide();
+}
+
+// add filter and refresh page
+function addFilter() {
+    const url = new URL(window.location.href);
+    const index = url.toString().indexOf('#');
+    const filterKey = $('#imageFilterSelect').val().toLowerCase();
+    const filterVal = $('#imageFilterEntry').val();
+    window.location.href = `${url.toString().substring(0, index)}&${filterKey}=${filterVal}#pg=1`;
+}
+
 autocomplete(document.getElementById('editConceptName'), allConcepts);
 autocomplete(document.getElementById('editUpon'), allConcepts);
 
-// load scroll position
 document.addEventListener('DOMContentLoaded', function(event) {
     const sequences = [];
     const filter = {};
@@ -316,10 +329,6 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
     pageCount = Math.ceil(annotationsToDisplay.length / paginationLimit);
 
-    if (sessionStorage.getItem(`scrollPos${currentPage}`)) {
-        window.scrollTo({top: sessionStorage.getItem(`scrollPos${currentPage}`), left: 0, behavior: 'instant'});
-    }
-
     getPaginationNumbers();
     if (window.location.hash) {
       setCurrentPage(window.location.hash.substring(4));
@@ -328,7 +337,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
     }
 
     if (sessionStorage.getItem(`scrollPos${currentPage}`)) {
-      window.scrollTo({top: sessionStorage.getItem(`scrollPos${currentPage}`), left: 0, behavior: 'instant'});
+        window.scrollTo({top: sessionStorage.getItem(`scrollPos${currentPage}`), left: 0, behavior: 'instant'});
     }
 
     prevButton.addEventListener("click", () => {
@@ -372,6 +381,32 @@ document.addEventListener('DOMContentLoaded', function(event) {
                 </span>
             `);
         }
+        $('#sequenceList').append(`
+            <span id="addFilterRow" class="small ms-3" style="display: none;">
+                <select id="imageFilterSelect">
+                    <option>Phylum</option>
+                    <option>Class</option>
+                    <option>Order</option>
+                    <option>Family</option>
+                    <option>Genus</option>
+                    <option>Species</option>
+                    <option>Comment</option>
+                </select>
+                <input type="text" id="imageFilterEntry" name="blank" placeholder="Enter phylum" autocomplete="off">
+                <button id="saveFilterButton" type="button" class="plusButton" onclick="addFilter()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-check" viewBox="0 0 16 16">
+                      <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
+                    </svg>
+                </button>
+            </span>
+            <button id="addFilterButton" type="button" class="plusButton ms-2" onclick="showAddFilter()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-plus"
+                     viewBox="0 0 16 16">
+                    <path
+                        d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                </svg>
+            </button>
+        `);
     }
 
     $('#editModalSubmitButton').on('click', () => {
