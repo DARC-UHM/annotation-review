@@ -17,6 +17,14 @@ const getPaginationNumbers = () => {
         pageNumber.setAttribute('aria-label', 'Page ' + i);
         paginationNumbers.appendChild(pageNumber);;
     }
+    document.querySelectorAll('.pagination-number').forEach((button) => {
+        const pageIndex = Number(button.getAttribute('page-index'));
+        if (pageIndex) {
+            button.addEventListener('click', () => {
+                setCurrentPage(pageIndex);
+            });
+        }
+    });
 };
 
 const handleActivePageNumber = () => {
@@ -275,15 +283,6 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
     nextButton.addEventListener("click", () => {
         setCurrentPage(currentPage + 1);
-    });
-
-    document.querySelectorAll('.pagination-number').forEach((button) => {
-        const pageIndex = Number(button.getAttribute('page-index'));
-        if (pageIndex) {
-            button.addEventListener('click', () => {
-                setCurrentPage(pageIndex);
-            });
-        }
     });
 
     $('#annotationCount').html(annotations.length);
