@@ -38,8 +38,33 @@
                     </a>
                 </div>
                 <div class="col-3 text-end mt-auto">
-                    Page:&nbsp;&nbsp;<span id="currentPageNum" style="font-weight: 600;"></span>/<span id="totalPageNum" style="font-weight: 600;"></span><br>
-                    Total Images:&nbsp;&nbsp;<span id="annotationCount" style="font-weight: 600;"></span><br>
+                    <div>
+                        Page:&nbsp;&nbsp;<span id="currentPageNum" style="font-weight: 600;"></span>/<span id="totalPageNum" style="font-weight: 600;"></span><br>
+                        Total Images:&nbsp;&nbsp;<span id="annotationCount" style="font-weight: 600;"></span><br>
+                    </div>
+                    <div class="small mt-1">
+                        Sort by:
+                        <span class="position-relative small">
+                            <select id="sortSelect">
+                                <option>Default</option>
+                                <option>Phylum</option>
+                                <option>Class</option>
+                                <option>Order</option>
+                                <option>Family</option>
+                                <option>Genus</option>
+                                <option>Species</option>
+                                <option>Comment</option>
+                                <option>ID Reference</option>
+                                <option>Timestamp</option>
+                                <option>Depth</option>
+                            </select>
+                            <span class="position-absolute dropdown-chev">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
+                                  <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                                </svg>
+                            </span>
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>

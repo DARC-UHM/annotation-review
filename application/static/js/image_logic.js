@@ -7,6 +7,7 @@ let currentPage;
 let pageCount;
 let paginationLimit = 25;
 let annotationsToDisplay = annotations;
+let tempAnnotations;
 
 const getPaginationNumbers = () => {
     $('#pagination-numbers').empty();
@@ -50,7 +51,7 @@ const setCurrentPage = (pageNum) => {
     currentPage = pageNum;
     location.replace(`#pg=${pageNum}`);
 
-    if (sessionStorage.getItem(`scrollPos${currentPage}`)) {
+    if (sessionStorage.getItem(`scrollPos${currentPage}`) && pageNum !== 1) {
         window.scrollTo({top: sessionStorage.getItem(`scrollPos${currentPage}`), left: 0, behavior: 'instant'});
     } else {
        window.scrollTo({top: 0, left: 0, behavior: 'instant'});
@@ -121,6 +122,14 @@ const setCurrentPage = (pageNum) => {
                         </div>
                         <div class="col values">
                             ${annotation.guide_photo ? annotation.guide_photo : '-'}<br>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-4">
+                            Depth:
+                        </div>
+                        <div class="col values">
+                            ${annotation.depth || '?'} m<br>
                         </div>
                     </div>
                     <div class="row">
@@ -279,6 +288,33 @@ function addFilter() {
     window.location.href = `${url.toString().substring(0, index)}&${filterKey}=${filterVal}#pg=1`;
 }
 
+function sortBy(key) {
+    let tempKey;
+    if (key === 'Default') {
+        annotationsToDisplay = [...tempAnnotations]; // reset to default sort
+        setCurrentPage(1);
+        return;
+    }
+    if (key === 'Timestamp') {
+        tempKey = 'recorded_timestamp';
+    } else if (key === 'ID Reference') {
+        tempKey = 'identity_reference';
+    } else {
+        tempKey = key.toLowerCase();
+    }
+    // move all records missing specified property to bottom
+    let filtered = annotationsToDisplay.filter((anno) => anno[tempKey]);
+    if (tempKey === 'depth' || tempKey === 'identity_reference') {
+        filtered = filtered.sort((a, b) => a[tempKey] - b[tempKey]); // sort by number instead of string
+    } else {
+        filtered = filtered.sort((a, b) => (a[tempKey] > b[tempKey]) ? 1 : ((b[tempKey] > a[tempKey]) ? -1 : 0));
+    }
+    annotationsToDisplay = filtered.concat(annotationsToDisplay.filter((anno) => anno[tempKey] === null));
+    console.log(annotationsToDisplay);
+    console.log(annotationsToDisplay.length === tempAnnotations.length)
+    setCurrentPage(1);
+}
+
 autocomplete(document.getElementById('editConceptName'), allConcepts);
 autocomplete(document.getElementById('editUpon'), allConcepts);
 
@@ -320,6 +356,8 @@ document.addEventListener('DOMContentLoaded', function(event) {
     if (filter['comment']){
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['comment']?.toLowerCase().includes(filter['comment'].toLowerCase()));
     }
+
+    tempAnnotations = [...annotationsToDisplay]; // save these so we can go back to default sort later
 
     if (!annotationsToDisplay.length) {
         $('#404').show();
@@ -383,15 +421,23 @@ document.addEventListener('DOMContentLoaded', function(event) {
         }
         $('#sequenceList').append(`
             <span id="addFilterRow" class="small ms-3" style="display: none;">
-                <select id="imageFilterSelect">
-                    <option>Phylum</option>
-                    <option>Class</option>
-                    <option>Order</option>
-                    <option>Family</option>
-                    <option>Genus</option>
-                    <option>Species</option>
-                    <option>Comment</option>
-                </select>
+                <span class="position-relative">
+                    <select id="imageFilterSelect">
+                        <option>Phylum</option>
+                        <option>Class</option>
+                        <option>Order</option>
+                        <option>Family</option>
+                        <option>Genus</option>
+                        <option>Species</option>
+                        <option>Comment</option>
+                    </select>
+                    <span class="position-absolute dropdown-chev">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
+                          <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                        </svg>
+                    </span>
+                </span>
+                
                 <input type="text" id="imageFilterEntry" name="blank" placeholder="Enter phylum" autocomplete="off">
                 <button id="saveFilterButton" type="button" class="plusButton" onclick="addFilter()">
                     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-check" viewBox="0 0 16 16">
@@ -437,6 +483,8 @@ document.addEventListener('DOMContentLoaded', function(event) {
     });
 
     $('#imageFilterSelect').on('change', () => $('#imageFilterEntry').attr('placeholder', `Enter ${$('#imageFilterSelect').val().toLowerCase()}`));
+
+    $('#sortSelect').on('change', () => sortBy($('#sortSelect').val()));
 });
 
 window.onbeforeunload = (e) => {
