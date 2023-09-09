@@ -310,8 +310,6 @@ function sortBy(key) {
         filtered = filtered.sort((a, b) => (a[tempKey] > b[tempKey]) ? 1 : ((b[tempKey] > a[tempKey]) ? -1 : 0));
     }
     annotationsToDisplay = filtered.concat(annotationsToDisplay.filter((anno) => anno[tempKey] === null));
-    console.log(annotationsToDisplay);
-    console.log(annotationsToDisplay.length === tempAnnotations.length)
     setCurrentPage(1);
 }
 

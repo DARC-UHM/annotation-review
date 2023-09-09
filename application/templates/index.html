@@ -9,17 +9,31 @@
 </head>
 <body id="index">
     <div class="container mt-3 text-end small">
-        {% if unread_comment_count > 0 %}
-        <a href="/external-review" class="aquaLink me-2" style="font-weight: 500;">External Review</a>
-        <a href="/external-review?unread=true" id="notif">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#eeeeee" class="bi bi-chat-right-fill mt-1" viewBox="0 0 16 16">
-              <path d="M14 0a2 2 0 0 1 2 2v12.793a.5.5 0 0 1-.854.353l-2.853-2.853a1 1 0 0 0-.707-.293H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12z"/>
-            </svg>
-            <span id="notif-inner">{{ unread_comment_count }}</span>
-        </a>
-        {% else %}
-        <a href="/external-review" class="aquaLink" style="font-weight: 500;">External Review</a>
-        {% endif %}
+        <div class="dropdown">
+            <button id="externalReviewDropdownBtn" type="button" class="aquaLink me-2" style="font-weight: 500;" data-bs-toggle="dropdown" aria-expanded="false">
+                External Review
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
+                  <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                </svg>
+            </button>
+            {% if unread_comment_count > 0 %}
+            <span id="notif">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#eeeeee" class="bi bi-chat-right-fill mt-1" viewBox="0 0 16 16">
+                  <path d="M14 0a2 2 0 0 1 2 2v12.793a.5.5 0 0 1-.854.353l-2.853-2.853a1 1 0 0 0-.707-.293H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12z"/>
+                </svg>
+                <span id="notif-inner">{{ unread_comment_count }}</span>
+            </span>
+            {% endif %}
+            <ul class="dropdown-menu small">
+                <li><a class="dropdown-item small" href="#">Unread Comments ({{ unread_comment_count }})</a></li>
+                <li><a class="dropdown-item small" href="#">All Comments ({{ total_comment_count }})</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <div class="small text-center pb-1" style="font-weight: 500;">Reviewer Pages</div>
+                {% for reviewer in active_reviewers %}
+                <li><a class="dropdown-item small" href="#">{{ reviewer }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
     </div>
     <div class="text-center mb-3 mx-5">
         <img src="/static/img/logo_darc.png" class="mt-2" width="30%" style="max-width: 300px; min-width: 200px; pointer-events: none;" alt="DARC logo"/>

@@ -36,13 +36,16 @@ def favicon():
 def index():
     with requests.get(f'{DARC_REVIEW_URL}/comment/unread') as r:
         unread_comments = len(r.json())
+    with requests.get(f'{DARC_REVIEW_URL}/active-reviewers') as r:
+        active_reviewers = r.json()
     with requests.get(f'{DARC_REVIEW_URL}/comment/all') as r:
         total_comments = len(r.json())
     return render_template(
         'index.html',
         sequences=video_sequences,
         unread_comment_count=unread_comments,
-        total_comment_count=total_comments
+        total_comment_count=total_comments,
+        active_reviewers=active_reviewers
     )
 
 
