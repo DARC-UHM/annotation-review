@@ -36,13 +36,16 @@ def favicon():
 def index():
     with requests.get(f'{DARC_REVIEW_URL}/comment/unread') as r:
         unread_comments = len(r.json())
+    with requests.get(f'{DARC_REVIEW_URL}/active-reviewers') as r:
+        active_reviewers = r.json()
     with requests.get(f'{DARC_REVIEW_URL}/comment/all') as r:
         total_comments = len(r.json())
     return render_template(
         'index.html',
         sequences=video_sequences,
         unread_comment_count=unread_comments,
-        total_comment_count=total_comments
+        total_comment_count=total_comments,
+        active_reviewers=active_reviewers
     )
 
 
@@ -54,19 +57,14 @@ def view_images():
         reviewers = r.json()
     # get images in sequence
     comments = {}
-    filter_type = None
-    filter_ = None
     sequences = request.args.getlist('sequence')
+    # get comments from the review db
     for sequence in sequences:
         with requests.get(f'{DARC_REVIEW_URL}/comment/sequence/{sequence}') as r:
             comments = comments | r.json()  # merge dicts
         if sequence not in video_sequences:
             return render_template('404.html', err='dive'), 404
-    for key, val in request.args.items():  # get filter
-        if 'sequence' not in key:
-            filter_type = key
-            filter_ = val
-    image_loader = ImageLoader(sequences, filter_type, filter_)
+    image_loader = ImageLoader(sequences)
     if len(image_loader.distilled_records) < 1:
         return render_template('404.html', err='pics'), 404
     data = {
@@ -292,7 +290,6 @@ def update_annotation():
     else:
         flash('Failed to update annotation - please try again', 'danger')
     return redirect(request.values.get('url'))
-
 
 @app.errorhandler(404)
 def page_not_found(e):

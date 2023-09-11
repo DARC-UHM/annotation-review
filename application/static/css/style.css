@@ -1,19 +1,27 @@
+:root {
+    --darc-bg: #222831;
+    --darc-text: #eeeeee;
+    --darc-border: #393e46;
+    --darc-btn-text-hover: #00c3cc;
+    --darc-link-text: #00ADB5;
+}
+
 body {
-    background-color: #222831;
-    color: #EEEEEE;
+    background-color: var(--darc-bg);
+    color: var(--darc-text);
 }
 
 table {
     max-width: 1200px;
-    color: #EEEEEE !important;
-    --bs-table-striped-color: #EEEEEE !important;
+    color: var(--darc-text) !important;
+    --bs-table-striped-color: var(--darc-text) !important;
     vertical-align: middle !important;
-    border-bottom: #393E46 !important;
+    border-bottom: var(--darc-border) !important;
 }
 
 thead, tbody, tfoot, tr, td, th {
     border-bottom-width: 2px !important;
-    border-bottom-color: #393E46 !important;
+    border-bottom-color: var(--darc-border) !important;
 }
 
 ul {
@@ -27,8 +35,8 @@ li {
 select {
     -webkit-appearance: none;
     padding: 5px 10px;
-    background-color: #393E46;
-    color: #EEEEEE;
+    background-color: var(--darc-border);
+    color: var(--darc-text);
     width: 150px;
     height: 34px;
     border: 0;
@@ -70,15 +78,15 @@ select:active {
 }
 
 .modal-header {
-    border-bottom: 2px solid #393E46;
+    border-bottom: 2px solid var(--darc-border);
 }
 
 .modal-footer {
-    border-top: 2px solid #393E46;
+    border-top: 2px solid var(--darc-border);
 }
 
 .modal-content {
-    background-color: #222831;
+    background-color: var(--darc-bg);
 }
 
 .modal-button {
@@ -87,16 +95,16 @@ select:active {
 }
 
 .modal-text {
-    background-color: #393E46;
-    color: #EEEEEE;
+    background-color: var(--darc-border);
+    color: var(--darc-text);
     border: 0;
     width: 300px;
     padding: 5px 10px;
 }
 
 .modal-content select {
-    background-color: #393E46;
-    color: #EEEEEE;
+    background-color: var(--darc-border);
+    color: var(--darc-text);
     padding: 5px 10px;
     width: 300px;
 }
@@ -126,7 +134,7 @@ select:active {
     max-height: 600px;
     overflow: auto;
     position: absolute;
-    border: 1px solid #393E46;
+    border: 1px solid var(--darc-border);
     border-top: none;
     z-index: 99;
 }
@@ -134,12 +142,12 @@ select:active {
 .autocomplete-items div {
     padding: 10px;
     cursor: pointer;
-    background-color: #222831;
-    border-bottom: 1px solid #393E46;
+    background-color: var(--darc-bg);
+    border-bottom: 1px solid var(--darc-border);
 }
 
 .autocomplete-items div:hover {
-    background-color: #393E46;
+    background-color: var(--darc-border);
 }
 
 .autocomplete-active {
@@ -149,7 +157,7 @@ select:active {
 
 .editButton {
     font-weight: 500;
-    color: #00ADB5;
+    color: var(--darc-link-text);
     text-decoration: none;
     background: transparent;
     border: none;
@@ -158,7 +166,7 @@ select:active {
 }
 
 .editButton:hover {
-    color: #00c3cc;
+    color: var(--darc-btn-text-hover);
 }
 
 .reviewer {
@@ -177,7 +185,7 @@ select:active {
 }
 
 .plusButton:hover {
-    color: #dddddd;
+    color: var(--darc-btn-text-hover);
 }
 
 .filterButtonActive {
@@ -205,7 +213,7 @@ select:active {
 
 .pagination-number, .pagination-button{
     font-size: 1rem;
-    color: #00ADB5;
+    color: var(--darc-link-text);
     background-color: transparent;
     border: none;
     margin: 0;
@@ -219,7 +227,7 @@ select:active {
 }
 
 .pagination-number.active {
-    color: #eeeeee;
+    color: var(--darc-text);
     font-weight: 600;
 }
 
@@ -257,13 +265,48 @@ select:active {
 }
 
 .aquaLink {
-    color: #00ADB5;
+    color: var(--darc-link-text);
     text-decoration: none;
     transition: 0.2s;
 }
 
 .aquaLink:hover {
-    color: #00c3cc;
+    color: var(--darc-btn-text-hover);
+}
+
+.filter-pill {
+    margin-left: 12px;
+    padding: 5px 15px;
+    background: var(--darc-border);
+    border-radius: 5px;
+}
+
+.filter-x {
+    color: #79858f;
+    background: #2b343d;
+    padding: 0 8px 2px 8px;
+    border: none;
+    border-radius: 20px;
+    top: -5px;
+    right: -8px;
+    transition: 0.2s;
+}
+
+.filter-x:hover {
+    color: white;
+    background: #414b56;
+}
+
+.dropdown-chev {
+    pointer-events: none;
+    top: -3px;
+    right: 8px;
+}
+
+.dropdown-chev-lg {
+    pointer-events: none;
+    top: 3px;
+    right: 10px;
 }
 
 @keyframes spin {
@@ -305,22 +348,47 @@ select:active {
 
 #filterEntry {
     padding: 5px 10px;
-    background-color: #393E46;
-    color: #EEEEEE;
+    background-color: var(--darc-border);
+    color: var(--darc-text);
     border: 0;
     width: 150px;
 }
 
+#imageFilterEntry {
+    padding: 3px 8px;
+    background-color: var(--darc-border);
+    color: var(--darc-text);
+    border: 0;
+    width: 120px;
+}
+
+#imageFilterSelect {
+    padding: 3px 8px;
+    width: 100px;
+    height: 28px;
+    border: 0;
+    border-radius: 0;
+}
+
+#sortSelect {
+    width: 100px;
+    padding: 1px 6px 2px 6px;
+    background-color: #2c3138;
+    height: 25px;
+    border: 0;
+    border-radius: 3px;
+}
+
 #reviewerNameButton {
     width: 300px;
-    background: #393E46;
-    color: #EEEEEE;
+    background: var(--darc-border);
+    color: var(--darc-text);
     border: solid #7f8088 1px;
     border-radius: 1px;
 }
 
 #notif {
-    color: #eeeeee;
+    color: var(--darc-text);
     text-decoration: none;
     position: relative;
 }
@@ -340,7 +408,7 @@ select:active {
     -webkit-appearance: none;
     padding: 2px 6px;
     background-color: #2f333a;
-    color: #EEEEEE;
+    color: var(--darc-text);
     width: 40px;
     height: 28px;
     border: 0;
@@ -349,4 +417,23 @@ select:active {
 
 #paginationSelect:active {
     border: 0;
+}
+
+#externalReviewDropdownBtn {
+    border: none;
+    background: transparent;
+    font-weight: 500;
+}
+
+#external-dropdown {
+    color: var(--darc-text);
+    background: var(--darc-border);
+}
+
+#external-dropdown .dropdown-item:hover, .dropdown-item:active {
+    background: #484e57;
+}
+
+#external-dropdown li a {
+    color: var(--darc-text);
 }

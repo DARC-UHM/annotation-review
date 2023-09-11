@@ -12,6 +12,14 @@
             <div class="loader"></div>
         </div>
     </div>
+    <div class="text-start position-absolute ps-3 small">
+        <a href="/" class="aquaLink">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+            </svg>
+            <span style="transform: translate(0, 50%);">Home</span>
+        </a>
+    </div>
     <div class="text-center my-3 mx-5">
         {% for cat, msg in get_flashed_messages(with_categories=true) %}
         <div class="alert alert-{{ cat }} alert-dismissible px-5" style="position:fixed; left: 50%; transform: translate(-50%, 0);">
@@ -22,9 +30,7 @@
         <div class="col mt-3 m-auto" style="max-width: 1200px;">
             <div class="row m-auto">
                 <div class="col-9 text-start">
-                    <a href="/" style="color: #EEEEEE; text-decoration: none">
-                        <h3 id="vesselName" class="m-0 p-0" style="font-weight: 600;"></h3>
-                    </a>
+                    <h3 id="vesselName" class="m-0 p-0 pb-1" style="font-weight: 600;"></h3>
                     <div><a id="changeExternalView" href="/external-review" class="aquaLink" style="font-size: 0.8rem;">View All</a></div>
                     <span id="sequenceList"></span>
                     <a id="syncCTD" href="/sync-external-ctd" class="aquaLink" style="font-size: 0.8rem;">
@@ -32,10 +38,39 @@
                     </a>
                 </div>
                 <div class="col-3 text-end mt-auto">
-                    Page:&nbsp;&nbsp;<span id="currentPageNum" style="font-weight: 600;"></span>/<span id="totalPageNum" style="font-weight: 600;"></span><br>
-                    Total Images:&nbsp;&nbsp;<span id="annotationCount" style="font-weight: 600;"></span><br>
+                    <div>
+                        Page:&nbsp;&nbsp;<span id="currentPageNum" style="font-weight: 600;"></span>/<span id="totalPageNum" style="font-weight: 600;"></span><br>
+                        Total Images:&nbsp;&nbsp;<span id="annotationCount" style="font-weight: 600;"></span><br>
+                    </div>
+                    <div class="small mt-1">
+                        Sort by:
+                        <span class="position-relative small">
+                            <select id="sortSelect">
+                                <option>Default</option>
+                                <option>Phylum</option>
+                                <option>Class</option>
+                                <option>Order</option>
+                                <option>Family</option>
+                                <option>Genus</option>
+                                <option>Species</option>
+                                <option>Comment</option>
+                                <option>ID Reference</option>
+                                <option>Timestamp</option>
+                                <option>Depth</option>
+                            </select>
+                            <span class="position-absolute dropdown-chev">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
+                                  <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                                </svg>
+                            </span>
+                        </span>
+                    </div>
                 </div>
             </div>
+        </div>
+        <div id="404" style="display: none;" class="my-5">
+            <h3>No photos found<br></h3>
+            <p class="pb-4">Is the filter spelled correctly?</p>
         </div>
         <div class="col d-flex justify-content-center mt-3">
             <table id="annotationTable" class="table table-striped">
