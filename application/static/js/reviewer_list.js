@@ -27,6 +27,7 @@ function reviewerList(button, arr) {
                 /* insert the value for the autocomplete text field */
                 $('#reviewerName').html(row.getElementsByTagName('input')[0].value);
                 $('#externalReviewer').val(row.getElementsByTagName('input')[0].value);
+                $('#externalModalSubmitButton').prop('disabled', false);
                 button.dispatchEvent(new Event('change'));
                 /* close the list of autocompleted values,
                 (or any other open lists of autocompleted values */

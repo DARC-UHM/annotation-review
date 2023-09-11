@@ -534,6 +534,9 @@ $(document).ready(function () {
         const recommendedReviewers = reviewers.filter((obj) => {
             return obj.phylum.toLowerCase().includes(phylum);
         });
+        $('#reviewerName').html('Select');
+        $('#externalReviewer').val(null);
+        $('#externalModalSubmitButton').prop('disabled', true);
         reviewerList(document.getElementById('reviewerNameButton'), recommendedReviewers);
 
         $('#externalUrl').val(window.location.href);
