@@ -309,7 +309,7 @@ function sortBy(key) {
     } else {
         filtered = filtered.sort((a, b) => (a[tempKey] > b[tempKey]) ? 1 : ((b[tempKey] > a[tempKey]) ? -1 : 0));
     }
-    annotationsToDisplay = filtered.concat(annotationsToDisplay.filter((anno) => anno[tempKey] === null));
+    annotationsToDisplay = filtered.concat(annotationsToDisplay.filter((anno) => !anno[tempKey]));
     setCurrentPage(1);
 }
 

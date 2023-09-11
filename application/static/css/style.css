@@ -429,3 +429,11 @@ select:active {
     color: var(--darc-text);
     background: var(--darc-border);
 }
+
+#external-dropdown .dropdown-item:hover, .dropdown-item:active {
+    background: #484e57;
+}
+
+#external-dropdown li a {
+    color: var(--darc-text);
+}
