@@ -157,6 +157,7 @@ const setCurrentPage = (pageNum) => {
                             `<form action="/mark-comment-read" method="post">
                                 <input type="hidden" name="uuid" value="${annotation.observation_uuid}">
                                 <input type="hidden" name="url" value="${window.location.href}">
+                                <input type="hidden" name="reviewer" value="${comments[annotation.observation_uuid].reviewer}">
                                 <input type="submit" class="editButton" value="Mark read">
                             </form>
                             `
@@ -535,7 +536,7 @@ $(document).ready(function () {
             return obj.phylum.toLowerCase().includes(phylum);
         });
         $('#reviewerName').html('Select');
-        $('#externalReviewer').val(null);
+        $('#externalReviewer1').val(null);
         $('#externalModalSubmitButton').prop('disabled', true);
         reviewerList(document.getElementById('reviewerNameButton'), recommendedReviewers);
 

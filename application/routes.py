@@ -212,15 +212,24 @@ def delete_reviewer(name):
     return redirect('/reviewers')
 
 
-# adds an annotation for review/updates the reviewer for an annotation
+# adds an annotation for review OR updates the reviewer for an annotation
 @app.post('/update-annotation-reviewer')
 def update_annotation_reviewer():
+    _reviewers = [request.values.get('reviewer1')]
+    if request.values.get('reviewer2'):
+        _reviewers.append(request.values.get('reviewer2'))
+    if request.values.get('reviewer3'):
+        _reviewers.append(request.values.get('reviewer3'))
+    if request.values.get('reviewer4'):
+        _reviewers.append(request.values.get('reviewer4'))
+    if request.values.get('reviewer5'):
+        _reviewers.append(request.values.get('reviewer5'))
     data = {
         'uuid': request.values.get('observation_uuid'),
         'sequence': request.values.get('sequence'),
         'timestamp': request.values.get('timestamp'),
         'image_url': request.values.get('image_url'),
-        'reviewer': request.values.get('reviewer'),
+        'reviewers': json.dumps(_reviewers),
         'video_url': request.values.get('video_url'),
         'annotator': request.values.get('annotator'),
         'id_ref': request.values.get('id_ref'),
@@ -229,22 +238,10 @@ def update_annotation_reviewer():
         'long': request.values.get('long')
     }
     with requests.post(f'{DARC_REVIEW_URL}/comment/add', data=data) as r:
-        if r.status_code == 409:
-            req = requests.put(f'{DARC_REVIEW_URL}/comment/update-reviewer/{data["uuid"]}', data=data)
-            if req.status_code == 200:
-                new_comment = {
-                    'observation_uuid': request.values.get('observation_uuid'),
-                    'reviewer': request.values.get("reviewer"),
-                    'action': 'ADD'
-                }
-                requests.post(f'{LOCAL_APP_URL}/update-annotation-comment', new_comment)
-                flash('Reviewer successfully updated', 'success')
-            else:
-                flash('Failed to update reviewer - please try again', 'danger')
-        elif r.status_code == 201:
+        if r.status_code == 201:
             new_comment = {
                 'observation_uuid': request.values.get('observation_uuid'),
-                'reviewer': request.values.get("reviewer"),
+                'reviewers': ', '.join(_reviewers),
                 'action': 'ADD'
             }
             requests.post(f'{LOCAL_APP_URL}/update-annotation-comment', new_comment)
@@ -260,7 +257,7 @@ def update_annotation_comment():
     annosaurus = Annosaurus(ANNOSAURUS_URL)
     annosaurus.update_annotation_comment(
         observation_uuid=request.values.get('observation_uuid'),
-        reviewer=request.values.get('reviewer'),
+        reviewers=request.values.get('reviewers'),
         action=request.values.get('action'),
         client_secret=ANNOSAURUS_CLIENT_SECRET
     )
