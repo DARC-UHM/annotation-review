@@ -164,10 +164,11 @@ const setCurrentPage = (pageNum) => {
                             : ''}
                         </div>
                         <div class="col values">
-                            ${comments[annotation.observation_uuid].comment 
+                            ${comments[annotation.observation_uuid].reviewer_comments 
                             ? 
-                            `${comments[annotation.observation_uuid].comment}
-                            <br>
+                            `${comments[annotation.observation_uuid].reviewer_comments.map(item => {
+                                return `${item.reviewer}: ${item.comment.length ? item.comment : ' - '}<br>`;
+                            }).join('')}
                             ${comments[annotation.observation_uuid].date_modified}`
                             :
                             '-'}<br>

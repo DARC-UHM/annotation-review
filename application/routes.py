@@ -1,4 +1,5 @@
 import os
+from json import JSONDecodeError
 
 from flask import render_template, request, redirect, flash
 from dotenv import load_dotenv
@@ -10,11 +11,20 @@ from application.server.annosaurus import *
 
 load_dotenv()
 
-ANNOSAURUS_URL = os.environ.get('ANNOSAURUS_URL')
-ANNOSAURUS_CLIENT_SECRET = os.environ.get('ANNOSAURUS_CLIENT_SECRET')
+_FLASK_ENV = os.environ.get('_FLASK_ENV')
 HURLSTOR_URL = 'http://hurlstor.soest.hawaii.edu'
 LOCAL_APP_URL = 'http://127.0.0.1:8000'
-DARC_REVIEW_URL = 'http://hurlstor.soest.hawaii.edu:5000'
+
+if _FLASK_ENV == 'development':
+    print('\n\nDEVELOPMENT MODE\n\n')
+    ANNOSAURUS_URL = ''
+    ANNOSAURUS_CLIENT_SECRET = ''
+    DARC_REVIEW_URL = 'http://127.0.0.1:5000'
+else:
+    print('PRODUCTION MODE')
+    ANNOSAURUS_URL = os.environ.get('ANNOSAURUS_URL')
+    ANNOSAURUS_CLIENT_SECRET = os.environ.get('ANNOSAURUS_CLIENT_SECRET')
+    DARC_REVIEW_URL = f'{HURLSTOR_URL}:5000'
 
 app.secret_key = 'darc'
 
@@ -37,7 +47,11 @@ def index():
     with requests.get(f'{DARC_REVIEW_URL}/comment/unread') as r:
         unread_comments = len(r.json())
     with requests.get(f'{DARC_REVIEW_URL}/active-reviewers') as r:
-        active_reviewers = r.json()
+        try:
+            active_reviewers = r.json()
+        except JSONDecodeError:
+            print('Unable to fetch active reviewers')
+            active_reviewers = []
     with requests.get(f'{DARC_REVIEW_URL}/comment/all') as r:
         total_comments = len(r.json())
     return render_template(
@@ -142,7 +156,7 @@ def sync_external_ctd():
 # marks a comment in the external review db as 'read'
 @app.post('/mark-comment-read')
 def mark_read():
-    req = requests.put(f'{DARC_REVIEW_URL}/comment/mark-read/{request.values.get("uuid")}')
+    req = requests.put(f'{DARC_REVIEW_URL}/comment/mark-read/{request.values.get("reviewer")}/{request.values.get("uuid")}')
     if req.status_code == 200:
         flash('Comment marked as read', 'success')
     else:
