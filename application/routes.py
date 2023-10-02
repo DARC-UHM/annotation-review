@@ -1,4 +1,5 @@
 import os
+from json import JSONDecodeError
 
 from flask import render_template, request, redirect, flash
 from dotenv import load_dotenv
@@ -35,11 +36,23 @@ def favicon():
 @app.route('/')
 def index():
     with requests.get(f'{DARC_REVIEW_URL}/comment/unread') as r:
-        unread_comments = len(r.json())
+        try:
+            unread_comments = len(r.json())
+        except JSONDecodeError:
+            print('Unable to fetch unread comments')
+            unread_comments = []
     with requests.get(f'{DARC_REVIEW_URL}/active-reviewers') as r:
-        active_reviewers = r.json()
+        try:
+            active_reviewers = r.json()
+        except JSONDecodeError:
+            print('Unable to fetch reviewers')
+            active_reviewers = []
     with requests.get(f'{DARC_REVIEW_URL}/comment/all') as r:
-        total_comments = len(r.json())
+        try:
+            total_comments = len(r.json())
+        except JSONDecodeError:
+            print('Unable to fetch comments')
+            total_comments = []
     return render_template(
         'index.html',
         sequences=video_sequences,
