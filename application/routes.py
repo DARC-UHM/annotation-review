@@ -11,20 +11,11 @@ from application.server.annosaurus import *
 
 load_dotenv()
 
-_FLASK_ENV = os.environ.get('_FLASK_ENV')
+ANNOSAURUS_URL = os.environ.get('ANNOSAURUS_URL')
+ANNOSAURUS_CLIENT_SECRET = os.environ.get('ANNOSAURUS_CLIENT_SECRET')
 HURLSTOR_URL = 'http://hurlstor.soest.hawaii.edu'
 LOCAL_APP_URL = 'http://127.0.0.1:8000'
-
-if _FLASK_ENV == 'development':
-    print('\n\nDEVELOPMENT MODE\n\n')
-    ANNOSAURUS_URL = ''
-    ANNOSAURUS_CLIENT_SECRET = ''
-    DARC_REVIEW_URL = 'http://127.0.0.1:5000'
-else:
-    print('PRODUCTION MODE')
-    ANNOSAURUS_URL = os.environ.get('ANNOSAURUS_URL')
-    ANNOSAURUS_CLIENT_SECRET = os.environ.get('ANNOSAURUS_CLIENT_SECRET')
-    DARC_REVIEW_URL = f'{HURLSTOR_URL}:5000'
+DARC_REVIEW_URL = 'http://hurlstor.soest.hawaii.edu:5000'
 
 app.secret_key = 'darc'
 
@@ -45,15 +36,23 @@ def favicon():
 @app.route('/')
 def index():
     with requests.get(f'{DARC_REVIEW_URL}/comment/unread') as r:
-        unread_comments = len(r.json())
+        try:
+            unread_comments = len(r.json())
+        except JSONDecodeError:
+            print('Unable to fetch unread comments')
+            unread_comments = []
     with requests.get(f'{DARC_REVIEW_URL}/active-reviewers') as r:
         try:
             active_reviewers = r.json()
         except JSONDecodeError:
-            print('Unable to fetch active reviewers')
+            print('Unable to fetch reviewers')
             active_reviewers = []
     with requests.get(f'{DARC_REVIEW_URL}/comment/all') as r:
-        total_comments = len(r.json())
+        try:
+            total_comments = len(r.json())
+        except JSONDecodeError:
+            print('Unable to fetch comments')
+            total_comments = []
     return render_template(
         'index.html',
         sequences=video_sequences,
@@ -156,7 +155,7 @@ def sync_external_ctd():
 # marks a comment in the external review db as 'read'
 @app.post('/mark-comment-read')
 def mark_read():
-    req = requests.put(f'{DARC_REVIEW_URL}/comment/mark-read/{request.values.get("reviewer")}/{request.values.get("uuid")}')
+    req = requests.put(f'{DARC_REVIEW_URL}/comment/mark-read/{request.values.get("uuid")}')
     if req.status_code == 200:
         flash('Comment marked as read', 'success')
     else:
@@ -226,24 +225,15 @@ def delete_reviewer(name):
     return redirect('/reviewers')
 
 
-# adds an annotation for review OR updates the reviewer for an annotation
+# adds an annotation for review/updates the reviewer for an annotation
 @app.post('/update-annotation-reviewer')
 def update_annotation_reviewer():
-    _reviewers = [request.values.get('reviewer1')]
-    if request.values.get('reviewer2'):
-        _reviewers.append(request.values.get('reviewer2'))
-    if request.values.get('reviewer3'):
-        _reviewers.append(request.values.get('reviewer3'))
-    if request.values.get('reviewer4'):
-        _reviewers.append(request.values.get('reviewer4'))
-    if request.values.get('reviewer5'):
-        _reviewers.append(request.values.get('reviewer5'))
     data = {
         'uuid': request.values.get('observation_uuid'),
         'sequence': request.values.get('sequence'),
         'timestamp': request.values.get('timestamp'),
         'image_url': request.values.get('image_url'),
-        'reviewers': json.dumps(_reviewers),
+        'reviewer': request.values.get('reviewer'),
         'video_url': request.values.get('video_url'),
         'annotator': request.values.get('annotator'),
         'id_ref': request.values.get('id_ref'),
@@ -252,10 +242,22 @@ def update_annotation_reviewer():
         'long': request.values.get('long')
     }
     with requests.post(f'{DARC_REVIEW_URL}/comment/add', data=data) as r:
-        if r.status_code == 201:
+        if r.status_code == 409:
+            req = requests.put(f'{DARC_REVIEW_URL}/comment/update-reviewer/{data["uuid"]}', data=data)
+            if req.status_code == 200:
+                new_comment = {
+                    'observation_uuid': request.values.get('observation_uuid'),
+                    'reviewer': request.values.get("reviewer"),
+                    'action': 'ADD'
+                }
+                requests.post(f'{LOCAL_APP_URL}/update-annotation-comment', new_comment)
+                flash('Reviewer successfully updated', 'success')
+            else:
+                flash('Failed to update reviewer - please try again', 'danger')
+        elif r.status_code == 201:
             new_comment = {
                 'observation_uuid': request.values.get('observation_uuid'),
-                'reviewers': ', '.join(_reviewers),
+                'reviewer': request.values.get("reviewer"),
                 'action': 'ADD'
             }
             requests.post(f'{LOCAL_APP_URL}/update-annotation-comment', new_comment)
@@ -271,7 +273,7 @@ def update_annotation_comment():
     annosaurus = Annosaurus(ANNOSAURUS_URL)
     annosaurus.update_annotation_comment(
         observation_uuid=request.values.get('observation_uuid'),
-        reviewers=request.values.get('reviewers'),
+        reviewer=request.values.get('reviewer'),
         action=request.values.get('action'),
         client_secret=ANNOSAURUS_CLIENT_SECRET
     )

@@ -23,7 +23,7 @@ _Requirements: Python ≥ 3.9_
 6. Select `Add for external review` to add an annotation to the external review database. A popup window will appear.
    1. More information on the external review process can be found below.
 
-_Note: Environment variables must be configured to save annotation edits to the server_.
+_Note: Environment variables must be configured in order to save annotation edits to the server. See section at the bottom of this doc for information on setting environment variables_.
 
 ### External Review
 
@@ -41,3 +41,12 @@ _Note: Environment variables must be configured to save annotation edits to the 
 
 ![Images Page](https://i.imgur.com/m8YwDlK.png)
 ![Edit Annotation](https://i.imgur.com/xSCyjh6.png)
+
+
+### Setting Environment Variables
+
+The environment variables must be set before any changes can be made to the server. These can be set by editing the `.env` file in the root of the repository:
+
+1. Open `.env` in a text editor of your choice.
+2. Update the entries for `ANNOSAURUS_URL` and `ANNOSAURUS_CLIENT_SECRET`. The correct values can be found in `m3-quickstart/bin/docker-env.sh`. Make sure to trace back and find the correct variables for the `ANNOSAURUS_URL`: the entry should read `http://server:port/route`, not `http://${SERVER}:${PORT}${ROUTE}`.
+3. Run the command `git update-index --skip-worktree .env` from the command line. This will ensure that there are no conflicts when updating the repository.
