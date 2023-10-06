@@ -421,29 +421,30 @@ document.addEventListener('DOMContentLoaded', function(event) {
         }
         $('#sequenceList').append(`
             <span id="addFilterRow" class="small ms-3" style="display: none;">
-                <span class="position-relative">
-                    <select id="imageFilterSelect">
-                        <option>Phylum</option>
-                        <option>Class</option>
-                        <option>Order</option>
-                        <option>Family</option>
-                        <option>Genus</option>
-                        <option>Species</option>
-                        <option>Comment</option>
-                    </select>
-                    <span class="position-absolute dropdown-chev">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
-                          <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
-                        </svg>
+                <form onsubmit="event.preventDefault(); addFilter()" class="d-inline-block">
+                    <span class="position-relative">
+                        <select id="imageFilterSelect">
+                            <option>Phylum</option>
+                            <option>Class</option>
+                            <option>Order</option>
+                            <option>Family</option>
+                            <option>Genus</option>
+                            <option>Species</option>
+                            <option>Comment</option>
+                        </select>
+                        <span class="position-absolute dropdown-chev">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
+                              <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                            </svg>
+                        </span>
                     </span>
-                </span>
-                
-                <input type="text" id="imageFilterEntry" name="blank" placeholder="Enter phylum" autocomplete="off">
-                <button id="saveFilterButton" type="button" class="plusButton" onclick="addFilter()">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-check" viewBox="0 0 16 16">
-                      <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
-                    </svg>
-                </button>
+                    <input type="text" id="imageFilterEntry" name="blank" placeholder="Enter phylum" autocomplete="off">
+                    <button id="saveFilterButton" type="submit" class="plusButton">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-check" viewBox="0 0 16 16">
+                          <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
+                        </svg>
+                    </button>
+                </form>
             </span>
             <button id="addFilterButton" type="button" class="plusButton ms-2" onclick="showAddFilter()">
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-plus"
