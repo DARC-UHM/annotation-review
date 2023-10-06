@@ -44,24 +44,30 @@ def favicon():
 
 @app.route('/')
 def index():
-    with requests.get(f'{DARC_REVIEW_URL}/comment/unread') as r:
-        try:
-            unread_comments = len(r.json())
-        except JSONDecodeError:
-            print('Unable to fetch unread comments')
-            unread_comments = []
-    with requests.get(f'{DARC_REVIEW_URL}/active-reviewers') as r:
-        try:
-            active_reviewers = r.json()
-        except JSONDecodeError:
-            print('Unable to fetch reviewers')
-            active_reviewers = []
-    with requests.get(f'{DARC_REVIEW_URL}/comment/all') as r:
-        try:
-            total_comments = len(r.json())
-        except JSONDecodeError:
-            print('Unable to fetch comments')
-            total_comments = []
+    try:
+        with requests.get(f'{DARC_REVIEW_URL}/comment/unread') as r:
+            try:
+                unread_comments = len(r.json())
+            except JSONDecodeError:
+                print('Unable to fetch unread comments')
+                unread_comments = 0
+        with requests.get(f'{DARC_REVIEW_URL}/active-reviewers') as r:
+            try:
+                active_reviewers = r.json()
+            except JSONDecodeError:
+                print('Unable to fetch reviewers')
+                active_reviewers = []
+        with requests.get(f'{DARC_REVIEW_URL}/comment/all') as r:
+            try:
+                total_comments = len(r.json())
+            except JSONDecodeError:
+                print('Unable to fetch comments')
+                total_comments = 0
+    except requests.exceptions.ConnectionError:
+        unread_comments = 0
+        active_reviewers = []
+        total_comments = 0
+        print('\nERROR: unable to connect to external review server\n')
     return render_template(
         'index.html',
         sequences=video_sequences,
@@ -74,25 +80,29 @@ def index():
 # view the annotations with images in a specified dive (or dives) with optional filters
 @app.get('/dive')
 def view_images():
-    # get list of reviewers from external review db
-    with requests.get(f'{DARC_REVIEW_URL}/reviewer/all') as r:
-        reviewers = r.json()
-    # get images in sequence
     comments = {}
     sequences = request.args.getlist('sequence')
-    # get comments from the review db
-    for sequence in sequences:
-        with requests.get(f'{DARC_REVIEW_URL}/comment/sequence/{sequence}') as r:
-            comments = comments | r.json()  # merge dicts
-        if sequence not in video_sequences:
-            return render_template('404.html', err='dive'), 404
+    # get list of reviewers from external review db
+    try:
+        with requests.get(f'{DARC_REVIEW_URL}/reviewer/all') as r:
+            _reviewers = r.json()
+        # get comments from the review db
+        for sequence in sequences:
+            with requests.get(f'{DARC_REVIEW_URL}/comment/sequence/{sequence}') as r:
+                comments = comments | r.json()  # merge dicts
+            if sequence not in video_sequences:
+                return render_template('404.html', err='dive'), 404
+    except requests.exceptions.ConnectionError:
+        _reviewers = []
+        print('\nERROR: unable to connect to external review server\n')
+    # get images in sequence
     image_loader = ImageLoader(sequences)
     if len(image_loader.distilled_records) < 1:
         return render_template('404.html', err='pics'), 404
     data = {
         'annotations': image_loader.distilled_records,
         'concepts': vars_concepts,
-        'reviewers': reviewers,
+        'reviewers': _reviewers,
         'comments': comments
     }
     return render_template('image_review.html', data=data)
@@ -102,13 +112,17 @@ def view_images():
 @app.get('/external-review')
 def external_review():
     # get list of reviewers from external review db
-    with requests.get(f'{DARC_REVIEW_URL}/reviewer/all') as r:
-        reviewers = r.json()
-    # get a list of comments from external review db
-    if request.args.get('unread'):
-        req = requests.get(f'{DARC_REVIEW_URL}/comment/unread')
-    else:
-        req = requests.get(f'{DARC_REVIEW_URL}/comment/all')
+    try:
+        with requests.get(f'{DARC_REVIEW_URL}/reviewer/all') as r:
+            _reviewers = r.json()
+        # get a list of comments from external review db
+        if request.args.get('unread'):
+            req = requests.get(f'{DARC_REVIEW_URL}/comment/unread')
+        else:
+            req = requests.get(f'{DARC_REVIEW_URL}/comment/all')
+    except requests.exceptions.ConnectionError:
+        _reviewers = []
+        print('\nERROR: unable to connect to external review server\n')
     comments = req.json()
     comment_loader = CommentLoader(comments)
     if len(comment_loader.annotations) < 1:
@@ -118,7 +132,7 @@ def external_review():
     data = {
         'annotations': comment_loader.annotations,
         'concepts': vars_concepts,
-        'reviewers': reviewers,
+        'reviewers': _reviewers,
         'comments': comments
     }
     return render_template('image_review.html', data=data)
@@ -130,7 +144,12 @@ def sync_external_ctd():
     updated_ctd = {}
     sequences = {}
     missing_ctd_total = 0
-    req = requests.get(f'{DARC_REVIEW_URL}/comment/all')
+    try:
+        req = requests.get(f'{DARC_REVIEW_URL}/comment/all')
+    except requests.exceptions.ConnectionError:
+        print('\nERROR: unable to connect to external review server\n')
+        flash('Unable to connect to external review server', 'danger')
+        return redirect('/')
     comments = req.json()
     for key, val in comments.items():
         if val['sequence'] not in sequences.keys():
@@ -192,8 +211,13 @@ def delete_external_comment():
 # displays information about all the reviewers in the hurl db
 @app.get('/reviewers')
 def reviewers():
-    with requests.get(f'{DARC_REVIEW_URL}/reviewer/all') as r:
-        reviewer_list = r.json()
+    try:
+        with requests.get(f'{DARC_REVIEW_URL}/reviewer/all') as r:
+            reviewer_list = r.json()
+    except requests.exceptions.ConnectionError:
+        print('\nERROR: unable to connect to external review server\n')
+        flash('Unable to connect to external review server', 'danger')
+        return redirect('/')
     return render_template('reviewers.html', reviewers=reviewer_list)
 
 
