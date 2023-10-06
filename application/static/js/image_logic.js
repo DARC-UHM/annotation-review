@@ -49,7 +49,7 @@ const setCurrentPage = (pageNum) => {
     sessionStorage.setItem(`scrollPos${currentPage}`, window.scrollY);
 
     currentPage = pageNum;
-    location.replace(`#pg=${pageNum}`);
+    location.hash = `#pg=${pageNum}`;
 
     if (sessionStorage.getItem(`scrollPos${currentPage}`) && pageNum !== 1) {
         window.scrollTo({top: sessionStorage.getItem(`scrollPos${currentPage}`), left: 0, behavior: 'instant'});
@@ -370,6 +370,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
     if (window.location.hash) {
       setCurrentPage(window.location.hash.substring(4));
     } else {
+      location.replace(`#pg=1`); // to prevent extra pages without hash of page num when back button pressed
       setCurrentPage(1);
     }
 
