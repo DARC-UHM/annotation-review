@@ -1,5 +1,5 @@
 
-function reviewerList(button, arr) {
+function reviewerList(button, arr, reviewerTextObj, reviewerFormObj) {
     let currentFocus;
     let menuOpen = true;
 
@@ -25,14 +25,8 @@ function reviewerList(button, arr) {
             /* execute a function when someone clicks on the item value (DIV element) */
             row.addEventListener("click", function(e) {
                 /* insert the value for the autocomplete text field */
-                $('#reviewerName').html(row.getElementsByTagName('input')[0].value);
-                $('#externalReviewer1').val(row.getElementsByTagName('input')[0].value);
-
-
-                // TODO
-
-
-                $('#externalReviewer2').val('test :)');
+                reviewerTextObj.html(row.getElementsByTagName('input')[0].value);
+                reviewerFormObj.val(row.getElementsByTagName('input')[0].value);
                 $('#externalModalSubmitButton').prop('disabled', false);
                 button.dispatchEvent(new Event('change'));
                 /* close the list of autocompleted values,

@@ -379,7 +379,7 @@ select:active {
     border-radius: 3px;
 }
 
-#reviewerNameButton {
+.reviewerNameButton {
     width: 300px;
     background: var(--darc-border);
     color: var(--darc-text);

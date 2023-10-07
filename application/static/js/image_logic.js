@@ -8,6 +8,10 @@ let pageCount;
 let paginationLimit = 25;
 let annotationsToDisplay = annotations;
 let tempAnnotations;
+let currentAnnotation;
+
+let reviewerIndex = 1;
+let totalReviewers = 1;
 
 const getPaginationNumbers = () => {
     $('#pagination-numbers').empty();
@@ -314,14 +318,65 @@ function sortBy(key) {
     setCurrentPage(1);
 }
 
-autocomplete(document.getElementById('editConceptName'), allConcepts);
-autocomplete(document.getElementById('editUpon'), allConcepts);
+function removeReviewer(num) {
+    $(`#reviewerRow${num}`).remove();
+    totalReviewers--;
+}
+
+function addReviewer() {
+    if (totalReviewers > 4) {
+        return;
+    }
+    const phylum = currentAnnotation.phylum.toLowerCase();
+    const recommendedReviewers = reviewers.filter((obj) => {
+        return obj.phylum.toLowerCase().includes(phylum);
+    });
+    const thisReviewerIndex = ++reviewerIndex;
+
+    totalReviewers++;
+
+    $('#reviewerList').append(`
+            <div id="reviewerRow${thisReviewerIndex}" class="row pt-1">
+                <input type="hidden" id="externalReviewer${thisReviewerIndex}" name="reviewer${thisReviewerIndex}">
+                <button type="button" id="reviewerName${thisReviewerIndex}Button" class="btn reviewerNameButton" name="reviewerName">
+                    <div class="row">
+                        <div class="col-1 ms-2"></div>
+                        <div id="reviewerName${thisReviewerIndex}" class="col">
+                            Select
+                        </div>
+                        <div class="col-1 me-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
+                              <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </button>
+                <div class="col-1 mt-1">
+                    <button id="xButton${thisReviewerIndex}" type="button" class="xButton">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
+                            <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        `);
+    $(`#xButton${thisReviewerIndex}`).on('click', () => removeReviewer(thisReviewerIndex));
+    reviewerList(
+        document.getElementById(`reviewerName${thisReviewerIndex}Button`),
+        recommendedReviewers,
+        $(`#reviewerName${thisReviewerIndex}`),
+        $(`#externalReviewer${thisReviewerIndex}`)
+    );
+}
 
 document.addEventListener('DOMContentLoaded', function(event) {
     const sequences = [];
     const filter = {};
     const url = new URL(window.location.href);
     let vesselName;
+
+    autocomplete(document.getElementById('editConceptName'), allConcepts);
+    autocomplete(document.getElementById('editUpon'), allConcepts);
 
     for (const pair of url.searchParams.entries()) {
         if (pair[0].includes('sequence')) {
@@ -532,29 +587,67 @@ $(document).ready(function () {
     });
 
     $('#externalReviewModal').on('show.bs.modal', function (e) {
-        const annotation = $(e.relatedTarget).data('anno');
-        const phylum = annotation.phylum.toLowerCase();
+        currentAnnotation = $(e.relatedTarget).data('anno');
+        const phylum = currentAnnotation.phylum.toLowerCase();
         const recommendedReviewers = reviewers.filter((obj) => {
             return obj.phylum.toLowerCase().includes(phylum);
         });
         $('#reviewerName').html('Select');
-        $('#externalReviewer1').val(null);
         $('#externalModalSubmitButton').prop('disabled', true);
-        reviewerList(document.getElementById('reviewerNameButton'), recommendedReviewers);
+        reviewerList(
+            document.getElementById('reviewerName1Button'),
+            recommendedReviewers,
+            $('#reviewerName1'),
+            $('#externalReviewer1')
+        );
 
         $('#externalUrl').val(window.location.href);
-        $('#externalObservationUuid').val(annotation.observation_uuid);
-        $('#externalSequence').val(annotation.video_sequence_name);
-        $('#externalTimestamp').val(annotation.recorded_timestamp);
-        $('#externalImageUrl').val(annotation.image_url);
-        $('#externalConcept').val(annotation.concept);
-        $('#externalVideoUrl').val(annotation.video_url);
-        $('#externalAnnotator').val(annotation.annotator);
-        $('#externalIdRef').val(`${annotation.video_sequence_name.slice(-2)}:${annotation.identity_reference}`);
-        $('#externalLat').val(annotation.lat);
-        $('#externalLong').val(annotation.long);
-        $('#externalDepth').val(annotation.depth);
+        $('#externalObservationUuid').val(currentAnnotation.observation_uuid);
+        $('#externalSequence').val(currentAnnotation.video_sequence_name);
+        $('#externalTimestamp').val(currentAnnotation.recorded_timestamp);
+        $('#externalImageUrl').val(currentAnnotation.image_url);
+        $('#externalConcept').val(currentAnnotation.concept);
+        $('#externalVideoUrl').val(currentAnnotation.video_url);
+        $('#externalAnnotator').val(currentAnnotation.annotator);
+        $('#externalIdRef').val(`${currentAnnotation.video_sequence_name.slice(-2)}:${currentAnnotation.identity_reference}`);
+        $('#externalLat').val(currentAnnotation.lat);
+        $('#externalLong').val(currentAnnotation.long);
+        $('#externalDepth').val(currentAnnotation.depth);
     });
+
+    $('#externalReviewModal').on('hide.bs.modal', () => {
+        currentAnnotation = null;
+        totalReviewers = 1;
+        reviewerIndex = 1;
+
+        // clear the reviewer list from the modal, add back one reviewer
+        $('#reviewerList').empty();
+        $('#reviewerList').append(`
+            <div class="row">
+                <input type="hidden" id="externalReviewer1" name="reviewer1">
+                <button type="button" id="reviewerName1Button" class="btn reviewerNameButton" name="reviewerName">
+                    <div class="row">
+                        <div class="col-1 ms-2"></div>
+                        <div id="reviewerName1" class="col">
+                            Select
+                        </div>
+                        <div class="col-1 me-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
+                              <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </button>
+                <div class="col-1 mt-1">
+                    <button id="plusButton" type="button" class="plusButton" onclick="addReviewer()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
+                          <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        `);
+    })
 
     $('#deleteReviewModal').on('show.bs.modal', function (e) {
         $('#externalDeleteUrl').val(window.location.href);
