@@ -1,5 +1,5 @@
 
-function reviewerList(button, arr, reviewerTextObj, reviewerFormObj) {
+function reviewerList(button, arr, reviewerTextObj) {
     let currentFocus;
     let menuOpen = true;
 
@@ -9,10 +9,10 @@ function reviewerList(button, arr, reviewerTextObj, reviewerFormObj) {
         currentFocus = -1;
         /* create a DIV element that will contain the items (values) */
         const div = document.createElement('DIV');
-        div.setAttribute('id', button.id + 'autocomplete-list');
-        div.setAttribute('class', 'autocomplete-items');
+        div.setAttribute('id', button[0].id + 'autocomplete-list');
+        div.setAttribute('class', 'autocomplete-items reviewer-autocomplete-items');
         /* append the DIV element as a child of the autocomplete container */
-        button.parentNode.appendChild(div);
+        button[0].parentNode.appendChild(div);
         for (let i = 0; i < arr.length; i++) {
             let row = document.createElement('DIV');
             row.innerHTML = `
@@ -26,9 +26,8 @@ function reviewerList(button, arr, reviewerTextObj, reviewerFormObj) {
             row.addEventListener("click", function(e) {
                 /* insert the value for the autocomplete text field */
                 reviewerTextObj.html(row.getElementsByTagName('input')[0].value);
-                reviewerFormObj.val(row.getElementsByTagName('input')[0].value);
                 $('#externalModalSubmitButton').prop('disabled', false);
-                button.dispatchEvent(new Event('change'));
+                button[0].dispatchEvent(new Event('change'));
                 /* close the list of autocompleted values,
                 (or any other open lists of autocompleted values */
                 closeAllLists();
@@ -38,7 +37,7 @@ function reviewerList(button, arr, reviewerTextObj, reviewerFormObj) {
         menuOpen = true;
     }
     /* execute a function presses a key on the keyboard */
-    button.addEventListener('keydown', function(e) {
+    button[0].addEventListener('keydown', function(e) {
       let list = document.getElementById(this.id + 'autocomplete-list');
       if (list) {
           list = list.getElementsByTagName("div");
@@ -85,7 +84,7 @@ function reviewerList(button, arr, reviewerTextObj, reviewerFormObj) {
         }
         menuOpen = false;
     }
-    button.addEventListener('click', function (e) {
+    button[0].addEventListener('click', function (e) {
         e.stopPropagation();  // can't believe this works
         if (menuOpen) {
             closeAllLists();

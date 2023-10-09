@@ -261,21 +261,12 @@ def delete_reviewer(name):
 # adds an annotation for review/updates the reviewer for an annotation
 @app.post('/update-annotation-reviewer')
 def update_annotation_reviewer():
-    _reviewers = [request.values.get('reviewer1')]
-    if request.values.get('reviewer2'):
-        _reviewers.append(request.values.get('reviewer2'))
-    if request.values.get('reviewer3'):
-        _reviewers.append(request.values.get('reviewer3'))
-    if request.values.get('reviewer4'):
-        _reviewers.append(request.values.get('reviewer4'))
-    if request.values.get('reviewer5'):
-        _reviewers.append(request.values.get('reviewer5'))
     data = {
         'uuid': request.values.get('observation_uuid'),
         'sequence': request.values.get('sequence'),
         'timestamp': request.values.get('timestamp'),
         'image_url': request.values.get('image_url'),
-        'reviewers': json.dumps(_reviewers),
+        'reviewers': request.values.get('reviewers'),
         'video_url': request.values.get('video_url'),
         'annotator': request.values.get('annotator'),
         'id_ref': request.values.get('id_ref'),
@@ -287,7 +278,7 @@ def update_annotation_reviewer():
         if r.status_code == 201:
             new_comment = {
                 'observation_uuid': request.values.get('observation_uuid'),
-                'reviewers': ', '.join(_reviewers),
+                'reviewers': request.values.get('reviewers'),
                 'action': 'ADD'
             }
             requests.post(f'{LOCAL_APP_URL}/update-annotation-comment', new_comment)

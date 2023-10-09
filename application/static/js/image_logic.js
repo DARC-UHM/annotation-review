@@ -10,8 +10,8 @@ let annotationsToDisplay = annotations;
 let tempAnnotations;
 let currentAnnotation;
 
-let reviewerIndex = 1;
-let totalReviewers = 1;
+let reviewerIndex = 0;
+let totalReviewers = 0;
 
 const getPaginationNumbers = () => {
     $('#pagination-numbers').empty();
@@ -209,7 +209,7 @@ const setCurrentPage = (pageNum) => {
                                 data-anno='${ JSON.stringify(annotation) }'
                                 data-bs-target="#externalReviewModal" 
                                 class="editButton" 
-                                onclick="updateReviewerName('${comments[annotation.observation_uuid].reviewer}')">
+                                onclick="updateReviewerName('${annotation.observation_uuid}')">
                                     Change reviewer
                             </button>
                             <br>
@@ -219,7 +219,7 @@ const setCurrentPage = (pageNum) => {
                                 data-anno='${JSON.stringify(annotation)}'
                                 data-bs-target="#deleteReviewModal" 
                                 class="editButton" 
-                                onclick="updateReviewerName('${comments[annotation.observation_uuid].reviewer}')">
+                                onclick="updateReviewerName('${annotation.observation_uuid}')">
                                     Delete from external review
                             </button>`
                             }
@@ -268,8 +268,12 @@ function validateName(name) {
     $('#editModalSubmitButton')[0].disabled = disabled;
 }
 
-function updateReviewerName(name) {
-    $('#reviewerName').html(name);
+function updateReviewerName(uuid) {
+    const reviewerComments = comments[uuid].reviewer_comments;
+    $('#reviewerName1').html(reviewerComments[0].reviewer);
+    for (let i = 1; i < reviewerComments.length; i++) {
+        addReviewer(reviewerComments[i].reviewer, false);
+    }
 }
 
 // remove filter from url parameter and reload the page
@@ -323,50 +327,62 @@ function removeReviewer(num) {
     totalReviewers--;
 }
 
-function addReviewer() {
+function addReviewer(reviewerName, firstReviewer) {
     if (totalReviewers > 4) {
         return;
     }
     const phylum = currentAnnotation.phylum.toLowerCase();
-    const recommendedReviewers = reviewers.filter((obj) => {
-        return obj.phylum.toLowerCase().includes(phylum);
-    });
+    const recommendedReviewers = reviewers.filter((obj) => obj.phylum.toLowerCase().includes(phylum));
     const thisReviewerIndex = ++reviewerIndex;
 
     totalReviewers++;
 
     $('#reviewerList').append(`
-            <div id="reviewerRow${thisReviewerIndex}" class="row pt-1">
-                <input type="hidden" id="externalReviewer${thisReviewerIndex}" name="reviewer${thisReviewerIndex}">
-                <button type="button" id="reviewerName${thisReviewerIndex}Button" class="btn reviewerNameButton" name="reviewerName">
-                    <div class="row">
-                        <div class="col-1 ms-2"></div>
-                        <div id="reviewerName${thisReviewerIndex}" class="col">
-                            Select
-                        </div>
-                        <div class="col-1 me-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
-                              <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
-                            </svg>
-                        </div>
+        <div id="reviewerRow${thisReviewerIndex}" class="row pt-1">
+            <input type="hidden" id="externalReviewer${thisReviewerIndex}" name="reviewer${thisReviewerIndex}">
+            <button type="button" id="reviewerName${thisReviewerIndex}Button" class="btn reviewerNameButton" name="reviewerName">
+                <div class="row">
+                    <div class="col-1 ms-2"></div>
+                    <div id="reviewerName${thisReviewerIndex}" class="col reviewerName">${reviewerName || 'Select'}</div>
+                    <div class="col-1 me-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
+                          <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                        </svg>
                     </div>
-                </button>
-                <div class="col-1 mt-1">
-                    <button id="xButton${thisReviewerIndex}" type="button" class="xButton">
+                </div>
+            </button>
+            <div class="col-1 mt-1">
+                ${firstReviewer
+                    ? `<button id="plusButton" type="button" class="plusButton" onClick="addReviewer()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-plus"
+                             viewBox="0 0 16 16">
+                            <path
+                                d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                        </svg>
+                    </button>`
+                    : `<button id="xButton${thisReviewerIndex}" type="button" class="xButton">
                         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
                             <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
                         </svg>
-                    </button>
-                </div>
+                    </button>`
+                }
             </div>
-        `);
+        </div>
+    `);
     $(`#xButton${thisReviewerIndex}`).on('click', () => removeReviewer(thisReviewerIndex));
-    reviewerList(
-        document.getElementById(`reviewerName${thisReviewerIndex}Button`),
-        recommendedReviewers,
-        $(`#reviewerName${thisReviewerIndex}`),
-        $(`#externalReviewer${thisReviewerIndex}`)
-    );
+    reviewerList($(`#reviewerName${thisReviewerIndex}Button`), recommendedReviewers, $(`#reviewerName${thisReviewerIndex}`));
+}
+
+function loadReviewers() {
+    // loads reviewers to form fields on submit
+    const reviewers = [];
+    for (const item of document.getElementsByClassName('reviewerName')) {
+        reviewers.push(item.innerHTML);
+    }
+    $('#load-overlay').removeClass('loader-bg-hidden');
+    $('#load-overlay').addClass('loader-bg');
+    $('#externalReviewModal').modal('hide');
+    $('#externalReviewers').val(JSON.stringify(reviewers));
 }
 
 document.addEventListener('DOMContentLoaded', function(event) {
@@ -517,12 +533,6 @@ document.addEventListener('DOMContentLoaded', function(event) {
         $('#editModal').modal('hide');
     });
 
-    $('#externalModalSubmitButton').on('click', () => {
-        $('#load-overlay').removeClass('loader-bg-hidden');
-        $('#load-overlay').addClass('loader-bg');
-        $('#externalReviewModal').modal('hide');
-    });
-
     $('#externalModalDeleteButton').on('click', () => {
         $('#load-overlay').removeClass('loader-bg-hidden');
         $('#load-overlay').addClass('loader-bg');
@@ -586,20 +596,10 @@ $(document).ready(function () {
         $('#editUrl').val(window.location.href);
     });
 
-    $('#externalReviewModal').on('show.bs.modal', function (e) {
+    $('#externalReviewModal').on('show.bs.modal', (e) => {
         currentAnnotation = $(e.relatedTarget).data('anno');
-        const phylum = currentAnnotation.phylum.toLowerCase();
-        const recommendedReviewers = reviewers.filter((obj) => {
-            return obj.phylum.toLowerCase().includes(phylum);
-        });
-        $('#reviewerName').html('Select');
         $('#externalModalSubmitButton').prop('disabled', true);
-        reviewerList(
-            document.getElementById('reviewerName1Button'),
-            recommendedReviewers,
-            $('#reviewerName1'),
-            $('#externalReviewer1')
-        );
+        addReviewer(null, true);
 
         $('#externalUrl').val(window.location.href);
         $('#externalObservationUuid').val(currentAnnotation.observation_uuid);
@@ -617,36 +617,11 @@ $(document).ready(function () {
 
     $('#externalReviewModal').on('hide.bs.modal', () => {
         currentAnnotation = null;
-        totalReviewers = 1;
-        reviewerIndex = 1;
+        totalReviewers = 0;
+        reviewerIndex = 0;
 
-        // clear the reviewer list from the modal, add back one reviewer
+        // clear the reviewer list from the modal
         $('#reviewerList').empty();
-        $('#reviewerList').append(`
-            <div class="row">
-                <input type="hidden" id="externalReviewer1" name="reviewer1">
-                <button type="button" id="reviewerName1Button" class="btn reviewerNameButton" name="reviewerName">
-                    <div class="row">
-                        <div class="col-1 ms-2"></div>
-                        <div id="reviewerName1" class="col">
-                            Select
-                        </div>
-                        <div class="col-1 me-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
-                              <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
-                            </svg>
-                        </div>
-                    </div>
-                </button>
-                <div class="col-1 mt-1">
-                    <button id="plusButton" type="button" class="plusButton" onclick="addReviewer()">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
-                          <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        `);
     })
 
     $('#deleteReviewModal').on('show.bs.modal', function (e) {

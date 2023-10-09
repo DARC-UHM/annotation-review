@@ -137,6 +137,11 @@ select:active {
     border: 1px solid var(--darc-border);
     border-top: none;
     z-index: 99;
+    padding: 0;
+}
+
+.reviewer-autocomplete-items {
+    max-width: 70%;
 }
 
 .autocomplete-items div {

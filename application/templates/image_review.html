@@ -182,7 +182,7 @@
         </div>
         <div class="modal fade" id="externalReviewModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg">
-                <form action="/update-annotation-reviewer" method="post" autocomplete="off">
+                <form action="/update-annotation-reviewer" method="post" onsubmit="loadReviewers()" autocomplete="off">
                     <div class="modal-content">
                         <div class="modal-header text-center">
                             <h5 class="modal-title mt-1 ms-4" style="font-weight: 600;">External Review</h5>
@@ -194,36 +194,13 @@
                                     Reviewer:<br>
                                     <a class="small editButton mt-2" style="font-weight: 500;" href="/reviewers" target="_blank">See all reviewers</a>
                                 </div>
-                                <div id="reviewerList" class="col">
-                                    <div class="row">
-                                        <input type="hidden" id="externalReviewer1" name="reviewer1">
-                                        <button type="button" id="reviewerName1Button" class="btn reviewerNameButton" name="reviewerName">
-                                            <div class="row">
-                                                <div class="col-1 ms-2"></div>
-                                                <div id="reviewerName1" class="col">
-                                                    Select
-                                                </div>
-                                                <div class="col-1 me-2">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
-                                                      <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
-                                                    </svg>
-                                                </div>
-                                            </div>
-                                        </button>
-                                        <div class="col-1 mt-1">
-                                            <button id="plusButton" type="button" class="plusButton" onclick="addReviewer()">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
-                                                  <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
+                                <div id="reviewerList" class="col"></div>
                             </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Cancel</button>
                             <input type="hidden" id="externalUrl" name="url" value="">
+                            <input type="hidden" id="externalReviewers" name="reviewers">
                             <input type="hidden" id="externalObservationUuid" name="observation_uuid">
                             <input type="hidden" id="externalSequence" name="sequence">
                             <input type="hidden" id="externalTimestamp" name="timestamp">
