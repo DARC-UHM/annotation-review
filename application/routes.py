@@ -275,7 +275,19 @@ def update_annotation_reviewer():
         'long': request.values.get('long')
     }
     with requests.post(f'{DARC_REVIEW_URL}/comment/add', data=data) as r:
-        if r.status_code == 201:
+        if r.status_code == 409:  # comment already exists in the db, update record
+            req = requests.put(f'{DARC_REVIEW_URL}/comment/update-reviewers/{data["uuid"]}', data=data)
+            if req.status_code == 200:
+                new_comment = {
+                    'observation_uuid': request.values.get('observation_uuid'),
+                    'reviewers': request.values.get("reviewers"),
+                    'action': 'ADD'
+                }
+                requests.post(f'{LOCAL_APP_URL}/update-annotation-comment', new_comment)
+                flash('Reviewers successfully updated', 'success')
+            else:
+                flash('Failed to update reviewers - please try again', 'danger')
+        elif r.status_code == 201:  # comment added to db, update VARS "comment" field
             new_comment = {
                 'observation_uuid': request.values.get('observation_uuid'),
                 'reviewers': request.values.get('reviewers'),
@@ -283,7 +295,7 @@ def update_annotation_reviewer():
             }
             requests.post(f'{LOCAL_APP_URL}/update-annotation-comment', new_comment)
             flash('Successfully added for review', 'success')
-        else:
+        else:  # oh no!
             flash('Failed to add for review - please try again', 'danger')
     return redirect(request.values.get('url'))
 

@@ -171,7 +171,11 @@ const setCurrentPage = (pageNum) => {
                             ${comments[annotation.observation_uuid].reviewer_comments 
                             ? 
                             `${comments[annotation.observation_uuid].reviewer_comments.map(item => {
-                                return `${item.reviewer}: ${item.comment.length ? item.comment : ' - '}<br>(modified ${item.date_modified})<br><br>`;
+                                return `${item.reviewer}: ${
+                                    item.comment.length
+                                        ? `${item.comment}<br><span class="small fw-normal">Updated ${item.date_modified}</span>`
+                                        : 'N/A'}
+                                <br><br>`;
                             }).join('')}`
                             :
                             '-'}
