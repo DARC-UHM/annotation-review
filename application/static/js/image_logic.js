@@ -173,9 +173,9 @@ const setCurrentPage = (pageNum) => {
                             `${comments[annotation.observation_uuid].reviewer_comments.map(item => {
                                 return item.comment 
                                     ? `${item.comment.length
-                                        ? `${item.comment}<br><span class="small fw-normal">- ${item.reviewer} ${item.date_modified}</span>`
+                                        ? `${item.comment}<br><span class="small fw-normal">- <a href="http://hurlstor.soest.hawaii.edu:5000/review/${item.reviewer}" class="aquaLink" target="_blank">${item.reviewer}</a> ${item.date_modified}</span>`
                                         : 'N/A'}<br><br>`
-                                    : `<span class="fw-normal">Awaiting comment from ${item.reviewer}</span><br><br>`;
+                                    : `<span class="fw-normal">Awaiting comment from <a href="http://hurlstor.soest.hawaii.edu:5000/review/${item.reviewer}" class="aquaLink" target="_blank">${item.reviewer}</a></span><br><br>`;
                             }).join('')}`
                             :
                             '-'}
