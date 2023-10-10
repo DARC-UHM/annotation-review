@@ -1,17 +1,8 @@
-import re
 import requests
 
 from typing import Dict
 
-from application.server.image_loader import parse_datetime
-
-
-def get_association(annotation, link_name):
-    """ Obtains an association value from the annotation data structure """
-    for association in annotation['associations']:
-        if association['link_name'] == link_name:
-            return association
-    return None
+from .functions import *
 
 
 class CommentLoader:
@@ -33,7 +24,8 @@ class CommentLoader:
 
             joined_annotation['observation_uuid'] = annotation['observation_uuid']
             joined_annotation['concept'] = annotation['concept']
-            joined_annotation['annotator'] = re.sub('([a-zA-Z]+)([A-Z])', r'\1 \2', annotation['observer'])
+            joined_annotation['depth'] = self.comments[comment]['depth']
+            joined_annotation['annotator'] = format_annotator(annotation['observer'])
             joined_annotation['recorded_timestamp'] = parse_datetime(annotation['recorded_timestamp']).strftime('%d %b %y %H:%M:%S UTC')
             joined_annotation['video_url'] = self.comments[comment]['video_url']
             joined_annotation['image_url'] = self.comments[comment]['image_url']

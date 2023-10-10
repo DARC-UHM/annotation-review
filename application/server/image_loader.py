@@ -1,28 +1,7 @@
 import requests
 import pandas as pd
-import re
 
-from datetime import datetime
-
-
-def parse_datetime(timestamp: str) -> datetime:
-    """
-    Returns a datetime object given a timestamp string.
-
-    :param str timestamp: The timestamp to parse.
-    :return datetime: The timestamp parsed as a datetime object.
-    """
-    if '.' in timestamp:
-        return datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S.%fZ')
-    return datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%SZ')
-
-
-def get_association(annotation, link_name):
-    """ Obtains an association value from the annotation data structure """
-    for association in annotation['associations']:
-        if association['link_name'] == link_name:
-            return association
-    return None
+from .functions import *
 
 
 class ImageLoader:
@@ -149,7 +128,7 @@ class ImageLoader:
                 get_association(record, 'upon')['to_concept'] if get_association(record, 'upon') else None,
                 record['recorded_timestamp'],
                 video_sequence_name,
-                re.sub('([a-zA-Z]+)([A-Z])', r'\1 \2', record['observer']),
+                format_annotator(record['observer']),
                 int(record['ancillary_data']['depth_meters']) if 'ancillary_data' in record.keys() else None,
                 round(record['ancillary_data']['latitude'], 3) if 'ancillary_data' in record.keys() else None,
                 round(record['ancillary_data']['longitude'], 3) if 'ancillary_data' in record.keys() else None,
