@@ -21,7 +21,6 @@ if _FLASK_ENV == 'development':
     ANNOSAURUS_CLIENT_SECRET = ''
     DARC_REVIEW_URL = 'http://127.0.0.1:5000'
 else:
-    print('PRODUCTION MODE')
     ANNOSAURUS_URL = os.environ.get('ANNOSAURUS_URL')
     ANNOSAURUS_CLIENT_SECRET = os.environ.get('ANNOSAURUS_CLIENT_SECRET')
     DARC_REVIEW_URL = f'{HURLSTOR_URL}:5000'
