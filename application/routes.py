@@ -197,7 +197,7 @@ def delete_external_comment():
     if req.status_code == 200:
         new_comment = {
             'observation_uuid': request.values.get('uuid'),
-            'reviewer': '',
+            'reviewer': '[]',
             'action': 'DELETE'
         }
         requests.post(f'{LOCAL_APP_URL}/update-annotation-comment', new_comment)

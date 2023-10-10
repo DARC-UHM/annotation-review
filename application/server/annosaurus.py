@@ -234,11 +234,11 @@ class Annosaurus(JWTAuthentication):
                 old_comment = '; '.join(old_comment)
                 if old_comment:
                     if action == 'ADD':
-                        new_comment = f'{old_comment}; Added for review: {reviewers}'
+                        new_comment = f'{old_comment}; Added for review: {", ".join(json.loads(reviewers))}'
                     else:
                         new_comment = old_comment
                 elif action == 'ADD':
-                    new_comment = f'Added for review: {reviewers}'
+                    new_comment = f'Added for review: {", ".join(json.loads(reviewers))}'
                 else:
                     new_comment = ''
 
@@ -255,7 +255,7 @@ class Annosaurus(JWTAuthentication):
                     update_str += 'Updated comment'
             else:
                 # make a new comment
-                new_comment = f'Added for review: {reviewers}'
+                new_comment = f'Added for review: {", ".join(json.loads(reviewers))}'
                 new_association = {
                     'link_name': 'comment',
                     'link_value': new_comment
