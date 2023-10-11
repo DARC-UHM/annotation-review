@@ -401,7 +401,10 @@ function updateHash() {
     filterPairs.pop(); // pop page number
 
     $('#sequenceList').empty();
-    $('#sequenceList').html(sequences.join(', '));
+    if (sequences.length) {
+        $('#sequenceList').html(sequences.join(', '));
+        $('#sequenceList').push('<br>');
+    }
 
     for (const pair of filterPairs) {
         const key = pair.split('=')[0];
@@ -413,7 +416,7 @@ function updateHash() {
         }
     }
 
-    $('#sequenceList').append(`<br><span class="small">Filters: ${Object.keys(filter).length ? '' : 'None'}</span>`);
+    $('#sequenceList').append(`<span class="small">Filters: ${Object.keys(filter).length ? '' : 'None'}</span>`);
 
     for (const key of Object.keys(filter)) {
         $('#sequenceList').append(`
@@ -495,7 +498,7 @@ function updateHash() {
     if (window.location.hash.includes('pg=')) {
         setCurrentPage(window.location.hash.slice(window.location.hash.indexOf('pg=')).substring(3));
     } else {
-        location.replace(`#sort=default&pg=1`); // to prevent extra pages without hash of page num when back button pressed
+        location.replace(`#sort=Default&pg=1`); // to prevent extra pages without hash of page num when back button pressed
         setCurrentPage(1);
     }
 
@@ -511,9 +514,9 @@ function updateHash() {
 }
 
 document.addEventListener('DOMContentLoaded', function(event) {
-    const filter = {};
     const url = new URL(window.location.href);
     let vesselName;
+    let unread = false;
 
     autocomplete(document.getElementById('editConceptName'), allConcepts);
     autocomplete(document.getElementById('editUpon'), allConcepts);
@@ -529,6 +532,8 @@ document.addEventListener('DOMContentLoaded', function(event) {
             if (!vesselName) {
                 vesselName = param.join(' ');
             }
+        } else if (pair[0].includes('unread')) {
+            unread = true;
         }
     }
 
@@ -544,7 +549,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
     if (!vesselName) {
         // external review page
-        if (filter['unread']) {
+        if (unread) {
             $('#vesselName').html('External Review List (Unread)');
             document.title = 'DARC Image Review | External Review List (Unread Comments)';
             $('#changeExternalView').html('View All');
