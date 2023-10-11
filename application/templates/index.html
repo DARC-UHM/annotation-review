@@ -46,7 +46,7 @@
                         <div class="col-10 p-0">
                             <label id="seqNameLabel" for="sequence1" class="small mb-2">Sequence Name:</label><br>
                             <div class="autocomplete">
-                                <input type="text" id="sequence1" name="sequence" class="sequenceName" placeholder="Hercules 1011715" autocomplete="off">
+                                <input type="text" id="sequence1" name="sequence" class="sequenceName" placeholder="[Vessel] [Dive Number]" autocomplete="off">
                             </div>
                         </div>
                         <div class="col-1 ps-0 mt-auto">
@@ -59,43 +59,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col d-flex justify-content-center">
-                <div class="accordion accordion-flush py-2" id="filterAccordion">
-                    <div class="accordion-item">
-                        <div class="accordion-header" id="flush-headingOne">
-                            <button id="filterButton" type="button" class="small plusButton" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne">
-                                Filter By
-                            </button>
-                        </div>
-                        <div id="flush-collapseOne" class="accordion-collapse collapse" aria-labelledby="flush-headingOne" data-bs-parent="#filterAccordion">
-                            <div class="accordion-body">
-                                <div class="row pb-3 pt-2">
-                                    <div class="col p-0 position-relative">
-                                        <select id="filterSelect">
-                                            <option>Phylum</option>
-                                            <option>Class</option>
-                                            <option>Order</option>
-                                            <option>Family</option>
-                                            <option>Genus</option>
-                                            <option>Species</option>
-                                            <option>Comment</option>
-                                        </select>
-                                        <span class="position-absolute dropdown-chev-lg">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
-                                              <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
-                                            </svg>
-                                        </span>
-                                    </div>
-                                    <div class="col p-0">
-                                        <input type="text" id="filterEntry" name="blank" placeholder="Enter phylum" autocomplete="off">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <input type="submit" id="goButton" value="Go" class="btn btn-success py-1 px-5 mt-2 mb-5" disabled>
+            <input type="submit" id="goButton" value="Go" class="btn btn-success py-1 px-5 mt-4 mb-5" disabled>
         </form>
     </div>
     <div id="load-overlay" class="loader-bg-hidden">

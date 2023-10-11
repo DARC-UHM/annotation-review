@@ -31,7 +31,7 @@ function plusClick() {
                     <div class="col-1"></div>
                     <div class="col-10 p-0">
                         <div class="autocomplete">
-                            <input type="text" id="sequence${numSequences}" name="sequence" class="sequenceName" placeholder="Hercules 1011715" autocomplete="off">
+                            <input type="text" id="sequence${numSequences}" name="sequence" class="sequenceName" placeholder="[Vessel] [Dive Number]" autocomplete="off">
                         </div>
                     </div>
                     <div class="col-1 ps-0">
@@ -61,25 +61,6 @@ $('#index').on('click', checkSequence);
 $('#goButton').on('click', () => {
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
-});
-
-$('#filterSelect').on('change', () => $('#filterEntry').attr('placeholder', `Enter ${$('#filterSelect').val().toLowerCase()}`));
-$('#indexForm').submit(() => {
-    if ($('#filterEntry').val().length < 1) {
-        $('#filterEntry').prop('name', '');
-    } else {
-        $('#filterEntry').prop('name', $('#filterSelect').val().toLowerCase());
-    }
-});
-
-$('#filterButton').on('click', () => {
-    const filterButton = $('#filterButton');
-
-    if (filterButton.attr('class').split(/\s+/).includes('filterButtonActive')) {
-        filterButton.removeClass('filterButtonActive');
-    } else {
-        filterButton.addClass('filterButtonActive');
-    }
 });
 
 // get rid of loading screen if back button is pressed (firefox)

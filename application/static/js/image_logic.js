@@ -7,7 +7,6 @@ let currentPage;
 let pageCount;
 let paginationLimit = 25;
 let annotationsToDisplay = annotations;
-let tempAnnotations;
 let currentAnnotation;
 
 let reviewerIndex = 0;
@@ -49,11 +48,12 @@ const handleActivePageNumber = () => {
 const setCurrentPage = (pageNum) => {
     const prevRange = (pageNum - 1) * paginationLimit;
     const currRange = pageNum * paginationLimit;
+    const prevHash = window.location.hash.substring(0, window.location.hash.indexOf('pg='));
 
     sessionStorage.setItem(`scrollPos${currentPage}`, window.scrollY);
 
     currentPage = pageNum;
-    location.hash = `#pg=${pageNum}`;
+    location.hash = prevHash.length > 1 ? `${prevHash}pg=${pageNum}` : `#pg=${pageNum}`;
 
     if (sessionStorage.getItem(`scrollPos${currentPage}`) && pageNum !== 1) {
         window.scrollTo({top: sessionStorage.getItem(`scrollPos${currentPage}`), left: 0, behavior: 'instant'});
@@ -304,7 +304,7 @@ function addFilter() {
 function sortBy(key) {
     let tempKey;
     if (key === 'Default') {
-        annotationsToDisplay = [...tempAnnotations]; // reset to default sort
+        annotationsToDisplay = [...annotations]; // reset to default sort
         setCurrentPage(1);
         return;
     }
@@ -389,26 +389,17 @@ function loadReviewers() {
     $('#externalReviewers').val(JSON.stringify(reviewers));
 }
 
-document.addEventListener('DOMContentLoaded', function(event) {
-    const sequences = [];
+function updateHash() {
+    const hash = window.location.hash.slice(1);
+    const filterPairs = hash.split('&');
     const filter = {};
-    const url = new URL(window.location.href);
-    let vesselName;
 
-    autocomplete(document.getElementById('editConceptName'), allConcepts);
-    autocomplete(document.getElementById('editUpon'), allConcepts);
+    filterPairs.pop(); // pop page number
 
-    for (const pair of url.searchParams.entries()) {
-        if (pair[0].includes('sequence')) {
-            const param = pair[1].split(' ');
-            sequences.push(param.pop());
-            if (!vesselName) {
-                vesselName = param.join(' ');
-            }
-        } else {
-            filter[pair[0]] = pair[1];
-        }
+    for (const pair of filterPairs) {
+        filter[pair[0]] = pair[1];
     }
+
     if (filter['phylum']) {
         annotationsToDisplay = annotations.filter((anno) => anno['phylum']?.toLowerCase() === filter['phylum'].toLowerCase());
     }
@@ -431,8 +422,6 @@ document.addEventListener('DOMContentLoaded', function(event) {
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['comment']?.toLowerCase().includes(filter['comment'].toLowerCase()));
     }
 
-    tempAnnotations = [...annotationsToDisplay]; // save these so we can go back to default sort later
-
     if (!annotationsToDisplay.length) {
         $('#404').show();
     } else {
@@ -442,16 +431,45 @@ document.addEventListener('DOMContentLoaded', function(event) {
     pageCount = Math.ceil(annotationsToDisplay.length / paginationLimit);
 
     getPaginationNumbers();
-    if (window.location.hash) {
-      setCurrentPage(window.location.hash.substring(4));
+    if (window.location.hash.includes('pg=')) {
+        setCurrentPage(window.location.hash.slice(window.location.hash.indexOf('pg=')).substring(3));
     } else {
-      location.replace(`#pg=1`); // to prevent extra pages without hash of page num when back button pressed
-      setCurrentPage(1);
+        location.replace(`#pg=1`); // to prevent extra pages without hash of page num when back button pressed
+        setCurrentPage(1);
     }
+
+    const hashNum = Number(window.location.hash.slice(window.location.hash.indexOf('pg=')).substring(3));
+    if (currentPage !== hashNum) {
+        setCurrentPage(hashNum);
+    }
+
+    $('#annotationCount').html(annotationsToDisplay.length);
+    $('#annotationCountBottom').html(annotationsToDisplay.length);
+    $('#totalPageNum').html(pageCount);
+    $('#totalPageNumBottom').html(pageCount);
+}
+
+document.addEventListener('DOMContentLoaded', function(event) {
+    const sequences = [];
+    const filter = {};
+    const url = new URL(window.location.href);
+    let vesselName;
+
+    autocomplete(document.getElementById('editConceptName'), allConcepts);
+    autocomplete(document.getElementById('editUpon'), allConcepts);
 
     if (sessionStorage.getItem(`scrollPos${currentPage}`)) {
         window.scrollTo({top: sessionStorage.getItem(`scrollPos${currentPage}`), left: 0, behavior: 'instant'});
     }
+
+    for (const pair of url.searchParams.entries()) {
+        if (pair.includes('sequence')) {
+            vesselName = pair[1];
+            break;
+        }
+    }
+
+    updateHash();
 
     prevButton.addEventListener("click", () => {
         setCurrentPage(currentPage - 1);
@@ -461,10 +479,6 @@ document.addEventListener('DOMContentLoaded', function(event) {
         setCurrentPage(currentPage + 1);
     });
 
-    $('#annotationCount').html(annotationsToDisplay.length);
-    $('#annotationCountBottom').html(annotationsToDisplay.length);
-    $('#totalPageNum').html(pageCount);
-    $('#totalPageNumBottom').html(pageCount);
     $('#sequenceList').html(sequences.join(', '));
 
     if (!vesselName) {
@@ -562,10 +576,7 @@ window.onbeforeunload = (e) => {
 };
 
 window.onhashchange = () => {
-    const hashNum = Number(location.hash.substring(4));
-    if (currentPage !== hashNum) {
-        setCurrentPage(hashNum);
-    }
+    updateHash();
 };
 
 // get the annotation data and add it to the modal
