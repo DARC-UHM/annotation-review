@@ -298,7 +298,6 @@ function addFilter() {
     const index = window.location.hash.indexOf('pg=');
     const filterKey = $('#imageFilterSelect').val().toLowerCase();
     const filterVal = $('#imageFilterEntry').val();
-    console.log(location.hash.substring(0, index - 1));
     location.hash = location.hash.substring(0, index - 1).length > 1
         ? `${location.hash.substring(0, index - 1)}&${filterKey}=${filterVal}&pg=1`
         : `#${filterKey}=${filterVal}&pg=1`;
@@ -306,9 +305,8 @@ function addFilter() {
 
 function sortBy(key) {
     let tempKey;
+    key = key.replace('%20', ' ');
     if (key === 'Default') {
-        annotationsToDisplay = [...annotations]; // reset to default sort
-        setCurrentPage(1);
         return;
     }
     if (key === 'Timestamp') {
@@ -326,7 +324,8 @@ function sortBy(key) {
         filtered = filtered.sort((a, b) => (a[tempKey] > b[tempKey]) ? 1 : ((b[tempKey] > a[tempKey]) ? -1 : 0));
     }
     annotationsToDisplay = filtered.concat(annotationsToDisplay.filter((anno) => !anno[tempKey]));
-    setCurrentPage(1);
+
+    $('#sortSelect').val(key);
 }
 
 function removeReviewer(num) {
@@ -407,7 +406,11 @@ function updateHash() {
     for (const pair of filterPairs) {
         const key = pair.split('=')[0];
         const value = pair.split('=')[1];
-        filter[key] = value;
+        if (key !== 'sort') {
+            filter[key] = value;
+        } else {
+            sortBy(value);
+        }
     }
 
     $('#sequenceList').append(`<br><span class="small">Filters: ${Object.keys(filter).length ? '' : 'None'}</span>`);
@@ -458,7 +461,7 @@ function updateHash() {
     `);
 
     if (filter['phylum']) {
-        annotationsToDisplay = annotations.filter((anno) => anno['phylum']?.toLowerCase() === filter['phylum'].toLowerCase());
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['phylum']?.toLowerCase() === filter['phylum'].toLowerCase());
     }
     if (filter['class']) {
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['class']?.toLowerCase() === filter['class'].toLowerCase());
@@ -488,10 +491,11 @@ function updateHash() {
     pageCount = Math.ceil(annotationsToDisplay.length / paginationLimit);
 
     getPaginationNumbers();
+
     if (window.location.hash.includes('pg=')) {
         setCurrentPage(window.location.hash.slice(window.location.hash.indexOf('pg=')).substring(3));
     } else {
-        location.replace(`#pg=1`); // to prevent extra pages without hash of page num when back button pressed
+        location.replace(`#sort=default&pg=1`); // to prevent extra pages without hash of page num when back button pressed
         setCurrentPage(1);
     }
 
@@ -581,7 +585,11 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
     $('#imageFilterSelect').on('change', () => $('#imageFilterEntry').attr('placeholder', `Enter ${$('#imageFilterSelect').val().toLowerCase()}`));
 
-    $('#sortSelect').on('change', () => sortBy($('#sortSelect').val()));
+    $('#sortSelect').on('change', () => {
+        const hashList = window.location.hash.substring(1).split('&');
+        hashList.shift();
+        location.hash = `#sort=${$('#sortSelect').val()}&${hashList.join('&')}`;
+    });
 });
 
 window.onbeforeunload = (e) => {
