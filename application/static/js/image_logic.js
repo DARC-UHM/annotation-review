@@ -2,6 +2,7 @@ const paginationNumbers = document.getElementById('pagination-numbers');
 const nextButton = document.getElementById('next-button');
 const prevButton = document.getElementById('prev-button');
 const guidePhotoVals = ['1 best', '2 good', '3 okay', ''];
+const sequences = [];
 
 let currentPage;
 let pageCount;
@@ -280,11 +281,11 @@ function updateReviewerName(uuid) {
     }
 }
 
-// remove filter from url parameter and reload the page
+// remove filter from hash
 function removeFilter(key, value) {
-    const url = new URL(window.location.href);
-    const index = url.toString().indexOf(key);
-    window.location.href = `${url.toString().substring(0, index - 1)}${url.toString().substring(index + key.length + value.length + 1)}`;
+    const index = window.location.hash.indexOf(key);
+    const newHash = `${window.location.hash.substring(0, index)}${window.location.hash.substring(index + key.length + value.length + 2)}`;
+    location.hash = newHash;
 }
 
 function showAddFilter() {
@@ -292,13 +293,15 @@ function showAddFilter() {
     $('#addFilterButton').hide();
 }
 
-// add filter and refresh page
+// add filter to hash
 function addFilter() {
-    const url = new URL(window.location.href);
-    const index = url.toString().indexOf('#');
+    const index = window.location.hash.indexOf('pg=');
     const filterKey = $('#imageFilterSelect').val().toLowerCase();
     const filterVal = $('#imageFilterEntry').val();
-    window.location.href = `${url.toString().substring(0, index)}&${filterKey}=${filterVal}#pg=1`;
+    console.log(location.hash.substring(0, index - 1));
+    location.hash = location.hash.substring(0, index - 1).length > 1
+        ? `${location.hash.substring(0, index - 1)}&${filterKey}=${filterVal}&pg=1`
+        : `#${filterKey}=${filterVal}&pg=1`;
 }
 
 function sortBy(key) {
@@ -394,31 +397,85 @@ function updateHash() {
     const filterPairs = hash.split('&');
     const filter = {};
 
+    annotationsToDisplay = annotations;
+
     filterPairs.pop(); // pop page number
 
+    $('#sequenceList').empty();
+    $('#sequenceList').html(sequences.join(', '));
+
     for (const pair of filterPairs) {
-        filter[pair[0]] = pair[1];
+        const key = pair.split('=')[0];
+        const value = pair.split('=')[1];
+        filter[key] = value;
     }
+
+    $('#sequenceList').append(`<br><span class="small">Filters: ${Object.keys(filter).length ? '' : 'None'}</span>`);
+
+    for (const key of Object.keys(filter)) {
+        $('#sequenceList').append(`
+            <span class="small filter-pill position-relative">
+                ${key[0].toUpperCase()}${key.substring(1)}: ${filter[key]}
+                <button type="button" class="position-absolute filter-x" onclick="removeFilter('${key}', '${filter[key]}')">×</button>
+            </span>
+        `);
+    }
+
+    $('#sequenceList').append(`
+        <span id="addFilterRow" class="small ms-3" style="display: none;">
+            <form onsubmit="event.preventDefault(); addFilter()" class="d-inline-block">
+                <span class="position-relative">
+                    <select id="imageFilterSelect">
+                        <option>Phylum</option>
+                        <option>Class</option>
+                        <option>Order</option>
+                        <option>Family</option>
+                        <option>Genus</option>
+                        <option>Species</option>
+                        <option>Comment</option>
+                    </select>
+                    <span class="position-absolute dropdown-chev">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
+                          <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                        </svg>
+                    </span>
+                </span>
+                <input type="text" id="imageFilterEntry" name="blank" placeholder="Enter phylum" autocomplete="off">
+                <button id="saveFilterButton" type="submit" class="plusButton">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-check" viewBox="0 0 16 16">
+                      <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
+                    </svg>
+                </button>
+            </form>
+        </span>
+        <button id="addFilterButton" type="button" class="plusButton ms-2" onclick="showAddFilter()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-plus"
+                 viewBox="0 0 16 16">
+                <path
+                    d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+            </svg>
+        </button>
+    `);
 
     if (filter['phylum']) {
         annotationsToDisplay = annotations.filter((anno) => anno['phylum']?.toLowerCase() === filter['phylum'].toLowerCase());
     }
-    if (filter['class']){
+    if (filter['class']) {
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['class']?.toLowerCase() === filter['class'].toLowerCase());
     }
-    if (filter['order']){
+    if (filter['order']) {
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['order']?.toLowerCase() === filter['order'].toLowerCase());
     }
-    if (filter['family']){
+    if (filter['family']) {
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['family']?.toLowerCase() === filter['family'].toLowerCase());
     }
-    if (filter['genus']){
+    if (filter['genus']) {
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['genus']?.toLowerCase() === filter['genus'].toLowerCase());
     }
-    if (filter['species']){
+    if (filter['species']) {
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['species']?.toLowerCase() === filter['species'].toLowerCase());
     }
-    if (filter['comment']){
+    if (filter['comment']) {
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['comment']?.toLowerCase().includes(filter['comment'].toLowerCase()));
     }
 
@@ -450,7 +507,6 @@ function updateHash() {
 }
 
 document.addEventListener('DOMContentLoaded', function(event) {
-    const sequences = [];
     const filter = {};
     const url = new URL(window.location.href);
     let vesselName;
@@ -463,9 +519,12 @@ document.addEventListener('DOMContentLoaded', function(event) {
     }
 
     for (const pair of url.searchParams.entries()) {
-        if (pair.includes('sequence')) {
-            vesselName = pair[1];
-            break;
+        if (pair[0].includes('sequence')) {
+            const param = pair[1].split(' ');
+            sequences.push(param.pop());
+            if (!vesselName) {
+                vesselName = param.join(' ');
+            }
         }
     }
 
@@ -478,8 +537,6 @@ document.addEventListener('DOMContentLoaded', function(event) {
     nextButton.addEventListener("click", () => {
         setCurrentPage(currentPage + 1);
     });
-
-    $('#sequenceList').html(sequences.join(', '));
 
     if (!vesselName) {
         // external review page
@@ -499,50 +556,6 @@ document.addEventListener('DOMContentLoaded', function(event) {
         $('#syncCTD').hide();
         $('#changeExternalView').hide();
         $('#vesselName').html(vesselName);
-        $('#sequenceList').append(`<br><span class="small">Filters: ${Object.keys(filter).length ? '' : 'None'}</span>`);
-        for (const key of Object.keys(filter)) {
-            $('#sequenceList').append(`
-                <span class="small filter-pill position-relative">
-                    ${key[0].toUpperCase()}${key.substring(1)}: ${filter[key]}
-                    <button type="button" class="position-absolute filter-x" onclick="removeFilter('${key}', '${filter[key]}')">×</button>
-                </span>
-            `);
-        }
-        $('#sequenceList').append(`
-            <span id="addFilterRow" class="small ms-3" style="display: none;">
-                <form onsubmit="event.preventDefault(); addFilter()" class="d-inline-block">
-                    <span class="position-relative">
-                        <select id="imageFilterSelect">
-                            <option>Phylum</option>
-                            <option>Class</option>
-                            <option>Order</option>
-                            <option>Family</option>
-                            <option>Genus</option>
-                            <option>Species</option>
-                            <option>Comment</option>
-                        </select>
-                        <span class="position-absolute dropdown-chev">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
-                              <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
-                            </svg>
-                        </span>
-                    </span>
-                    <input type="text" id="imageFilterEntry" name="blank" placeholder="Enter phylum" autocomplete="off">
-                    <button id="saveFilterButton" type="submit" class="plusButton">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-check" viewBox="0 0 16 16">
-                          <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
-                        </svg>
-                    </button>
-                </form>
-            </span>
-            <button id="addFilterButton" type="button" class="plusButton ms-2" onclick="showAddFilter()">
-                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-plus"
-                     viewBox="0 0 16 16">
-                    <path
-                        d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
-                </svg>
-            </button>
-        `);
     }
 
     $('#editModalSubmitButton').on('click', () => {
