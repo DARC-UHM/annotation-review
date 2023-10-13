@@ -47,6 +47,7 @@ const handleActivePageNumber = () => {
 };
 
 const setCurrentPage = (pageNum) => {
+    console.log(comments);
     const prevRange = (pageNum - 1) * paginationLimit;
     const currRange = pageNum * paginationLimit;
     const prevHash = window.location.hash.substring(0, window.location.hash.indexOf('pg='));
@@ -219,8 +220,7 @@ const setCurrentPage = (pageNum) => {
                                 data-bs-toggle="modal" 
                                 data-anno='${JSON.stringify(annotation)}'
                                 data-bs-target="#deleteReviewModal" 
-                                class="editButton" 
-                                onclick="updateReviewerName('${annotation.observation_uuid}')">
+                                class="editButton">
                                     Delete from external review
                             </button>`
                             }
@@ -543,6 +543,33 @@ function updateExternalReviewers() {
         .catch((err) => console.log(err));
 }
 
+function deleteFromExternalReview() {
+    event.preventDefault();
+    $('#load-overlay').removeClass('loader-bg-hidden');
+    $('#load-overlay').addClass('loader-bg');
+    $('#deleteReviewModal').modal('hide');
+
+    const formData = new FormData($('#deleteFromExternalReviewForm')[0]);
+    fetch('/delete-external-comment', {
+        method: 'POST',
+        body: formData,
+    })
+        .then((res) => {
+            if (res.status === 200) {
+                const index = annotations.findIndex((anno) => anno.observation_uuid === formData.get('uuid'));
+                delete comments[formData.get('uuid')];
+                annotations[index].comment = '';
+                updateFlashMessages('Removed annotation from external review', 'success');
+                updateHash();
+            } else {
+                updateFlashMessages('Error removing annotation from external review', 'danger');
+            }
+            $('#load-overlay').addClass('loader-bg-hidden');
+            $('#load-overlay').removeClass('loader-bg');
+        })
+        .catch((err) => console.log(err));
+}
+
 function updateAnnotation() {
     event.preventDefault();
     $('#load-overlay').removeClass('loader-bg-hidden');
@@ -563,7 +590,6 @@ function updateAnnotation() {
             } else if (result.status === 304) {
                 updateFlashMessages('No changes made', 'secondary');
             } else {
-
                 updateFlashMessages('Failed to update annotation - please try again', 'danger');
             }
             $('#load-overlay').addClass('loader-bg-hidden');

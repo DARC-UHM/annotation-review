@@ -201,10 +201,8 @@ def delete_external_comment():
             'action': 'DELETE'
         }
         requests.post(f'{LOCAL_APP_URL}/update-annotation-comment', new_comment)
-        flash('Comment successfully deleted', 'success')
-    else:
-        flash('Error deleting comment', 'danger')
-    return redirect(request.values.get('url'))
+        return {}, 200
+    return {}, 500
 
 
 # displays information about all the reviewers in the hurl db

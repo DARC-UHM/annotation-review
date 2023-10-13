@@ -222,7 +222,7 @@
         </div>
          <div class="modal fade" id="deleteReviewModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg">
-                <form action="/delete-external-comment" method="post" autocomplete="off">
+                <form id="deleteFromExternalReviewForm" onsubmit="deleteFromExternalReview()" autocomplete="off">
                     <div class="modal-content">
                         <div class="modal-header text-center">
                             <h5 class="modal-title mt-1 ms-4" style="font-weight: 600;">Delete From External Review</h5>
