@@ -2,8 +2,6 @@ import requests
 import json
 from typing import Dict
 
-from requests import Response
-
 
 class AuthenticationError(Exception):
     """

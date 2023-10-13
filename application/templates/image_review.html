@@ -116,7 +116,7 @@
         </div>
         <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg">
-                <form action="/update-annotation" method="post" autocomplete="off">
+                <form id="updateAnnotationForm" onsubmit="updateAnnotation()" autocomplete="off">
                     <div class="modal-content">
                         <div class="modal-header text-center">
                             <h5 class="modal-title mt-1 ms-4" style="font-weight: 600;">Edit Annotation</h5>
@@ -128,7 +128,7 @@
                                     Concept:
                                 </div>
                                 <div class="col">
-                                    <input type="text" id="editConceptName" name="editConceptName" class="modal-text">
+                                    <input type="text" id="editConceptName" name="concept" class="modal-text">
                                 </div>
                             </div>
                             <div class="row pb-2">
@@ -136,7 +136,7 @@
                                     ID Certainty:
                                 </div>
                                 <div class="col">
-                                    <input type="text" id="editIdCert" name="editIdCert" class="modal-text">
+                                    <input type="text" id="editIdCert" name="identity-certainty" class="modal-text">
                                 </div>
                             </div>
                             <div class="row pb-2">
@@ -144,7 +144,7 @@
                                     ID Reference:
                                 </div>
                                 <div class="col">
-                                    <input type="text" id="editIdRef" name="editIdRef" class="modal-text">
+                                    <input type="text" id="editIdRef" name="identity-reference" class="modal-text">
                                 </div>
                             </div>
                             <div class="row pb-2">
@@ -152,7 +152,7 @@
                                     Upon:
                                 </div>
                                 <div class="col">
-                                    <input type="text" id="editUpon" name="editUpon" class="modal-text">
+                                    <input type="text" id="editUpon" name="upon" class="modal-text">
                                 </div>
                             </div>
                             <div class="row pb-2">
@@ -160,7 +160,7 @@
                                     Comments:
                                 </div>
                                 <div class="col">
-                                    <input type="text" id="editComments" name="editComments" class="modal-text">
+                                    <input type="text" id="editComments" name="comment" class="modal-text">
                                 </div>
                             </div>
                             <div class="row pb-2">
@@ -168,13 +168,12 @@
                                     Guide Photo:
                                 </div>
                                 <div class="col">
-                                    <select name="editGuidePhoto" id="editGuidePhoto"></select>
+                                    <select id="editGuidePhoto" name="guide-photo"></select>
                                 </div>
                             </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Cancel</button>
-                            <input type="hidden" id="editUrl" name="url" value="">
                             <input type="hidden" id="editObservationUuid" name="observation_uuid">
                             <input type="submit" id="editModalSubmitButton" class="btn btn-success modal-button" value="Save Changes">
                         </div>

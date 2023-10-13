@@ -295,6 +295,7 @@ function showAddFilter() {
 
 // add filter to hash
 function addFilter() {
+    event.preventDefault();
     const index = window.location.hash.indexOf('pg=');
     const filterKey = $('#imageFilterSelect').val().toLowerCase();
     const filterVal = $('#imageFilterEntry').val();
@@ -416,7 +417,7 @@ function updateHash() {
         }
     }
 
-    $('#sequenceList').append(`<span class="small">Filters: ${Object.keys(filter).length ? '' : 'None'}</span>`);
+    $('#sequenceList').append(`<br><span class="small">Filters: ${Object.keys(filter).length ? '' : 'None'}</span>`);
 
     for (const key of Object.keys(filter)) {
         $('#sequenceList').append(`
@@ -429,7 +430,7 @@ function updateHash() {
 
     $('#sequenceList').append(`
         <span id="addFilterRow" class="small ms-3" style="display: none;">
-            <form onsubmit="event.preventDefault(); addFilter()" class="d-inline-block">
+            <form onsubmit="addFilter()" class="d-inline-block">
                 <span class="position-relative">
                     <select id="imageFilterSelect">
                         <option>Phylum</option>
@@ -513,6 +514,29 @@ function updateHash() {
     $('#totalPageNumBottom').html(pageCount);
 }
 
+function updateAnnotation() {
+    event.preventDefault();
+    const formData = new FormData($('#updateAnnotationForm')[0]);
+    fetch('/update-annotation', {
+        method: 'POST',
+        body: formData,
+    })
+        .then((result) => {
+            console.log(formData)
+            console.log(formData.get('observation_uuid'));
+            if (result.status === 204) {
+                const index = annotations.findIndex((anno) => anno.observation_uuid === formData.get('observation_uuid'));
+                for (const pair of formData.entries()){
+                    console.log(pair[0], pair[1])
+                    annotations[index][pair[0]] = [pair[1]];
+                }
+                console.log(annotations[index])
+                updateHash();
+            }
+        })
+        .catch((err) => console.log(err));
+}
+
 document.addEventListener('DOMContentLoaded', function(event) {
     const url = new URL(window.location.href);
     let vesselName;
@@ -568,8 +592,6 @@ document.addEventListener('DOMContentLoaded', function(event) {
     }
 
     $('#editModalSubmitButton').on('click', () => {
-        $('#load-overlay').removeClass('loader-bg-hidden');
-        $('#load-overlay').addClass('loader-bg');
         $('#editModal').modal('hide');
     });
 

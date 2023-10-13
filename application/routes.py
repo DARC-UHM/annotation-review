@@ -316,12 +316,12 @@ def update_annotation_comment():
 def update_annotation():
     annosaurus = Annosaurus(ANNOSAURUS_URL)
     updated_annotation = {
-        'concept': request.values.get('editConceptName'),
-        'identity-certainty': request.values.get('editIdCert'),
-        'identity-reference': request.values.get('editIdRef'),
-        'upon': request.values.get('editUpon'),
-        'comment': request.values.get('editComments'),
-        'guide-photo': request.values.get('editGuidePhoto'),
+        'concept': request.values.get('concept'),
+        'identity-certainty': request.values.get('identity-certainty'),
+        'identity-reference': request.values.get('identity-reference'),
+        'upon': request.values.get('upon'),
+        'comment': request.values.get('comment'),
+        'guide-photo': request.values.get('guide-photo'),
     }
     status = annosaurus.update_annotation(
         observation_uuid=request.values.get('observation_uuid'),
@@ -330,11 +330,14 @@ def update_annotation():
     )
     if status == 1:
         flash('Annotation successfully updated', 'success')
+        return {}, 204
     elif status == 0:
         flash('No changes made', 'secondary')
+        return {}, 304
     else:
         flash('Failed to update annotation - please try again', 'danger')
-    return redirect(request.values.get('url'))
+        return {}, 500
+
 
 @app.errorhandler(404)
 def page_not_found(e):
