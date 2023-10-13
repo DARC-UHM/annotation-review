@@ -514,27 +514,43 @@ function updateHash() {
     $('#totalPageNumBottom').html(pageCount);
 }
 
+function updateFlashMessages(msg, cat) {
+    $('#flash-messages-container').html(`
+        <div class="alert alert-${cat} alert-dismissible px-5" style="position:fixed; left: 50%; transform: translate(-50%, 0);">
+            <span class="px-2" style="font-weight: 500;">${msg}</span>
+            <button type="button" class="btn-close small" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    `);
+}
+
 function updateAnnotation() {
     event.preventDefault();
+    $('#load-overlay').removeClass('loader-bg-hidden');
+    $('#load-overlay').addClass('loader-bg');
     const formData = new FormData($('#updateAnnotationForm')[0]);
     fetch('/update-annotation', {
         method: 'POST',
         body: formData,
     })
         .then((result) => {
-            console.log(formData)
-            console.log(formData.get('observation_uuid'));
             if (result.status === 204) {
                 const index = annotations.findIndex((anno) => anno.observation_uuid === formData.get('observation_uuid'));
                 for (const pair of formData.entries()){
-                    console.log(pair[0], pair[1])
-                    annotations[index][pair[0]] = [pair[1]];
+                    annotations[index][pair[0]] = pair[1];
                 }
-                console.log(annotations[index])
+                updateFlashMessages('Annotation successfully updated', 'success');
                 updateHash();
+            } else if (result.status === 304) {
+                updateFlashMessages('No changes made', 'secondary');
+            } else {
+
+                updateFlashMessages('Failed to update annotation - please try again', 'danger');
             }
+            $('#load-overlay').addClass('loader-bg-hidden');
+            $('#load-overlay').removeClass('loader-bg');
         })
         .catch((err) => console.log(err));
+
 }
 
 document.addEventListener('DOMContentLoaded', function(event) {

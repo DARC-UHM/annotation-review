@@ -329,13 +329,10 @@ def update_annotation():
         client_secret=ANNOSAURUS_CLIENT_SECRET
     )
     if status == 1:
-        flash('Annotation successfully updated', 'success')
         return {}, 204
     elif status == 0:
-        flash('No changes made', 'secondary')
         return {}, 304
     else:
-        flash('Failed to update annotation - please try again', 'danger')
         return {}, 500
 
 
