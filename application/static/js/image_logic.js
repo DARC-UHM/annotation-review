@@ -47,7 +47,6 @@ const handleActivePageNumber = () => {
 };
 
 const setCurrentPage = (pageNum) => {
-    console.log(comments);
     const prevRange = (pageNum - 1) * paginationLimit;
     const currRange = pageNum * paginationLimit;
     const prevHash = window.location.hash.substring(0, window.location.hash.indexOf('pg='));
@@ -160,7 +159,7 @@ const setCurrentPage = (pageNum) => {
                         <div class="col-4">
                             Reviewer comments:<br>
                             ${comments[annotation.observation_uuid].unread ?
-                            `<form action="/mark-comment-read" method="post">
+                            `<form id="markCommentReadForm" onsubmit="markCommentRead()">
                                 <input type="hidden" name="uuid" value="${annotation.observation_uuid}">
                                 <input type="hidden" name="url" value="${window.location.href}">
                                 <input type="hidden" name="reviewer" value="${comments[annotation.observation_uuid].reviewer}">
@@ -543,6 +542,30 @@ function updateExternalReviewers() {
         .catch((err) => console.log(err));
 }
 
+function markCommentRead() {
+    event.preventDefault();
+    $('#load-overlay').removeClass('loader-bg-hidden');
+    $('#load-overlay').addClass('loader-bg');
+
+    const formData = new FormData($('#markCommentReadForm')[0]);
+    fetch('/mark-comment-read', {
+        method: 'POST',
+        body: formData,
+    })
+        .then((res) => {
+            if (res.status == 200) {
+                comments[formData.get('uuid')].unread = false;
+                updateHash();
+                updateFlashMessages('Comment marked as read', 'success');
+            } else {
+                updateFlashMessages('Unable to mark comment as read - please try again', 'danger');
+            }
+            $('#load-overlay').addClass('loader-bg-hidden');
+            $('#load-overlay').removeClass('loader-bg');
+        })
+        .catch((err) => console.log(err));
+}
+
 function deleteFromExternalReview() {
     event.preventDefault();
     $('#load-overlay').removeClass('loader-bg-hidden');
@@ -574,6 +597,7 @@ function updateAnnotation() {
     event.preventDefault();
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
+    $('#editModal').modal('hide');
     const formData = new FormData($('#updateAnnotationForm')[0]);
     fetch('/update-annotation', {
         method: 'POST',
@@ -652,16 +676,6 @@ document.addEventListener('DOMContentLoaded', function(event) {
         $('#changeExternalView').hide();
         $('#vesselName').html(vesselName);
     }
-
-    $('#editModalSubmitButton').on('click', () => {
-        $('#editModal').modal('hide');
-    });
-
-    $('#externalModalDeleteButton').on('click', () => {
-        $('#load-overlay').removeClass('loader-bg-hidden');
-        $('#load-overlay').addClass('loader-bg');
-        $('#externalModalDeleteButton').modal('hide');
-    });
 
     $('#paginationSelect').on('change', () => {
         paginationLimit = $('#paginationSelect').val();

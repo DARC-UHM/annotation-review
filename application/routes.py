@@ -182,12 +182,10 @@ def sync_external_ctd():
 # marks a comment in the external review db as 'read'
 @app.post('/mark-comment-read')
 def mark_read():
-    req = requests.put(f'{DARC_REVIEW_URL}/comment/mark-read/{request.values.get("reviewer")}/{request.values.get("uuid")}')
+    req = requests.put(f'{DARC_REVIEW_URL}/comment/mark-read/{request.values.get("uuid")}')
     if req.status_code == 200:
-        flash('Comment marked as read', 'success')
-    else:
-        flash('Unable to mark comment as read - please try again', 'danger')
-    return redirect(request.values.get('url'))
+        return {}, 200
+    return {}, 500
 
 
 # deletes an item from the external review db
