@@ -13,7 +13,7 @@ class ImageLoader:
 
     def load_images(self, name: str):
         print(f'Fetching annotations for sequence {name} from VARS...')
-        concept_phylogeny = {}
+        concept_phylogeny = {'Animalia': {}}
         image_records = []
         videos = []
 
