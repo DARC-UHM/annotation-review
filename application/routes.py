@@ -283,9 +283,7 @@ def update_annotation_reviewer():
                     'action': 'ADD'
                 }
                 requests.post(f'{LOCAL_APP_URL}/update-annotation-comment', new_comment)
-                flash('Reviewers successfully updated', 'success')
-            else:
-                flash('Failed to update reviewers - please try again', 'danger')
+                return {}, 200
         elif r.status_code == 201:  # comment added to db, update VARS "comment" field
             new_comment = {
                 'observation_uuid': request.values.get('observation_uuid'),
@@ -293,10 +291,8 @@ def update_annotation_reviewer():
                 'action': 'ADD'
             }
             requests.post(f'{LOCAL_APP_URL}/update-annotation-comment', new_comment)
-            flash('Successfully added for review', 'success')
-        else:  # oh no!
-            flash('Failed to add for review - please try again', 'danger')
-    return redirect(request.values.get('url'))
+            return {}, 201
+        return {}, 500
 
 
 # updates the comment in the vars db to reflect that the record has been added to the comment db

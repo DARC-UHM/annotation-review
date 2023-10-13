@@ -169,17 +169,13 @@ const setCurrentPage = (pageNum) => {
                             : ''}
                         </div>
                         <div class="col values">
-                            ${comments[annotation.observation_uuid].reviewer_comments 
-                            ? 
-                            `${comments[annotation.observation_uuid].reviewer_comments.map(item => {
+                            ${comments[annotation.observation_uuid].reviewer_comments.map(item => {
                                 return item.comment 
                                     ? `${item.comment.length
                                         ? `${item.comment}<br><span class="small fw-normal">- <a href="http://hurlstor.soest.hawaii.edu:5000/review/${item.reviewer}" class="aquaLink" target="_blank">${item.reviewer}</a> ${item.date_modified}</span>`
                                         : 'N/A'}<br><br>`
                                     : `<span class="fw-normal">Awaiting comment from <a href="http://hurlstor.soest.hawaii.edu:5000/review/${item.reviewer}" class="aquaLink" target="_blank">${item.reviewer}</a></span><br><br>`;
-                            }).join('')}`
-                            :
-                            '-'}
+                            }).join('')}
                         </div>
                     </div>
                     ` : '' }
@@ -380,18 +376,6 @@ function addReviewer(reviewerName, firstReviewer) {
     reviewerList($(`#reviewerName${thisReviewerIndex}Button`), recommendedReviewers, $(`#reviewerName${thisReviewerIndex}`));
 }
 
-function loadReviewers() {
-    // loads reviewers to form fields on submit
-    const reviewers = [];
-    for (const item of document.getElementsByClassName('reviewerName')) {
-        reviewers.push(item.innerHTML);
-    }
-    $('#load-overlay').removeClass('loader-bg-hidden');
-    $('#load-overlay').addClass('loader-bg');
-    $('#externalReviewModal').modal('hide');
-    $('#externalReviewers').val(JSON.stringify(reviewers));
-}
-
 function updateHash() {
     const hash = window.location.hash.slice(1);
     const filterPairs = hash.split('&');
@@ -403,8 +387,7 @@ function updateHash() {
 
     $('#sequenceList').empty();
     if (sequences.length) {
-        $('#sequenceList').html(sequences.join(', '));
-        $('#sequenceList').push('<br>');
+        $('#sequenceList').html(`${sequences.join(', ')}<br>`);
     }
 
     for (const pair of filterPairs) {
@@ -417,7 +400,7 @@ function updateHash() {
         }
     }
 
-    $('#sequenceList').append(`<br><span class="small">Filters: ${Object.keys(filter).length ? '' : 'None'}</span>`);
+    $('#sequenceList').append(`<span class="small">Filters: ${Object.keys(filter).length ? '' : 'None'}</span>`);
 
     for (const key of Object.keys(filter)) {
         $('#sequenceList').append(`
@@ -503,11 +486,6 @@ function updateHash() {
         setCurrentPage(1);
     }
 
-    const hashNum = Number(window.location.hash.slice(window.location.hash.indexOf('pg=')).substring(3));
-    if (currentPage !== hashNum) {
-        setCurrentPage(hashNum);
-    }
-
     $('#annotationCount').html(annotationsToDisplay.length);
     $('#annotationCountBottom').html(annotationsToDisplay.length);
     $('#totalPageNum').html(pageCount);
@@ -521,6 +499,48 @@ function updateFlashMessages(msg, cat) {
             <button type="button" class="btn-close small" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     `);
+}
+
+function updateExternalReviewers() {
+    // loads reviewers to form fields and submits form
+    event.preventDefault();
+
+    const reviewers = [];
+    for (const item of document.getElementsByClassName('reviewerName')) {
+        reviewers.push(item.innerHTML);
+    }
+    $('#load-overlay').removeClass('loader-bg-hidden');
+    $('#load-overlay').addClass('loader-bg');
+    $('#externalReviewModal').modal('hide');
+    $('#externalReviewers').val(JSON.stringify(reviewers));
+
+    const formData = new FormData($('#updateExternalReviewerForm')[0]);
+    fetch('/update-annotation-reviewer', {
+        method: 'POST',
+        body: formData,
+    })
+        .then((result) => {
+            const index = annotations.findIndex((anno) => anno.observation_uuid === formData.get('observation_uuid'));
+            if (result.status === 200 || result.status === 201) {
+                if (!comments[formData.get('observation_uuid')]) {
+                    comments[formData.get('observation_uuid')] = {};
+                }
+                fetch(`http://hurlstor.soest.hawaii.edu:5000/comment/get/${formData.get('observation_uuid')}`)
+                    .then((res) => res.json())
+                    .then((data) => {
+                        comments[formData.get('observation_uuid')] = data;
+                        annotations[index].comment = `Added for review: ${reviewers.join(', ')}`; // doesn't accurately reflect data on server, but that's okay
+                        updateFlashMessages(result.status === 200 ? 'Reviewers successfully updated' : 'Successfully added for review', 'success');
+                        updateHash();
+                    })
+                    .catch((err) => console.log(err));
+            } else {
+                updateFlashMessages('Failed to update reviewers - please try again', 'danger');
+            }
+            $('#load-overlay').addClass('loader-bg-hidden');
+            $('#load-overlay').removeClass('loader-bg');
+        })
+        .catch((err) => console.log(err));
 }
 
 function updateAnnotation() {
