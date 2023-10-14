@@ -314,6 +314,13 @@ select:active {
     right: 10px;
 }
 
+.indexButton {
+    font-weight: 600;
+    font-size: 16px;
+    padding: 6px;
+    width: 200px;
+}
+
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
@@ -332,11 +339,6 @@ select:active {
 #index .autocomplete-items {
     width: 250px;
     max-height: 300px;
-}
-
-#goButton {
-    font-weight: 600;
-    font-size: 18px;
 }
 
 #sequenceList {

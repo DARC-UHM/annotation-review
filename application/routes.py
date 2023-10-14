@@ -76,8 +76,8 @@ def index():
     )
 
 
-# view the annotations with images in a specified dive (or dives) with optional filters
-@app.get('/dive')
+# view the annotations with images in a specified dive (or dives)
+@app.get('/image-review')
 def view_images():
     comments = {}
     sequences = request.args.getlist('sequence')
