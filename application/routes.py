@@ -107,6 +107,16 @@ def view_images():
     return render_template('image_review.html', data=data)
 
 
+@app.get('/qaqc')
+def qa_qc():
+    sequences = request.args.getlist('sequence')
+    annotation_count = 0
+    for sequence in sequences:
+        with requests.get(f'http://hurlstor.soest.hawaii.edu:8086/query/dive/{sequence.replace(" ", "%20")}') as r:
+            annotation_count += len(r.json()['annotations'])
+    return render_template('qaqc.html', annotation_count=annotation_count)
+
+
 # displays all comments in the external review db
 @app.get('/external-review')
 def external_review():

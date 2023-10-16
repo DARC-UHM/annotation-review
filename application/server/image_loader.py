@@ -12,15 +12,15 @@ class ImageLoader:
             self.load_images(name)
 
     def load_images(self, name: str):
-        print(f'Fetching annotations for sequence {name} from VARS...')
+        print(f'Fetching annotations for sequence {name} from VARS...', end='')
         concept_phylogeny = {}
         image_records = []
         videos = []
 
         with requests.get(f'http://hurlstor.soest.hawaii.edu:8086/query/dive/{name.replace(" ", "%20")}') as r:
             response = r.json()
-            print('Fetched annotations')
-        print('Processing annotations...')
+            print('fetched!')
+        print('Processing annotations...', end='')
         # get list of video links and start timestamps
         for video in response['media']:
             if 'urn:imagecollection:org' not in video['uri']:
@@ -54,7 +54,7 @@ class ImageLoader:
                             if 'rank' in vars_tree.keys():
                                 concept_phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
                         else:
-                            print(f'Unable to find record for {annotation["concept"]}')
+                            print(f'\nUnable to find record for {annotation["concept"]}')
 
         """
         Define dataframe for sorting data
@@ -225,4 +225,4 @@ class ImageLoader:
                 'recorded_timestamp': parse_datetime(row['recorded_timestamp']).strftime('%d %b %y %H:%M:%S UTC'),
                 'video_sequence_name': row['video_sequence_name']
             })
-        print('Annotations processed')
+        print('processed!')

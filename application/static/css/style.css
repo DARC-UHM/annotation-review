@@ -12,16 +12,10 @@ body {
 }
 
 table {
-    max-width: 1200px;
     color: var(--darc-text) !important;
     --bs-table-striped-color: var(--darc-text) !important;
     vertical-align: middle !important;
     border-bottom: var(--darc-border) !important;
-}
-
-thead, tbody, tfoot, tr, td, th {
-    border-bottom-width: 2px !important;
-    border-bottom-color: var(--darc-border) !important;
 }
 
 ul {
@@ -324,6 +318,15 @@ select:active {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+#annotationTable {
+    max-width: 1200px;
+}
+
+#annotationTable thead, tbody, tfoot, tr, td, th {
+    border-bottom-width: 2px !important;
+    border-bottom-color: var(--darc-border) !important;
 }
 
 #index input {
