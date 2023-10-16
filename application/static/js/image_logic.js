@@ -399,10 +399,10 @@ function updateHash() {
         }
     }
 
-    $('#sequenceList').append(`<span class="small">Filters: ${Object.keys(filter).length ? '' : 'None'}</span>`);
+    $('#sequenceList').append(`<div id="filterList" class="small mt-2">Filters: ${Object.keys(filter).length ? '' : 'None'}</div>`);
 
     for (const key of Object.keys(filter)) {
-        $('#sequenceList').append(`
+        $('#filterList').append(`
             <span class="small filter-pill position-relative">
                 ${key[0].toUpperCase()}${key.substring(1)}: ${filter[key]}
                 <button type="button" class="position-absolute filter-x" onclick="removeFilter('${key}', '${filter[key]}')">×</button>
@@ -410,7 +410,7 @@ function updateHash() {
         `);
     }
 
-    $('#sequenceList').append(`
+    $('#filterList').append(`
         <span id="addFilterRow" class="small ms-3" style="display: none;">
             <form onsubmit="addFilter()" class="d-inline-block">
                 <span class="position-relative">
