@@ -12,6 +12,10 @@
             <div class="loader"></div>
         </div>
     </div>
+    <div id="fireworks" class="pyro" style="display: none;">
+        <div class="before"></div>
+        <div class="after"></div>
+    </div>
     <div class="text-start position-absolute ps-3 small">
         <a href="/" class="aquaLink">
             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16">
@@ -29,144 +33,98 @@
                 </div>
             {% endfor %}
         </div>
-        <div class="col mt-3 m-auto" style="max-width: 1200px;">
+        <div class="col mt-4 m-auto" style="max-width: 800px;">
             <div class="row m-auto">
                 <div class="col-9 text-start">
                     <h3 id="vesselName" class="m-0 p-0 pb-2" style="font-weight: 600;"></h3>
                     <div id="sequenceList"></div>
                 </div>
-                <div class="col-3 text-end mt-auto small">
-                    <div>Total Annotations:&nbsp;&nbsp;<span id="annotationCount" style="font-weight: 600;"></span></div>
-                    <div>Checks Complete: <span>0</span> / <span>15</span></div>
-                </div>
+
             </div>
         </div>
         <div id="404" style="display: none;" class="my-5">
             <h3>No records found for given dive<br></h3>
         </div>
-        <div class="col d-flex justify-content-center mt-3">
-            <table id="checklistTable" class="table text-start">
-                <tr>
-                    <td>No records with multiple associations</td>
-                    <td>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#131818" class="bi bi-square-fill" viewBox="0 0 16 16">
-                          <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2z"/>
-                        </svg>
-                    </td>
-                </tr>
-                <tr>
-                    <td>No records missing primary substrate</td>
-                    <td>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#131818" class="bi bi-square-fill" viewBox="0 0 16 16">
-                          <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2z"/>
-                        </svg>
-                    </td>
-                </tr>
-                <tr>
-                    <td>No records with identical primary and secondary substrates</td>
-                    <td>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#131818" class="bi bi-square-fill" viewBox="0 0 16 16">
-                          <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2z"/>
-                        </svg>
-                    </td>
-                </tr>
-                <tr>
-                    <td>No records with duplicate secondary substrates</td>
-                    <td>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#131818" class="bi bi-square-fill" viewBox="0 0 16 16">
-                          <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2z"/>
-                        </svg>
-                    </td>
-                </tr>
-                <tr>
-                    <td>No records missing a substrate that it is listed "upon"</td>
-                    <td>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#131818" class="bi bi-square-fill" viewBox="0 0 16 16">
-                          <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2z"/>
-                        </svg>
-                    </td>
-                </tr>
-                <tr>
-                    <td>No records occurring at the same timestamp with mismatching substrates</td>
-                    <td>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#131818" class="bi bi-square-fill" viewBox="0 0 16 16">
-                          <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2z"/>
-                        </svg>
-                    </td>
-                </tr>
-                <tr>
-                    <td>No records other than "none" records missing "upon"</td>
-                    <td>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#131818" class="bi bi-square-fill" viewBox="0 0 16 16">
-                          <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2z"/>
-                        </svg>
-                    </td>
-                </tr>
-                <tr>
-                    <td>No records missing ancillary data</td>
-                    <td>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#131818" class="bi bi-square-fill" viewBox="0 0 16 16">
-                          <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2z"/>
-                        </svg>
-                    </td>
-                </tr>
-                <tr>
-                    <td>No records with suspicious a host (concept upon itself)</td>
-                    <td>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#131818" class="bi bi-square-fill" viewBox="0 0 16 16">
-                          <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2z"/>
-                        </svg>
-                    </td>
-                </tr>
-                <tr>
-                    <td>No records with the same ID reference and different concept name</td>
-                    <td>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#131818" class="bi bi-square-fill" viewBox="0 0 16 16">
-                          <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2z"/>
-                        </svg>
-                    </td>
-                </tr>
-                <tr>
-                    <td>No records with the same ID reference have conflicting associations</td>
-                    <td>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#131818" class="bi bi-square-fill" viewBox="0 0 16 16">
-                          <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2z"/>
-                        </svg>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Review records that are expected to be associated with certain taxa</td>
-                    <td>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#131818" class="bi bi-square-fill" viewBox="0 0 16 16">
-                          <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2z"/>
-                        </svg>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Review upon/host record timestamps</td>
-                    <td>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#131818" class="bi bi-square-fill" viewBox="0 0 16 16">
-                          <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2z"/>
-                        </svg>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Review all unique fields (concept names, comments, condition comments, etc)</td>
-                    <td>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#131818" class="bi bi-square-fill" viewBox="0 0 16 16">
-                          <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2z"/>
-                        </svg>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Review all unique host/upon combinations</td>
-                    <td>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#131818" class="bi bi-square-fill" viewBox="0 0 16 16">
-                          <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2z"/>
-                        </svg>
-                    </td>
-                </tr>
-            </table>
+        <div class="mt-3 m-auto" style="max-width: 800px;">
+            <div>
+                <table class="w-100">
+                    <thead>
+                        <tr>
+                            <th class="text-start px-2 pb-2" style="font-weight: 600;"><br>QA/QC Checklist</th>
+                            <th class="text-end" style="font-weight: 400;">
+                                <span class="col-3 text-end mt-auto small">
+                                <span>Total Annotations:&nbsp;&nbsp;<span id="annotationCount" style="font-weight: 600;"></span></span><br>
+                                <span>Checks Complete: <span style="font-weight: 600;"><span id="tasksComplete">0</span> / <span>15</span></span></span>
+                                </span>
+                            </th>
+                        </tr>
+                    </thead>
+                </table>
+                <table id="checklistTable" class="table text-start">
+                    <tbody>
+                        <tr>
+                            <td><a class="aquaLink" href="#">No records with more than one association type other than s2</a></td>
+                            <td id="multipleAssociationCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a class="aquaLink" href="#">No records missing primary substrate</td>
+                            <td id="primarySubstrateCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a class="aquaLink" href="#">No records with identical primary and secondary substrates</a></td>
+                            <td id="identicalS1S2Checkbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a class="aquaLink" href="#">No records with duplicate secondary substrates</a></td>
+                            <td id="duplicateS2Checkbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a class="aquaLink" href="#">No records missing a substrate that it is recorded "upon"</a></td>
+                            <td id="uponSubstrateCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a class="aquaLink" href="#">No records occurring at the same timestamp with mismatching substrates</a></td>
+                            <td id="timestampSubstrateCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a class="aquaLink" href="#">No records other than "none" records missing "upon"</a></td>
+                            <td id="missingUponCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a class="aquaLink" href="#">No records missing ancillary data</a></td>
+                            <td id="missingAncillaryCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a class="aquaLink" href="#">No records with the same ID reference and different concept name</a></td>
+                            <td id="refIdConceptNameCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a class="aquaLink" href="#">No records with the same ID reference have conflicting associations</a></td>
+                            <td id="refIdAssociationsCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a class="aquaLink" href="#">Review records with a suspicious host (concept upon itself)</a></td>
+                            <td id="suspiciousHostCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a class="aquaLink" href="#">Review records that are expected to be associated with certain taxa</a></td>
+                            <td id="expectedAssociationCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a class="aquaLink" href="#">Review upon/host record timestamps</a></td>
+                            <td id="timeDiffHostUponCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a class="aquaLink" href="#">Review all unique fields (concept names, comments, condition comments, etc)</a></td>
+                            <td id="uniqueFieldsCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a class="aquaLink" href="#">Review all unique host/upon combinations</a></td>
+                            <td id="uniqueHostUponCheckbox" class="qaqcCheckbox"></td>
+                       </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
         <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg">
