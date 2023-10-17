@@ -104,17 +104,17 @@ def view_images():
         'reviewers': _reviewers,
         'comments': comments
     }
-    return render_template('image_review.html', data=data)
+    return render_template('image-review.html', data=data)
 
 
-@app.get('/qaqc')
+@app.get('/qaqc-checklist')
 def qa_qc():
     sequences = request.args.getlist('sequence')
     annotation_count = 0
     for sequence in sequences:
         with requests.get(f'http://hurlstor.soest.hawaii.edu:8086/query/dive/{sequence.replace(" ", "%20")}') as r:
             annotation_count += len(r.json()['annotations'])
-    return render_template('qaqc.html', annotation_count=annotation_count)
+    return render_template('qaqc-checklist.html', annotation_count=annotation_count)
 
 
 # displays all comments in the external review db
@@ -144,7 +144,7 @@ def external_review():
         'reviewers': _reviewers,
         'comments': comments
     }
-    return render_template('image_review.html', data=data)
+    return render_template('image-review.html', data=data)
 
 
 # syncs ctd from vars db with external review db
@@ -223,7 +223,7 @@ def reviewers():
         print('\nERROR: unable to connect to external review server\n')
         flash('Unable to connect to external review server', 'danger')
         return redirect('/')
-    return render_template('reviewers.html', reviewers=reviewer_list)
+    return render_template('external-reviewers.html', reviewers=reviewer_list)
 
 
 # update a reviewer's information

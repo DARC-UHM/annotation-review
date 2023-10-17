@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>DARC QA/QC</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/static/css/bootstrap.css" />
+    <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+    <div id="load-overlay" class="loader-bg-hidden">
+        <div class="col d-flex justify-content-center">
+            <div class="loader"></div>
+        </div>
+    </div>
+    <div id="fireworks" class="pyro" style="display: none;">
+        <div class="before"></div>
+        <div class="after"></div>
+    </div>
+    <div class="text-start position-absolute ps-3 small">
+        <a href="/" class="aquaLink">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+            </svg>
+            <span style="transform: translate(0, 50%);">Home</span>
+        </a>
+    </div>
+    <div class="text-center my-3 mx-5">
+        <div id="flash-messages-container">
+            {% for cat, msg in get_flashed_messages(with_categories=true) %}
+                <div class="alert alert-{{ cat }} alert-dismissible px-5" style="position:fixed; left: 50%; transform: translate(-50%, 0);">
+                    <span class="px-2" style="font-weight: 500;">{{ msg }}</span>
+                    <button type="button" class="btn-close small" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="col mt-4 m-auto" style="max-width: 800px;">
+            <div class="row m-auto">
+                <div class="col-9 text-start">
+                    <h3 id="vesselName" class="m-0 p-0 pb-2" style="font-weight: 600;"></h3>
+                    <div id="sequenceList"></div>
+                </div>
+
+            </div>
+        </div>
+        <div id="404" style="display: none;" class="my-5">
+            <h3>No records found for given dive<br></h3>
+        </div>
+        <div class="m-auto" style="max-width: 800px;">
+            <div>
+                <table class="w-100">
+                    <thead>
+                        <tr>
+                            <th class="text-start" style="font-weight: 600; padding-left: 10px;">QA/QC Checklist</th>
+                            <th class="text-end pb-2 px-2" style="font-weight: 400;">
+                                <span class="col-3 text-end mt-auto small">
+                                <span>Total Annotations:&nbsp;&nbsp<span id="annotationCount" style="font-weight: 600;"></span></span><br>
+                                <span>Checks Complete: &nbsp<span style="font-weight: 600;"><span id="tasksComplete">0</span> / <span>15</span></span></span>
+                                </span>
+                            </th>
+                        </tr>
+                    </thead>
+                </table>
+                <table id="checklistTable" class="table text-start">
+                    <tbody>
+                        <tr>
+                            <td><a id="multipleAssociationAnchor" class="aquaLink">No records with more than one association type other than s2</a></td>
+                            <td id="multipleAssociationCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a id="primarySubstrateAnchor" class="aquaLink">No records missing primary substrate</td>
+                            <td id="primarySubstrateCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a id="identicalS1S2Anchor" class="aquaLink">No records with identical primary and secondary substrates</a></td>
+                            <td id="identicalS1S2Checkbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a id="duplicateS2Anchor" class="aquaLink">No records with duplicate secondary substrates</a></td>
+                            <td id="duplicateS2Checkbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a id="uponSubstrateAnchor" class="aquaLink">No records missing a substrate that it is recorded "upon"</a></td>
+                            <td id="uponSubstrateCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a id="timestampSubstrateAnchor" class="aquaLink">No records occurring at the same timestamp with mismatching substrates</a></td>
+                            <td id="timestampSubstrateCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a id="missingUponAnchor" class="aquaLink">No records other than "none" records missing "upon"</a></td>
+                            <td id="missingUponCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a id="missingAncillaryAnchor" class="aquaLink">No records missing ancillary data</a></td>
+                            <td id="missingAncillaryCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a id="refIdConceptNameAnchor" class="aquaLink">No records with the same ID reference and different concept name</a></td>
+                            <td id="refIdConceptNameCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a id="refIdAssociationsAnchor" class="aquaLink">No records with the same ID reference have conflicting associations</a></td>
+                            <td id="refIdAssociationsCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a id="suspiciousHostAnchor" class="aquaLink">Review records with a suspicious host (concept upon itself)</a></td>
+                            <td id="suspiciousHostCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a id="expectedAssociationAnchor" class="aquaLink">Review records that are expected to be associated with certain taxa</a></td>
+                            <td id="expectedAssociationCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a id="timeDiffHostUponAnchor" class="aquaLink">Review upon/host record timestamps</a></td>
+                            <td id="timeDiffHostUponCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a id="uniqueFieldsAnchor" class="aquaLink">Review all unique fields (concept names, comments, condition comments, etc)</a></td>
+                            <td id="uniqueFieldsCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a id="uniqueHostUponAnchor" class="aquaLink">Review all unique host/upon combinations</a></td>
+                            <td id="uniqueHostUponCheckbox" class="qaqcCheckbox"></td>
+                       </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/bootstrap.bundle.js"></script>
+    <script src="/static/js/autocomplete.js"></script>
+    <script>
+        const annotationCount = {{ annotation_count }};
+    </script>
+    <script src="/static/js/qaqc-checklist.js"></script>
+</body>
+</html>

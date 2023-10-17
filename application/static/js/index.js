@@ -57,7 +57,7 @@ $('#qaqcButton').on('click', () => {
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
     const sequences = new FormData($('#indexForm')[0]).getAll('sequence');
-    window.location.href = `/qaqc?sequence=${sequences.join('&sequence=')}`;
+    window.location.href = `/qaqc-checklist?sequence=${sequences.join('&sequence=')}`;
 });
 
 $('#sequence1').on('input', checkSequence);

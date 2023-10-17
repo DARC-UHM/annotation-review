@@ -2,7 +2,7 @@ const checkboxBlank = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height
                          <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2z"/>
                        </svg>`;
 
-const checkboxInProgress = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="#c2b458" class="bi bi-dash-square-fill" viewBox="0 0 16 16">
+const checkboxInProgress = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="#c7b636" class="bi bi-dash-square-fill" viewBox="0 0 16 16">
                               <path d="M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2zm2.5 7.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1 0-1z"/>
                             </svg>`;
 
@@ -54,17 +54,15 @@ document.addEventListener('DOMContentLoaded', function(event) {
     const sequences = [];
     let vesselName;
 
-    for (const pair of url.searchParams.entries()) {
-        if (pair[0].includes('sequence')) {
-            const param = pair[1].split(' ');
-            sequences.push(param.pop());
-            if (!vesselName) {
-                vesselName = param.join(' ');
-            }
+    for (const pair of url.searchParams.entries()) { // the only search params we expect here are sequences
+        sequences.push(pair[1]);
+        if (!vesselName) {
+            vesselName = pair[1].split(' ').slice(0, -1).join(' ');
         }
     }
+    console.log(sequences);
     $('#vesselName').html(vesselName);
-    $('#sequenceList').html(`${sequences.join(', ')}<br>`);
+    $('#sequenceList').html(sequences.map((seq) => seq.split(' ').slice(-1)).join(', '));
 
     $('#annotationCount').html(annotationCount);
 
@@ -82,5 +80,21 @@ document.addEventListener('DOMContentLoaded', function(event) {
            updateTaskCount();
         });
     }
+
+    $('#multipleAssociationAnchor').attr('href', `/qaqc?check=multiple-associations&sequence=${sequences.join('&sequence=')}`);
+    $('#primarySubstrateAnchor').attr('href', `/qaqc?check=primary-substrate&sequence=${sequences.join('&sequence=')}`);
+    $('#identicalS1S2Anchor').attr('href', `/qaqc?check=identical-s1-s2&sequence=${sequences.join('&sequence=')}`);
+    $('#duplicateS2Anchor').attr('href', `/qaqc?check=duplicate-s2&sequence=${sequences.join('&sequence=')}`);
+    $('#uponSubstrateAnchor').attr('href', `/qaqc?check=upon-substrate&sequence=${sequences.join('&sequence=')}`);
+    $('#timestampSubstrateAnchor').attr('href', `/qaqc?check=timestamp-substrate&sequence=${sequences.join('&sequence=')}`);
+    $('#missingUponAnchor').attr('href', `/qaqc?check=missing-upon&sequence=${sequences.join('&sequence=')}`);
+    $('#missingAncillaryAnchor').attr('href', `/qaqc?check=missing-ancillary-date&sequence=${sequences.join('&sequence=')}`);
+    $('#refIdConceptNameAnchor').attr('href', `/qaqc?check=id-ref-concept-name&sequence=${sequences.join('&sequence=')}`);
+    $('#refIdAssociationsAnchor').attr('href', `/qaqc?check=id-ref-associations&sequence=${sequences.join('&sequence=')}`);
+    $('#suspiciousHostAnchor').attr('href', `/qaqc?check=suspicious-hosts&sequence=${sequences.join('&sequence=')}`);
+    $('#expectedAssociationAnchor').attr('href', `/qaqc?check=expected-associations&sequence=${sequences.join('&sequence=')}`);
+    $('#timeDiffHostUponAnchor').attr('href', `/qaqc?check=host-upon-time-diff&sequence=${sequences.join('&sequence=')}`);
+    $('#uniqueFieldsAnchor').attr('href', `/qaqc?check=unique-fields&sequence=${sequences.join('&sequence=')}`);
+    $('#uniqueHostUponAnchor').attr('href', `/qaqc?check=unique-host-upon&sequence=${sequences.join('&sequence=')}`);
 
 });
