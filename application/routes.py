@@ -123,10 +123,14 @@ def qaqc_checklist():
 @app.get('/qaqc/<check>')
 def qaqc(check):
     sequences = request.args.getlist('sequence')
-    annotation_df = QaqcProcessor(sequences)
-    annotation_df.duplicate_associations_check()
-    print(check)
-    return {}
+    qaqc_annos = QaqcProcessor(sequences)
+    match check:
+        case 'multiple-associations':
+            qaqc_annos.find_duplicate_associations()
+        case _:
+            problem_children = []
+
+    return render_template('qaqc.html', annotations=qaqc_annos.annotation_df, title=check.replace('-', ' ').title())
 
 
 # displays all comments in the external review db
