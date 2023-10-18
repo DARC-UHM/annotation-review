@@ -5,8 +5,9 @@ from flask import render_template, request, redirect, flash
 from dotenv import load_dotenv
 
 from application import app
-from application.server.comment_loader import CommentLoader
-from application.server.image_loader import ImageLoader
+from application.server.image_processor import ImageProcessor
+from application.server.comment_processor import CommentProcessor
+from application.server.qaqc_processor import QaqcProcessor
 from application.server.annosaurus import *
 
 load_dotenv()
@@ -95,7 +96,7 @@ def view_images():
         _reviewers = []
         print('\nERROR: unable to connect to external review server\n')
     # get images in sequence
-    image_loader = ImageLoader(sequences)
+    image_loader = ImageProcessor(sequences)
     if len(image_loader.distilled_records) < 1:
         return render_template('404.html', err='pics'), 404
     data = {
@@ -107,8 +108,9 @@ def view_images():
     return render_template('image-review.html', data=data)
 
 
+# qaqc checklist page
 @app.get('/qaqc-checklist')
-def qa_qc():
+def qaqc_checklist():
     sequences = request.args.getlist('sequence')
     annotation_count = 0
     for sequence in sequences:
@@ -117,9 +119,20 @@ def qa_qc():
     return render_template('qaqc-checklist.html', annotation_count=annotation_count)
 
 
+# individual qaqc checks
+@app.get('/qaqc/<check>')
+def qaqc(check):
+    sequences = request.args.getlist('sequence')
+    annotation_df = QaqcProcessor(sequences)
+    annotation_df.duplicate_associations_check()
+    print(check)
+    return {}
+
+
 # displays all comments in the external review db
 @app.get('/external-review')
 def external_review():
+    comments = []
     # get list of reviewers from external review db
     try:
         with requests.get(f'{DARC_REVIEW_URL}/reviewer/all') as r:
@@ -129,11 +142,11 @@ def external_review():
             req = requests.get(f'{DARC_REVIEW_URL}/comment/unread')
         else:
             req = requests.get(f'{DARC_REVIEW_URL}/comment/all')
+        comments = req.json()
     except requests.exceptions.ConnectionError:
         _reviewers = []
         print('\nERROR: unable to connect to external review server\n')
-    comments = req.json()
-    comment_loader = CommentLoader(comments)
+    comment_loader = CommentProcessor(comments)
     if len(comment_loader.annotations) < 1:
         if request.args.get('unread'):
             return render_template('404.html', err='unread'), 404

@@ -81,20 +81,20 @@ document.addEventListener('DOMContentLoaded', function(event) {
         });
     }
 
-    $('#multipleAssociationAnchor').attr('href', `/qaqc?check=multiple-associations&sequence=${sequences.join('&sequence=')}`);
-    $('#primarySubstrateAnchor').attr('href', `/qaqc?check=primary-substrate&sequence=${sequences.join('&sequence=')}`);
-    $('#identicalS1S2Anchor').attr('href', `/qaqc?check=identical-s1-s2&sequence=${sequences.join('&sequence=')}`);
-    $('#duplicateS2Anchor').attr('href', `/qaqc?check=duplicate-s2&sequence=${sequences.join('&sequence=')}`);
-    $('#uponSubstrateAnchor').attr('href', `/qaqc?check=upon-substrate&sequence=${sequences.join('&sequence=')}`);
-    $('#timestampSubstrateAnchor').attr('href', `/qaqc?check=timestamp-substrate&sequence=${sequences.join('&sequence=')}`);
-    $('#missingUponAnchor').attr('href', `/qaqc?check=missing-upon&sequence=${sequences.join('&sequence=')}`);
-    $('#missingAncillaryAnchor').attr('href', `/qaqc?check=missing-ancillary-date&sequence=${sequences.join('&sequence=')}`);
-    $('#refIdConceptNameAnchor').attr('href', `/qaqc?check=id-ref-concept-name&sequence=${sequences.join('&sequence=')}`);
-    $('#refIdAssociationsAnchor').attr('href', `/qaqc?check=id-ref-associations&sequence=${sequences.join('&sequence=')}`);
-    $('#suspiciousHostAnchor').attr('href', `/qaqc?check=suspicious-hosts&sequence=${sequences.join('&sequence=')}`);
-    $('#expectedAssociationAnchor').attr('href', `/qaqc?check=expected-associations&sequence=${sequences.join('&sequence=')}`);
-    $('#timeDiffHostUponAnchor').attr('href', `/qaqc?check=host-upon-time-diff&sequence=${sequences.join('&sequence=')}`);
-    $('#uniqueFieldsAnchor').attr('href', `/qaqc?check=unique-fields&sequence=${sequences.join('&sequence=')}`);
-    $('#uniqueHostUponAnchor').attr('href', `/qaqc?check=unique-host-upon&sequence=${sequences.join('&sequence=')}`);
+    $('#multipleAssociationAnchor').attr('href', `/qaqc/multiple-associations?sequence=${sequences.join('&sequence=')}`);
+    $('#primarySubstrateAnchor').attr('href', `/qaqc/primary-substrate?sequence=${sequences.join('&sequence=')}`);
+    $('#identicalS1S2Anchor').attr('href', `/qaqc/identical-s1-s2?sequence=${sequences.join('&sequence=')}`);
+    $('#duplicateS2Anchor').attr('href', `/qaqc/duplicate-s2?sequence=${sequences.join('&sequence=')}`);
+    $('#uponSubstrateAnchor').attr('href', `/qaqc/upon-substrate?sequence=${sequences.join('&sequence=')}`);
+    $('#timestampSubstrateAnchor').attr('href', `/qaqc/timestamp-substrate?sequence=${sequences.join('&sequence=')}`);
+    $('#missingUponAnchor').attr('href', `/qaqc/missing-upon?sequence=${sequences.join('&sequence=')}`);
+    $('#missingAncillaryAnchor').attr('href', `/qaqc/missing-ancillary-date?sequence=${sequences.join('&sequence=')}`);
+    $('#refIdConceptNameAnchor').attr('href', `/qaqc/id-ref-concept-name?sequence=${sequences.join('&sequence=')}`);
+    $('#refIdAssociationsAnchor').attr('href', `/qaqc/id-ref-associations?sequence=${sequences.join('&sequence=')}`);
+    $('#suspiciousHostAnchor').attr('href', `/qaqc/suspicious-hosts?sequence=${sequences.join('&sequence=')}`);
+    $('#expectedAssociationAnchor').attr('href', `/qaqc/expected-associations?sequence=${sequences.join('&sequence=')}`);
+    $('#timeDiffHostUponAnchor').attr('href', `/qaqc/host-upon-time-diff?sequence=${sequences.join('&sequence=')}`);
+    $('#uniqueFieldsAnchor').attr('href', `/qaqc/unique-fields?sequence=${sequences.join('&sequence=')}`);
+    $('#uniqueHostUponAnchor').attr('href', `/qaqc/unique-host-upon?sequence=${sequences.join('&sequence=')}`);
 
 });

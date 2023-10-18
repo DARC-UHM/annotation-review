@@ -4,7 +4,11 @@ import pandas as pd
 from .functions import *
 
 
-class ImageLoader:
+class ImageProcessor:
+    """
+    Fetches annotation information from the VARS db on HURLSTOR given a list of sequences. Cleans, formats, and sorts
+    the annotation data for display on the image review pages.
+    """
 
     def __init__(self, sequence_names: list):
         self.distilled_records = []
@@ -13,7 +17,7 @@ class ImageLoader:
 
     def load_images(self, name: str):
         print(f'Fetching annotations for sequence {name} from VARS...', end='')
-        concept_phylogeny = {}
+        concept_phylogeny = {'Animalia': {}}
         image_records = []
         videos = []
 
@@ -45,8 +49,7 @@ class ImageLoader:
                         if vars_tax_res.status_code == 200:
                             # this get us to phylum
                             vars_tree = \
-                                vars_tax_res.json()['children'][0]['children'][0]['children'][0]['children'][0][
-                                    'children'][0]
+                                vars_tax_res.json()['children'][0]['children'][0]['children'][0]['children'][0]['children'][0]
                             while 'children' in vars_tree.keys():
                                 if 'rank' in vars_tree.keys():  # sometimes it's not
                                     concept_phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
