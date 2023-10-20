@@ -49,7 +49,6 @@ function updateHash() {
     }
 
     if (filterPairs[0].length) {
-        console.log(filterPairs)
         sortBy(filterPairs[0].split('=')[1]);
     }
 
@@ -77,114 +76,52 @@ function updateHash() {
 
     $('#annotationTable').append('<tbody class="text-start"></tbody>');
 
-    annotationsToDisplay.forEach((annotation) => {
+    annotationsToDisplay.forEach((annotation, index) => {
+        console.log(annotation)
+        let occurrenceRemarks = 'N/A';
+        // get occurrence remarks
+        annotation.associations.forEach((ass) => {
+            if (ass.link_name === 'occurrence-remark') {
+                occurrenceRemarks = ass.link_value;
+            }
+        });
         $('#annotationTable').find('tbody').append(`
         <tr>
             <td class="ps-5">
-                <div class="row">
-                    <div class="col-4">
-                        Concept:
-                    </div>
-                    <div class="col values">
-                        ${annotation.concept}<br>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-4">
-                        Annotator:
-                    </div>
-                    <div class="col values">
-                        ${annotation.annotator}<br>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-4">
-                        ID certainty:<br>
-                    </div>
-                    <div class="col values">
-                        ${annotation.identity_certainty ? annotation.identity_certainty : '-'}<br>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-4">
-                        ID reference:<br>
-                    </div>
-                    <div class="col values">
-                        ${annotation.identity_reference ? annotation.identity_reference : '-'}<br>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-4">
-                        Upon:<br>
-                    </div>
-                    <div class="col values">
-                        ${annotation.upon ? annotation.upon : '-'}<br>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-4">
-                        Comments:<br>
-                    </div>
-                    <div class="col values">
-                        ${annotation.comment ? annotation.comment : '-'}<br>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-4">
-                        Guide photo:<br>
-                    </div>
-                    <div class="col values">
-                        ${annotation.guide_photo ? annotation.guide_photo : '-'}<br>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-4">
-                        Depth:
-                    </div>
-                    <div class="col values">
-                        ${annotation.depth || '?'} m<br>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-4">
-                        Timestamp:
-                    </div>
-                    <div class="col values">
-                        ${annotation.recorded_timestamp}<br>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-4">
-                        Video sequence:
-                    </div>
-                    <div class="col values">
-                        ${annotation.video_sequence_name}<br>
-                    </div>
-                </div>
-               
-                <div class="row mt-2">
-                    <div class="col-4">
-                        <button 
-                            type="button" 
-                            data-bs-toggle="modal" 
-                            data-anno='${ JSON.stringify(annotation) }' 
-                            data-bs-target="#editModal" 
-                            class="editButton">
-                                Edit annotation
-                        </button>
-                        <br>
-                        <a class="editButton" href="${annotation.video_url}" target="_blank">See video</a>
-                        <br>
-                    </div>
-                </div>
+                <div style="font-weight: 500; font-size: 18px;">${annotation.concept}</div>
+                <div class="small">${annotation.recorded_timestamp}<br>${annotation.video_sequence_name}<br>${annotation.annotator}</div>
+                <div class="small">Remarks: ${occurrenceRemarks}</div>
             </td>
-            <td class="text-center">
-                <a href="${annotation.image_url}" target="_blank">
-                    <img src="${annotation.image_url}" style="width: 580px;"/>
-                </a>
+            <td class="small"><div id="problemsDiv${index}"></div></td>
+            <td class="text-center small">
+                ${annotation.image_url
+                    ? `<a href="${annotation.image_url}" target="_blank"><img src="${annotation.image_url}" style="width: 200px;"/></a><br>` 
+                    : `<div class="text=center pt-5 m-auto" style="width: 200px; height: 110px; background: #1e2125; color: #9f9f9f;">No image</div>`
+                }
+                <a class="editButton" href="${annotation.video_url}" target="_blank">See video</a><br>
+                <button 
+                    type="button" 
+                    data-bs-toggle="modal" 
+                    data-anno='${ JSON.stringify(annotation) }' 
+                    data-bs-target="#editModal" 
+                    class="editButton">Edit annotation</button>
             </td>
         </tr>
         `);
+        // get qaqc items
+        switch (title) {
+            case 'Multiple Associations':
+                $(`#problemsDiv${index}`).append(`
+                    <table id="associationTable${index}" class="w-100">
+                        <thead><tr><th>Link Name</th><th>To Concept</th><th>Link Value</th></tr></thead>
+                    </table>
+                `);
+                const sortedAssociations = annotation.associations.sort((a, b) => (a.link_name > b.link_name) ? 1 : ((b.link_name > a.link_name) ? -1 : 0));
+                sortedAssociations.forEach((ass) => {
+                    $(`#associationTable${index}`).append(`<tr><td>${ass.link_name}</td><td>${ass.to_concept}</td><td>${ass.link_value}</td></tr>`);
+                });
+                break;
+        }
     });
 }
 
