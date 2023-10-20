@@ -164,9 +164,6 @@ document.addEventListener('DOMContentLoaded', function(event) {
     let vesselName;
     let unread = false;
 
-    autocomplete(document.getElementById('editConceptName'), allConcepts);
-    autocomplete(document.getElementById('editUpon'), allConcepts);
-
     for (const pair of url.searchParams.entries()) {
         if (pair[0].includes('sequence')) {
             const param = pair[1].split(' ');
@@ -198,66 +195,48 @@ window.onhashchange = () => {
 
 // get the annotation data and add it to the modal
 $(document).ready(function () {
-
     $('#editModal').on('show.bs.modal', function (e) {
         const annotation = $(e.relatedTarget).data('anno');
+        const sortedAssociations = annotation.associations.sort((a, b) => (a.link_name > b.link_name) ? 1 : ((b.link_name > a.link_name) ? -1 : 0));
+        $('#editModalFields').empty();
+        $('#editModalFields').append(`
+            <div class="row pb-2">
+                <div class="col-4 ms-4 ps-4 modal-label">
+                    Concept:
+                </div>
+                <div class="col">
+                    <input type="text" id="editConceptName" name="concept" class="modal-text">
+                </div>
+            </div>
+        `);
         const conceptNameField = $(this).find('#editConceptName');
-        const uponField = $(this).find('#editUpon');
-
+        autocomplete(document.getElementById('editConceptName'), allConcepts);
         conceptNameField.val(annotation.concept);
-        uponField.val(annotation.upon);
-        $(this).find('#editIdCert').val(annotation.identity_certainty);
-        $(this).find('#editIdRef').val(annotation.identity_reference);
-        $(this).find('#editComments').val(annotation.comment);
-        $(this).find('#editObservationUuid').val(annotation.observation_uuid);
-
         conceptNameField.on('input', () => validateName(conceptNameField.val()));
         conceptNameField.on('change', () => validateName(conceptNameField.val()));
-        uponField.on('input', () => validateName(uponField.val()));
-        uponField.on('change', () => validateName(uponField.val()));
 
-        document.getElementById("editGuidePhoto").options.length = 0; // clear options
-        const guidePhotoSelect = $(this).find('#editGuidePhoto');
-        for (val of guidePhotoVals) { // append options back on with matching option selected
-            const opt = $('<option/>', { value: val })
-                .text(val)
-                .prop('selected', annotation.guide_photo === val || val === '' && !annotation.guide_photo);
-            opt.appendTo(guidePhotoSelect);
-        }
+        sortedAssociations.forEach((ass, index) => {
+            $('#editModalFields').append(`
+                <div class="row pb-2">
+                    <div class="col-4 ms-4 ps-4 modal-label">
+                        ${ass.link_name}:
+                    </div>
+                    <div class="col">
+                        <input type="text" id="${ass.link_name}-${index}" name="${ass.link_name}-${index}" class="modal-text">
+                    </div>
+                </div>
+            `);
+            if (ass.to_concept === 'self'){
+                $(`#${ass.link_name}-${index}`).val(ass.link_value);
+            } else {
+                const field = $(`#${ass.link_name}-${index}`);
+                field.val(ass.to_concept);
+                field.on('input', () => validateName(field.val()));
+                field.on('change', () => validateName(field.val()));
+                autocomplete(document.getElementById(`${ass.link_name}-${index}`), allConcepts);
+            }
+        });
 
-        $('#editUrl').val(window.location.href);
-    });
-
-    $('#externalReviewModal').on('show.bs.modal', (e) => {
-        currentAnnotation = $(e.relatedTarget).data('anno');
-        $('#externalModalSubmitButton').prop('disabled', true);
-        addReviewer(null, true);
-
-        $('#externalUrl').val(window.location.href);
-        $('#externalObservationUuid').val(currentAnnotation.observation_uuid);
-        $('#externalSequence').val(currentAnnotation.video_sequence_name);
-        $('#externalTimestamp').val(currentAnnotation.recorded_timestamp);
-        $('#externalImageUrl').val(currentAnnotation.image_url);
-        $('#externalConcept').val(currentAnnotation.concept);
-        $('#externalVideoUrl').val(currentAnnotation.video_url);
-        $('#externalAnnotator').val(currentAnnotation.annotator);
-        $('#externalIdRef').val(`${currentAnnotation.video_sequence_name.slice(-2)}:${currentAnnotation.identity_reference}`);
-        $('#externalLat').val(currentAnnotation.lat);
-        $('#externalLong').val(currentAnnotation.long);
-        $('#externalDepth').val(currentAnnotation.depth);
-    });
-
-    $('#externalReviewModal').on('hide.bs.modal', () => {
-        currentAnnotation = null;
-        totalReviewers = 0;
-        reviewerIndex = 0;
-
-        // clear the reviewer list from the modal
-        $('#reviewerList').empty();
-    })
-
-    $('#deleteReviewModal').on('show.bs.modal', function (e) {
-        $('#externalDeleteUrl').val(window.location.href);
-        $('#externalDeleteUuid').val($(e.relatedTarget).data('anno').observation_uuid);
+        $(this).find('#editObservationUuid').val(annotation.observation_uuid);
     });
 });

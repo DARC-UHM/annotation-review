@@ -731,8 +731,6 @@ $(document).ready(function () {
                 .prop('selected', annotation.guide_photo === val || val === '' && !annotation.guide_photo);
             opt.appendTo(guidePhotoSelect);
         }
-
-        $('#editUrl').val(window.location.href);
     });
 
     $('#externalReviewModal').on('show.bs.modal', (e) => {
