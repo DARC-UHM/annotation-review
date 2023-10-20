@@ -14,7 +14,11 @@ class QaqcProcessor:
         self.sequence_names = sequence_names
         self.videos = []
         self.working_records = []
-        self.annotation_df = pd.DataFrame(columns=[
+        self.final_records = []
+
+    def process_records(self):
+        concept_phylogeny = {'Animalia': {}, 'none': {}}
+        annotation_df = pd.DataFrame(columns=[
             'observation_uuid',
             'concept',
             'associations',
@@ -42,8 +46,6 @@ class QaqcProcessor:
             'species'
         ])
 
-    def process_records(self):
-        concept_phylogeny = {'Animalia': {}, 'none': {}}
         for annotation in self.working_records:
             concept_name = annotation['concept']
             if concept_name not in concept_phylogeny.keys():
@@ -157,9 +159,9 @@ class QaqcProcessor:
                 'species'
             ])
 
-            self.annotation_df = pd.concat([self.annotation_df, temp_df], ignore_index=True)
+            annotation_df = pd.concat([annotation_df, temp_df], ignore_index=True)
 
-        self.annotation_df = self.annotation_df.sort_values(by=[
+        annotation_df = annotation_df.sort_values(by=[
             'phylum',
             'subphylum',
             'superclass',
@@ -178,7 +180,26 @@ class QaqcProcessor:
             'recorded_timestamp'
         ])
 
-        print(self.annotation_df)
+        for index, row in annotation_df.iterrows():
+            self.final_records.append({
+                'observation_uuid': row['observation_uuid'],
+                'concept': row['concept'],
+                'annotator': row['annotator'],
+                'depth': row['depth'],
+                'lat': row['lat'],
+                'long': row['long'],
+                'phylum': row['phylum'],
+                'class': row['class'],
+                'order': row['order'],
+                'family': row['family'],
+                'genus': row['genus'],
+                'species': row['species'],
+                'image_url': row['image_url'],
+                'video_url': row['video_url'],
+                'recorded_timestamp': parse_datetime(row['recorded_timestamp']).strftime('%d %b %y %H:%M:%S UTC'),
+                'video_sequence_name': row['video_sequence_name'],
+                'associations': row['associations']
+            })
 
     def find_duplicate_associations(self):
         for name in self.sequence_names:

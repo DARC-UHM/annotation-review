@@ -28,14 +28,6 @@ else:
 
 app.secret_key = 'darc'
 
-# get concept list from vars (for input validation)
-with requests.get(f'{HURLSTOR_URL}:8083/kb/v1/concept') as r:
-    vars_concepts = r.json()
-
-# get list of sequences from vars
-with requests.get(f'{HURLSTOR_URL}:8084/vam/v1/videosequences/names') as r:
-    video_sequences = r.json()
-
 
 @app.route('/favicon.ico')
 def favicon():
@@ -44,6 +36,9 @@ def favicon():
 
 @app.route('/')
 def index():
+    # get list of sequences from vars
+    with requests.get(f'{HURLSTOR_URL}:8084/vam/v1/videosequences/names') as r:
+        video_sequences = r.json()
     try:
         with requests.get(f'{DARC_REVIEW_URL}/comment/unread') as r:
             try:
@@ -82,6 +77,12 @@ def index():
 def view_images():
     comments = {}
     sequences = request.args.getlist('sequence')
+    # get list of sequences from vars
+    with requests.get(f'{HURLSTOR_URL}:8084/vam/v1/videosequences/names') as r:
+        video_sequences = r.json()
+    # get concept list from vars (for input validation)
+    with requests.get(f'{HURLSTOR_URL}:8083/kb/v1/concept') as r:
+        vars_concepts = r.json()
     # get list of reviewers from external review db
     try:
         with requests.get(f'{DARC_REVIEW_URL}/reviewer/all') as r:
@@ -124,19 +125,31 @@ def qaqc_checklist():
 def qaqc(check):
     sequences = request.args.getlist('sequence')
     qaqc_annos = QaqcProcessor(sequences)
+    problem_children = []  # the list of annotations to be qa/qc'd
+    # get concept list from vars (for input validation)
+    with requests.get(f'{HURLSTOR_URL}:8083/kb/v1/concept') as r:
+        vars_concepts = r.json()
     match check:
         case 'multiple-associations':
             qaqc_annos.find_duplicate_associations()
+            problem_children = qaqc_annos.final_records
         case _:
             problem_children = []
-
-    return render_template('qaqc.html', annotations=qaqc_annos.annotation_df, title=check.replace('-', ' ').title())
+    data = {
+        'title': check.replace('-', ' ').title(),
+        'annotations': problem_children,
+        'concepts': vars_concepts,
+    }
+    return render_template('qaqc.html', data=data)
 
 
 # displays all comments in the external review db
 @app.get('/external-review')
 def external_review():
     comments = []
+    # get concept list from vars (for input validation)
+    with requests.get(f'{HURLSTOR_URL}:8083/kb/v1/concept') as r:
+        vars_concepts = r.json()
     # get list of reviewers from external review db
     try:
         with requests.get(f'{DARC_REVIEW_URL}/reviewer/all') as r:
