@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
             vesselName = pair[1].split(' ').slice(0, -1).join(' ');
         }
     }
-    console.log(sequences);
+
     $('#vesselName').html(vesselName);
     $('#sequenceList').html(sequences.map((seq) => seq.split(' ').slice(-1)).join(', '));
 
@@ -72,7 +72,9 @@ document.addEventListener('DOMContentLoaded', function(event) {
         $('#404').hide();
     }
 
+    // check local storage for checkbox status, load values to checkboxes
     for (const checkbox of Object.keys(checkboxStatus)) {
+        checkboxStatus[checkbox] = parseInt(localStorage.getItem(`${vesselName[0]}${sequences.map((seq) => seq.split(' ').slice(-1)).join('&')}-${checkbox}`)) || 0;
         $(`#${checkbox}`).html(updateCheckbox(checkbox));
         $(`#${checkbox}`).on('click', () => {
             checkboxStatus[checkbox] = checkboxStatus[checkbox] < 2 ? checkboxStatus[checkbox] + 1 : 0;
@@ -80,6 +82,12 @@ document.addEventListener('DOMContentLoaded', function(event) {
            updateTaskCount();
         });
     }
+
+    window.onbeforeunload = (e) => {
+        for (const checkbox of Object.keys(checkboxStatus)) {
+            localStorage.setItem(`${vesselName[0]}${sequences.map((seq) => seq.split(' ').slice(-1)).join('&')}-${checkbox}`, checkboxStatus[checkbox]);
+        }
+    };
 
     $('#multipleAssociationAnchor').attr('href', `/qaqc/multiple-associations?sequence=${sequences.join('&sequence=')}`);
     $('#primarySubstrateAnchor').attr('href', `/qaqc/primary-substrate?sequence=${sequences.join('&sequence=')}`);
