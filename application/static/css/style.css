@@ -315,6 +315,10 @@ select:active {
     width: 200px;
 }
 
+.associationTable tr, td {
+    border-bottom-width: 1px !important;
+}
+
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
@@ -325,7 +329,7 @@ select:active {
 }
 
 #annotationTable thead, tbody, tfoot, tr, td, th {
-    border-bottom-width: 2px !important;
+    border-bottom-width: 2px;
     border-bottom-color: var(--darc-border) !important;
 }
 

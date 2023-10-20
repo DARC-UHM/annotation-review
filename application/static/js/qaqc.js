@@ -3,6 +3,11 @@ const sequences = [];
 let annotationsToDisplay = annotations;
 let currentAnnotation;
 
+function returnToCheckList() {
+    const url = window.location.href;
+    window.location.href = `/qaqc-checklist${url.substring(url.indexOf('?'))}`;
+}
+
 function validateName(name) {
     let disabled = false;
     if (name && !allConcepts.includes(name)) {
@@ -43,16 +48,9 @@ function updateHash() {
 
     annotationsToDisplay = annotations;
 
-    $('#sequenceList').empty();
-    if (sequences.length) {
-        $('#sequenceList').html(`${sequences.join(', ')}<br>`);
-    }
-
     if (filterPairs[0].length) {
         sortBy(filterPairs[0].split('=')[1]);
     }
-
-    $('#sequenceList').append(`<div id="filterList" class="small mt-2">Filters: ${Object.keys(filter).length ? '' : 'None'}</div>`);
 
     for (const key of Object.keys(filter)) {
         console.log(key)
@@ -73,11 +71,10 @@ function updateHash() {
     $('#annotationCount').html(annotationsToDisplay.length);
     $('#annotationCountBottom').html(annotationsToDisplay.length);
 
-
+    $('#annotationTable').empty();
     $('#annotationTable').append('<tbody class="text-start"></tbody>');
 
     annotationsToDisplay.forEach((annotation, index) => {
-        console.log(annotation)
         let occurrenceRemarks = 'N/A';
         // get occurrence remarks
         annotation.associations.forEach((ass) => {
@@ -87,39 +84,46 @@ function updateHash() {
         });
         $('#annotationTable').find('tbody').append(`
         <tr>
-            <td class="ps-5">
+            <td class="ps-5 py-3">
                 <div style="font-weight: 500; font-size: 18px;">${annotation.concept}</div>
                 <div class="small">${annotation.recorded_timestamp}<br>${annotation.video_sequence_name}<br>${annotation.annotator}</div>
                 <div class="small">Remarks: ${occurrenceRemarks}</div>
-            </td>
-            <td class="small"><div id="problemsDiv${index}"></div></td>
-            <td class="text-center small">
-                ${annotation.image_url
-                    ? `<a href="${annotation.image_url}" target="_blank"><img src="${annotation.image_url}" style="width: 200px;"/></a><br>` 
-                    : `<div class="text=center pt-5 m-auto" style="width: 200px; height: 110px; background: #1e2125; color: #9f9f9f;">No image</div>`
-                }
-                <a class="editButton" href="${annotation.video_url}" target="_blank">See video</a><br>
                 <button 
                     type="button" 
                     data-bs-toggle="modal" 
                     data-anno='${ JSON.stringify(annotation) }' 
                     data-bs-target="#editModal" 
-                    class="editButton">Edit annotation</button>
+                    class="editButton small">Edit annotation
+                </button>
+            </td>
+            <td class="small"><div id="problemsDiv${index}"></div></td>
+            <td class="text-center small">
+                <div class="mb-2">
+                    ${annotation.image_url
+                        ? `<a href="${annotation.image_url}" target="_blank"><img src="${annotation.image_url}" style="width: 200px;"/></a><br>` 
+                        : `<div class="text=center pt-5 m-auto" style="width: 200px; height: 110px; background: #1e2125; color: #9f9f9f;">No image</div>`
+                    }
+                </div>
+                <a class="editButton" href="${annotation.video_url}" target="_blank">See video</a><br>
             </td>
         </tr>
         `);
+        $(`#problemsDiv${index}`).empty();
         // get qaqc items
         switch (title) {
             case 'Multiple Associations':
                 $(`#problemsDiv${index}`).append(`
-                    <table id="associationTable${index}" class="w-100">
+                    <table id="associationTable${index}" class="w-100 associationTable">
                         <thead><tr><th>Link Name</th><th>To Concept</th><th>Link Value</th></tr></thead>
                     </table>
                 `);
                 const sortedAssociations = annotation.associations.sort((a, b) => (a.link_name > b.link_name) ? 1 : ((b.link_name > a.link_name) ? -1 : 0));
-                sortedAssociations.forEach((ass) => {
-                    $(`#associationTable${index}`).append(`<tr><td>${ass.link_name}</td><td>${ass.to_concept}</td><td>${ass.link_value}</td></tr>`);
-                });
+                for (let i = 1; i < sortedAssociations.length; i++) {
+                    if (sortedAssociations[i].link_name !== 's2' && sortedAssociations[i].link_name === sortedAssociations[i - 1].link_name) {
+                        $(`#associationTable${index}`).append(`<tr><td>${sortedAssociations[i - 1].link_name}</td><td>${sortedAssociations[i - 1].to_concept}</td><td>${sortedAssociations[i - 1].link_value}</td></tr>`);
+                        $(`#associationTable${index}`).append(`<tr><td>${sortedAssociations[i].link_name}</td><td>${sortedAssociations[i].to_concept}</td><td>${sortedAssociations[i].link_value}</td></tr>`);
+                    }
+                }
                 break;
         }
     });
@@ -174,6 +178,8 @@ document.addEventListener('DOMContentLoaded', function(event) {
             unread = true;
         }
     }
+
+    $('#sequenceList').html(`${sequences.join(', ')}<br>`);
 
     updateHash();
 
