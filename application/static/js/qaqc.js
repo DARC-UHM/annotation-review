@@ -8,6 +8,15 @@ function returnToCheckList() {
     window.location.href = `/qaqc-checklist${url.substring(url.indexOf('?'))}`;
 }
 
+function updateFlashMessages(msg, cat) {
+    $('#flash-messages-container').html(`
+        <div class="alert alert-${cat} alert-dismissible px-5" style="position:fixed; left: 50%; transform: translate(-50%, 0); z-index: 10000;">
+            <span class="px-2" style="font-weight: 500;">${msg}</span>
+            <button type="button" class="btn-close small" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    `);
+}
+
 function validateName(name) {
     let disabled = false;
     if (name && !allConcepts.includes(name)) {
@@ -156,7 +165,6 @@ function updateAnnotation() {
             $('#load-overlay').removeClass('loader-bg');
         })
         .catch((err) => console.log(err));
-
 }
 
 document.addEventListener('DOMContentLoaded', function(event) {
@@ -193,6 +201,26 @@ window.onhashchange = () => {
     updateHash();
 };
 
+async function updateConceptName(uuid) {
+    const formData = new FormData();
+    formData.append('observation_uuid', uuid);
+    formData.append('concept', $('#editConceptName').val());
+    formData.append('identity-certainty', ''); // these blank values are added because that's how the
+    formData.append('identity-reference', ''); // logic for the update anno function is set up and i
+    formData.append('upon', '');               // don't feel like creating a new route/function just
+    formData.append('comment', '');            // for updating the concept name :)
+    formData.append('guide-photo', '');
+    const res = await fetch('/update-annotation', {
+        method: 'POST',
+        body: formData,
+    });
+    if (res.status === 204) {
+        updateFlashMessages('Successfully updated concept name', 'success');
+    } else {
+        updateFlashMessages('Failed to update concept name', 'danger');
+    }
+}
+
 // get the annotation data and add it to the modal
 $(document).ready(function () {
     $('#editModal').on('show.bs.modal', function (e) {
@@ -201,11 +229,22 @@ $(document).ready(function () {
         $('#editModalFields').empty();
         $('#editModalFields').append(`
             <div class="row pb-2">
-                <div class="col-4 ms-4 ps-4 modal-label">
+                <div class="col-4 ms-4 ps-4 my-auto modal-label">
                     Concept:
                 </div>
-                <div class="col">
-                    <input type="text" id="editConceptName" name="concept" class="modal-text">
+                <div class="col-5">
+                    <input type="text" id="editConceptName" name="concept" class="modal-text-qaqc">
+                </div>
+                <div class="col-2 d-flex justify-content-end">
+                    <button type="button" class="qaqcCheckButton" onclick="updateConceptName('${annotation.observation_uuid}')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-check" viewBox="0 0 16 16">
+                            <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
+                        </svg>
+                    </button><button type="button" class="qaqcXButton">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
+                          <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" stroke="currentColor" stroke-width="0.5px"/>
+                        </svg>
+                    </button>
                 </div>
             </div>
         `);
@@ -218,11 +257,22 @@ $(document).ready(function () {
         sortedAssociations.forEach((ass, index) => {
             $('#editModalFields').append(`
                 <div class="row pb-2">
-                    <div class="col-4 ms-4 ps-4 modal-label">
+                    <div class="col-4 ms-4 ps-4 my-auto modal-label">
                         ${ass.link_name}:
                     </div>
-                    <div class="col">
-                        <input type="text" id="${ass.link_name}-${index}" name="${ass.link_name}-${index}" class="modal-text">
+                    <div class="col-5">
+                        <input type="text" id="${ass.link_name}-${index}" name="${ass.link_name}-${index}" class="modal-text-qaqc">
+                    </div>
+                    <div class="col-2 d-flex justify-content-end">
+                        <button type="button" class="qaqcCheckButton">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-check" viewBox="0 0 16 16">
+                                <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
+                            </svg>
+                        </button><button type="button" class="qaqcXButton">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
+                              <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" stroke="currentColor" stroke-width="0.5px"/>
+                            </svg>
+                        </button>
                     </div>
                 </div>
             `);

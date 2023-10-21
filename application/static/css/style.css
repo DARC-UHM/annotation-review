@@ -96,6 +96,14 @@ select:active {
     padding: 5px 10px;
 }
 
+.modal-text-qaqc {
+    background-color: var(--darc-border);
+    color: var(--darc-text);
+    border: 0;
+    width: 240px;
+    padding: 5px 10px;
+}
+
 .modal-content select {
     background-color: var(--darc-border);
     color: var(--darc-text);
@@ -197,11 +205,38 @@ select:active {
     background: transparent;
     border: 0;
     color: #41464f;
+    transition: 0.2s;
 }
 
 .xButton:hover {
     color: #585e67;
+
+}
+
+.qaqcXButton {
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    border: 0;
+    color: #ab3d47;
     transition: 0.2s;
+}
+
+.qaqcXButton:hover {
+    color: #d09da1;
+}
+
+.qaqcCheckButton {
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    border: 0;
+    color: #6e9a70;
+    transition: 0.2s;
+}
+
+.qaqcCheckButton:hover {
+    color: #a9d2ac;
 }
 
 .pagination-container {

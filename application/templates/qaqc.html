@@ -71,20 +71,13 @@
         </div>
         <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg">
-                <form id="updateAnnotationForm" onsubmit="updateAnnotation()" autocomplete="off">
-                    <div class="modal-content">
-                        <div class="modal-header text-center">
-                            <h5 class="modal-title mt-1 ms-4" style="font-weight: 600;">Edit Annotation</h5>
-                            <button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div id="editModalFields" class="modal-body text-start"></div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Cancel</button>
-                            <input type="hidden" id="editObservationUuid" name="observation_uuid">
-                            <input type="submit" id="editModalSubmitButton" class="btn btn-success modal-button" value="Save Changes">
-                        </div>
+                <div class="modal-content">
+                    <div class="modal-header text-center">
+                        <h5 class="modal-title mt-1 ms-4" style="font-weight: 600;">Edit Annotation</h5>
+                        <button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                </form>
+                    <div id="editModalFields" class="modal-body text-start"></div>
+                </div>
             </div>
         </div>
     </div>

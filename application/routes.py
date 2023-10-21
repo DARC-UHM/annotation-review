@@ -344,6 +344,7 @@ def update_annotation_comment():
     return ''
 
 
+# updates annotation with new concept name or associations. this is called from the image review page
 @app.post('/update-annotation')
 def update_annotation():
     annosaurus = Annosaurus(ANNOSAURUS_URL)
