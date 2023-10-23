@@ -369,6 +369,24 @@ def update_annotation():
         return {}, 500
 
 
+# creates a new association for an annotation
+@app.post('/create-association')
+def create_association():
+    annosaurus = Annosaurus(ANNOSAURUS_URL)
+    new_association = {
+        'link_name': request.values.get('link_name'),
+        'link_value': request.values.get('link_value'),
+        'to_concept': request.values.get('to_concept'),
+    }
+    status = annosaurus.create_association(
+        observation_uuid=request.values.get('observation_uuid'),
+        association=new_association,
+        client_secret=ANNOSAURUS_CLIENT_SECRET
+    )
+    if status == 200:
+        return {}, 201
+    return {}, status
+
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html', err=''), 404
