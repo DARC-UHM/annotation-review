@@ -387,6 +387,23 @@ def create_association():
         return {}, 201
     return {}, status
 
+
+# updates an association
+@app.post('/update-association')
+def update_association():
+    annosaurus = Annosaurus(ANNOSAURUS_URL)
+    updated_association = {
+        'link_name': request.values.get('link_name'),
+        'link_value': request.values.get('link_value'),
+        'to_concept': request.values.get('to_concept'),
+    }
+    status = annosaurus.update_association(
+        uuid=request.values.get('uuid'),
+        association=updated_association,
+        client_secret=ANNOSAURUS_CLIENT_SECRET
+    )
+    return {}, status
+
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html', err=''), 404

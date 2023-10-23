@@ -295,7 +295,7 @@ async function createAssociation(observation_uuid) {
     const newAssociation = {
         observation_uuid,
         link_name: $('#newAssociationType').val(),
-    }
+    };
     if (toConcepts.includes($('#newAssociationType').val())) {
         // association uses to_concept
         newAssociation.to_concept = $('#newAssociationValue').val();
@@ -306,7 +306,6 @@ async function createAssociation(observation_uuid) {
             newAssociation.to_concept = 'self';
         }
     }
-    console.log(newAssociation)
     const formData = new FormData();
     Object.keys(newAssociation).forEach((key) => formData.append(key, newAssociation[key]));
     const res = await fetch('/create-association', {
@@ -316,12 +315,35 @@ async function createAssociation(observation_uuid) {
     if (res.status === 201) {
         updateFlashMessages('Successfully added new association', 'success');
     } else {
-        updateFlashMessages(`Failed to add association ${res.status}`, 'danger');
+        updateFlashMessages(`Failed to add association: ${res.status}`, 'danger');
     }
+    // todo add new association to list, reset modal
 }
 
-async function updateAssociation() {
-    
+async function updateAssociation(uuid, link_name, textInputId) {
+    const updatedAssociation = { uuid, link_name };
+    if (toConcepts.includes(link_name)) {
+        // association uses to_concept
+        updatedAssociation.to_concept = $(`#${textInputId}`).val();
+    } else {
+        // association uses link_value
+        updatedAssociation.link_value = $(`#${textInputId}`).val();
+        if (link_name !== 'occurrence-remarks') {
+            updatedAssociation.to_concept = 'self';
+        }
+    }
+    const formData = new FormData();
+    Object.keys(updatedAssociation).forEach((key) => formData.append(key, updatedAssociation[key]));
+    const res = await fetch('/update-association', {
+        method: 'POST',
+        body: formData,
+    });
+    if (res.status === 200) {
+        updateFlashMessages('Successfully updated association', 'success');
+    } else {
+        updateFlashMessages(`Failed to update association: ${res.status}`, 'danger');
+    }
+    $(`#button${textInputId}`).attr('disabled', true);
 }
 
 async function deleteAssociation() {
@@ -367,7 +389,7 @@ $(document).ready(function () {
                         <input type="text" id="${ass.link_name}-${index}" class="modal-text-qaqc">
                     </div>
                     <div class="col-2 d-flex justify-content-end">
-                        <button id="button${ass.link_name}-${index}" type="button" class="qaqcCheckButton" disabled>
+                        <button id="button${ass.link_name}-${index}" type="button" class="qaqcCheckButton" onclick="updateAssociation('${ass.uuid}', '${ass.link_name}', '${ass.link_name}-${index}')" disabled>
                             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-check" viewBox="0 0 16 16">
                                 <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
                             </svg>
