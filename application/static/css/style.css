@@ -239,6 +239,14 @@ select:active {
     color: #a9d2ac;
 }
 
+.qaqcCheckButton:disabled {
+    color: #666;
+}
+
+.qaqcCheckButton:disabled:hover {
+    color: #666;
+}
+
 .pagination-container {
     display: flex;
     align-items: center;
@@ -381,6 +389,10 @@ select:active {
 #index .autocomplete-items {
     width: 250px;
     max-height: 300px;
+}
+
+#editModalFields .autocomplete-items {
+    max-height: 500px;
 }
 
 #sequenceList {

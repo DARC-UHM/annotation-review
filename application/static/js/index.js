@@ -43,7 +43,7 @@ $('#plusButton').on('click', () => {
     const currentNum = numSequences;
     $(`#xButton${numSequences}`).on('click', () => $(`#seqList${currentNum}`)[0].remove());
     $(`#sequence${numSequences}`).on('input', checkSequence);
-    autocomplete($(`#sequence${numSequences}`)[0], sequences);
+    autocomplete($(`#sequence${numSequences}`), sequences);
 });
 
 $('#imageReviewButton').on('click', () => {
@@ -63,7 +63,7 @@ $('#qaqcButton').on('click', () => {
 $('#sequence1').on('input', checkSequence);
 $('#index').on('click', checkSequence);
 
-autocomplete($('#sequence1')[0], sequences);
+autocomplete($('#sequence1'), sequences);
 
 // get rid of loading screen if back button is pressed (mozilla)
 $(window).bind('pageshow', (event) => {

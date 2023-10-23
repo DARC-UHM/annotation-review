@@ -1,4 +1,5 @@
 const sequences = [];
+const toConcepts = ['s1', 's2', 'upon'];
 
 let annotationsToDisplay = annotations;
 
@@ -16,12 +17,8 @@ function updateFlashMessages(msg, cat) {
     `);
 }
 
-function validateName(name) {
-    let disabled = false;
-    if (name && !allConcepts.includes(name)) {
-        disabled = true;
-    }
-    $('#editModalSubmitButton')[0].disabled = disabled;
+function validateName(name, button) {
+    button[0].disabled = name.length < 1 || !allConcepts.includes(name);
 }
 
 function sortBy(key) {
@@ -209,7 +206,7 @@ function addAssociationRow(observation_uuid) {
         <div class="row pb-3 pt-2 text-center">
             <div class="col-4 ms-4 ps-4">
                 <div class="small mb-1">New Association</div>
-                <select id="newAssociationType" class="mb-1" style="width: 150px;">
+                <select id="newAssociationType" class="mb-1" style="width: 150px;" onchange="updateInputValidation()">
                     <option>s1</option>
                     <option>s2</option>
                     <option>upon</option>
@@ -226,7 +223,7 @@ function addAssociationRow(observation_uuid) {
                 <input id="newAssociationValue" type="text" class="modal-text-qaqc">
             </div>
             <div class="col-2 d-flex justify-content-end align-items-center pt-3">
-                <button type="button" class="qaqcCheckButton" onclick="createAssociation('${observation_uuid}')">
+                <button id="saveNewAssociationButton" type="button" class="qaqcCheckButton" onclick="createAssociation('${observation_uuid}')" disabled>
                     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-check" viewBox="0 0 16 16">
                         <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
                     </svg>
@@ -238,6 +235,31 @@ function addAssociationRow(observation_uuid) {
             </div>
         </div>
     `);
+    addConceptInputValidation();
+}
+
+function updateInputValidation() {
+    if (toConcepts.includes($('#newAssociationType').val())) {
+        addConceptInputValidation();
+    } else {
+        removeConceptInputValidation();
+    }
+}
+
+function addConceptInputValidation() {
+    const inputValue = $('#newAssociationValue');
+    autocomplete(inputValue, allConcepts);
+    inputValue.on('input', () => validateName(inputValue.val(), $('#saveNewAssociationButton')));
+    inputValue.on('change', () => validateName(inputValue.val(), $('#saveNewAssociationButton')));
+    validateName(inputValue.val(), $('#saveNewAssociationButton'));
+}
+
+function removeConceptInputValidation() {
+    const inputValue = $('#newAssociationValue');
+    inputValue.off();
+    inputValue.on('input', () => $('#saveNewAssociationButton').prop('disabled', inputValue.val() <= 0));
+    inputValue.on('change', () => $('#saveNewAssociationButton').prop('disabled', inputValue.val() <= 0));
+    $('#saveNewAssociationButton').prop('disabled', inputValue.val() <= 0);
 }
 
 function cancelAddAssociation() {
@@ -274,7 +296,7 @@ async function createAssociation(observation_uuid) {
         observation_uuid,
         link_name: $('#newAssociationType').val(),
     }
-    if (['s1', 's2', 'upon'].includes($('#newAssociationType').val())) {
+    if (toConcepts.includes($('#newAssociationType').val())) {
         // association uses to_concept
         newAssociation.to_concept = $('#newAssociationValue').val();
     } else {
@@ -320,24 +342,20 @@ $(document).ready(function () {
                 <div class="col-5">
                     <input type="text" id="editConceptName" class="modal-text-qaqc">
                 </div>
-                <div class="col-2 d-flex justify-content-end">
-                    <button type="button" class="qaqcCheckButton" onclick="updateConceptName('${annotation.observation_uuid}')">
+                <div class="col-2 d-flex justify-content-center pe-3">
+                    <button id="qaqcUpdateConceptButton" type="button" class="qaqcCheckButton" onclick="updateConceptName('${annotation.observation_uuid}')" disabled>
                         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-check" viewBox="0 0 16 16">
                             <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
-                        </svg>
-                    </button><button type="button" class="qaqcXButton">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
-                          <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" stroke="currentColor" stroke-width="0.5px"/>
                         </svg>
                     </button>
                 </div>
             </div>
         `);
         const conceptNameField = $(this).find('#editConceptName');
-        autocomplete(document.getElementById('editConceptName'), allConcepts);
+        autocomplete($('#editConceptName'), allConcepts);
         conceptNameField.val(annotation.concept);
-        conceptNameField.on('input', () => validateName(conceptNameField.val()));
-        conceptNameField.on('change', () => validateName(conceptNameField.val()));
+        conceptNameField.on('input', () => validateName(conceptNameField.val(), $('#qaqcUpdateConceptButton')));
+        conceptNameField.on('change', () => validateName(conceptNameField.val(), $('#qaqcUpdateConceptButton')));
 
         sortedAssociations.forEach((ass, index) => {
             $('#editModalFields').append(`
@@ -349,7 +367,7 @@ $(document).ready(function () {
                         <input type="text" id="${ass.link_name}-${index}" class="modal-text-qaqc">
                     </div>
                     <div class="col-2 d-flex justify-content-end">
-                        <button type="button" class="qaqcCheckButton">
+                        <button id="button${ass.link_name}-${index}" type="button" class="qaqcCheckButton" disabled>
                             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-check" viewBox="0 0 16 16">
                                 <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
                             </svg>
@@ -361,18 +379,21 @@ $(document).ready(function () {
                     </div>
                 </div>
             `);
-            if (ass.to_concept === 'self'){
-                $(`#${ass.link_name}-${index}`).val(ass.link_value);
-            } else {
-                const field = $(`#${ass.link_name}-${index}`);
+            const field = $(`#${ass.link_name}-${index}`);
+            const button = $(`#button${ass.link_name}-${index}`);
+            if (toConcepts.includes(ass.link_name)) {
                 field.val(ass.to_concept);
-                field.on('input', () => validateName(field.val()));
-                field.on('change', () => validateName(field.val()));
-                autocomplete(document.getElementById(`${ass.link_name}-${index}`), allConcepts);
+                field.on('input', () => validateName(field.val(), button));
+                field.on('change', () => validateName(field.val(), button));
+                autocomplete($(`#${ass.link_name}-${index}`), allConcepts);
+            } else {
+                field.val(ass.link_value);
+                field.on('input', () => button.prop('disabled', field.val() <= 0));
+                field.on('change', () => button.prop('disabled', field.val() <= 0));
             }
         });
         $('#editModalFields').append(`
-            <div class="row my-2">
+            <div class="row my-3">
                 <button type="button" class="plusButton" onclick="addAssociationRow('${annotation.observation_uuid}')">Add Association +</button>
             </div>
         `);

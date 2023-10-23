@@ -628,8 +628,8 @@ document.addEventListener('DOMContentLoaded', function(event) {
     let vesselName;
     let unread = false;
 
-    autocomplete(document.getElementById('editConceptName'), allConcepts);
-    autocomplete(document.getElementById('editUpon'), allConcepts);
+    autocomplete($('#editConceptName'), allConcepts);
+    autocomplete($('#editUpon'), allConcepts);
 
     if (sessionStorage.getItem(`scrollPos${currentPage}`)) {
         window.scrollTo({top: sessionStorage.getItem(`scrollPos${currentPage}`), left: 0, behavior: 'instant'});
