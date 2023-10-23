@@ -2,6 +2,7 @@ const sequences = [];
 const toConcepts = ['s1', 's2', 'upon'];
 
 let annotationsToDisplay = annotations;
+let associationToDeleteUuid = 'test';
 
 function returnToCheckList() {
     const url = window.location.href;
@@ -288,7 +289,7 @@ async function createAssociation(observation_uuid) {
     } else {
         updateFlashMessages(`Failed to add association: ${res.status}`, 'danger');
     }
-    // todo add new association to list, reset modal
+    // todo add new association to list, reset modal, update annotation array
 }
 
 async function updateAssociation(uuid, link_name, textInputId) {
@@ -315,14 +316,24 @@ async function updateAssociation(uuid, link_name, textInputId) {
         updateFlashMessages(`Failed to update association: ${res.status}`, 'danger');
     }
     $(`#button${textInputId}`).attr('disabled', true);
+
+    // todo update anno array
 }
 
-async function deleteAssociation(associationToDelete) {
-    console.log(associationToDelete)
+async function deleteAssociation() {
+    const res = await fetch(`/delete-association/${associationToDeleteUuid}`);
+    if (res.status === 204) {
+        updateFlashMessages('Successfully deleted association', 'success');
+    } else {
+        updateFlashMessages(`Failed to delete association: ${res.status}`, 'danger');
+    }
+    $('#deleteAssociationModal').modal('hide');
+
+    // todo update modal, anno array
 }
 
 $(document).ready(function () {
-    $('#editModal').on('show.bs.modal', function (e) {
+    $('#editModal').on('show.bs.modal', (e) => {
         const annotation = $(e.relatedTarget).data('anno');
         const sortedAssociations = annotation.associations.sort((a, b) => (a.link_name > b.link_name) ? 1 : ((b.link_name > a.link_name) ? -1 : 0));
         $('#editModalFields').empty();
@@ -391,7 +402,7 @@ $(document).ready(function () {
         `);
     });
 
-    $('#deleteAssociationModal').on('show.bs.modal', function (e) {
-        $('#deleteAssociationButton').on('click', deleteAssociation($(e.relatedTarget).data('ass')));
+    $('#deleteAssociationModal').on('show.bs.modal', (e) => {
+        associationToDeleteUuid = $(e.relatedTarget).data('ass').uuid;
     });
 });

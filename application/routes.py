@@ -404,6 +404,13 @@ def update_association():
     )
     return {}, status
 
+
+@app.get('/delete-association/<uuid>')
+def delete_association(uuid):
+    annosaurus = Annosaurus(ANNOSAURUS_URL)
+    return {}, annosaurus.delete_association(uuid=uuid, client_secret=ANNOSAURUS_CLIENT_SECRET)
+
+
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html', err=''), 404
