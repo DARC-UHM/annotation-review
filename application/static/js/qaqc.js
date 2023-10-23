@@ -2,7 +2,8 @@ const sequences = [];
 const toConcepts = ['s1', 's2', 'upon'];
 
 let annotationsToDisplay = annotations;
-let associationToDeleteUuid = 'test';
+let workingAnnotationUuid = '';
+let associationToDeleteUuid = '';
 
 function returnToCheckList() {
     const url = window.location.href;
@@ -264,6 +265,7 @@ async function updateConceptName(uuid) {
 }
 
 async function createAssociation(observation_uuid) {
+    const annoIndex = annotations.findIndex((anno) => anno.observation_uuid === workingAnnotationUuid);
     const newAssociation = {
         observation_uuid,
         link_name: $('#newAssociationType').val(),
@@ -286,13 +288,30 @@ async function createAssociation(observation_uuid) {
     });
     if (res.status === 201) {
         updateFlashMessages('Successfully added new association', 'success');
+        if (toConcepts.includes($('#newAssociationType').val())) {
+            annotations[annoIndex].associations.push({
+                link_name: $('#newAssociationType').val(),
+                to_concept: $('#newAssociationValue').val(),
+                link_value: 'nil',
+            });
+        } else {
+            annotations[annoIndex].associations.push({
+                link_name: $('#newAssociationType').val(),
+                to_concept: 'self',
+                link_value: $('#newAssociationValue').val(),
+            });
+        }
+        updateHash();
     } else {
         updateFlashMessages(`Failed to add association: ${res.status}`, 'danger');
     }
-    // todo add new association to list, reset modal, update annotation array
+
+    // todo update modal
 }
 
 async function updateAssociation(uuid, link_name, textInputId) {
+    const annoIndex = annotations.findIndex((anno) => anno.observation_uuid === workingAnnotationUuid);
+    const assIndex = annotations[annoIndex].associations.findIndex((ass) => ass.uuid === uuid);
     const updatedAssociation = { uuid, link_name };
     if (toConcepts.includes(link_name)) {
         // association uses to_concept
@@ -312,30 +331,39 @@ async function updateAssociation(uuid, link_name, textInputId) {
     });
     if (res.status === 200) {
         updateFlashMessages('Successfully updated association', 'success');
+        if (toConcepts.includes(link_name)) {
+            annotations[annoIndex].associations[assIndex].to_concept = $(`#${textInputId}`).val();
+        } else {
+            annotations[annoIndex].associations[assIndex].link_value = $(`#${textInputId}`).val();
+        }
+        updateHash();
     } else {
         updateFlashMessages(`Failed to update association: ${res.status}`, 'danger');
     }
     $(`#button${textInputId}`).attr('disabled', true);
-
-    // todo update anno array
 }
 
 async function deleteAssociation() {
+    const annoIndex = annotations.findIndex((anno) => anno.observation_uuid === workingAnnotationUuid);
+    const assIndex = annotations[annoIndex].associations.findIndex((ass) => ass.uuid === associationToDeleteUuid);
     const res = await fetch(`/delete-association/${associationToDeleteUuid}`);
     if (res.status === 204) {
         updateFlashMessages('Successfully deleted association', 'success');
+        annotations[annoIndex].associations.splice(assIndex, 1);
+        updateHash();
     } else {
         updateFlashMessages(`Failed to delete association: ${res.status}`, 'danger');
     }
     $('#deleteAssociationModal').modal('hide');
 
-    // todo update modal, anno array
+    // todo update modal
 }
 
 $(document).ready(function () {
     $('#editModal').on('show.bs.modal', (e) => {
         const annotation = $(e.relatedTarget).data('anno');
         const sortedAssociations = annotation.associations.sort((a, b) => (a.link_name > b.link_name) ? 1 : ((b.link_name > a.link_name) ? -1 : 0));
+        workingAnnotationUuid = annotation.observation_uuid;
         $('#editModalFields').empty();
         $('#editModalFields').append(`
             <div class="row pb-2">
