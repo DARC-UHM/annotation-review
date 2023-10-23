@@ -80,6 +80,23 @@
                 </div>
             </div>
         </div>
+        <div class="modal fade" id="deleteAssociationModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog pt-5">
+                <div class="modal-content">
+                    <div class="modal-header text-center">
+                        <h5 class="modal-title mt-1 ms-4" style="font-weight: 600;">Delete Association</h5>
+                        <button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-start mx-4">
+                        Are you sure you want to delete this association?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Cancel</button>
+                        <button id="deleteAssociationButton" type="button" class="btn btn-danger modal-button">Delete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/bootstrap.bundle.js"></script>
@@ -94,5 +111,6 @@
         const title = '{{ data.title }}';
     </script>
     <script src="/static/js/qaqc.js"></script>
+
 </body>
 </html>
