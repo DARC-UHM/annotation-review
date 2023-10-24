@@ -119,17 +119,28 @@ function updateHash() {
         // get qaqc items
         switch (title) {
             case 'Multiple Associations':
+                // find duplicate associations and add them to table
                 $(`#problemsDiv${index}`).append(`
                     <table id="associationTable${index}" class="w-100 associationTable">
                         <thead><tr><th>Link Name</th><th>To Concept</th><th>Link Value</th></tr></thead>
                     </table>
                 `);
                 const sortedAssociations = annotation.associations.sort((a, b) => (a.link_name > b.link_name) ? 1 : ((b.link_name > a.link_name) ? -1 : 0));
-                for (let i = 1; i < sortedAssociations.length; i++) {
-                    if (sortedAssociations[i].link_name !== 's2' && sortedAssociations[i].link_name === sortedAssociations[i - 1].link_name) {
-                        $(`#associationTable${index}`).append(`<tr><td>${sortedAssociations[i - 1].link_name}</td><td>${sortedAssociations[i - 1].to_concept}</td><td>${sortedAssociations[i - 1].link_value}</td></tr>`);
-                        $(`#associationTable${index}`).append(`<tr><td>${sortedAssociations[i].link_name}</td><td>${sortedAssociations[i].to_concept}</td><td>${sortedAssociations[i].link_value}</td></tr>`);
+                const uniqueLinkNames = new Set();
+                const duplicates = new Set();
+                for (const association of sortedAssociations) {
+                    if (association.link_name !== 's2') {
+                        if (uniqueLinkNames.has(association.link_name)) {
+                            duplicates.add(association.link_name);
+                        } else {
+                            uniqueLinkNames.add(association.link_name);
+                        }
                     }
+                }
+                for (const linkName of duplicates) {
+                    sortedAssociations.filter((ass) => ass.link_name === linkName).forEach((ass) => {
+                        $(`#associationTable${index}`).append(`<tr><td>${ass.link_name}</td><td>${ass.to_concept}</td><td>${ass.link_value}</td></tr>`);
+                    });
                 }
                 break;
         }
