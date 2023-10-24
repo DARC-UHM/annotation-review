@@ -266,3 +266,21 @@ class QaqcProcessor:
                 if s1 in s2s:
                     self.working_records.append(annotation)
         self.process_records()
+
+    def find_duplicate_s2(self):
+        """ Finds annotations that have multiple s2 associations with the same value """
+        for name in self.sequence_names:
+            annotations = self.fetch_annotations(name)
+            for annotation in annotations:
+                duplicate_s2s = False
+                s2_set = set()
+                for association in annotation['associations']:
+                    if association['link_name'] == 's2':
+                        if association['to_concept'] in s2_set:
+                            duplicate_s2s = True
+                            break
+                        else:
+                            s2_set.add(association['to_concept'])
+                if duplicate_s2s:
+                    self.working_records.append(annotation)
+        self.process_records()

@@ -136,6 +136,8 @@ def qaqc(check):
             qaqc_annos.find_missing_s1()
         case 'identical-s1-&-s2':
             qaqc_annos.find_identical_s1_s2()
+        case 'duplicate-s2':
+            qaqc_annos.find_duplicate_s2()
     data = {
         'title': check.replace('-', ' ').title(),
         'annotations': qaqc_annos.final_records,
