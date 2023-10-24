@@ -222,19 +222,18 @@ class QaqcProcessor:
         """ Finds annotations that have more than one of the same association besides s2 """
         for name in self.sequence_names:
             annotations = self.fetch_annotations(name)
-
             for annotation in annotations:
                 # get list of associations
                 association_set = set()
-                duplicate_associations = []
+                duplicate_associations = False
                 for association in annotation['associations']:
                     name = association['link_name']
                     if name not in association_set:
                         if name != 's2':
                             association_set.add(name)
                     else:
-                        duplicate_associations.append(name)
-
+                        duplicate_associations = True
+                        break
                 if duplicate_associations:
                     self.working_records.append(annotation)
         self.process_records()
@@ -243,14 +242,27 @@ class QaqcProcessor:
         """ Finds annotations that are missing s1 """
         for name in self.sequence_names:
             annotations = self.fetch_annotations(name)
-
             for annotation in annotations:
-                # get list of associations
                 s1 = False
                 for association in annotation['associations']:
                     if association['link_name'] == 's1':
                         s1 = True
-
                 if not s1:
+                    self.working_records.append(annotation)
+        self.process_records()
+
+    def find_identical_s1_s2(self):
+        """ Finds annotations that have an s2 association that is the same as its s1 association """
+        for name in self.sequence_names:
+            annotations = self.fetch_annotations(name)
+            for annotation in annotations:
+                s2s = []
+                s1 = ''
+                for association in annotation['associations']:
+                    if association['link_name'] == 's1':
+                        s1 = association['to_concept']
+                    elif association['link_name'] == 's2':
+                        s2s.append(association['to_concept'])
+                if s1 in s2s:
                     self.working_records.append(annotation)
         self.process_records()

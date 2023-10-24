@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
     $('#multipleAssociationAnchor').attr('href', `/qaqc/multiple-associations?sequence=${sequences.join('&sequence=')}`);
     $('#primarySubstrateAnchor').attr('href', `/qaqc/missing-primary-substrate?sequence=${sequences.join('&sequence=')}`);
-    $('#identicalS1S2Anchor').attr('href', `/qaqc/identical-s1-s2?sequence=${sequences.join('&sequence=')}`);
+    $('#identicalS1S2Anchor').attr('href', `/qaqc/identical-s1-&-s2?sequence=${sequences.join('&sequence=')}`);
     $('#duplicateS2Anchor').attr('href', `/qaqc/duplicate-s2?sequence=${sequences.join('&sequence=')}`);
     $('#uponSubstrateAnchor').attr('href', `/qaqc/upon-substrate?sequence=${sequences.join('&sequence=')}`);
     $('#timestampSubstrateAnchor').attr('href', `/qaqc/timestamp-substrate?sequence=${sequences.join('&sequence=')}`);
