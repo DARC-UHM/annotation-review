@@ -73,7 +73,8 @@ class QaqcProcessor:
                     if vars_tax_res.status_code == 200:
                         # this get us to phylum
                         vars_tree = \
-                            vars_tax_res.json()['children'][0]['children'][0]['children'][0]['children'][0]['children'][0]
+                            vars_tax_res.json()['children'][0]['children'][0]['children'][0]['children'][0]['children'][
+                                0]
                         while 'children' in vars_tree.keys():
                             if 'rank' in vars_tree.keys():  # sometimes it's not
                                 concept_phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
@@ -219,7 +220,9 @@ class QaqcProcessor:
             })
 
     def find_duplicate_associations(self):
-        """ Finds annotations that have more than one of the same association besides s2 """
+        """
+        Finds annotations that have more than one of the same association besides s2
+        """
         for name in self.sequence_names:
             annotations = self.fetch_annotations(name)
             for annotation in annotations:
@@ -239,7 +242,9 @@ class QaqcProcessor:
         self.process_records()
 
     def find_missing_s1(self):
-        """ Finds annotations that are missing s1 """
+        """
+        Finds annotations that are missing s1
+        """
         for name in self.sequence_names:
             annotations = self.fetch_annotations(name)
             for annotation in annotations:
@@ -252,7 +257,9 @@ class QaqcProcessor:
         self.process_records()
 
     def find_identical_s1_s2(self):
-        """ Finds annotations that have an s2 association that is the same as its s1 association """
+        """
+        Finds annotations that have an s2 association that is the same as its s1 association
+        """
         for name in self.sequence_names:
             annotations = self.fetch_annotations(name)
             for annotation in annotations:
@@ -268,7 +275,9 @@ class QaqcProcessor:
         self.process_records()
 
     def find_duplicate_s2(self):
-        """ Finds annotations that have multiple s2 associations with the same value """
+        """
+        Finds annotations that have multiple s2 associations with the same value
+        """
         for name in self.sequence_names:
             annotations = self.fetch_annotations(name)
             for annotation in annotations:
@@ -282,5 +291,35 @@ class QaqcProcessor:
                         else:
                             s2_set.add(association['to_concept'])
                 if duplicate_s2s:
+                    self.working_records.append(annotation)
+        self.process_records()
+
+    def find_missing_upon_substrate(self):
+        """
+        Finds annotations that have an upon association that is not an organism, but the 'upon' is not present in s1 or
+        any s2
+        """
+        # TODO do we want to exclude dead organisms from this check?
+        for name in self.sequence_names:
+            annotations = self.fetch_annotations(name)
+            for annotation in annotations:
+                upon = None
+                missing_upon = False
+                for association in annotation['associations']:
+                    if association['link_name'] == 'upon':
+                        if association['to_concept'][0].isupper():
+                            # 'upon' is an organism, don't need it to be in s1/s2
+                            break
+                        else:
+                            # 'upon' should be in s1 or s2
+                            upon = association['to_concept']
+                if upon:
+                    missing_upon = True
+                    for association in annotation['associations']:
+                        if (association['link_name'] == 's1' or association['link_name'] == 's2') \
+                                and association['to_concept'] == upon:
+                            missing_upon = False
+                            break
+                if missing_upon:
                     self.working_records.append(annotation)
         self.process_records()

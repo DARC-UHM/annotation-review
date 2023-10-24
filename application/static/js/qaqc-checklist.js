@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
     $('#primarySubstrateAnchor').attr('href', `/qaqc/missing-primary-substrate?sequence=${sequences.join('&sequence=')}`);
     $('#identicalS1S2Anchor').attr('href', `/qaqc/identical-s1-&-s2?sequence=${sequences.join('&sequence=')}`);
     $('#duplicateS2Anchor').attr('href', `/qaqc/duplicate-s2?sequence=${sequences.join('&sequence=')}`);
-    $('#uponSubstrateAnchor').attr('href', `/qaqc/upon-substrate?sequence=${sequences.join('&sequence=')}`);
+    $('#uponSubstrateAnchor').attr('href', `/qaqc/missing-upon-substrate?sequence=${sequences.join('&sequence=')}`);
     $('#timestampSubstrateAnchor').attr('href', `/qaqc/timestamp-substrate?sequence=${sequences.join('&sequence=')}`);
     $('#missingUponAnchor').attr('href', `/qaqc/missing-upon?sequence=${sequences.join('&sequence=')}`);
     $('#missingAncillaryAnchor').attr('href', `/qaqc/missing-ancillary-date?sequence=${sequences.join('&sequence=')}`);
