@@ -133,6 +133,9 @@ def qaqc(check):
         case 'multiple-associations':
             qaqc_annos.find_duplicate_associations()
             problem_children = qaqc_annos.final_records
+        case 'missing-primary-substrate':
+            qaqc_annos.find_missing_s1()
+            problem_children = qaqc_annos.final_records
         case _:
             problem_children = []
     data = {

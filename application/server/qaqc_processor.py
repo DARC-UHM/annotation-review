@@ -16,6 +16,23 @@ class QaqcProcessor:
         self.working_records = []
         self.final_records = []
 
+    def fetch_annotations(self, name):
+        print(f'Fetching annotations for sequence {name} from VARS...', end='')
+
+        with requests.get(f'http://hurlstor.soest.hawaii.edu:8086/query/dive/{name.replace(" ", "%20")}') as r:
+            response = r.json()
+            print('fetched!')
+
+        for video in response['media']:
+            if 'urn:imagecollection:org' not in video['uri']:
+                self.videos.append([
+                    parse_datetime(video['start_timestamp']),
+                    video['uri'].replace('http://hurlstor.soest.hawaii.edu/videoarchive',
+                                         'https://hurlvideo.soest.hawaii.edu'),
+                    video['video_sequence_name']
+                ])
+        return response['annotations']
+
     def process_records(self):
         concept_phylogeny = {'Animalia': {}, 'none': {}}
         annotation_df = pd.DataFrame(columns=[
@@ -202,22 +219,11 @@ class QaqcProcessor:
             })
 
     def find_duplicate_associations(self):
+        """ Finds annotations that have more than one of the same association besides s2 """
         for name in self.sequence_names:
-            print(f'Fetching annotations for sequence {name} from VARS...', end='')
+            annotations = self.fetch_annotations(name)
 
-            with requests.get(f'http://hurlstor.soest.hawaii.edu:8086/query/dive/{name.replace(" ", "%20")}') as r:
-                response = r.json()
-                print('fetched!')
-
-            for video in response['media']:
-                if 'urn:imagecollection:org' not in video['uri']:
-                    self.videos.append([
-                        parse_datetime(video['start_timestamp']),
-                        video['uri'].replace('http://hurlstor.soest.hawaii.edu/videoarchive', 'https://hurlvideo.soest.hawaii.edu'),
-                        video['video_sequence_name']
-                    ])
-
-            for annotation in response['annotations']:
+            for annotation in annotations:
                 # get list of associations
                 association_set = set()
                 duplicate_associations = []
@@ -231,5 +237,20 @@ class QaqcProcessor:
 
                 if duplicate_associations:
                     self.working_records.append(annotation)
+        self.process_records()
 
+    def find_missing_s1(self):
+        """ Finds annotations that are missing s1 """
+        for name in self.sequence_names:
+            annotations = self.fetch_annotations(name)
+
+            for annotation in annotations:
+                # get list of associations
+                s1 = False
+                for association in annotation['associations']:
+                    if association['link_name'] == 's1':
+                        s1 = True
+
+                if not s1:
+                    self.working_records.append(annotation)
         self.process_records()

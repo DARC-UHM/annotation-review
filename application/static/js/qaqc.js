@@ -118,7 +118,7 @@ function updateHash() {
         $(`#problemsDiv${index}`).empty();
         // get qaqc items
         switch (title) {
-            case 'Multiple Associations':
+            case 'Multiple Associations': {
                 // find duplicate associations and add them to table
                 $(`#problemsDiv${index}`).append(`
                     <table id="associationTable${index}" class="w-100 associationTable">
@@ -142,6 +142,10 @@ function updateHash() {
                         $(`#associationTable${index}`).append(`<tr><td>${ass.link_name}</td><td>${ass.to_concept}</td><td>${ass.link_value}</td></tr>`);
                     });
                 }
+                break;
+            }
+            case 'Missing Primary Substrate':
+                // just here for the sake of completeness
                 break;
         }
     });
