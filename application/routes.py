@@ -143,6 +143,8 @@ def qaqc(check):
             qaqc_annos.find_mismatched_substrates()
         case 'missing-upon':
             qaqc_annos.find_missing_upon()
+        case 'missing-ancillary-data':
+            qaqc_annos.find_missing_ancillary_data()
     data = {
         'title': check.replace('-', ' ').title(),
         'annotations': qaqc_annos.final_records,

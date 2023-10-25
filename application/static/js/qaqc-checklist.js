@@ -135,6 +135,11 @@ document.addEventListener('DOMContentLoaded',  (event) => {
         $('#load-overlay').removeClass('loader-bg');
         $('#load-overlay').addClass('loader-bg-hidden');
         $('#quickCheckNumProblemRecords').html(json.num_records.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+        $('#quickCheckSeeDetailsBtn').on('click', () => {
+            $('#load-overlay').removeClass('loader-bg-hidden');
+            $('#load-overlay').addClass('loader-bg');
+            window.location.href = `/qaqc/missing-ancillary-data?sequence=${sequences.join('&sequence=')}`
+        });
     });
 
 });

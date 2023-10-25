@@ -138,8 +138,15 @@
                         <span id="quickCheckNumProblemRecords"></span> out of <span id="quickCheckTotalRecords"></span> records are <span id="quickCheckCheck"></span>.
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Back</button>
-                        <button id="quickCheckSeeDetailsBtn" type="button" class="btn btn-primary modal-button">See Details</button>
+                        <div class="col text-end">
+                            <div>
+                                <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Back</button>
+                                <button id="quickCheckSeeDetailsBtn" type="button" class="btn btn-primary modal-button">See Details</button>
+                            </div>
+                            <div class="small text-end me-2 pe-1" style="opacity: 60%;">
+                                (slow if many records)
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

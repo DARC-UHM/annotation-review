@@ -388,7 +388,7 @@ class QaqcProcessor:
 
     def get_num_records_missing_ancillary_data(self):
         """
-        Finds annotations that are missing ancillary data
+        Finds number of annotations that are missing ancillary data
         """
         num_records_missing = 0
         for name in self.sequence_names:
@@ -397,3 +397,14 @@ class QaqcProcessor:
                 if 'ancillary_data' not in annotation.keys():
                     num_records_missing += 1
         return num_records_missing
+
+    def find_missing_ancillary_data(self):
+        """
+        Finds annotations that are missing ancillary data (can be very slow)
+        """
+        for name in self.sequence_names:
+            annotations = self.fetch_annotations(name)
+            for annotation in annotations:
+                if 'ancillary_data' not in annotation.keys():
+                    self.working_records.append(annotation)
+        self.process_records()
