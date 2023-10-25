@@ -205,6 +205,21 @@ function updateHash() {
                 }
                 break;
             }
+            case 'Missing Upon': {
+                $(`#problemsDiv${index}`).append(`
+                    <table id="associationTable${index}" class="w-100 associationTable">
+                        <thead><tr><th>Link Name</th><th>To Concept</th></tr></thead>
+                    </table>
+                `);
+                const sortedAssociations = annotation.associations.sort((a, b) => (a.link_name > b.link_name) ? 1 : ((b.link_name > a.link_name) ? -1 : 0));
+                const relevantAsses = ['s1', 's2', 'upon'];
+                for (const association of sortedAssociations) {
+                    if (relevantAsses.includes(association.link_name)) {
+                        $(`#associationTable${index}`).append(`<tr><td>${association.link_name}</td><td>${association.to_concept}</td></tr>`);
+                    }
+                }
+                break;
+            }
         }
     });
 }

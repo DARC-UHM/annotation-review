@@ -81,6 +81,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
            $(`#${checkbox}`).html(updateCheckbox(checkbox));
            updateTaskCount();
         });
+        updateTaskCount();
     }
 
     window.onbeforeunload = (e) => {

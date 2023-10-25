@@ -243,11 +243,13 @@ class QaqcProcessor:
 
     def find_missing_s1(self):
         """
-        Finds annotations that are missing s1
+        Finds annotations that are missing s1 (ignores 'none' records)
         """
         for name in self.sequence_names:
             annotations = self.fetch_annotations(name)
             for annotation in annotations:
+                if annotation['concept'] == 'none':
+                    continue
                 s1 = False
                 for association in annotation['associations']:
                     if association['link_name'] == 's1':
@@ -364,4 +366,22 @@ class QaqcProcessor:
                 if base_substrates != check_substrates:
                     for annotation in annotations_with_same_timestamp[timestamp_key]:
                         self.working_records.append(annotation)
+        self.process_records()
+
+    def find_missing_upon(self):
+        """
+        Finds annotations that are missing upon (ignores 'none' records)
+        """
+        for name in self.sequence_names:
+            annotations = self.fetch_annotations(name)
+            for annotation in annotations:
+                if annotation['concept'] == 'none':
+                    continue
+                missing_upon = True
+                for association in annotation['associations']:
+                    if association['link_name'] == 'upon':
+                        missing_upon = False
+                        break
+                if missing_upon:
+                    self.working_records.append(annotation)
         self.process_records()
