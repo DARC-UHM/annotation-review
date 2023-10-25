@@ -49,6 +49,11 @@ function updateTaskCount() {
     }
 }
 
+function showLoader() {
+    $('#load-overlay').removeClass('loader-bg-hidden');
+    $('#load-overlay').addClass('loader-bg');
+}
+
 document.addEventListener('DOMContentLoaded',  (event) => {
     const url = new URL(window.location.href);
     const sequences = [];
@@ -92,19 +97,33 @@ document.addEventListener('DOMContentLoaded',  (event) => {
     };
 
     $('#multipleAssociationAnchor').attr('href', `/qaqc/multiple-associations?sequence=${sequences.join('&sequence=')}`);
+    $('#multipleAssociationAnchor').on('click', () => showLoader());
     $('#primarySubstrateAnchor').attr('href', `/qaqc/missing-primary-substrate?sequence=${sequences.join('&sequence=')}`);
+    $('#primarySubstrateAnchor').on('click', () => showLoader());
     $('#identicalS1S2Anchor').attr('href', `/qaqc/identical-s1-&-s2?sequence=${sequences.join('&sequence=')}`);
+    $('#identicalS1S2Anchor').on('click', () => showLoader());
     $('#duplicateS2Anchor').attr('href', `/qaqc/duplicate-s2?sequence=${sequences.join('&sequence=')}`);
+    $('#duplicateS2Anchor').on('click', () => showLoader());
     $('#uponSubstrateAnchor').attr('href', `/qaqc/missing-upon-substrate?sequence=${sequences.join('&sequence=')}`);
+    $('#uponSubstrateAnchor').on('click', () => showLoader());
     $('#timestampSubstrateAnchor').attr('href', `/qaqc/mismatched-substrates?sequence=${sequences.join('&sequence=')}#sort=Timestamp`);
+    $('#timestampSubstrateAnchor').on('click', () => showLoader());
     $('#missingUponAnchor').attr('href', `/qaqc/missing-upon?sequence=${sequences.join('&sequence=')}`);
+    $('#missingUponAnchor').on('click', () => showLoader());
     $('#refIdConceptNameAnchor').attr('href', `/qaqc/id-ref-concept-name?sequence=${sequences.join('&sequence=')}`);
+    $('#refIdConceptNameAnchor').on('click', () => showLoader());
     $('#refIdAssociationsAnchor').attr('href', `/qaqc/id-ref-associations?sequence=${sequences.join('&sequence=')}`);
+    $('#refIdAssociationsAnchor').on('click', () => showLoader());
     $('#suspiciousHostAnchor').attr('href', `/qaqc/suspicious-hosts?sequence=${sequences.join('&sequence=')}`);
+    $('#suspiciousHostAnchor').on('click', () => showLoader());
     $('#expectedAssociationAnchor').attr('href', `/qaqc/expected-associations?sequence=${sequences.join('&sequence=')}`);
+    $('#expectedAssociationAnchor').on('click', () => showLoader());
     $('#timeDiffHostUponAnchor').attr('href', `/qaqc/host-upon-time-diff?sequence=${sequences.join('&sequence=')}`);
+    $('#timeDiffHostUponAnchor').on('click', () => showLoader());
     $('#uniqueFieldsAnchor').attr('href', `/qaqc/unique-fields?sequence=${sequences.join('&sequence=')}`);
+    $('#uniqueFieldsAnchor').on('click', () => showLoader());
     $('#uniqueHostUponAnchor').attr('href', `/qaqc/unique-host-upon?sequence=${sequences.join('&sequence=')}`);
+    $('#uniqueHostUponAnchor').on('click', () => showLoader());
 
     $('#missingAncillaryAnchor').on('click', async () => {
         $('#quickCheckModalHeader').html('Missing Ancillary Data')
@@ -118,4 +137,10 @@ document.addEventListener('DOMContentLoaded',  (event) => {
         $('#quickCheckNumProblemRecords').html(json.num_records.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
     });
 
+});
+
+// get rid of loading screen if back button is pressed (mozilla)
+$(window).bind('pageshow', (event) => {
+    $('#load-overlay').removeClass('loader-bg');
+    $('#load-overlay').addClass('loader-bg-hidden');
 });
