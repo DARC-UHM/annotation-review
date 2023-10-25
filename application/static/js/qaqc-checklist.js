@@ -49,7 +49,7 @@ function updateTaskCount() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', function(event) {
+document.addEventListener('DOMContentLoaded',  (event) => {
     const url = new URL(window.location.href);
     const sequences = [];
     let vesselName;
@@ -64,7 +64,8 @@ document.addEventListener('DOMContentLoaded', function(event) {
     $('#vesselName').html(vesselName);
     $('#sequenceList').html(sequences.map((seq) => seq.split(' ').slice(-1)).join(', '));
 
-    $('#annotationCount').html(annotationCount);
+    $('#annotationCount').html(annotationCount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+    $('#quickCheckTotalRecords').html(annotationCount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
 
     if (!annotationCount) {
         $('#404').show();
@@ -97,7 +98,6 @@ document.addEventListener('DOMContentLoaded', function(event) {
     $('#uponSubstrateAnchor').attr('href', `/qaqc/missing-upon-substrate?sequence=${sequences.join('&sequence=')}`);
     $('#timestampSubstrateAnchor').attr('href', `/qaqc/mismatched-substrates?sequence=${sequences.join('&sequence=')}#sort=Timestamp`);
     $('#missingUponAnchor').attr('href', `/qaqc/missing-upon?sequence=${sequences.join('&sequence=')}`);
-    $('#missingAncillaryAnchor').attr('href', `/qaqc/missing-ancillary-date?sequence=${sequences.join('&sequence=')}`);
     $('#refIdConceptNameAnchor').attr('href', `/qaqc/id-ref-concept-name?sequence=${sequences.join('&sequence=')}`);
     $('#refIdAssociationsAnchor').attr('href', `/qaqc/id-ref-associations?sequence=${sequences.join('&sequence=')}`);
     $('#suspiciousHostAnchor').attr('href', `/qaqc/suspicious-hosts?sequence=${sequences.join('&sequence=')}`);
@@ -105,5 +105,17 @@ document.addEventListener('DOMContentLoaded', function(event) {
     $('#timeDiffHostUponAnchor').attr('href', `/qaqc/host-upon-time-diff?sequence=${sequences.join('&sequence=')}`);
     $('#uniqueFieldsAnchor').attr('href', `/qaqc/unique-fields?sequence=${sequences.join('&sequence=')}`);
     $('#uniqueHostUponAnchor').attr('href', `/qaqc/unique-host-upon?sequence=${sequences.join('&sequence=')}`);
+
+    $('#missingAncillaryAnchor').on('click', async () => {
+        $('#quickCheckModalHeader').html('Missing Ancillary Data')
+        $('#quickCheckCheck').html('missing ancillary data');
+        $('#load-overlay').removeClass('loader-bg-hidden');
+        $('#load-overlay').addClass('loader-bg');
+        const res = await fetch(`/qaqc/quick/missing-ancillary-data?sequence=${sequences.join('&sequence=')}`);
+        const json = await res.json();
+        $('#load-overlay').removeClass('loader-bg');
+        $('#load-overlay').addClass('loader-bg-hidden');
+        $('#quickCheckNumProblemRecords').html(json.num_records.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+    });
 
 });

@@ -125,7 +125,6 @@ def qaqc_checklist():
 def qaqc(check):
     sequences = request.args.getlist('sequence')
     qaqc_annos = QaqcProcessor(sequences)
-    problem_children = []  # the list of annotations to be qa/qc'd
     # get concept list from vars (for input validation)
     with requests.get(f'{HURLSTOR_URL}:8083/kb/v1/concept') as r:
         vars_concepts = r.json()
@@ -150,6 +149,17 @@ def qaqc(check):
         'concepts': vars_concepts,
     }
     return render_template('qaqc.html', data=data)
+
+
+@app.get('/qaqc/quick/<check>')
+def qaqc_quick(check):
+    sequences = request.args.getlist('sequence')
+    qaqc_annos = QaqcProcessor(sequences)
+    match check:
+        case 'missing-ancillary-data':
+            records = qaqc_annos.get_num_records_missing_ancillary_data()
+            return {'num_records': records}, 200
+    return render_template('404.html', err=''), 404
 
 
 # displays all comments in the external review db

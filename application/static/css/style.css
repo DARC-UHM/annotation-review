@@ -294,6 +294,7 @@ select:active {
     justify-content: center;
     margin: 0;
     background: rgba(0, 0, 0, 0.47);
+    z-index: 1070;
 }
 
 .loader {
@@ -308,6 +309,9 @@ select:active {
 
 .aquaLink {
     color: var(--darc-link-text);
+    background: transparent;
+    border: none;
+    padding: 0;
     text-decoration: none;
     transition: 0.2s;
 }
