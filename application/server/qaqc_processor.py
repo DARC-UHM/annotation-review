@@ -323,3 +323,45 @@ class QaqcProcessor:
                 if missing_upon:
                     self.working_records.append(annotation)
         self.process_records()
+
+    def find_mismatched_substrates(self):
+        """
+        Finds annotations that occur at the same timestamp (same second) but have different substrates
+        """
+        for name in self.sequence_names:
+            annotations = self.fetch_annotations(name)
+            annotations_with_same_timestamp = {}
+            sorted_annotations = sorted(annotations, key=lambda d: d['recorded_timestamp'])
+            # loop through all annotations, add ones with same timestamp to dict
+            i = 0
+            while i < len(sorted_annotations) - 1:
+                base_timestamp = sorted_annotations[i]['recorded_timestamp'][:19]
+                if sorted_annotations[i + 1]['recorded_timestamp'][:19] == base_timestamp:
+                    indices_to_skip = 0
+                    annotations_with_same_timestamp[base_timestamp] = [sorted_annotations[i]]
+                    j = i + 1
+                    while sorted_annotations[j]['recorded_timestamp'][:19] == base_timestamp:
+                        annotations_with_same_timestamp[base_timestamp].append(sorted_annotations[j])
+                        indices_to_skip += 1
+                        j += 1
+                    i += indices_to_skip
+                i += 1
+            # loop through each annotation that shares the same timestamp, compare substrates
+            for timestamp_key in annotations_with_same_timestamp.keys():
+                base_substrates = {'s2': set()}
+                check_substrates = {'s2': set()}
+                for association in annotations_with_same_timestamp[timestamp_key][0]['associations']:
+                    if association['link_name'] == 's1':
+                        base_substrates['s1'] = association['to_concept']
+                    if association['link_name'] == 's2':
+                        base_substrates['s2'].add(association['to_concept'])
+                for i in range(1, len(annotations_with_same_timestamp[timestamp_key])):
+                    for association in annotations_with_same_timestamp[timestamp_key][i]['associations']:
+                        if association['link_name'] == 's1':
+                            check_substrates['s1'] = association['to_concept']
+                        if association['link_name'] == 's2':
+                            check_substrates['s2'].add(association['to_concept'])
+                if base_substrates != check_substrates:
+                    for annotation in annotations_with_same_timestamp[timestamp_key]:
+                        self.working_records.append(annotation)
+        self.process_records()

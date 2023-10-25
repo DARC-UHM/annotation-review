@@ -191,6 +191,20 @@ function updateHash() {
                 }
                 break;
             }
+            case 'Mismatched Substrates': {
+                $(`#problemsDiv${index}`).append(`
+                    <table id="associationTable${index}" class="w-100 associationTable">
+                        <thead><tr><th>Link Name</th><th>To Concept</th></tr></thead>
+                    </table>
+                `);
+                const sortedAssociations = annotation.associations.sort((a, b) => (a.link_name > b.link_name) ? 1 : ((b.link_name > a.link_name) ? -1 : 0));
+                for (const association of sortedAssociations) {
+                    if (association.link_name === 's1' || association.link_name === 's2') {
+                        $(`#associationTable${index}`).append(`<tr><td>${association.link_name}</td><td>${association.to_concept}</td></tr>`);
+                    }
+                }
+                break;
+            }
         }
     });
 }

@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
     $('#identicalS1S2Anchor').attr('href', `/qaqc/identical-s1-&-s2?sequence=${sequences.join('&sequence=')}`);
     $('#duplicateS2Anchor').attr('href', `/qaqc/duplicate-s2?sequence=${sequences.join('&sequence=')}`);
     $('#uponSubstrateAnchor').attr('href', `/qaqc/missing-upon-substrate?sequence=${sequences.join('&sequence=')}`);
-    $('#timestampSubstrateAnchor').attr('href', `/qaqc/timestamp-substrate?sequence=${sequences.join('&sequence=')}`);
+    $('#timestampSubstrateAnchor').attr('href', `/qaqc/mismatched-substrates?sequence=${sequences.join('&sequence=')}#sort=Timestamp`);
     $('#missingUponAnchor').attr('href', `/qaqc/missing-upon?sequence=${sequences.join('&sequence=')}`);
     $('#missingAncillaryAnchor').attr('href', `/qaqc/missing-ancillary-date?sequence=${sequences.join('&sequence=')}`);
     $('#refIdConceptNameAnchor').attr('href', `/qaqc/id-ref-concept-name?sequence=${sequences.join('&sequence=')}`);
