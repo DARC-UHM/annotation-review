@@ -81,14 +81,13 @@ function updateHash() {
     $('#annotationTable').empty();
     $('#annotationTable').append('<tbody class="text-start"></tbody>');
 
+    const problemAssociations = {};
     if (title === 'Id Ref Associations') {
         // this block is to highlight the problem associations. same logic as on the backend :')
         $('#sortSelect').prop('disabled', 'disabled');
         $('#sortSelect').prop('title', 'Alternate sorting disabled on this page');
 
         const eqSet = (xs, ys) => xs.size === ys.size && [...xs].every((x) => ys.has(x));
-
-        const problemAssociations = {};
         const idRefAssociations = {};
 
         for (const anno of annotationsToDisplay) {
@@ -317,7 +316,11 @@ function updateHash() {
                 `);
                 const sortedAssociations = annotation.associations.sort((a, b) => (a.link_name > b.link_name) ? 1 : ((b.link_name > a.link_name) ? -1 : 0));
                 for (const association of sortedAssociations) {
-                    $(`#associationTable${index}`).append(`<tr><td>${association.link_name}</td><td>${association.to_concept}</td><td>${association.link_value}</td></tr>`);
+                    if (problemAssociations[annotation.identity_reference].has(association.link_name)) {
+                        $(`#associationTable${index}`).append(`<tr style="color: yellow"><td>${association.link_name}</td><td>${association.to_concept}</td><td>${association.link_value}</td></tr>`);
+                    } else {
+                        $(`#associationTable${index}`).append(`<tr><td>${association.link_name}</td><td>${association.to_concept}</td><td>${association.link_value}</td></tr>`);
+                    }
                 }
                 break;
             }
