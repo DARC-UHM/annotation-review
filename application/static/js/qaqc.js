@@ -81,6 +81,82 @@ function updateHash() {
     $('#annotationTable').empty();
     $('#annotationTable').append('<tbody class="text-start"></tbody>');
 
+    if (title === 'Id Ref Associations') {
+        // this block is to highlight the problem associations. same logic as on the backend :')
+        $('#sortSelect').prop('disabled', 'disabled');
+        $('#sortSelect').prop('title', 'Alternate sorting disabled on this page');
+
+        const eqSet = (xs, ys) => xs.size === ys.size && [...xs].every((x) => ys.has(x));
+
+        const problemAssociations = {};
+        const idRefAssociations = {};
+
+        for (const anno of annotationsToDisplay) {
+            const currentIdRef = anno.identity_reference;
+            if (!Object.keys(idRefAssociations).includes(currentIdRef)) {
+                idRefAssociations[currentIdRef] = {s2: new Set(), 'sampled-by': new Set(), 'sample-reference': new Set()};
+                problemAssociations[currentIdRef] = new Set();
+                for (const ass of anno.associations) {
+                    if (ass.link_name === 's2' || ass.link_name === 'sampled-by') {
+                        idRefAssociations[currentIdRef][ass.link_name].add(ass.to_concept);
+                    } else if (ass.link_name === 'sample-reference') {
+                        idRefAssociations[currentIdRef][ass.link_name].add(ass.link_value);
+                    } else {
+                        idRefAssociations[currentIdRef][ass.link_name] = toConcepts.includes(ass.link_name) ? ass.to_concept : ass.link_value;
+                    }
+                }
+            } else {
+                const tempS2Set = new Set();
+                const tempSampledBySet = new Set();
+                const tempSampleRefSet = new Set();
+                for (const ass of anno.associations) {
+                    if (ass.link_name === 's2') {
+                        tempS2Set.add(ass.to_concept);
+                    } else if (ass.link_name === 'sampled-by') {
+                        tempSampledBySet.add(ass.to_concept);
+                    } else if (ass.link_name === 'sample-reference') {
+                        tempSampleRefSet.add(ass.link_value);
+                    } else {
+                        if (toConcepts.includes(ass.link_name)) {
+                            if (Object.keys(idRefAssociations[currentIdRef]).includes(ass.link_name)) {
+                                if (idRefAssociations[currentIdRef][ass.link_name] !== ass.to_concept) {
+                                    problemAssociations[currentIdRef].add(ass.link_name);
+                                }
+                            } else {
+                                idRefAssociations[currentIdRef][ass.link_name] = ass.to_concept;
+                            }
+                        } else {
+                            if (Object.keys(idRefAssociations[currentIdRef]).includes(ass.link_name)) {
+                                if (idRefAssociations[currentIdRef][ass.link_name] !== ass.link_value) {
+                                    problemAssociations[currentIdRef].add(ass.link_name);
+                                }
+                            } else {
+                                idRefAssociations[currentIdRef][ass.link_name].add(ass.link_value);
+                            }
+                        }
+                    }
+                }
+                if (!eqSet(tempS2Set, idRefAssociations[currentIdRef]['s2'])) {
+                    console.log('base', idRefAssociations[currentIdRef]['s2'])
+                    console.log('temp', tempS2Set)
+                    problemAssociations[currentIdRef].add('s2');
+                }
+                if (!eqSet(tempSampledBySet, idRefAssociations[currentIdRef]['sampled-by'])) {
+                    console.log('base', idRefAssociations[currentIdRef]['sampled-by'])
+                    console.log('temp', tempSampledBySet)
+                    problemAssociations[currentIdRef].add('sampled-by');
+                }
+                if (!eqSet(tempSampleRefSet, idRefAssociations[currentIdRef]['sample-reference'])) {
+                    console.log('base', idRefAssociations[currentIdRef]['sample-reference'])
+                    console.log('temp', tempSampleRefSet)
+                    problemAssociations[currentIdRef].add('sample-reference');
+                }
+            }
+        }
+
+        console.log(problemAssociations);
+    }
+
     annotationsToDisplay.forEach((annotation, index) => {
         let occurrenceRemarks = 'N/A';
         // get occurrence remarks

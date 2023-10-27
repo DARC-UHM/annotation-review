@@ -452,33 +452,40 @@ class QaqcProcessor:
                         if current_id_ref not in id_ref_associations.keys():
                             id_ref_associations[current_id_ref] = {
                                 'flag': False,  # we'll set this to true if we find any conflicting associations
-                                's2': set(),  # s2 and sampled-by are allowed to have more than one association
-                                'sampled-by': set()
+                                's2': set(),          # s2, sampled-by, and sample-reference are allowed to have
+                                'sampled-by': set(),  # more than one association
+                                'sample-reference': set(),
                             }
                             id_ref_annotations[current_id_ref] = []
+                            id_ref_annotations[current_id_ref].append(annotation)
                             # populate id_ref dict with all associations
                             for ass in annotation['associations']:
                                 if ass['link_name'] == 's2' or ass['link_name'] == 'sampled-by':
                                     id_ref_associations[current_id_ref][ass['link_name']].add(ass['to_concept'])
+                                elif ass['link_name'] == 'sample-reference':
+                                    id_ref_associations[current_id_ref][ass['link_name']].add(ass['link_value'])
                                 else:
                                     id_ref_associations[current_id_ref][ass['link_name']] = \
                                         ass['link_value'] if ass['link_name'] not in to_concepts else ass['to_concept']
                         else:
                             # check current association values vs those saved
+                            id_ref_annotations[current_id_ref].append(annotation)
                             temp_s2_set = set()
                             temp_sampled_by_set = set()
+                            temp_sample_ref_set = set()
                             for ass in annotation['associations']:
                                 if ass['link_name'] == 's2':
                                     temp_s2_set.add(ass['to_concept'])
                                 elif ass['link_name'] == 'sampled-by':
                                     temp_sampled_by_set.add(ass['to_concept'])
+                                elif ass['link_name'] == 'sample-reference':
+                                    temp_sample_ref_set.add(ass['link_value'])
                                 else:
                                     if ass['link_name'] in to_concepts:
                                         if ass['link_name'] in id_ref_associations[current_id_ref].keys():
                                             # cases like 'guide-photo' will only be present on one record
                                             if id_ref_associations[current_id_ref][ass['link_name']] != ass['to_concept']:
                                                 id_ref_associations[current_id_ref]['flag'] = True
-                                                id_ref_annotations[current_id_ref].append(annotation)
                                                 break
                                         else:
                                             id_ref_associations[current_id_ref][ass['link_name']] = ass['to_concept']
@@ -486,16 +493,14 @@ class QaqcProcessor:
                                         if ass['link_name'] in id_ref_associations[current_id_ref].keys():
                                             if id_ref_associations[current_id_ref][ass['link_name']] != ass['link_value']:
                                                 id_ref_associations[current_id_ref]['flag'] = True
-                                                id_ref_annotations[current_id_ref].append(annotation)
                                                 break
                                         else:
                                             id_ref_associations[current_id_ref][ass['link_name']] = ass['link_value']
-                            if temp_s2_set != id_ref_associations[current_id_ref]['s2'] or \
-                                    temp_sampled_by_set != id_ref_associations[current_id_ref]['sampled-by']:
+                            if temp_s2_set != id_ref_associations[current_id_ref]['s2'] \
+                                    or temp_sampled_by_set != id_ref_associations[current_id_ref]['sampled-by'] \
+                                    or temp_sample_ref_set != id_ref_associations[current_id_ref]['sample-reference']:
                                 id_ref_associations[current_id_ref]['flag'] = True
-                                id_ref_annotations[current_id_ref].append(annotation)
                                 break
-                        id_ref_annotations[current_id_ref].append(annotation)
                         break
             for id_ref in id_ref_associations.keys():
                 if id_ref_associations[id_ref]['flag']:
