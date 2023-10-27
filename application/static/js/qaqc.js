@@ -1,5 +1,5 @@
 const sequences = [];
-const toConcepts = ['s1', 's2', 'upon', 'size'];
+const toConcepts = ['s1', 's2', 'upon', 'size', 'guide-photo', 'habitat', 'megahabitat', 'sampled-by'];
 
 let annotationsToDisplay = annotations;
 let workingAnnotationUuid = '';
@@ -230,6 +230,18 @@ function updateHash() {
                     if (association.link_name === 'identity-reference') {
                         $(`#associationTable${index}`).append(`<tr><td>${association.link_name}</td><td>${association.link_value}</td></tr>`);
                     }
+                }
+                break;
+            }
+            case 'Id Ref Associations': {
+                $(`#problemsDiv${index}`).append(`
+                    <table id="associationTable${index}" class="w-100 associationTable">
+                        <thead><tr><th>Link Name</th><th>To Concept</th><th>Link Value</th></tr></thead>
+                    </table>
+                `);
+                const sortedAssociations = annotation.associations.sort((a, b) => (a.link_name > b.link_name) ? 1 : ((b.link_name > a.link_name) ? -1 : 0));
+                for (const association of sortedAssociations) {
+                    $(`#associationTable${index}`).append(`<tr><td>${association.link_name}</td><td>${association.to_concept}</td><td>${association.link_value}</td></tr>`);
                 }
                 break;
             }

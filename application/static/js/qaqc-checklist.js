@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded',  (event) => {
     $('#missingUponAnchor').on('click', () => showLoader());
     $('#refIdConceptNameAnchor').attr('href', `/qaqc/id-ref-concept-name?sequence=${sequences.join('&sequence=')}#sort=ID Reference`);
     $('#refIdConceptNameAnchor').on('click', () => showLoader());
-    $('#refIdAssociationsAnchor').attr('href', `/qaqc/id-ref-associations?sequence=${sequences.join('&sequence=')}`);
+    $('#refIdAssociationsAnchor').attr('href', `/qaqc/id-ref-associations?sequence=${sequences.join('&sequence=')}#sort=ID Reference`);
     $('#refIdAssociationsAnchor').on('click', () => showLoader());
     $('#suspiciousHostAnchor').attr('href', `/qaqc/suspicious-hosts?sequence=${sequences.join('&sequence=')}`);
     $('#suspiciousHostAnchor').on('click', () => showLoader());

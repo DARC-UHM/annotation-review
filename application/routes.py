@@ -159,7 +159,10 @@ def qaqc(check):
             data['page_title'] = 'Records missing ancillary data'
         case 'id-ref-concept-name':
             qaqc_annos.find_id_refs_different_concept_name()
-            data['page_title'] = 'Records with the same ID reference but different concept names'
+            data['page_title'] = 'Records with the same ID reference that have different concept names'
+        case 'id-ref-associations':
+            qaqc_annos.find_id_refs_conflicting_associations()
+            data['page_title'] = 'Records with the same ID reference that have conflicting associations'
     data['annotations'] = qaqc_annos.final_records
     return render_template('qaqc.html', data=data)
 
