@@ -34,10 +34,11 @@ class QaqcProcessor:
         return response['annotations']
 
     def process_records(self):
-        concept_phylogeny = {'Animalia': {}, 'none': {}}
+        concept_phylogeny = {'Animalia': {}, 'none': {}, 'object': {}}
         annotation_df = pd.DataFrame(columns=[
             'observation_uuid',
             'concept',
+            'identity-reference',
             'associations',
             'image_url',
             'video_url',
@@ -65,7 +66,7 @@ class QaqcProcessor:
 
         for annotation in self.working_records:
             concept_name = annotation['concept']
-            if concept_name not in concept_phylogeny.keys():
+            if concept_name and concept_name not in concept_phylogeny.keys():
                 # get the phylogeny from VARS kb
                 concept_phylogeny[concept_name] = {}
                 with requests.get(f'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/{concept_name}') \
@@ -73,8 +74,7 @@ class QaqcProcessor:
                     if vars_tax_res.status_code == 200:
                         # this get us to phylum
                         vars_tree = \
-                            vars_tax_res.json()['children'][0]['children'][0]['children'][0]['children'][0]['children'][
-                                0]
+                            vars_tax_res.json()['children'][0]['children'][0]['children'][0]['children'][0]['children'][0]
                         while 'children' in vars_tree.keys():
                             if 'rank' in vars_tree.keys():  # sometimes it's not
                                 concept_phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
@@ -112,6 +112,7 @@ class QaqcProcessor:
             temp_df = pd.DataFrame([[
                 annotation['observation_uuid'],
                 concept_name,
+                get_association(annotation, 'identity-reference')['link_value'] if get_association(annotation, 'identity-reference') else None,
                 annotation['associations'],
                 image_url,
                 video_url,
@@ -152,6 +153,7 @@ class QaqcProcessor:
             ]], columns=[
                 'observation_uuid',
                 'concept',
+                'identity-reference',
                 'associations',
                 'image_url',
                 'video_url',
@@ -202,6 +204,7 @@ class QaqcProcessor:
             self.final_records.append({
                 'observation_uuid': row['observation_uuid'],
                 'concept': row['concept'],
+                'identity_reference': row['identity-reference'],
                 'annotator': row['annotator'],
                 'depth': row['depth'],
                 'lat': row['lat'],
@@ -411,7 +414,7 @@ class QaqcProcessor:
 
     def find_id_refs_different_concept_name(self):
         """
-        Finds annotations with the same ID reference but different concept names
+        Finds annotations with the same ID reference that have different concept names
         """
         for name in self.sequence_names:
             annotations = self.fetch_annotations(name)
