@@ -408,3 +408,25 @@ class QaqcProcessor:
                 if 'ancillary_data' not in annotation.keys():
                     self.working_records.append(annotation)
         self.process_records()
+
+    def find_id_refs_different_concept_name(self):
+        """
+        Finds annotations with the same ID reference but different concept names
+        """
+        for name in self.sequence_names:
+            annotations = self.fetch_annotations(name)
+            id_ref_names = {}  # dict of {id_ref: {name_1, name_2}} to check for more than one name
+            id_ref_annotations = {}  # dict of all annotations per id_ref: {id_ref: [annotation_1, annotation_2]}
+            for annotation in annotations:
+                for association in annotation['associations']:
+                    if association['link_name'] == 'identity-reference':
+                        if association['link_value'] not in id_ref_names.keys():
+                            id_ref_names[association['link_value']] = set()
+                            id_ref_annotations[association['link_value']] = []
+                        id_ref_names[association['link_value']].add(annotation['concept'])
+                        id_ref_annotations[association['link_value']].append(annotation)
+            for id_ref, name_set in id_ref_names.items():
+                if len(name_set) > 1:
+                    for annotation in id_ref_annotations[id_ref]:
+                        self.working_records.append(annotation)
+        self.process_records()

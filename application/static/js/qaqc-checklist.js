@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded',  (event) => {
     $('#timestampSubstrateAnchor').on('click', () => showLoader());
     $('#missingUponAnchor').attr('href', `/qaqc/missing-upon?sequence=${sequences.join('&sequence=')}`);
     $('#missingUponAnchor').on('click', () => showLoader());
-    $('#refIdConceptNameAnchor').attr('href', `/qaqc/id-ref-concept-name?sequence=${sequences.join('&sequence=')}`);
+    $('#refIdConceptNameAnchor').attr('href', `/qaqc/id-ref-concept-name?sequence=${sequences.join('&sequence=')}#sort=ID Reference`);
     $('#refIdConceptNameAnchor').on('click', () => showLoader());
     $('#refIdAssociationsAnchor').attr('href', `/qaqc/id-ref-associations?sequence=${sequences.join('&sequence=')}`);
     $('#refIdAssociationsAnchor').on('click', () => showLoader());

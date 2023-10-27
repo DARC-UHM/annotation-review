@@ -220,6 +220,19 @@ function updateHash() {
                 }
                 break;
             }
+            case 'Id Ref Concept Name': {
+                $(`#problemsDiv${index}`).append(`
+                    <table id="associationTable${index}" class="w-100 associationTable">
+                        <thead><tr><th>Link Name</th><th>To Concept</th></tr></thead>
+                    </table>
+                `);
+                for (const association of annotation.associations) {
+                    if (association.link_name === 'identity-reference') {
+                        $(`#associationTable${index}`).append(`<tr><td>${association.link_name}</td><td>${association.link_value}</td></tr>`);
+                    }
+                }
+                break;
+            }
         }
     });
 }

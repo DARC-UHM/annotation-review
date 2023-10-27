@@ -128,28 +128,39 @@ def qaqc(check):
     # get concept list from vars (for input validation)
     with requests.get(f'{HURLSTOR_URL}:8083/kb/v1/concept') as r:
         vars_concepts = r.json()
+    data = {
+        'concepts': vars_concepts,
+        'title': check.replace('-', ' ').title(),
+    }
     match check:
         case 'multiple-associations':
             qaqc_annos.find_duplicate_associations()
+            data['page_title'] = 'Records with multiples of the same association other than s2'
         case 'missing-primary-substrate':
             qaqc_annos.find_missing_s1()
+            data['page_title'] = 'Records missing primary substrate'
         case 'identical-s1-&-s2':
             qaqc_annos.find_identical_s1_s2()
+            data['page_title'] = 'Records with identical primary and secondary substrates'
         case 'duplicate-s2':
             qaqc_annos.find_duplicate_s2()
+            data['page_title'] = 'Records with with duplicate secondary substrates'
         case 'missing-upon-substrate':
             qaqc_annos.find_missing_upon_substrate()
+            data['page_title'] = 'Records missing a substrate that it is recorded "upon"'
         case 'mismatched-substrates':
             qaqc_annos.find_mismatched_substrates()
+            data['page_title'] = 'Records occurring at the same timestamp with mismatched substrates'
         case 'missing-upon':
             qaqc_annos.find_missing_upon()
+            data['page_title'] = 'Records other than "none" missing "upon"'
         case 'missing-ancillary-data':
             qaqc_annos.find_missing_ancillary_data()
-    data = {
-        'title': check.replace('-', ' ').title(),
-        'annotations': qaqc_annos.final_records,
-        'concepts': vars_concepts,
-    }
+            data['page_title'] = 'Records missing ancillary data'
+        case 'id-ref-concept-name':
+            qaqc_annos.find_id_refs_different_concept_name()
+            data['page_title'] = 'Records with the same ID reference but different concept names'
+    data['annotations'] = qaqc_annos.final_records
     return render_template('qaqc.html', data=data)
 
 
