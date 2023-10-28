@@ -163,6 +163,9 @@ def qaqc(check):
         case 'id-ref-associations':
             qaqc_annos.find_id_refs_conflicting_associations()
             data['page_title'] = 'Records with the same ID reference that have conflicting associations'
+        case 'suspicious-hosts':
+            qaqc_annos.find_suspicious_hosts()
+            data['page_title'] = 'Records with suspicious hosts'
     data['annotations'] = qaqc_annos.final_records
     return render_template('qaqc.html', data=data)
 

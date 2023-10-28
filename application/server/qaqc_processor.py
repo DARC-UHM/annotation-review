@@ -498,3 +498,15 @@ class QaqcProcessor:
                     for annotation in id_ref_annotations[id_ref]:
                         self.working_records.append(annotation)
         self.process_records()
+
+    def find_suspicious_hosts(self):
+        """
+        Finds annotations that have an upon that is the same concept as itself
+        """
+        for name in self.sequence_names:
+            annotations = self.fetch_annotations(name)
+            for annotation in annotations:
+                upon = get_association(annotation, 'upon')
+                if upon and upon['to_concept'] == annotation['concept']:
+                    self.working_records.append(annotation)
+        self.process_records()
