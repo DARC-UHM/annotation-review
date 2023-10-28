@@ -227,8 +227,7 @@ class QaqcProcessor:
         Finds annotations that have more than one of the same association besides s2
         """
         for name in self.sequence_names:
-            annotations = self.fetch_annotations(name)
-            for annotation in annotations:
+            for annotation in self.fetch_annotations(name):
                 # get list of associations
                 association_set = set()
                 duplicate_associations = False
@@ -249,8 +248,7 @@ class QaqcProcessor:
         Finds annotations that are missing s1 (ignores 'none' records)
         """
         for name in self.sequence_names:
-            annotations = self.fetch_annotations(name)
-            for annotation in annotations:
+            for annotation in self.fetch_annotations(name):
                 if annotation['concept'] == 'none':
                     continue
                 s1 = get_association(annotation, 's1')
@@ -263,8 +261,7 @@ class QaqcProcessor:
         Finds annotations that have an s2 association that is the same as its s1 association
         """
         for name in self.sequence_names:
-            annotations = self.fetch_annotations(name)
-            for annotation in annotations:
+            for annotation in self.fetch_annotations(name):
                 s2s = []
                 s1 = ''
                 for association in annotation['associations']:
@@ -281,8 +278,7 @@ class QaqcProcessor:
         Finds annotations that have multiple s2 associations with the same value
         """
         for name in self.sequence_names:
-            annotations = self.fetch_annotations(name)
-            for annotation in annotations:
+            for annotation in self.fetch_annotations(name):
                 duplicate_s2s = False
                 s2_set = set()
                 for association in annotation['associations']:
@@ -303,8 +299,7 @@ class QaqcProcessor:
         """
         # TODO do we want to exclude dead organisms from this check?
         for name in self.sequence_names:
-            annotations = self.fetch_annotations(name)
-            for annotation in annotations:
+            for annotation in self.fetch_annotations(name):
                 upon = None
                 missing_upon = False
                 for association in annotation['associations']:
@@ -331,9 +326,8 @@ class QaqcProcessor:
         Finds annotations that occur at the same timestamp (same second) but have different substrates
         """
         for name in self.sequence_names:
-            annotations = self.fetch_annotations(name)
             annotations_with_same_timestamp = {}
-            sorted_annotations = sorted(annotations, key=lambda d: d['recorded_timestamp'])
+            sorted_annotations = sorted(self.fetch_annotations(name), key=lambda d: d['recorded_timestamp'])
             # loop through all annotations, add ones with same timestamp to dict
             i = 0
             while i < len(sorted_annotations) - 1:
@@ -373,8 +367,7 @@ class QaqcProcessor:
         Finds annotations that are missing upon (ignores 'none' records)
         """
         for name in self.sequence_names:
-            annotations = self.fetch_annotations(name)
-            for annotation in annotations:
+            for annotation in self.fetch_annotations(name):
                 if annotation['concept'] == 'none':
                     continue
                 if not get_association(annotation, 'upon'):
@@ -387,8 +380,7 @@ class QaqcProcessor:
         """
         num_records_missing = 0
         for name in self.sequence_names:
-            annotations = self.fetch_annotations(name)
-            for annotation in annotations:
+            for annotation in self.fetch_annotations(name):
                 if 'ancillary_data' not in annotation.keys():
                     num_records_missing += 1
         return num_records_missing
@@ -398,8 +390,7 @@ class QaqcProcessor:
         Finds annotations that are missing ancillary data (can be very slow)
         """
         for name in self.sequence_names:
-            annotations = self.fetch_annotations(name)
-            for annotation in annotations:
+            for annotation in self.fetch_annotations(name):
                 if 'ancillary_data' not in annotation.keys():
                     self.working_records.append(annotation)
         self.process_records()
@@ -409,10 +400,9 @@ class QaqcProcessor:
         Finds annotations with the same ID reference that have different concept names
         """
         for name in self.sequence_names:
-            annotations = self.fetch_annotations(name)
             id_ref_names = {}  # dict of {id_ref: {name_1, name_2}} to check for more than one name
             id_ref_annotations = {}  # dict of all annotations per id_ref: {id_ref: [annotation_1, annotation_2]}
-            for annotation in annotations:
+            for annotation in self.fetch_annotations(name):
                 for association in annotation['associations']:
                     if association['link_name'] == 'identity-reference':
                         if association['link_value'] not in id_ref_names.keys():
@@ -433,10 +423,9 @@ class QaqcProcessor:
         """
         to_concepts = ['s1', 's2', 'upon', 'size', 'guide-photo', 'habitat', 'megahabitat', 'sampled-by']
         for name in self.sequence_names:
-            annotations = self.fetch_annotations(name)
             id_ref_associations = {}  # dict of {id_ref: {ass_1_name: ass_1_val, ass_2_name: ass_2_val}}
             id_ref_annotations = {}  # dict of all annotations per id_ref: {id_ref: [annotation_1, annotation_2]}
-            for annotation in annotations:
+            for annotation in self.fetch_annotations(name):
                 id_ref = get_association(annotation, 'identity-reference')
                 if id_ref:
                     current_id_ref = id_ref['link_value']
@@ -504,8 +493,7 @@ class QaqcProcessor:
         Finds annotations that have an upon that is the same concept as itself
         """
         for name in self.sequence_names:
-            annotations = self.fetch_annotations(name)
-            for annotation in annotations:
+            for annotation in self.fetch_annotations(name):
                 upon = get_association(annotation, 'upon')
                 if upon and upon['to_concept'] == annotation['concept']:
                     self.working_records.append(annotation)
