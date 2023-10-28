@@ -136,24 +136,16 @@ function updateHash() {
                     }
                 }
                 if (!eqSet(tempS2Set, idRefAssociations[currentIdRef]['s2'])) {
-                    console.log('base', idRefAssociations[currentIdRef]['s2'])
-                    console.log('temp', tempS2Set)
                     problemAssociations[currentIdRef].add('s2');
                 }
                 if (!eqSet(tempSampledBySet, idRefAssociations[currentIdRef]['sampled-by'])) {
-                    console.log('base', idRefAssociations[currentIdRef]['sampled-by'])
-                    console.log('temp', tempSampledBySet)
                     problemAssociations[currentIdRef].add('sampled-by');
                 }
                 if (!eqSet(tempSampleRefSet, idRefAssociations[currentIdRef]['sample-reference'])) {
-                    console.log('base', idRefAssociations[currentIdRef]['sample-reference'])
-                    console.log('temp', tempSampleRefSet)
                     problemAssociations[currentIdRef].add('sample-reference');
                 }
             }
         }
-
-        console.log(problemAssociations);
     }
 
     annotationsToDisplay.forEach((annotation, index) => {

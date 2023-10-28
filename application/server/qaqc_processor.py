@@ -502,8 +502,11 @@ class QaqcProcessor:
 
     def find_missing_expected_association(self):
         """
-        Finds annotations that are expected to be upon another organism, but are not. If more concepts need to be
-        added for this check, simply add them to the appropriate list below:
+        Finds annotations that are expected to be upon another organism, but are not. This is a very slow test because
+        before it can begin, we must retrieve the taxa from VARS for every record (unlike the other tests, we can't
+        filter beforehand).
+
+        If more concepts need to be added for this check, simply add them to the appropriate list below:
 
             Example: To add the order 'order123' to the list, change the declaration below from:
 
