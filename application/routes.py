@@ -166,6 +166,9 @@ def qaqc(check):
         case 'suspicious-hosts':
             qaqc_annos.find_suspicious_hosts()
             data['page_title'] = 'Records with suspicious hosts'
+        case 'expected-associations':
+            qaqc_annos.find_missing_expected_association()
+            data['page_title'] = 'Records expected to be associated with an organism but "upon" is inanimate'
     data['annotations'] = qaqc_annos.final_records
     return render_template('qaqc.html', data=data)
 

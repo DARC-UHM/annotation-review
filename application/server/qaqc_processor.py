@@ -212,6 +212,7 @@ class QaqcProcessor:
                 'phylum': row['phylum'],
                 'class': row['class'],
                 'order': row['order'],
+                'infraorder': row['infraorder'],
                 'family': row['family'],
                 'genus': row['genus'],
                 'species': row['species'],
@@ -498,3 +499,58 @@ class QaqcProcessor:
                 if upon and upon['to_concept'] == annotation['concept']:
                     self.working_records.append(annotation)
         self.process_records()
+
+    def find_missing_expected_association(self):
+        """
+        Finds annotations that are expected to be upon another organism, but are not. If more concepts need to be
+        added for this check, simply add them to the appropriate list below:
+
+            Example: To add the order 'order123' to the list, change the declaration below from:
+
+            orders = ['Comatulida']
+
+            to:
+
+            orders = ['Comatulida', 'order123']
+
+        If a list does not exist, declare a new list and add it to the conditional:
+
+            Example: To add the subfamily 'subfam123' to the check, add a new list named 'subfamilies':
+
+            subfamilies = ['subfam123']
+
+            Then add the new list to the conditional:
+
+            ...
+            or ('family' in record.keys() and record['family'] in families)
+            or ('subfamily' in record.keys() and record['subfamily'] in subfamilies)  <<< ADD THIS LINE
+            or ('genus' in record.keys() and record['genus'] in genera)
+            ...
+
+        If you want the new addition to be highlighted in the table on the webpage, add the name to the ranksToHighlight
+        list in qaqc.js, at ~line 340
+        """
+        classes = ['Ophiuroidea']
+        orders = ['Comatulida']
+        infraorders = ['Anomura', 'Caridea']
+        families = ['Goniasteridae', 'Poecilasmatidae', 'Parazoanthidae', 'Tubulariidae', 'Amphianthidae', 'Actinoscyphiidae']
+        genera = ['Henricia']
+        concepts = ['Hydroidolina']
+        for name in self.sequence_names:
+            for annotation in self.fetch_annotations(name):
+                self.working_records.append(annotation)
+        self.process_records()
+        temp_records = self.final_records
+        self.final_records = []
+        for record in temp_records:
+            if (
+                    ('class' in record.keys() and record['class'] in classes)
+                    or ('order' in record.keys() and record['order'] in orders)
+                    or ('infraorder' in record.keys() and record['infraorder'] in infraorders)
+                    or ('family' in record.keys() and record['family'] in families)
+                    or ('genus' in record.keys() and record['genus'] in genera)
+                    or ('concept' in record.keys() and record['concept'] in concepts)
+            ):
+                upon = get_association(record, 'upon')
+                if upon and upon['to_concept'][0].islower():
+                    self.final_records.append(record)

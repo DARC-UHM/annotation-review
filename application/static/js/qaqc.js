@@ -325,7 +325,7 @@ function updateHash() {
                 break;
             }
             case 'Suspicious Hosts': {
-                 $(`#problemsDiv${index}`).append(`
+                $(`#problemsDiv${index}`).append(`
                     <table id="associationTable${index}" class="w-100 associationTable">
                         <thead><tr><th>Link Name</th><th>To Concept</th></tr></thead>
                     </table>
@@ -335,6 +335,33 @@ function updateHash() {
                         $(`#associationTable${index}`).append(`<tr><td>${association.link_name}</td><td>${association.to_concept}</td></tr>`);
                     }
                 }
+                break;
+            }
+            case 'Expected Associations': {
+                const ranksToHighlight = ['Ophiuroidea', 'Comatulida', 'Anomura', 'Caridea', 'Goniasteridae',
+                    'Poecilasmatidae', 'Parazoanthidae', 'Tubulariidae', 'Amphianthidae', 'Actinoscyphiidae',
+                    'Henricia', 'Hydroidolina'];
+                $(`#problemsDiv${index}`).append(`
+                    <table id="taxaTable${index}" class="w-100 associationTable">
+                        <thead><tr><th>Rank</th><th>Value</th></tr></thead>
+                    </table>
+                `);
+                let upon;
+                for (const association of annotation.associations) {
+                    if (association.link_name === 'upon') {
+                        upon = association.to_concept;
+                    }
+                }
+                for (const key of Object.keys(annotation)) {
+                    if (['class', 'order', 'infraorder', 'family', 'genus', 'species'].includes(key)) {
+                        if (ranksToHighlight.includes(annotation[key])) {
+                            $(`#taxaTable${index}`).append(`<tr><td style="text-transform: capitalize;">${key}</td><td style="color: yellow;">${annotation[key]}</td></tr>`);
+                        } else {
+                            $(`#taxaTable${index}`).append(`<tr><td style="text-transform: capitalize;">${key}</td><td>${annotation[key]}</td></tr>`);
+                        }
+                    }
+                }
+                $(`#taxaTable${index}`).append(`<tr><td>upon</td><td style="color: yellow;">${upon || 'none'}</td></tr>`);
                 break;
             }
         }
