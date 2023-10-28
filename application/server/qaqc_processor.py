@@ -253,10 +253,7 @@ class QaqcProcessor:
             for annotation in annotations:
                 if annotation['concept'] == 'none':
                     continue
-                s1 = False
-                for association in annotation['associations']:
-                    if association['link_name'] == 's1':
-                        s1 = True
+                s1 = get_association(annotation, 's1')
                 if not s1:
                     self.working_records.append(annotation)
         self.process_records()
@@ -380,12 +377,7 @@ class QaqcProcessor:
             for annotation in annotations:
                 if annotation['concept'] == 'none':
                     continue
-                missing_upon = True
-                for association in annotation['associations']:
-                    if association['link_name'] == 'upon':
-                        missing_upon = False
-                        break
-                if missing_upon:
+                if not get_association(annotation, 'upon'):
                     self.working_records.append(annotation)
         self.process_records()
 
@@ -430,7 +422,6 @@ class QaqcProcessor:
                         id_ref_annotations[association['link_value']].append(annotation)
                         break
             for id_ref, name_set in id_ref_names.items():
-                print(f'{id_ref}: {name_set}')
                 if len(name_set) > 1:
                     for annotation in id_ref_annotations[id_ref]:
                         self.working_records.append(annotation)
@@ -446,62 +437,62 @@ class QaqcProcessor:
             id_ref_associations = {}  # dict of {id_ref: {ass_1_name: ass_1_val, ass_2_name: ass_2_val}}
             id_ref_annotations = {}  # dict of all annotations per id_ref: {id_ref: [annotation_1, annotation_2]}
             for annotation in annotations:
-                for association in annotation['associations']:
-                    if association['link_name'] == 'identity-reference':
-                        current_id_ref = association['link_value']
-                        if current_id_ref not in id_ref_associations.keys():
-                            id_ref_associations[current_id_ref] = {
-                                'flag': False,  # we'll set this to true if we find any conflicting associations
-                                's2': set(),          # s2, sampled-by, and sample-reference are allowed to have
-                                'sampled-by': set(),  # more than one association
-                                'sample-reference': set(),
-                            }
-                            id_ref_annotations[current_id_ref] = []
-                            id_ref_annotations[current_id_ref].append(annotation)
-                            # populate id_ref dict with all associations
-                            for ass in annotation['associations']:
-                                if ass['link_name'] == 's2' or ass['link_name'] == 'sampled-by':
-                                    id_ref_associations[current_id_ref][ass['link_name']].add(ass['to_concept'])
-                                elif ass['link_name'] == 'sample-reference':
-                                    id_ref_associations[current_id_ref][ass['link_name']].add(ass['link_value'])
-                                else:
-                                    id_ref_associations[current_id_ref][ass['link_name']] = \
-                                        ass['link_value'] if ass['link_name'] not in to_concepts else ass['to_concept']
-                        else:
-                            # check current association values vs those saved
-                            id_ref_annotations[current_id_ref].append(annotation)
-                            temp_s2_set = set()
-                            temp_sampled_by_set = set()
-                            temp_sample_ref_set = set()
-                            for ass in annotation['associations']:
-                                if ass['link_name'] == 's2':
-                                    temp_s2_set.add(ass['to_concept'])
-                                elif ass['link_name'] == 'sampled-by':
-                                    temp_sampled_by_set.add(ass['to_concept'])
-                                elif ass['link_name'] == 'sample-reference':
-                                    temp_sample_ref_set.add(ass['link_value'])
-                                else:
-                                    if ass['link_name'] in to_concepts:
-                                        if ass['link_name'] in id_ref_associations[current_id_ref].keys():
-                                            # cases like 'guide-photo' will only be present on one record
-                                            if id_ref_associations[current_id_ref][ass['link_name']] != ass['to_concept']:
-                                                id_ref_associations[current_id_ref]['flag'] = True
-                                                break
-                                        else:
-                                            id_ref_associations[current_id_ref][ass['link_name']] = ass['to_concept']
+                id_ref = get_association(annotation, 'identity-reference')
+                if id_ref:
+                    current_id_ref = id_ref['link_value']
+                    if current_id_ref not in id_ref_associations.keys():
+                        id_ref_associations[current_id_ref] = {
+                            'flag': False,  # we'll set this to true if we find any conflicting associations
+                            's2': set(),          # s2, sampled-by, and sample-reference are allowed to have
+                            'sampled-by': set(),  # more than one association
+                            'sample-reference': set(),
+                        }
+                        id_ref_annotations[current_id_ref] = []
+                        id_ref_annotations[current_id_ref].append(annotation)
+                        # populate id_ref dict with all associations
+                        for ass in annotation['associations']:
+                            if ass['link_name'] == 's2' or ass['link_name'] == 'sampled-by':
+                                id_ref_associations[current_id_ref][ass['link_name']].add(ass['to_concept'])
+                            elif ass['link_name'] == 'sample-reference':
+                                id_ref_associations[current_id_ref][ass['link_name']].add(ass['link_value'])
+                            else:
+                                id_ref_associations[current_id_ref][ass['link_name']] = \
+                                    ass['link_value'] if ass['link_name'] not in to_concepts else ass['to_concept']
+                    else:
+                        # check current association values vs those saved
+                        id_ref_annotations[current_id_ref].append(annotation)
+                        temp_s2_set = set()
+                        temp_sampled_by_set = set()
+                        temp_sample_ref_set = set()
+                        for ass in annotation['associations']:
+                            if ass['link_name'] == 's2':
+                                temp_s2_set.add(ass['to_concept'])
+                            elif ass['link_name'] == 'sampled-by':
+                                temp_sampled_by_set.add(ass['to_concept'])
+                            elif ass['link_name'] == 'sample-reference':
+                                temp_sample_ref_set.add(ass['link_value'])
+                            else:
+                                if ass['link_name'] in to_concepts:
+                                    if ass['link_name'] in id_ref_associations[current_id_ref].keys():
+                                        # cases like 'guide-photo' will only be present on one record
+                                        if id_ref_associations[current_id_ref][ass['link_name']] != ass['to_concept']:
+                                            id_ref_associations[current_id_ref]['flag'] = True
+                                            break
                                     else:
-                                        if ass['link_name'] in id_ref_associations[current_id_ref].keys():
-                                            if id_ref_associations[current_id_ref][ass['link_name']] != ass['link_value']:
-                                                id_ref_associations[current_id_ref]['flag'] = True
-                                                break
-                                        else:
-                                            id_ref_associations[current_id_ref][ass['link_name']] = ass['link_value']
-                            if temp_s2_set != id_ref_associations[current_id_ref]['s2'] \
-                                    or temp_sampled_by_set != id_ref_associations[current_id_ref]['sampled-by'] \
-                                    or temp_sample_ref_set != id_ref_associations[current_id_ref]['sample-reference']:
-                                id_ref_associations[current_id_ref]['flag'] = True
-                                break
-                        break
+                                        id_ref_associations[current_id_ref][ass['link_name']] = ass['to_concept']
+                                else:
+                                    if ass['link_name'] in id_ref_associations[current_id_ref].keys():
+                                        if id_ref_associations[current_id_ref][ass['link_name']] != ass['link_value']:
+                                            id_ref_associations[current_id_ref]['flag'] = True
+                                            break
+                                    else:
+                                        id_ref_associations[current_id_ref][ass['link_name']] = ass['link_value']
+                        if temp_s2_set != id_ref_associations[current_id_ref]['s2'] \
+                                or temp_sampled_by_set != id_ref_associations[current_id_ref]['sampled-by'] \
+                                or temp_sample_ref_set != id_ref_associations[current_id_ref]['sample-reference']:
+                            id_ref_associations[current_id_ref]['flag'] = True
+                            break
+                    break
             for id_ref in id_ref_associations.keys():
                 if id_ref_associations[id_ref]['flag']:
                     for annotation in id_ref_annotations[id_ref]:
