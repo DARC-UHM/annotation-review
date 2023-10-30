@@ -106,7 +106,7 @@ def view_images():
         'reviewers': _reviewers,
         'comments': comments
     }
-    return render_template('image-review.html', data=data)
+    return render_template('image-review/image-review.html', data=data)
 
 
 # qaqc checklist page
@@ -117,7 +117,7 @@ def qaqc_checklist():
     for sequence in sequences:
         with requests.get(f'http://hurlstor.soest.hawaii.edu:8086/query/dive/{sequence.replace(" ", "%20")}') as r:
             annotation_count += len(r.json()['annotations'])
-    return render_template('qaqc-checklist.html', annotation_count=annotation_count)
+    return render_template('qaqc/qaqc-checklist.html', annotation_count=annotation_count)
 
 
 # individual qaqc checks
@@ -172,8 +172,12 @@ def qaqc(check):
         case 'host-associate-time-diff':
             qaqc_annos.find_long_host_associate_time_diff()
             data['page_title'] = 'Records where "upon" occurred more than one minute ago or cannot be found'
+        case 'unique-fields':
+            qaqc_annos.find_unique_fields()
+            data['annotations'] = qaqc_annos.final_records
+            return render_template('qaqc/qaqc-unique.html', data=data)
     data['annotations'] = qaqc_annos.final_records
-    return render_template('qaqc.html', data=data)
+    return render_template('qaqc/qaqc.html', data=data)
 
 
 @app.get('/qaqc/quick/<check>')
@@ -218,7 +222,7 @@ def external_review():
         'reviewers': _reviewers,
         'comments': comments
     }
-    return render_template('image-review.html', data=data)
+    return render_template('image-review/image-review.html', data=data)
 
 
 # syncs ctd from vars db with external review db
@@ -297,7 +301,7 @@ def reviewers():
         print('\nERROR: unable to connect to external review server\n')
         flash('Unable to connect to external review server', 'danger')
         return redirect('/')
-    return render_template('external-reviewers.html', reviewers=reviewer_list)
+    return render_template('image-review/external-reviewers.html', reviewers=reviewer_list)
 
 
 # update a reviewer's information
