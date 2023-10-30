@@ -34,15 +34,15 @@ class CommentProcessor:
             joined_annotation['video_url'] = self.comments[comment]['video_url']
             joined_annotation['image_url'] = self.comments[comment]['image_url']
             joined_annotation['video_sequence_name'] = self.comments[comment]['sequence']
-            if get_association(annotation, 'identity_certainty'):
-                joined_annotation['identity_certainty'] = get_association(annotation, 'identity_certainty')['link_value']
-            if get_association(annotation, 'identity_reference'):
-                joined_annotation['identity_reference'] = get_association(annotation, 'identity_reference')['link_value']
+            if get_association(annotation, 'identity-certainty'):
+                joined_annotation['identity_certainty'] = get_association(annotation, 'identity-certainty')['link_value']
+            if get_association(annotation, 'identity-reference'):
+                joined_annotation['identity_reference'] = get_association(annotation, 'identity-reference')['link_value']
             if get_association(annotation, 'upon'):
                 joined_annotation['upon'] = get_association(annotation, 'upon')['to_concept']
             if get_association(annotation, 'comment'):
                 joined_annotation['comment'] = get_association(annotation, 'comment')['link_value']
-            if get_association(annotation, 'guide_photo'):
-                joined_annotation['guide_photo'] = get_association(annotation, 'guide_photo')['to_concept']
+            if get_association(annotation, 'guide-photo'):
+                joined_annotation['guide_photo'] = get_association(annotation, 'guide-photo')['to_concept']
 
             self.annotations.append(joined_annotation)
