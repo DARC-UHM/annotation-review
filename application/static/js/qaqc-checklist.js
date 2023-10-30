@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded',  (event) => {
     $('#suspiciousHostAnchor').on('click', () => showLoader());
     $('#expectedAssociationAnchor').attr('href', `/qaqc/expected-associations?sequence=${sequences.join('&sequence=')}`);
     $('#expectedAssociationAnchor').on('click', () => showLoader());
-    $('#timeDiffHostUponAnchor').attr('href', `/qaqc/host-upon-time-diff?sequence=${sequences.join('&sequence=')}`);
+    $('#timeDiffHostUponAnchor').attr('href', `/qaqc/host-associate-time-diff?sequence=${sequences.join('&sequence=')}`);
     $('#timeDiffHostUponAnchor').on('click', () => showLoader());
     $('#uniqueFieldsAnchor').attr('href', `/qaqc/unique-fields?sequence=${sequences.join('&sequence=')}`);
     $('#uniqueFieldsAnchor').on('click', () => showLoader());

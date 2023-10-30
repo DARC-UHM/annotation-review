@@ -1,5 +1,5 @@
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict
 
 
@@ -29,14 +29,21 @@ def get_association(annotation: Dict, link_name: str) -> dict:
     return {}
 
 
-def get_date_and_time(record: Dict) -> datetime:
+def extract_recorded_datetime(json_object: Dict) -> datetime:
     """
-    Returns a datetime timestamp from a completed annotation record.
+    Returns a datetime object of the recorded timestamp given a JSON annotation record.
 
-    :param Dict record: The annotation record after it has been converted from an AnnotationRow to a list.
-    :return datetime: A datetime object of the observation date/time.
+    :param Dict json_object: An annotation record.
+    :return datetime: A datetime object of the timestamp from the json object.
     """
-    return datetime.strptime(record[OBSERVATION_DATE] + record[OBSERVATION_TIME], '%Y-%m-%d%H:%M:%S')
+    if not json_object:
+        return None
+    if '.' in json_object['recorded_timestamp']:
+        timestamp = datetime.strptime(json_object['recorded_timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
+        if timestamp.microsecond >= 500000:
+            return timestamp.replace(microsecond=0) + timedelta(seconds=1)
+        return timestamp.replace(microsecond=0)
+    return datetime.strptime(json_object['recorded_timestamp'], '%Y-%m-%dT%H:%M:%SZ')
 
 
 def format_annotator(annotator: str) -> str:

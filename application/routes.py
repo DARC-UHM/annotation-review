@@ -169,6 +169,9 @@ def qaqc(check):
         case 'expected-associations':
             qaqc_annos.find_missing_expected_association()
             data['page_title'] = 'Records expected to be associated with an organism but "upon" is inanimate'
+        case 'host-associate-time-diff':
+            qaqc_annos.find_long_host_associate_time_diff()
+            data['page_title'] = 'Records where "upon" occurred more than one minute ago or cannot be found'
     data['annotations'] = qaqc_annos.final_records
     return render_template('qaqc.html', data=data)
 

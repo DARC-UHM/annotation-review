@@ -356,6 +356,15 @@ function updateHash() {
                 $(`#taxaTable${index}`).append(`<tr><td>upon</td><td style="color: yellow;">${upon || 'none'}</td></tr>`);
                 break;
             }
+            case 'Host Associate Time Diff': {
+                for (const association of annotation.associations) {
+                    if (association.link_name === 'upon') {
+                        $(`#problemsDiv${index}`).append(`<div>Upon: <span class="fw-bold">${association.to_concept}</span></div>`);
+                    }
+                }
+                $(`#problemsDiv${index}`).append(`<div>${annotation.status}</div>`);
+                break;
+            }
         }
     });
 }

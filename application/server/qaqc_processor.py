@@ -1,3 +1,5 @@
+import json
+
 import requests
 import pandas as pd
 
@@ -561,87 +563,59 @@ class QaqcProcessor:
                 if upon and upon['to_concept'][0].islower():
                     self.final_records.append(record)
 
-    def find_long_host_upon_time_diff(self):
+    def find_long_host_associate_time_diff(self):
+        greater_than_one_min = {}
+        greater_than_five_mins = {}
+        not_found = []
         for name in self.sequence_names:
             sorted_annotations = sorted(self.fetch_annotations(name), key=lambda d: d['recorded_timestamp'])
             for i in range(len(sorted_annotations)):
                 associate_record = sorted_annotations[i]
                 upon = get_association(sorted_annotations[i], 'upon')
-                if upon and upon[0].isupper():
-                    # the associate's 'upon' is indeed a creature
-
-                    ### TODO keep going through this function and adapt for env
-
-                        observation_time = get_date_and_time(associate_record)  # timestamp at which the associate was recorded
-                        found = False
-                        for j in range(i + 10, -1, -1):
-                            """ 
-                            Checks backward, looking for the most recent host w/ matching name. We start at i + 10 because 
-                            there can be multiple records with the exact same timestamp, and one of those records could be 
-                            the 'upon'
-                            """
-                            # to catch index out of range exception
-                            while j >= len(sorted_annotations):
-                                j -= 1
-                            host_record = sorted_annotations[j]
-
-                            if i == j or j > i and get_date_and_time(host_record) != observation_time:
-                                # i == j: record shouldn't be associated with itself, ignore
-                                # other bit: host record won't be recorded after associate record, so ignore this record
-                                pass
-                            elif host_record[SAMPLE_ID][:-9] != associate_record[SAMPLE_ID][:-9]:
-                                # dive names don't match, stop the search
+                if upon and upon['to_concept'][0].isupper():
+                    # the associate's 'upon' is an organism
+                    host_concept_name = upon['to_concept']
+                    observation_time = extract_recorded_datetime(associate_record)
+                    found = False
+                    for j in range(i + 10, -1, -1):
+                        """ 
+                        Checks backward, looking for the most recent host w/ matching name. We start at i + 10 because 
+                        there can be multiple records with the exact same timestamp, and one of those records could be 
+                        the 'upon'
+                        """
+                        # to catch index out of range exception
+                        while j >= len(sorted_annotations):
+                            j -= 1
+                        host_record = sorted_annotations[j]
+                        host_time = extract_recorded_datetime(host_record)
+                        if i == j or (j > i and host_time != observation_time):
+                            # i == j: record shouldn't be associated with itself, ignore
+                            # other bit: host record won't be recorded after associate record, so ignore this record
+                            pass
+                        else:
+                            if host_record['concept'] == host_concept_name:
+                                # the host record's name is equal to the host concept name (associate's 'upon' name)
+                                found = True
+                                time_diff = observation_time - host_time
+                                if time_diff.seconds > 300:
+                                    greater_than_five_mins[associate_record['observation_uuid']] = time_diff
+                                    self.working_records.append(associate_record)
+                                elif time_diff.seconds > 60:
+                                    greater_than_one_min[associate_record['observation_uuid']] = time_diff
+                                    self.working_records.append(associate_record)
                                 break
-                            else:
-                                if host_record[VARS_CONCEPT_NAME] == host_concept_name:
-                                    # the host record's name is equal to the host concept name (associate's 'upon' name)
-                                    upon_time = get_date_and_time(host_record)
-                                    if host_record[ASSOCIATED_TAXA] == NULL_VAL_STRING:
-                                        # if the host's 'associated taxa' field is blank, add the associate's concept name
-                                        host_record[ASSOCIATED_TAXA] = associate_record[COMBINED_NAME_ID]
-                                    elif associate_record[COMBINED_NAME_ID] not in host_record[ASSOCIATED_TAXA]:
-                                        # otherwise, append the concept name if it's not already there
-                                        host_record[ASSOCIATED_TAXA] += f' | {associate_record[COMBINED_NAME_ID]}'
-                                    if host_record[OCCURRENCE_COMMENTS] == NULL_VAL_STRING:
-                                        # add touch to occurrence comments
-                                        host_record[OCCURRENCE_COMMENTS] = 'associate touching host'
-                                    elif 'associate touching host' not in host_record[OCCURRENCE_COMMENTS]:
-                                        host_record[OCCURRENCE_COMMENTS] += ' | associate touching host'
-                                    time_diff = observation_time - upon_time
-                                    if time_diff.seconds > 300:
-                                        # flag warning
-                                        warning_messages.append([
-                                            associate_record[SAMPLE_ID],
-                                            associate_record[VARS_CONCEPT_NAME],
-                                            associate_record[TRACKING_ID],
-                                            f'{Color.RED}Time between record and upon record greater than 5 minutes {Color.END}'
-                                            f'({time_diff.seconds} seconds)'
-                                        ])
-                                    elif time_diff.seconds > 60:
-                                        # flag for review
-                                        warning_messages.append([
-                                            associate_record[SAMPLE_ID],
-                                            associate_record[VARS_CONCEPT_NAME],
-                                            associate_record[TRACKING_ID],
-                                            f'{Color.YELLOW}Time between record and upon record greater than 1 minute {Color.END}'
-                                            f'({time_diff.seconds} seconds)'
-                                        ])
-                                    found = True
-                                    break
-                        if not found:
-                            # flag error
-                            warning_messages.append([
-                                associate_record[SAMPLE_ID],
-                                associate_record[VARS_CONCEPT_NAME],
-                                associate_record[TRACKING_ID],
-                                f'{Color.RED}Upon not found in previous records{Color.END}'
-                            ])
-                    else:
-                        # flag error
-                        warning_messages.append([
-                            associate_record[SAMPLE_ID],
-                            associate_record[VARS_CONCEPT_NAME],
-                            associate_record[TRACKING_ID],
-                            f'{Color.RED}"{associate_record[SUBSTRATE]}" is host for this record, but that concept name '
-                            f'was not found in concepts.{Color.END}'
-                        ])
+                    if not found:
+                        not_found.append(associate_record['observation_uuid'])
+                        self.working_records.append(associate_record)
+        self.process_records()
+        for uuid in greater_than_one_min.keys():
+            next((x for x in self.final_records if x['observation_uuid'] == uuid), None)['status'] = \
+                'Time between record and closest previous matching host record greater than one minute ' \
+                f'({greater_than_one_min[uuid].seconds} seconds)'
+        for uuid in greater_than_five_mins.keys():
+            next((x for x in self.final_records if x['observation_uuid'] == uuid), None)['status'] = \
+                'Time between record and closest previous matching host record greater than five minutes ' \
+                f'({greater_than_five_mins[uuid].seconds // 60 % 60} mins, {greater_than_five_mins[uuid].seconds % 60} seconds)'
+        for uuid in not_found:
+            next((x for x in self.final_records if x['observation_uuid'] == uuid), None)['status'] = \
+                f'Host not found in previous records'
