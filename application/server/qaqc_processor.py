@@ -34,7 +34,7 @@ class QaqcProcessor:
         return response['annotations']
 
     def process_records(self):
-        concept_phylogeny = {'Animalia': {}, 'none': {}, 'object': {}}
+        concept_phylogeny = {}
         annotation_df = pd.DataFrame(columns=[
             'observation_uuid',
             'concept',
@@ -73,8 +73,11 @@ class QaqcProcessor:
                         as vars_tax_res:
                     if vars_tax_res.status_code == 200:
                         # this get us to phylum
-                        vars_tree = \
-                            vars_tax_res.json()['children'][0]['children'][0]['children'][0]['children'][0]['children'][0]
+                        try:
+                            vars_tree = \
+                                vars_tax_res.json()['children'][0]['children'][0]['children'][0]['children'][0]['children'][0]
+                        except KeyError:
+                            vars_tree = {}
                         while 'children' in vars_tree.keys():
                             if 'rank' in vars_tree.keys():  # sometimes it's not
                                 concept_phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
