@@ -619,3 +619,81 @@ class QaqcProcessor:
         for uuid in not_found:
             next((x for x in self.final_records if x['observation_uuid'] == uuid), None)['status'] = \
                 f'Host not found in previous records'
+
+    def find_unique_fields(self):
+        unique_concept_names = {}
+        unique_concept_upons = {}
+        unique_substrate_combinations = {}
+        unique_comments = {}
+        unique_condition_comments = {}
+        unique_megahabitats = {}
+        unique_habitats = {}
+        unique_habitat_comments = {}
+        unique_id_certainty = {}
+        unique_occurrence_remarks = {}
+
+        for name in self.sequence_names:
+            for annotation in self.fetch_annotations(name):
+                substrates = []
+                upon = None
+                comment = None
+                condition_comment = None
+                megahabitat = None
+                habitat = None
+                habitat_comment = None
+                id_certainty = None
+                occurrence_remark = None
+
+                for association in annotation['associations']:
+                    match association['link_name']:
+                        case 's1' | 's2':
+                            substrates.append(association['to_concept'])
+                        case 'upon':
+                            upon = association['to_concept']
+                        case 'comment':
+                            comment = association['link_value']
+                        case 'condition-comment':
+                            condition_comment = association['link_value']
+                        case 'megahabitat':
+                            megahabitat = association['to_concept']
+                        case 'habitat':
+                            habitat = association['to_concept']
+                        case 'habitat-comment':
+                            habitat_comment = association['link_value']
+                        case 'identity-certainty':
+                            id_certainty = association['link_value']
+                        case 'occurrence-remark':
+                            occurrence_remark = association['link_value']
+                if substrates is not None:
+                    substrates.sort()
+                    substrates = ', '.join(substrates)
+                '''
+                x unique_concept_names = {}
+                x unique_concept_upons = {}
+                x unique_substrate_combinations = {}
+                unique_comments = {}
+                unique_condition_comments = {}
+                unique_megahabitats = {}
+                unique_habitats = {}
+                unique_habitat_comments = {}
+                unique_id_certainty = {}
+                unique_occurrence_remarks = {}
+                '''
+                if annotation['concept'] not in unique_concept_names.keys():
+                    unique_concept_names[annotation['concept']] = 1
+                else:
+                    unique_concept_names[annotation['concept']] += 1
+
+                if f'{annotation["concept"]}:{upon}' not in unique_concept_upons.keys():
+                    unique_concept_upons[f'{annotation["concept"]}:{upon}'] = 1
+                else:
+                    unique_concept_upons[f'{annotation["concept"]}:{upon}'] += 1
+
+                if substrates not in unique_substrate_combinations.keys():
+                    unique_substrate_combinations[substrates] = 1
+                else:
+                    unique_substrate_combinations[substrates] += 1
+
+        self.final_records.append({'concepts': unique_concept_names})
+        self.final_records.append({'concept_upons': unique_concept_upons})
+        self.final_records.append({'substrate_combinations': unique_substrate_combinations})
