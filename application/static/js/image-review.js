@@ -479,7 +479,7 @@ function updateHash() {
     getPaginationNumbers();
 
     if (window.location.hash.includes('pg=')) {
-        setCurrentPage(window.location.hash.slice(window.location.hash.indexOf('pg=')).substring(3));
+        setCurrentPage(parseInt(window.location.hash.slice(window.location.hash.indexOf('pg=')).substring(3)));
     } else {
         location.replace(`#sort=Default&pg=1`); // to prevent extra pages without hash of page num when back button pressed
         setCurrentPage(1);
@@ -650,11 +650,11 @@ document.addEventListener('DOMContentLoaded', function(event) {
     updateHash();
 
     prevButton.addEventListener("click", () => {
-        setCurrentPage(currentPage - 1);
+        setCurrentPage(parseInt(currentPage) - 1);
     });
 
     nextButton.addEventListener("click", () => {
-        setCurrentPage(currentPage + 1);
+        setCurrentPage(parseInt(currentPage) + 1);
     });
 
     if (!vesselName) {
