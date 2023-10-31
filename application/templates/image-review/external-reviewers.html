@@ -1,12 +1,6 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <title>DARC Image Review | External Reviewers</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="/static/css/bootstrap.css" />
-    <link rel="stylesheet" href="/static/css/style.css" />
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}DARC Image Review | External Reviewers{% endblock title %}
+{% block content %}
     <div class="my-3 mx-5">
         {% for cat, msg in get_flashed_messages(with_categories=true) %}
         <div class="alert alert-{{ cat }} alert-dismissible px-5" style="position:fixed; left: 50%; transform: translate(-50%, 0); z-index: 9999;">
@@ -137,13 +131,12 @@
             </div>
         </div>
     </div>
-    <script src="/static/js/jquery.min.js"></script>
-    <script src="/static/js/bootstrap.bundle.js"></script>
+    <script src="/static/modules/jquery/jquery.min.js"></script>
+    <script src="/static/modules/bootstrap/bootstrap.bundle.js"></script>
     <script src="/static/js/util/autocomplete.js"></script>
     <script>
         const None = null;
         const reviewers = {{ reviewers|safe }};
     </script>
     <script src="/static/js/image-review/reviewer-logic.js"></script>
-</body>
-</html>
+{% endblock content %}

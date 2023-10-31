@@ -1,12 +1,6 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <title>DARC QA/QC | {{ data.title }}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="/static/css/bootstrap.css" />
-    <link rel="stylesheet" href="/static/css/style.css" />
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}DARC QA/QC | {{ data.title }}{% endblock title %}
+{% block content %}
     <div id="load-overlay" class="loader-bg-hidden">
         <div class="col d-flex justify-content-center">
             <div class="loader"></div>
@@ -98,8 +92,8 @@
             </div>
         </div>
     </div>
-    <script src="/static/js/jquery.min.js"></script>
-    <script src="/static/js/bootstrap.bundle.js"></script>
+    <script src="/static/modules/jquery/jquery.min.js"></script>
+    <script src="/static/modules/bootstrap/bootstrap.bundle.js"></script>
     <script src="/static/js/util/autocomplete.js"></script>
     <script>
         const None = null;
@@ -111,6 +105,4 @@
         const title = '{{ data.title }}';
     </script>
     <script src="/static/js/qaqc/qaqc.js"></script>
-
-</body>
-</html>
+{% endblock content %}

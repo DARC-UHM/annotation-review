@@ -1,13 +1,5 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <title>DARC Review</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <link rel="stylesheet" href="/static/css/bootstrap.css" />
-    <link rel="stylesheet" href="/static/css/style.css" />
-</head>
-<body id="index">
+{% extends "base.html" %}
+{% block content %}
     <div class="container mt-3 text-end small">
         <div class="dropdown">
             <button id="externalReviewDropdownBtn" type="button" class="aquaLink me-2" data-bs-toggle="dropdown" aria-expanded="false">
@@ -29,13 +21,12 @@
                 <li><a class="dropdown-item small" href="/external-review">View All ({{ total_comment_count }})</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <div class="small text-center pb-1 px-4 mx-2" style="font-weight: 500;">Active Reviewer Pages</div>
-                {% for reviewer in active_reviewers %}
-                <li><a class="dropdown-item small" href="http://hurlstor.soest.hawaii.edu:5000/review/{{ reviewer }}">{{ reviewer }}</a></li>
+                {% for reviewer in active_reviewers %}<li><a class="dropdown-item small" href="http://hurlstor.soest.hawaii.edu:5000/review/{{ reviewer }}">{{ reviewer }}</a></li>
                 {% endfor %}
             </ul>
         </div>
     </div>
-    <div class="text-center mb-3 mx-5">
+    <div id="index" class="text-center mb-3 mx-5">
         <img src="/static/img/logo_darc.png" class="mt-2" width="30%" style="max-width: 300px; min-width: 200px; pointer-events: none;" alt="DARC logo"/>
         <h1 class="my-3">DARC Review</h1>
         <form id="indexForm">
@@ -69,12 +60,11 @@
             <div class="loader"></div>
         </div>
     </div>
-    <script src="/static/js/jquery.min.js"></script>
-    <script src="/static/js/bootstrap.bundle.js"></script>
+    <script src="/static/modules/jquery/jquery.min.js"></script>
+    <script src="/static/modules/bootstrap/bootstrap.bundle.js"></script>
     <script src="/static/js/util/autocomplete.js"></script>
     <script>
         const sequences = {{ sequences|safe }};
     </script>
     <script src="/static/js/index.js"></script>
-</body>
-</html>
+{% endblock content %}
