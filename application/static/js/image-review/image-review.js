@@ -607,7 +607,7 @@ function updateAnnotation() {
             if (result.status === 204) {
                 const index = annotations.findIndex((anno) => anno.observation_uuid === formData.get('observation_uuid'));
                 for (const pair of formData.entries()){
-                    annotations[index][pair[0]] = pair[1];
+                    annotations[index][pair[0].replace('-', '_')] = pair[1];
                 }
                 updateFlashMessages('Annotation successfully updated', 'success');
                 updateHash();
