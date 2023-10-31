@@ -25,7 +25,6 @@ const checkboxStatus = {
     expectedAssociationCheckbox: 0,
     timeDiffHostUponCheckbox: 0,
     uniqueFieldsCheckbox: 0,
-    uniqueHostUponCheckbox: 0,
 };
 
 function updateCheckbox(checkboxName) {
@@ -42,7 +41,7 @@ function updateCheckbox(checkboxName) {
 function updateTaskCount() {
     const tasksComplete = Object.values(checkboxStatus).reduce((accumulator, currentValue) => currentValue === 2 ? accumulator + 1 : accumulator, 0);
     $('#tasksComplete').html(tasksComplete);
-    if (tasksComplete === 15) {
+    if (tasksComplete === Object.keys(checkboxStatus).length) {
         $('#fireworks').show();
     } else {
         $('#fireworks').hide();
@@ -122,8 +121,6 @@ document.addEventListener('DOMContentLoaded',  (event) => {
     $('#timeDiffHostUponAnchor').on('click', () => showLoader());
     $('#uniqueFieldsAnchor').attr('href', `/qaqc/unique-fields?sequence=${sequences.join('&sequence=')}#unique=concept-names`);
     $('#uniqueFieldsAnchor').on('click', () => showLoader());
-    $('#uniqueHostUponAnchor').attr('href', `/qaqc/unique-host-upon?sequence=${sequences.join('&sequence=')}`);
-    $('#uniqueHostUponAnchor').on('click', () => showLoader());
 
     $('#missingAncillaryAnchor').on('click', async () => {
         $('#quickCheckModalHeader').html('Missing Ancillary Data')
