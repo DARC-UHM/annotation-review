@@ -10,14 +10,7 @@
         <div class="before"></div>
         <div class="after"></div>
     </div>
-    <div class="text-start position-absolute ps-3 small">
-        <a href="/" class="aquaLink">
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16">
-              <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
-            </svg>
-            <span style="transform: translate(0, 50%);">Home</span>
-        </a>
-    </div>
+    {% include 'components/back-to-home-button.html' %}
     <div class="text-center my-3 mx-5">
         <div id="flash-messages-container">
             {% for cat, msg in get_flashed_messages(with_categories=true) %}
