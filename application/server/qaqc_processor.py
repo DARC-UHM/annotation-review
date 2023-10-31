@@ -621,6 +621,12 @@ class QaqcProcessor:
                 f'Host not found in previous records'
 
     def find_unique_fields(self):
+        def load_dict(field_name, unique_dict):
+            if field_name not in unique_dict.keys():
+                unique_dict[field_name] = 1
+            else:
+                unique_dict[field_name] += 1
+
         unique_concept_names = {}
         unique_concept_upons = {}
         unique_substrate_combinations = {}
@@ -667,33 +673,25 @@ class QaqcProcessor:
                 if substrates is not None:
                     substrates.sort()
                     substrates = ', '.join(substrates)
-                '''
-                x unique_concept_names = {}
-                x unique_concept_upons = {}
-                x unique_substrate_combinations = {}
-                unique_comments = {}
-                unique_condition_comments = {}
-                unique_megahabitats = {}
-                unique_habitats = {}
-                unique_habitat_comments = {}
-                unique_id_certainty = {}
-                unique_occurrence_remarks = {}
-                '''
-                if annotation['concept'] not in unique_concept_names.keys():
-                    unique_concept_names[annotation['concept']] = 1
-                else:
-                    unique_concept_names[annotation['concept']] += 1
 
-                if f'{annotation["concept"]}:{upon}' not in unique_concept_upons.keys():
-                    unique_concept_upons[f'{annotation["concept"]}:{upon}'] = 1
-                else:
-                    unique_concept_upons[f'{annotation["concept"]}:{upon}'] += 1
-
-                if substrates not in unique_substrate_combinations.keys():
-                    unique_substrate_combinations[substrates] = 1
-                else:
-                    unique_substrate_combinations[substrates] += 1
+                load_dict(annotation['concept'], unique_concept_names)
+                load_dict(f'{annotation["concept"]}:{upon}', unique_concept_upons)
+                load_dict(substrates, unique_substrate_combinations)
+                load_dict(comment, unique_comments)
+                load_dict(condition_comment, unique_condition_comments)
+                load_dict(megahabitat, unique_megahabitats)
+                load_dict(habitat, unique_habitats)
+                load_dict(habitat_comment, unique_habitat_comments)
+                load_dict(id_certainty, unique_id_certainty)
+                load_dict(occurrence_remark, unique_occurrence_remarks)
 
         self.final_records.append({'concept-names': unique_concept_names})
         self.final_records.append({'concept-upon-combinations': unique_concept_upons})
         self.final_records.append({'substrate-combinations': unique_substrate_combinations})
+        self.final_records.append({'comments': unique_comments})
+        self.final_records.append({'condition-comments': unique_condition_comments})
+        self.final_records.append({'megahabitats': unique_megahabitats})
+        self.final_records.append({'habitats': unique_habitats})
+        self.final_records.append({'habitat-comments': unique_habitat_comments})
+        self.final_records.append({'identity-certainty': unique_id_certainty})
+        self.final_records.append({'occurrence-remarks': unique_occurrence_remarks})

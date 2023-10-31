@@ -23,29 +23,25 @@ function updateHash() {
     }, {});
 
     $('#annotationTable').empty();
+    $('#annotationTable').append('<tbody class="text-start"></tbody>');
 
-    switch (fieldToCheck) {
-        case 'concept-names':
-            $('#annotationTable').append('<thead class="text-start"><tr><th>Concept Name</th><th>Number of records</th></tr></thead>');
-            $('#annotationTable').append('<tbody class="text-start"></tbody>');
-            for (const name of Object.keys(listToDisplay)) {
-                $('#annotationTable').find('tbody').append(`<tr><td>${name}</td><td>${listToDisplay[name]}</td></tr>`);
-            }
-            break;
-        case 'concept-upon-combinations':
-            $('#annotationTable').append('<thead class="text-start"><tr><th>Concept</th><th>Upon</th><th>Number of records</th></tr></thead>');
-            $('#annotationTable').append('<tbody class="text-start"></tbody>');
-            for (const name of Object.keys(listToDisplay)) {
-                $('#annotationTable').find('tbody').append(`<tr><td>${name.split(':')[0]}</td><td>${name.split(':')[1]}</td><td>${listToDisplay[name]}</td></tr>`);
-            }
-            break;
-        case 'substrate-combinations':
-            $('#annotationTable').append('<thead class="text-start"><tr><th>Substrate Combination</th><th>Number of records</th></tr></thead>');
-            $('#annotationTable').append('<tbody class="text-start"></tbody>');
-            for (const name of Object.keys(listToDisplay)) {
-                $('#annotationTable').find('tbody').append(`<tr><td>${name}</td><td>${listToDisplay[name]}</td></tr>`);
-            }
-            break;
+    if (fieldToCheck === 'concept-upon-combinations') {
+        $('#annotationTable').append('<thead class="text-start"><tr><th>Concept</th><th>Upon</th><th>Number of records</th></tr></thead>');
+        for (const combo of Object.keys(listToDisplay)) {
+            $('#annotationTable').find('tbody').append(`<tr><td>${combo.split(':')[0]}</td><td>${combo.split(':')[1].replace('None', '-')}</td><td>${listToDisplay[combo]}</td></tr>`);
+        }
+    } else {
+        for (const name of Object.keys(listToDisplay)) {
+            $('#annotationTable').find('tbody').append(`<tr><td>${name.replace('None', '-')}</td><td>${listToDisplay[name]}</td></tr>`);
+        }
+        $('#annotationTable').append(`
+            <thead class="text-start">
+                <tr>
+                    <th style="text-transform: capitalize;">${fieldToCheck.replace('-', ' ')}</th>
+                    <th>Number of records</th>
+                </tr>
+            </thead>
+        `);
     }
 }
 
