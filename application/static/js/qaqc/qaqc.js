@@ -50,23 +50,11 @@ function sortBy(key) {
 
 function updateHash() {
     const hash = window.location.hash.slice(1);
-    const filterPairs = hash.split('&');
-    const filter = {};
 
     annotationsToDisplay = annotations;
 
-    if (filterPairs[0].length) {
-        sortBy(filterPairs[0].split('=')[1]);
-    }
-
-    for (const key of Object.keys(filter)) {
-        console.log(key)
-        $('#filterList').append(`
-            <span class="small filter-pill position-relative">
-                ${key[0].toUpperCase()}${key.substring(1)}: ${filter[key]}
-                <button type="button" class="position-absolute filter-x" onclick="removeFilter('${key}', '${filter[key]}')">×</button>
-            </span>
-        `);
+    if (hash.length) {
+        sortBy(hash.split('=')[1]);
     }
 
     if (!annotationsToDisplay.length) {
@@ -76,8 +64,6 @@ function updateHash() {
     }
 
     $('#annotationCount').html(annotationsToDisplay.length);
-    $('#annotationCountBottom').html(annotationsToDisplay.length);
-
     $('#annotationTable').empty();
     $('#annotationTable').append('<tbody class="text-start"></tbody>');
 

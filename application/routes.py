@@ -174,7 +174,7 @@ def qaqc(check):
             data['page_title'] = 'Records where "upon" occurred more than one minute ago or cannot be found'
         case 'unique-fields':
             qaqc_annos.find_unique_fields()
-            data['annotations'] = qaqc_annos.final_records
+            data['unique_list'] = qaqc_annos.final_records
             return render_template('qaqc/qaqc-unique.html', data=data)
     data['annotations'] = qaqc_annos.final_records
     return render_template('qaqc/qaqc.html', data=data)

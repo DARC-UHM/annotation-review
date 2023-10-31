@@ -7,27 +7,46 @@ function returnToCheckList() {
 
 function updateHash() {
     const hash = window.location.hash.slice(1);
-    const filterPairs = hash.split('&');
-    const filter = {};
+    const fieldToCheck = hash.length ? hash.split('=')[1] : 'concept-names';
+    let currentList;
 
-    if (filterPairs[0].length) {
-        sortBy(filterPairs[0].split('=')[1]);
+    for (const list of uniqueList) {
+        if (Object.keys(list).includes(fieldToCheck)) {
+            currentList = list[fieldToCheck];
+            break;
+        }
     }
 
-    for (const key of Object.keys(filter)) {
-        $('#filterList').append(`
-            <span class="small filter-pill position-relative">
-                ${key[0].toUpperCase()}${key.substring(1)}: ${filter[key]}
-                <button type="button" class="position-absolute filter-x" onclick="removeFilter('${key}', '${filter[key]}')">×</button>
-            </span>
-        `);
-    }
-
-    $('#annotationCount').html(annotations.length);
-    $('#annotationCountBottom').html(annotations.length);
+    const listToDisplay = Object.keys(currentList).sort().reduce((obj, key) => {
+        obj[key] = currentList[key];
+        return obj;
+    }, {});
 
     $('#annotationTable').empty();
-    $('#annotationTable').append('<tbody class="text-start"></tbody>');
+
+    switch (fieldToCheck) {
+        case 'concept-names':
+            $('#annotationTable').append('<thead class="text-start"><tr><th>Concept Name</th><th>Number of records</th></tr></thead>');
+            $('#annotationTable').append('<tbody class="text-start"></tbody>');
+            for (const name of Object.keys(listToDisplay)) {
+                $('#annotationTable').find('tbody').append(`<tr><td>${name}</td><td>${listToDisplay[name]}</td></tr>`);
+            }
+            break;
+        case 'concept-upon-combinations':
+            $('#annotationTable').append('<thead class="text-start"><tr><th>Concept</th><th>Upon</th><th>Number of records</th></tr></thead>');
+            $('#annotationTable').append('<tbody class="text-start"></tbody>');
+            for (const name of Object.keys(listToDisplay)) {
+                $('#annotationTable').find('tbody').append(`<tr><td>${name.split(':')[0]}</td><td>${name.split(':')[1]}</td><td>${listToDisplay[name]}</td></tr>`);
+            }
+            break;
+        case 'substrate-combinations':
+            $('#annotationTable').append('<thead class="text-start"><tr><th>Substrate Combination</th><th>Number of records</th></tr></thead>');
+            $('#annotationTable').append('<tbody class="text-start"></tbody>');
+            for (const name of Object.keys(listToDisplay)) {
+                $('#annotationTable').find('tbody').append(`<tr><td>${name}</td><td>${listToDisplay[name]}</td></tr>`);
+            }
+            break;
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function(event) {

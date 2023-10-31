@@ -694,6 +694,6 @@ class QaqcProcessor:
                 else:
                     unique_substrate_combinations[substrates] += 1
 
-        self.final_records.append({'concepts': unique_concept_names})
-        self.final_records.append({'concept_upons': unique_concept_upons})
-        self.final_records.append({'substrate_combinations': unique_substrate_combinations})
+        self.final_records.append({'concept-names': unique_concept_names})
+        self.final_records.append({'concept-upon-combinations': unique_concept_upons})
+        self.final_records.append({'substrate-combinations': unique_substrate_combinations})
