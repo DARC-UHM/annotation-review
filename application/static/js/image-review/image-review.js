@@ -399,10 +399,10 @@ function updateHash() {
         }
     }
 
-    $('#sequenceList').append(`<span class="small">Filters: ${Object.keys(filter).length ? '' : 'None'}</span>`);
+    $('#sequenceList').append(`<div id="filterList" class="small mt-2">Filters: ${Object.keys(filter).length ? '' : 'None'}</div>`);
 
     for (const key of Object.keys(filter)) {
-        $('#sequenceList').append(`
+        $('#filterList').append(`
             <span class="small filter-pill position-relative">
                 ${key[0].toUpperCase()}${key.substring(1)}: ${filter[key]}
                 <button type="button" class="position-absolute filter-x" onclick="removeFilter('${key}', '${filter[key]}')">×</button>
@@ -410,7 +410,7 @@ function updateHash() {
         `);
     }
 
-    $('#sequenceList').append(`
+    $('#filterList').append(`
         <span id="addFilterRow" class="small ms-3" style="display: none;">
             <form onsubmit="addFilter()" class="d-inline-block">
                 <span class="position-relative">
@@ -479,7 +479,7 @@ function updateHash() {
     getPaginationNumbers();
 
     if (window.location.hash.includes('pg=')) {
-        setCurrentPage(window.location.hash.slice(window.location.hash.indexOf('pg=')).substring(3));
+        setCurrentPage(parseInt(window.location.hash.slice(window.location.hash.indexOf('pg=')).substring(3)));
     } else {
         location.replace(`#sort=Default&pg=1`); // to prevent extra pages without hash of page num when back button pressed
         setCurrentPage(1);
@@ -628,8 +628,8 @@ document.addEventListener('DOMContentLoaded', function(event) {
     let vesselName;
     let unread = false;
 
-    autocomplete(document.getElementById('editConceptName'), allConcepts);
-    autocomplete(document.getElementById('editUpon'), allConcepts);
+    autocomplete($('#editConceptName'), allConcepts);
+    autocomplete($('#editUpon'), allConcepts);
 
     if (sessionStorage.getItem(`scrollPos${currentPage}`)) {
         window.scrollTo({top: sessionStorage.getItem(`scrollPos${currentPage}`), left: 0, behavior: 'instant'});
@@ -650,11 +650,11 @@ document.addEventListener('DOMContentLoaded', function(event) {
     updateHash();
 
     prevButton.addEventListener("click", () => {
-        setCurrentPage(currentPage - 1);
+        setCurrentPage(parseInt(currentPage) - 1);
     });
 
     nextButton.addEventListener("click", () => {
-        setCurrentPage(currentPage + 1);
+        setCurrentPage(parseInt(currentPage) + 1);
     });
 
     if (!vesselName) {
@@ -731,8 +731,6 @@ $(document).ready(function () {
                 .prop('selected', annotation.guide_photo === val || val === '' && !annotation.guide_photo);
             opt.appendTo(guidePhotoSelect);
         }
-
-        $('#editUrl').val(window.location.href);
     });
 
     $('#externalReviewModal').on('show.bs.modal', (e) => {

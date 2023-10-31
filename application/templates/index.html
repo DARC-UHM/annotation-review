@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <title>DARC Image Review</title>
+    <title>DARC Review</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <link rel="stylesheet" href="/static/css/bootstrap.css" />
@@ -11,7 +11,7 @@
     <div class="container mt-3 text-end small">
         <div class="dropdown">
             <button id="externalReviewDropdownBtn" type="button" class="aquaLink me-2" data-bs-toggle="dropdown" aria-expanded="false">
-                External Review
+                External Image Review
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
                   <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
                 </svg>
@@ -37,8 +37,8 @@
     </div>
     <div class="text-center mb-3 mx-5">
         <img src="/static/img/logo_darc.png" class="mt-2" width="30%" style="max-width: 300px; min-width: 200px; pointer-events: none;" alt="DARC logo"/>
-        <h1 class="my-3">DARC Image Review</h1>
-        <form id="indexForm" method="get" action="/dive" >
+        <h1 class="my-3">DARC Review</h1>
+        <form id="indexForm">
             <div id="sequenceList" class="ms-2">
                 <div id="seqList1">
                     <div class="row d-inline-flex">
@@ -59,7 +59,9 @@
                     </div>
                 </div>
             </div>
-            <input type="submit" id="goButton" value="Go" class="btn btn-success py-1 px-5 mt-4 mb-5" disabled>
+            <button type="button" id="qaqcButton" class="btn btn-success mt-4 mb-2 indexButton" disabled>QA/QC</button>
+            <br>
+            <button type="button" id="imageReviewButton" class="btn btn-success mb-5 indexButton" disabled>Image Review</button>
         </form>
     </div>
     <div id="load-overlay" class="loader-bg-hidden">
@@ -69,10 +71,10 @@
     </div>
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/bootstrap.bundle.js"></script>
-    <script src="/static/js/autocomplete.js"></script>
+    <script src="/static/js/util/autocomplete.js"></script>
     <script>
         const sequences = {{ sequences|safe }};
     </script>
-    <script src="/static/js/index_logic.js"></script>
+    <script src="/static/js/index.js"></script>
 </body>
 </html>

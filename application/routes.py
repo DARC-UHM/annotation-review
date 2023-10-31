@@ -5,8 +5,9 @@ from flask import render_template, request, redirect, flash
 from dotenv import load_dotenv
 
 from application import app
-from application.server.comment_loader import CommentLoader
-from application.server.image_loader import ImageLoader
+from application.server.image_processor import ImageProcessor
+from application.server.comment_processor import CommentProcessor
+from application.server.qaqc_processor import QaqcProcessor
 from application.server.annosaurus import *
 
 load_dotenv()
@@ -27,14 +28,6 @@ else:
 
 app.secret_key = 'darc'
 
-# get concept list from vars (for input validation)
-with requests.get(f'{HURLSTOR_URL}:8083/kb/v1/concept') as r:
-    vars_concepts = r.json()
-
-# get list of sequences from vars
-with requests.get(f'{HURLSTOR_URL}:8084/vam/v1/videosequences/names') as r:
-    video_sequences = r.json()
-
 
 @app.route('/favicon.ico')
 def favicon():
@@ -43,6 +36,9 @@ def favicon():
 
 @app.route('/')
 def index():
+    # get list of sequences from vars
+    with requests.get(f'{HURLSTOR_URL}:8084/vam/v1/videosequences/names') as r:
+        video_sequences = r.json()
     try:
         with requests.get(f'{DARC_REVIEW_URL}/comment/unread') as r:
             try:
@@ -76,11 +72,17 @@ def index():
     )
 
 
-# view the annotations with images in a specified dive (or dives) with optional filters
-@app.get('/dive')
+# view the annotations with images in a specified dive (or dives)
+@app.get('/image-review')
 def view_images():
     comments = {}
     sequences = request.args.getlist('sequence')
+    # get list of sequences from vars
+    with requests.get(f'{HURLSTOR_URL}:8084/vam/v1/videosequences/names') as r:
+        video_sequences = r.json()
+    # get concept list from vars (for input validation)
+    with requests.get(f'{HURLSTOR_URL}:8083/kb/v1/concept') as r:
+        vars_concepts = r.json()
     # get list of reviewers from external review db
     try:
         with requests.get(f'{DARC_REVIEW_URL}/reviewer/all') as r:
@@ -95,7 +97,7 @@ def view_images():
         _reviewers = []
         print('\nERROR: unable to connect to external review server\n')
     # get images in sequence
-    image_loader = ImageLoader(sequences)
+    image_loader = ImageProcessor(sequences)
     if len(image_loader.distilled_records) < 1:
         return render_template('404.html', err='pics'), 404
     data = {
@@ -104,12 +106,98 @@ def view_images():
         'reviewers': _reviewers,
         'comments': comments
     }
-    return render_template('image_review.html', data=data)
+    return render_template('image-review/image-review.html', data=data)
+
+
+# qaqc checklist page
+@app.get('/qaqc-checklist')
+def qaqc_checklist():
+    sequences = request.args.getlist('sequence')
+    annotation_count = 0
+    for sequence in sequences:
+        with requests.get(f'http://hurlstor.soest.hawaii.edu:8086/query/dive/{sequence.replace(" ", "%20")}') as r:
+            annotation_count += len(r.json()['annotations'])
+    return render_template('qaqc/qaqc-checklist.html', annotation_count=annotation_count)
+
+
+# individual qaqc checks
+@app.get('/qaqc/<check>')
+def qaqc(check):
+    sequences = request.args.getlist('sequence')
+    qaqc_annos = QaqcProcessor(sequences)
+    # get concept list from vars (for input validation)
+    with requests.get(f'{HURLSTOR_URL}:8083/kb/v1/concept') as r:
+        vars_concepts = r.json()
+    data = {
+        'concepts': vars_concepts,
+        'title': check.replace('-', ' ').title(),
+    }
+    match check:
+        case 'multiple-associations':
+            qaqc_annos.find_duplicate_associations()
+            data['page_title'] = 'Records with multiples of the same association other than s2'
+        case 'missing-primary-substrate':
+            qaqc_annos.find_missing_s1()
+            data['page_title'] = 'Records missing primary substrate'
+        case 'identical-s1-&-s2':
+            qaqc_annos.find_identical_s1_s2()
+            data['page_title'] = 'Records with identical primary and secondary substrates'
+        case 'duplicate-s2':
+            qaqc_annos.find_duplicate_s2()
+            data['page_title'] = 'Records with with duplicate secondary substrates'
+        case 'missing-upon-substrate':
+            qaqc_annos.find_missing_upon_substrate()
+            data['page_title'] = 'Records missing a substrate that it is recorded "upon"'
+        case 'mismatched-substrates':
+            qaqc_annos.find_mismatched_substrates()
+            data['page_title'] = 'Records occurring at the same timestamp with mismatched substrates'
+        case 'missing-upon':
+            qaqc_annos.find_missing_upon()
+            data['page_title'] = 'Records other than "none" missing "upon"'
+        case 'missing-ancillary-data':
+            qaqc_annos.find_missing_ancillary_data()
+            data['page_title'] = 'Records missing ancillary data'
+        case 'id-ref-concept-name':
+            qaqc_annos.find_id_refs_different_concept_name()
+            data['page_title'] = 'Records with the same ID reference that have different concept names'
+        case 'id-ref-associations':
+            qaqc_annos.find_id_refs_conflicting_associations()
+            data['page_title'] = 'Records with the same ID reference that have conflicting associations'
+        case 'suspicious-hosts':
+            qaqc_annos.find_suspicious_hosts()
+            data['page_title'] = 'Records with suspicious hosts'
+        case 'expected-associations':
+            qaqc_annos.find_missing_expected_association()
+            data['page_title'] = 'Records expected to be associated with an organism but "upon" is inanimate'
+        case 'host-associate-time-diff':
+            qaqc_annos.find_long_host_associate_time_diff()
+            data['page_title'] = 'Records where "upon" occurred more than one minute ago or cannot be found'
+        case 'unique-fields':
+            qaqc_annos.find_unique_fields()
+            data['unique_list'] = qaqc_annos.final_records
+            return render_template('qaqc/qaqc-unique.html', data=data)
+    data['annotations'] = qaqc_annos.final_records
+    return render_template('qaqc/qaqc.html', data=data)
+
+
+@app.get('/qaqc/quick/<check>')
+def qaqc_quick(check):
+    sequences = request.args.getlist('sequence')
+    qaqc_annos = QaqcProcessor(sequences)
+    match check:
+        case 'missing-ancillary-data':
+            records = qaqc_annos.get_num_records_missing_ancillary_data()
+            return {'num_records': records}, 200
+    return render_template('404.html', err=''), 404
 
 
 # displays all comments in the external review db
 @app.get('/external-review')
 def external_review():
+    comments = []
+    # get concept list from vars (for input validation)
+    with requests.get(f'{HURLSTOR_URL}:8083/kb/v1/concept') as r:
+        vars_concepts = r.json()
     # get list of reviewers from external review db
     try:
         with requests.get(f'{DARC_REVIEW_URL}/reviewer/all') as r:
@@ -119,11 +207,11 @@ def external_review():
             req = requests.get(f'{DARC_REVIEW_URL}/comment/unread')
         else:
             req = requests.get(f'{DARC_REVIEW_URL}/comment/all')
+        comments = req.json()
     except requests.exceptions.ConnectionError:
         _reviewers = []
         print('\nERROR: unable to connect to external review server\n')
-    comments = req.json()
-    comment_loader = CommentLoader(comments)
+    comment_loader = CommentProcessor(comments)
     if len(comment_loader.annotations) < 1:
         if request.args.get('unread'):
             return render_template('404.html', err='unread'), 404
@@ -134,7 +222,7 @@ def external_review():
         'reviewers': _reviewers,
         'comments': comments
     }
-    return render_template('image_review.html', data=data)
+    return render_template('image-review/image-review.html', data=data)
 
 
 # syncs ctd from vars db with external review db
@@ -213,7 +301,7 @@ def reviewers():
         print('\nERROR: unable to connect to external review server\n')
         flash('Unable to connect to external review server', 'danger')
         return redirect('/')
-    return render_template('reviewers.html', reviewers=reviewer_list)
+    return render_template('image-review/external-reviewers.html', reviewers=reviewer_list)
 
 
 # update a reviewer's information
@@ -304,6 +392,7 @@ def update_annotation_comment():
     return ''
 
 
+# updates annotation with new concept name or associations. this is called from the image review page
 @app.post('/update-annotation')
 def update_annotation():
     annosaurus = Annosaurus(ANNOSAURUS_URL)
@@ -326,6 +415,48 @@ def update_annotation():
         return {}, 304
     else:
         return {}, 500
+
+
+# creates a new association for an annotation
+@app.post('/create-association')
+def create_association():
+    annosaurus = Annosaurus(ANNOSAURUS_URL)
+    new_association = {
+        'link_name': request.values.get('link_name'),
+        'link_value': request.values.get('link_value'),
+        'to_concept': request.values.get('to_concept'),
+    }
+    status = annosaurus.create_association(
+        observation_uuid=request.values.get('observation_uuid'),
+        association=new_association,
+        client_secret=ANNOSAURUS_CLIENT_SECRET
+    )
+    if status == 200:
+        return {}, 201
+    return {}, status
+
+
+# updates an association
+@app.post('/update-association')
+def update_association():
+    annosaurus = Annosaurus(ANNOSAURUS_URL)
+    updated_association = {
+        'link_name': request.values.get('link_name'),
+        'link_value': request.values.get('link_value'),
+        'to_concept': request.values.get('to_concept'),
+    }
+    status = annosaurus.update_association(
+        uuid=request.values.get('uuid'),
+        association=updated_association,
+        client_secret=ANNOSAURUS_CLIENT_SECRET
+    )
+    return {}, status
+
+
+@app.get('/delete-association/<uuid>')
+def delete_association(uuid):
+    annosaurus = Annosaurus(ANNOSAURUS_URL)
+    return {}, annosaurus.delete_association(uuid=uuid, client_secret=ANNOSAURUS_CLIENT_SECRET)
 
 
 @app.errorhandler(404)

@@ -33,13 +33,13 @@
             <div class="row m-auto">
                 <div class="col-9 text-start">
                     <h3 id="vesselName" class="m-0 p-0 pb-2" style="font-weight: 600;"></h3>
-                    <span id="sequenceList"></span>
                     <div><a id="changeExternalView" href="/external-review" class="aquaLink" style="font-size: 0.8rem;">View All</a></div>
-                    <div id="syncCTD">
+                    <div id="syncCTD" class="mb-2">
                         <a href="/sync-external-ctd" class="aquaLink" style="font-size: 0.8rem;">
                             Sync CTD with review database
                         </a>
                     </div>
+                    <div id="sequenceList"></div>
                 </div>
                 <div class="col-3 text-end mt-auto">
                     <div>
@@ -220,7 +220,7 @@
                 </form>
             </div>
         </div>
-         <div class="modal fade" id="deleteReviewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal fade" id="deleteReviewModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg">
                 <form id="deleteFromExternalReviewForm" onsubmit="deleteFromExternalReview()" autocomplete="off">
                     <div class="modal-content">
@@ -245,8 +245,8 @@
     </div>
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/bootstrap.bundle.js"></script>
-    <script src="/static/js/autocomplete.js"></script>
-    <script src="/static/js/reviewer_list.js"></script>
+    <script src="/static/js/util/autocomplete.js"></script>
+    <script src="/static/js/image-review/reviewer-list.js"></script>
     <script>
         const None = null;
         const nan = null;
@@ -257,6 +257,6 @@
         const reviewers = {{ data.reviewers|safe }};
         const comments = {{ data.comments|safe }};
     </script>
-    <script src="/static/js/image_logic.js"></script>
+    <script src="/static/js/image-review/image-review.js"></script>
 </body>
 </html>

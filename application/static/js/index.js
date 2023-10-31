@@ -1,5 +1,4 @@
 let numSequences = 1;
-let sequenceNameInput = $('#sequence1');
 
 function checkSequence() {
     let disabled = false;
@@ -8,19 +7,11 @@ function checkSequence() {
             disabled = true;
         }
     }
-    $('#goButton')[0].disabled = disabled;
+    $('#imageReviewButton')[0].disabled = disabled;
+    $('#qaqcButton')[0].disabled = disabled;
 }
 
-function xClick(num) {
-    $(`#seqList${num}`)[0].remove();
-}
-
-function nextDive(inputDive) {
-    let index = sequences.indexOf(inputDive);
-    return index < 0 ? '' : sequences[index + 1];
-}
-
-function plusClick() {
+$('#plusButton').on('click', () => {
     $('#seqNameLabel')[0].innerText = 'Sequence Names:';
     const inputDive = $(`#sequence${numSequences}`).val();
     numSequences++;
@@ -44,26 +35,37 @@ function plusClick() {
                 </div>
             </div>
         `);
-    $(`#sequence${numSequences}`).val(nextDive(inputDive));
+    $(`#sequence${numSequences}`).val(() => {
+        let index = sequences.indexOf(inputDive);
+        return index < 0 ? '' : sequences[index + 1];
+    });
 
     const currentNum = numSequences;
-    $(`#xButton${numSequences}`).on('click', () => xClick(currentNum));
+    $(`#xButton${numSequences}`).on('click', () => $(`#seqList${currentNum}`)[0].remove());
     $(`#sequence${numSequences}`).on('input', checkSequence);
-    autocomplete($(`#sequence${numSequences}`)[0], sequences);
-}
-
-autocomplete(sequenceNameInput[0], sequences);
-
-$('#plusButton').on('click', plusClick);
-sequenceNameInput.on('input', checkSequence);
-$('#index').on('click', checkSequence);
-
-$('#goButton').on('click', () => {
-    $('#load-overlay').removeClass('loader-bg-hidden');
-    $('#load-overlay').addClass('loader-bg');
+    autocomplete($(`#sequence${numSequences}`), sequences);
 });
 
-// get rid of loading screen if back button is pressed (firefox)
+$('#imageReviewButton').on('click', () => {
+    $('#load-overlay').removeClass('loader-bg-hidden');
+    $('#load-overlay').addClass('loader-bg');
+    const sequences = new FormData($('#indexForm')[0]).getAll('sequence');
+    window.location.href = `/image-review?sequence=${sequences.join('&sequence=')}`;
+});
+
+$('#qaqcButton').on('click', () => {
+    $('#load-overlay').removeClass('loader-bg-hidden');
+    $('#load-overlay').addClass('loader-bg');
+    const sequences = new FormData($('#indexForm')[0]).getAll('sequence');
+    window.location.href = `/qaqc-checklist?sequence=${sequences.join('&sequence=')}`;
+});
+
+$('#sequence1').on('input', checkSequence);
+$('#index').on('click', checkSequence);
+
+autocomplete($('#sequence1'), sequences);
+
+// get rid of loading screen if back button is pressed (mozilla)
 $(window).bind('pageshow', (event) => {
     $('#load-overlay').removeClass('loader-bg');
     $('#load-overlay').addClass('loader-bg-hidden');

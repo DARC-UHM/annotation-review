@@ -5,7 +5,11 @@ from typing import Dict
 from .functions import *
 
 
-class CommentLoader:
+class CommentProcessor:
+    """
+    Fetches annotation information from the VARS db on HURLSTOR given a dict of comments (key = uuid). Merges the
+    fetched annotation information with the data in the comment dict into an array of dicts (self.annotations).
+    """
     def __init__(self, comments: Dict):
         self.annotations = []
         self.comments = comments

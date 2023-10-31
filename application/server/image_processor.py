@@ -4,7 +4,11 @@ import pandas as pd
 from .functions import *
 
 
-class ImageLoader:
+class ImageProcessor:
+    """
+    Fetches annotation information from the VARS db on HURLSTOR given a list of sequences. Cleans, formats, and sorts
+    the annotation data for display on the image review pages.
+    """
 
     def __init__(self, sequence_names: list):
         self.distilled_records = []
@@ -12,15 +16,15 @@ class ImageLoader:
             self.load_images(name)
 
     def load_images(self, name: str):
-        print(f'Fetching annotations for sequence {name} from VARS...')
+        print(f'Fetching annotations for sequence {name} from VARS...', end='')
         concept_phylogeny = {'Animalia': {}}
         image_records = []
         videos = []
 
         with requests.get(f'http://hurlstor.soest.hawaii.edu:8086/query/dive/{name.replace(" ", "%20")}') as r:
             response = r.json()
-            print('Fetched annotations')
-        print('Processing annotations...')
+            print('fetched!')
+        print('Processing annotations...', end='')
         # get list of video links and start timestamps
         for video in response['media']:
             if 'urn:imagecollection:org' not in video['uri']:
@@ -45,8 +49,7 @@ class ImageLoader:
                         if vars_tax_res.status_code == 200:
                             # this get us to phylum
                             vars_tree = \
-                                vars_tax_res.json()['children'][0]['children'][0]['children'][0]['children'][0][
-                                    'children'][0]
+                                vars_tax_res.json()['children'][0]['children'][0]['children'][0]['children'][0]['children'][0]
                             while 'children' in vars_tree.keys():
                                 if 'rank' in vars_tree.keys():  # sometimes it's not
                                     concept_phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
@@ -54,7 +57,7 @@ class ImageLoader:
                             if 'rank' in vars_tree.keys():
                                 concept_phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
                         else:
-                            print(f'Unable to find record for {annotation["concept"]}')
+                            print(f'\nUnable to find record for {annotation["concept"]}')
 
         """
         Define dataframe for sorting data
@@ -225,4 +228,4 @@ class ImageLoader:
                 'recorded_timestamp': parse_datetime(row['recorded_timestamp']).strftime('%d %b %y %H:%M:%S UTC'),
                 'video_sequence_name': row['video_sequence_name']
             })
-        print('Annotations processed')
+        print('processed!')
