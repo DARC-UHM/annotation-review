@@ -92,14 +92,14 @@ def view_images():
             with requests.get(f'{DARC_REVIEW_URL}/comment/sequence/{sequence}') as r:
                 comments = comments | r.json()  # merge dicts
             if sequence not in video_sequences:
-                return render_template('404.html', err='dive'), 404
+                return render_template('not-found.html', err='dive'), 404
     except requests.exceptions.ConnectionError:
         _reviewers = []
         print('\nERROR: unable to connect to external review server\n')
     # get images in sequence
     image_loader = ImageProcessor(sequences)
     if len(image_loader.distilled_records) < 1:
-        return render_template('404.html', err='pics'), 404
+        return render_template('not-found.html', err='pics'), 404
     data = {
         'annotations': image_loader.distilled_records,
         'concepts': vars_concepts,
@@ -188,7 +188,7 @@ def qaqc_quick(check):
         case 'missing-ancillary-data':
             records = qaqc_annos.get_num_records_missing_ancillary_data()
             return {'num_records': records}, 200
-    return render_template('404.html', err=''), 404
+    return render_template('not-found.html', err=''), 404
 
 
 # displays all comments in the external review db
@@ -214,8 +214,8 @@ def external_review():
     comment_loader = CommentProcessor(comments)
     if len(comment_loader.annotations) < 1:
         if request.args.get('unread'):
-            return render_template('404.html', err='unread'), 404
-        return render_template('404.html', err='comments'), 404
+            return render_template('not-found.html', err='unread'), 404
+        return render_template('not-found.html', err='comments'), 404
     data = {
         'annotations': comment_loader.annotations,
         'concepts': vars_concepts,
@@ -461,4 +461,9 @@ def delete_association(uuid):
 
 @app.errorhandler(404)
 def page_not_found(e):
-    return render_template('404.html', err=''), 404
+    return render_template('not-found.html', err=''), 404
+
+
+@app.errorhandler(Exception)
+def server_error(e):
+    return render_template('error.html', err=e), 500

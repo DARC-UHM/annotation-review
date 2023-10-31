@@ -21,7 +21,7 @@
                 <li><a class="dropdown-item small" href="/external-review">View All ({{ total_comment_count }})</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <div class="small text-center pb-1 px-4 mx-2" style="font-weight: 500;">Active Reviewer Pages</div>
-                {% for reviewer in active_reviewers %}<li><a class="dropdown-item small" href="http://hurlstor.soest.hawaii.edu:5000/review/{{ reviewer }}">{{ reviewer }}</a></li>
+                {% for reviewer in active_reviewers %}<li><a class="dropdown-item small" href="http://hurlstor.soest.hawaii.edu:5000/review/{{ reviewer }}" target="_blank">{{ reviewer }}</a></li>
                 {% endfor %}
             </ul>
         </div>
