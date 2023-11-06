@@ -746,7 +746,7 @@ $(document).ready(function () {
         $('#externalConcept').val(currentAnnotation.concept);
         $('#externalVideoUrl').val(currentAnnotation.video_url);
         $('#externalAnnotator').val(currentAnnotation.annotator);
-        $('#externalIdRef').val(`${currentAnnotation.video_sequence_name.slice(-2)}:${currentAnnotation.identity_reference}`);
+        $('#externalIdRef').val(currentAnnotation.identity_reference ? `${currentAnnotation.video_sequence_name.slice(-2)}:${currentAnnotation.identity_reference}` : null);
         $('#externalLat').val(currentAnnotation.lat);
         $('#externalLong').val(currentAnnotation.long);
         $('#externalDepth').val(currentAnnotation.depth);
