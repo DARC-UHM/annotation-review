@@ -16,8 +16,8 @@ _FLASK_ENV = os.environ.get('_FLASK_ENV')
 HURLSTOR_URL = 'http://hurlstor.soest.hawaii.edu'
 LOCAL_APP_URL = 'http://127.0.0.1:8000'
 
-if _FLASK_ENV == 'development':
-    print('\n\nDEVELOPMENT MODE\n\n')
+if _FLASK_ENV == 'no_server_edits':
+    print('\n\nLOCAL DEVELOPMENT MODE: No server edits\n\n')
     ANNOSAURUS_URL = ''
     ANNOSAURUS_CLIENT_SECRET = ''
     DARC_REVIEW_URL = 'http://127.0.0.1:5000'
