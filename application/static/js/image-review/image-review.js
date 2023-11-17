@@ -421,6 +421,7 @@ function updateHash() {
                         <option>Genus</option>
                         <option>Species</option>
                         <option>Comment</option>
+                        <option>Annotator</option>
                     </select>
                     <span class="position-absolute dropdown-chev">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
@@ -465,6 +466,9 @@ function updateHash() {
     }
     if (filter['comment']) {
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['comment']?.toLowerCase().includes(filter['comment'].toLowerCase()));
+    }
+    if (filter['annotator']) {
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['annotator']?.toLowerCase().includes(filter['annotator'].toLowerCase()));
     }
 
     if (!annotationsToDisplay.length) {
