@@ -47,17 +47,19 @@ const handleActivePageNumber = () => {
 };
 
 const setCurrentPage = (pageNum) => {
+    const url = new URL(window.location.href);
+    const queryAndHash = url.search + url.hash;
     const prevRange = (pageNum - 1) * paginationLimit;
     const currRange = pageNum * paginationLimit;
     const prevHash = window.location.hash.substring(0, window.location.hash.indexOf('pg='));
 
-    sessionStorage.setItem(`scrollPos${currentPage}`, window.scrollY);
+    sessionStorage.setItem(`scrollPos${queryAndHash}`, window.scrollY);
 
     currentPage = pageNum;
     location.hash = prevHash.length > 1 ? `${prevHash}pg=${pageNum}` : `#pg=${pageNum}`;
 
-    if (sessionStorage.getItem(`scrollPos${currentPage}`) && pageNum !== 1) {
-        window.scrollTo({top: sessionStorage.getItem(`scrollPos${currentPage}`), left: 0, behavior: 'instant'});
+    if (sessionStorage.getItem(`scrollPos${queryAndHash}`)) {
+        window.scrollTo({top: sessionStorage.getItem(`scrollPos${queryAndHash}`), left: 0, behavior: 'instant'});
     } else {
        window.scrollTo({top: 0, left: 0, behavior: 'instant'});
     }
@@ -628,14 +630,15 @@ function updateAnnotation() {
 
 document.addEventListener('DOMContentLoaded', function(event) {
     const url = new URL(window.location.href);
+    const queryAndHash = url.search + url.hash;
     let vesselName;
     let unread = false;
 
     autocomplete($('#editConceptName'), allConcepts);
     autocomplete($('#editUpon'), allConcepts);
 
-    if (sessionStorage.getItem(`scrollPos${currentPage}`)) {
-        window.scrollTo({top: sessionStorage.getItem(`scrollPos${currentPage}`), left: 0, behavior: 'instant'});
+    if (sessionStorage.getItem(`scrollPos${queryAndHash}`)) {
+        window.scrollTo({top: sessionStorage.getItem(`scrollPos${queryAndHash}`), left: 0, behavior: 'instant'});
     }
 
     for (const pair of url.searchParams.entries()) {
@@ -699,7 +702,9 @@ document.addEventListener('DOMContentLoaded', function(event) {
 });
 
 window.onbeforeunload = (e) => {
-    sessionStorage.setItem(`scrollPos${currentPage}`, window.scrollY);
+    const url = new URL(window.location.href);
+    const queryAndHash = url.search + url.hash;
+    sessionStorage.setItem(`scrollPos${queryAndHash}`, window.scrollY);
 };
 
 window.onhashchange = () => {
