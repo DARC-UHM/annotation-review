@@ -115,7 +115,7 @@ def qaqc_checklist():
     sequences = request.args.getlist('sequence')
     annotation_count = 0
     for sequence in sequences:
-        with requests.get(f'http://hurlstor.soest.hawaii.edu:8086/query/dive/{sequence.replace(" ", "%20")}') as r:
+        with requests.get(f'{HURLSTOR_URL}:8086/query/dive/{sequence.replace(" ", "%20")}') as r:
             annotation_count += len(r.json()['annotations'])
     return render_template('qaqc/qaqc-checklist.html', annotation_count=annotation_count)
 
@@ -265,16 +265,6 @@ def sync_external_ctd():
     else:
         flash('Unable to sync CTD - please try again', 'danger')
     return redirect('/external-review')
-
-
-# marks a comment in the external review db as 'read'
-@app.post('/mark-comment-read')
-def mark_read():
-    req = requests.put(f'{DARC_REVIEW_URL}/comment/mark-read/{request.values.get("uuid")}')
-    if req.status_code == 200:
-        return {}, 200
-    return {}, 500
-
 
 # deletes an item from the external review db
 @app.post('/delete-external-comment')

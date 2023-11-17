@@ -159,12 +159,9 @@ const setCurrentPage = (pageNum) => {
                         <div class="col-4">
                             Reviewer comments:<br>
                             ${comments[annotation.observation_uuid].unread ?
-                            `<form id="markCommentReadForm" onsubmit="markCommentRead()">
-                                <input type="hidden" name="uuid" value="${annotation.observation_uuid}">
-                                <input type="hidden" name="url" value="${window.location.href}">
-                                <input type="hidden" name="reviewer" value="${comments[annotation.observation_uuid].reviewer}">
-                                <input type="submit" class="editButton" value="Mark read">
-                            </form>
+                            `<button class="editButton" onclick="markCommentRead('${annotation.observation_uuid}')">
+                                Mark read
+                            </button>
                             `
                             : ''}
                         </div>
@@ -542,19 +539,25 @@ function updateExternalReviewers() {
         .catch((err) => console.log(err));
 }
 
-function markCommentRead() {
+function markCommentRead(commentUuid) {
     event.preventDefault();
+    const url = new URL(window.location.href);
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
-
-    const formData = new FormData($('#markCommentReadForm')[0]);
-    fetch('/mark-comment-read', {
-        method: 'POST',
-        body: formData,
+    fetch(`http://hurlstor.soest.hawaii.edu:5000/comment/mark-read/${commentUuid}`, {
+        method: 'PUT',
     })
         .then((res) => {
-            if (res.status == 200) {
-                comments[formData.get('uuid')].unread = false;
+            if (res.status === 200) {
+                if (url.searchParams.get('unread')) {
+                    // we're on the unread page, remove from list
+                    delete comments[commentUuid]; // remove the comment object from comments object
+                    // remove the annotation object from the annotations list
+                    annotations.splice(annotations.findIndex((anno) => anno.observation_uuid === commentUuid), 1);
+                } else {
+                    // we're on the all comments page or a dive page, just mark as read
+                    comments[commentUuid].unread = false;
+                }
                 updateHash();
                 updateFlashMessages('Comment marked as read', 'success');
             } else {
