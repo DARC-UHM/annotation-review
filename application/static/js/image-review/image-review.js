@@ -387,6 +387,10 @@ function addReviewer(reviewerName, firstReviewer) {
     reviewerList($(`#reviewerName${thisReviewerIndex}Button`), recommendedReviewers, $(`#reviewerName${thisReviewerIndex}`));
 }
 
+function updateFilterHint(value) {
+    $('#imageFilterEntry').attr('placeholder', `Enter ${value.toLowerCase()}`);
+}
+
 function updateHash() {
     const url = new URL(window.location.href);
     const hash = url.hash.slice(1);
@@ -427,7 +431,7 @@ function updateHash() {
         <span id="addFilterRow" class="small ms-3" style="display: none;">
             <form onsubmit="addFilter()" class="d-inline-block">
                 <span class="position-relative">
-                    <select id="imageFilterSelect">
+                    <select id="imageFilterSelect" onchange="(e) => updateFilterHint(e.target.value)">
                         <option>Phylum</option>
                         <option>Class</option>
                         <option>Order</option>
@@ -459,6 +463,7 @@ function updateHash() {
             </svg>
         </button>
     `);
+    autocomplete($('#imageFilterEntry'), allConcepts);
 
     if (filter['phylum']) {
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['phylum']?.toLowerCase() === filter['phylum'].toLowerCase());
