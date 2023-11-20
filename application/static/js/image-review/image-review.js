@@ -4,7 +4,7 @@ const prevButton = document.getElementById('prev-button');
 const guidePhotoVals = ['1 best', '2 good', '3 okay', ''];
 const sequences = [];
 
-let currentPage;
+let currentPage = 1;
 let pageCount;
 let paginationLimit = 25;
 let annotationsToDisplay = annotations;
@@ -31,6 +31,7 @@ const getPaginationNumbers = () => {
             });
         }
     });
+    handleActivePageNumber();
 };
 
 const handleActivePageNumber = () => {
@@ -47,22 +48,15 @@ const handleActivePageNumber = () => {
 };
 
 const setCurrentPage = (pageNum) => {
-    const url = new URL(window.location.href);
-    const queryAndHash = url.search + url.hash;
     const prevRange = (pageNum - 1) * paginationLimit;
     const currRange = pageNum * paginationLimit;
     const prevHash = window.location.hash.substring(0, window.location.hash.indexOf('pg='));
+    const prevPage = currentPage;
 
-    sessionStorage.setItem(`scrollPos${queryAndHash}`, window.scrollY);
+    saveScrollPosition(prevPage);
 
     currentPage = pageNum;
     location.hash = prevHash.length > 1 ? `${prevHash}pg=${pageNum}` : `#pg=${pageNum}`;
-
-    if (sessionStorage.getItem(`scrollPos${queryAndHash}`)) {
-        window.scrollTo({top: sessionStorage.getItem(`scrollPos${queryAndHash}`), left: 0, behavior: 'instant'});
-    } else {
-       window.scrollTo({top: 0, left: 0, behavior: 'instant'});
-    }
 
     handleActivePageNumber();
     handlePageButtonsStatus();
@@ -234,6 +228,22 @@ const setCurrentPage = (pageNum) => {
             `);
         }
     });
+
+    const newUrl = new URL(window.location.href);
+
+    if (sessionStorage.getItem(`scrollPos${newUrl.search}${newUrl.hash}`)) {
+        window.scrollTo({
+            top: sessionStorage.getItem(`scrollPos${newUrl.search}${newUrl.hash}`),
+            left: 0,
+            behavior: 'instant',
+        });
+    } else {
+       window.scrollTo({
+           top: 0,
+           left: 0,
+           behavior: 'instant'
+       });
+    }
 };
 
 const disableButton = (button) => {
@@ -279,6 +289,7 @@ function updateReviewerName(uuid) {
 function removeFilter(key, value) {
     const index = window.location.hash.indexOf(key);
     const newHash = `${window.location.hash.substring(0, index)}${window.location.hash.substring(index + key.length + value.length + 2)}`;
+    saveScrollPosition(currentPage);
     location.hash = newHash;
 }
 
@@ -293,6 +304,7 @@ function addFilter() {
     const index = window.location.hash.indexOf('pg=');
     const filterKey = $('#imageFilterSelect').val().toLowerCase();
     const filterVal = $('#imageFilterEntry').val();
+    saveScrollPosition(currentPage);
     location.hash = location.hash.substring(0, index - 1).length > 1
         ? `${location.hash.substring(0, index - 1)}&${filterKey}=${filterVal}&pg=1`
         : `#${filterKey}=${filterVal}&pg=1`;
@@ -376,7 +388,8 @@ function addReviewer(reviewerName, firstReviewer) {
 }
 
 function updateHash() {
-    const hash = window.location.hash.slice(1);
+    const url = new URL(window.location.href);
+    const hash = url.hash.slice(1);
     const filterPairs = hash.split('&');
     const filter = {};
 
@@ -630,7 +643,13 @@ function updateAnnotation() {
             $('#load-overlay').removeClass('loader-bg');
         })
         .catch((err) => console.log(err));
+}
 
+function saveScrollPosition(page) {
+    const url = new URL(window.location.href);
+    const index = url.hash.indexOf('pg=');
+    const queryAndHash = `${url.search}${url.hash.substring(0, index)}pg=${page}`;
+    sessionStorage.setItem(`scrollPos${queryAndHash}`, `${window.scrollY}`);
 }
 
 document.addEventListener('DOMContentLoaded', function(event) {
@@ -643,7 +662,11 @@ document.addEventListener('DOMContentLoaded', function(event) {
     autocomplete($('#editUpon'), allConcepts);
 
     if (sessionStorage.getItem(`scrollPos${queryAndHash}`)) {
-        window.scrollTo({top: sessionStorage.getItem(`scrollPos${queryAndHash}`), left: 0, behavior: 'instant'});
+        window.scrollTo({
+            top: 0,
+            left: Number(sessionStorage.getItem(`scrollPos${queryAndHash}`)),
+            behavior: 'instant',
+        });
     }
 
     for (const pair of url.searchParams.entries()) {
@@ -702,6 +725,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
     $('#sortSelect').on('change', () => {
         const hashList = window.location.hash.substring(1).split('&');
         hashList.shift();
+        saveScrollPosition(currentPage);
         location.hash = `#sort=${$('#sortSelect').val()}&${hashList.join('&')}`;
     });
 });
