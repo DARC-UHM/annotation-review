@@ -348,6 +348,7 @@ function updateHash() {
                         $(`#problemsDiv${index}`).append(`<div>Upon: <span class="fw-bold">${association.to_concept}</span></div>`);
                     }
                 }
+                $(`#problemsDiv${index}`).append(`<div>Activity: <span class="fw-bold">${annotation.activity}</span></div>`);
                 $(`#problemsDiv${index}`).append(`<div>${annotation.status}</div>`);
                 break;
             }
