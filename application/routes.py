@@ -456,4 +456,7 @@ def page_not_found(e):
 
 @app.errorhandler(Exception)
 def server_error(e):
-    return render_template('error.html', err=e), 500
+    error = f'{type(e).__name__}: {e}'
+    print('\nApplication error 😔')
+    print(error)
+    return render_template('error.html', err=error), 500
