@@ -124,7 +124,7 @@ class QaqcProcessor:
                 annotation['recorded_timestamp'],
                 video_sequence_name,
                 format_annotator(annotation['observer']),
-                annotation['activity'],
+                annotation['activity'] if 'activity' in annotation.keys() else None,
                 int(annotation['ancillary_data']['depth_meters']) if 'ancillary_data' in annotation.keys() else None,
                 round(annotation['ancillary_data']['latitude'], 3) if 'ancillary_data' in annotation.keys() else None,
                 round(annotation['ancillary_data']['longitude'], 3) if 'ancillary_data' in annotation.keys() else None,
