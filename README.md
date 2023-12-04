@@ -5,7 +5,7 @@ Streamlined QA/QC and image review for VARS annotations.
 
 ### Installation
 
-_Requirements: Python ≥ 3.9_
+_Requirements: Python ≥ 3.10_
 
 1. Clone this repository.
 2. Activate your Python virtual environment (optional).
@@ -15,7 +15,12 @@ _Requirements: Python ≥ 3.9_
 
 1. From the root directory of the repository, run the command `./start.sh`. The application will automatically open in your web browser.
    1. Alternatively, you can set up an alias in your command line for an easier startup. Suggested alias (for MacOS):
-      ```alias ir="echo 'Checking for updates...' && [COMMAND TO START PYTHON VIRTUAL ENV] && git -C [PATH TO LOCAL REPOSITORY] pull && gunicorn --chdir [PATH TO LOCAL REPOSITORY] run:app --threads 3"```
+      ```bash
+      alias ir="echo 'Checking for updates...'
+                [COMMAND TO START PYTHON VIRTUAL ENV (e.g. conda activate darc)]
+                git -C [PATH TO LOCAL REPOSITORY] pull
+                gunicorn --chdir [PATH TO LOCAL REPOSITORY] run:app --threads 3"
+      ```
 2. Enter a sequence number in the text field.
    1. To select multiple dives, select the `+` icon to the right of the sequence number text field.
    2. To view annotations added for external review, select `External Image Review` in the top right corner.
