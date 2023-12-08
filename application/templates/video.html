@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Darc Review | Video{% endblock title %}
+{% block content %}
+    <div class="text-center small my-2" style="color: #e3e3e3;">
+        If the video does not play, try <a class="aquaLink" style="font-weight: 500;" href="{{ data.link }}">downloading it</a> (right click, "Save Link As...") or using another browser (e.g. Chrome or Edge).
+    </div>
+    <video class="w-100" controls style="height: 95vh;">
+      <!-- MP4 format with H.264 video codec and AAC audio codec -->
+      <source src="{{ data.link }}#t={{ data.time }}" type="video/mp4">
+
+      <!-- MOV format with different codecs -->
+      <source src="{{ data.link }}#t={{ data.time }}" type="video/quicktime">
+      Your browser does not support the video tag or the file format of this video.
+    </video>
+{% endblock content %}

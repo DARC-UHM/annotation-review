@@ -65,6 +65,10 @@ const setCurrentPage = (pageNum) => {
     $('#annotationTable').append('<tbody class="text-start"></tbody>');
 
     annotationsToDisplay.forEach((annotation, index) => {
+        let videoUrl = annotation.video_url;
+        if (videoUrl.includes('.mov')) {
+            videoUrl = `/video?link=${videoUrl.split('#t=')[0]}&time=${videoUrl.split('#t=')[1]}`;
+        }
         if (index >= prevRange && index < currRange) {
             $('#annotationTable').find('tbody').append(`
             <tr>
@@ -183,7 +187,7 @@ const setCurrentPage = (pageNum) => {
                                     Edit annotation
                             </button>
                             <br>
-                            <a class="editButton" href="${annotation.video_url}" target="_blank">See video</a>
+                            <a class="editButton" href="${videoUrl}" target="_blank">See video</a>
                             <br>
                         </div>
                         <div class="col values">

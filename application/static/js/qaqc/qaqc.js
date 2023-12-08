@@ -147,6 +147,10 @@ function updateHash() {
                 occurrenceRemarks = ass.link_value;
             }
         });
+        let videoUrl = annotation.video_url;
+        if (videoUrl.includes('.mov')) {
+            videoUrl = `/video?link=${videoUrl.split('#t=')[0]}&time=${videoUrl.split('#t=')[1]}`;
+        }
         $('#annotationTable').find('tbody').append(`
         <tr>
             <td class="ps-5 py-3">
@@ -169,7 +173,7 @@ function updateHash() {
                         : `<div class="text=center pt-5 m-auto" style="width: 200px; height: 110px; background: #1e2125; color: #9f9f9f;">No image</div>`
                     }
                 </div>
-                <a class="editButton" href="${annotation.video_url}" target="_blank">See video</a><br>
+                <a class="editButton" href="${videoUrl}" target="_blank">See video</a><br>
             </td>
         </tr>
         `);

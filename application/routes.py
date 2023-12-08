@@ -452,6 +452,12 @@ def page_not_found(e):
     return render_template('not-found.html', err=''), 404
 
 
+@app.get('/video')
+def video():
+    data = {'link': request.args.get('link'), 'time': request.args.get('time')}
+    return render_template('video.html', data=data), 200
+
+
 @app.errorhandler(Exception)
 def server_error(e):
     error = f'{type(e).__name__}: {e}'
