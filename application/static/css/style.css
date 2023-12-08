@@ -366,6 +366,33 @@ select:active {
     border-bottom-width: 1px !important;
 }
 
+.alert-bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    border-radius: 5px;
+    animation: progressBar 5s linear forwards;
+}
+
+@keyframes progressBar {
+  0% {
+    width: 100%;
+  }
+  100% {
+    width: 0;
+  }
+}
+
+.alert-bottom-bar-success {
+    background-color: #80c9a7;
+}
+
+.alert-bottom-bar-danger {
+    background-color: #ff8383;
+}
+
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }

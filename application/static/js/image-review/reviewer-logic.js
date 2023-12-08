@@ -3,6 +3,10 @@ function checkEmpty(str1, str2) {
 }
 
 $(document).ready(function () {
+    setTimeout(() => {
+        $('#flash-messages-container').fadeOut(200);
+    }, 5000);
+
     for (const reviewer of reviewers) {
         const url = `http://hurlstor.soest.hawaii.edu:5000/review/${reviewer.name.replace(/ /g, '-')}`
         $('#reviewerTable').find('tbody').append(`

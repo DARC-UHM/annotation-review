@@ -12,14 +12,7 @@
     </div>
     {% include 'components/back-to-home-button.html' %}
     <div class="text-center my-3 mx-5">
-        <div id="flash-messages-container">
-            {% for cat, msg in get_flashed_messages(with_categories=true) %}
-                <div class="alert alert-{{ cat }} alert-dismissible px-5" style="position:fixed; left: 50%; transform: translate(-50%, 0);">
-                    <span class="px-2" style="font-weight: 500;">{{ msg }}</span>
-                    <button type="button" class="btn-close small" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
-        </div>
+        {% include 'components/flash-container.html' %}
         <div class="col mt-4 m-auto" style="max-width: 800px;">
             <div class="row m-auto">
                 <div class="col-9 text-start">

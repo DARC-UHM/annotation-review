@@ -290,7 +290,6 @@ def reviewers():
     except requests.exceptions.ConnectionError:
         print('\nERROR: unable to connect to external review server\n')
         flash('Unable to connect to external review server', 'danger')
-        return redirect('/')
     return render_template('image-review/external-reviewers.html', reviewers=reviewer_list)
 
 

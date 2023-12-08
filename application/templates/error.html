@@ -1,17 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
     <div class="text-center my-3 mx-5">
-        {% for cat, msg in get_flashed_messages(with_categories=true) %}
-        <div class="alert alert-{{ cat }} alert-dismissible px-5" style="position:fixed; left: 50%; transform: translate(-50%, 0);">
-            <span class="px-2" style="font-weight: 500;">{{ msg }}</span>
-            <button type="button" class="btn-close small" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        {% endfor %}
+        {% include 'components/flash-container.html' %}
         <img src="/static/img/logo_darc.png" class="mt-4" width="30%" style="max-width: 300px; min-width: 200px; pointer-events: none;"/>
         <h1 class="mt-4">Application Error<br></h1>
         <div>{{ err }}<br></div>
         <br>
         <a href="/" class="aquaLink">Return to home</a>
     </div>
+    <script src="/static/modules/jquery/jquery.min.js"></script>
     <script src="/static/modules/bootstrap/bootstrap.bundle.js"></script>
+    <script>setTimeout(() => { $('#flash-messages-container').fadeOut(200) }, 5000);</script>
 {% endblock content %}
