@@ -785,10 +785,8 @@ $(document).ready(function () {
         $('#externalSequence').val(currentAnnotation.video_sequence_name);
         $('#externalTimestamp').val(currentAnnotation.recorded_timestamp);
         $('#externalImageUrl').val(currentAnnotation.image_url);
-        $('#externalConcept').val(currentAnnotation.concept);
         $('#externalVideoUrl').val(currentAnnotation.video_url);
         $('#externalAnnotator').val(currentAnnotation.annotator);
-        $('#externalIdRef').val(currentAnnotation.identity_reference ? `${currentAnnotation.video_sequence_name.slice(-2)}:${currentAnnotation.identity_reference}` : null);
         $('#externalLat').val(currentAnnotation.lat);
         $('#externalLong').val(currentAnnotation.long);
         $('#externalDepth').val(currentAnnotation.depth);
