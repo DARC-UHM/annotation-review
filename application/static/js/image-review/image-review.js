@@ -339,6 +339,7 @@ function sortBy(key) {
 function removeReviewer(num) {
     $(`#reviewerRow${num}`).remove();
     totalReviewers--;
+    $('#externalModalSubmitButton').prop('disabled', false);
 }
 
 function addReviewer(reviewerName, firstReviewer) {
