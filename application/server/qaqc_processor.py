@@ -591,9 +591,9 @@ class QaqcProcessor:
                             j -= 1
                         host_record = sorted_annotations[j]
                         host_time = extract_recorded_datetime(host_record)
-                        if i == j or (j > i and host_time != observation_time):
+                        if host_time > observation_time or i == j:
+                            # host record won't be recorded after associate record, ignore this record
                             # i == j: record shouldn't be associated with itself, ignore
-                            # other bit: host record won't be recorded after associate record, so ignore this record
                             pass
                         else:
                             if host_record['concept'] == host_concept_name:
