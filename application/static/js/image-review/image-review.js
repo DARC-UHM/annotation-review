@@ -171,7 +171,10 @@ const setCurrentPage = (pageNum) => {
                                     ? `${item.comment.length
                                         ? `${item.comment}<br><span class="small fw-normal">- <a href="http://hurlstor.soest.hawaii.edu:5000/review/${item.reviewer}" class="aquaLink" target="_blank">${item.reviewer}</a> ${item.date_modified}</span>`
                                         : 'N/A'}<br><br>`
-                                    : `<span class="fw-normal">Awaiting comment from <a href="http://hurlstor.soest.hawaii.edu:5000/review/${item.reviewer}" class="aquaLink" target="_blank">${item.reviewer}</a></span><br><br>`;
+                                    : `<span class="fw-normal">
+                                        Awaiting comment from <a href="http://hurlstor.soest.hawaii.edu:5000/review/${item.reviewer}" class="aquaLink" target="_blank">${item.reviewer}</a>
+                                        <div class="small">Added ${item.date_modified.substring(0, 6)}</div>
+                                    </span><br>`;
                             }).join('')}
                         </div>
                     </div>
