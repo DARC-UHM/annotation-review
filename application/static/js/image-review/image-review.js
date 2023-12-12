@@ -446,6 +446,7 @@ function updateHash() {
                         <option>Family</option>
                         <option>Genus</option>
                         <option>Species</option>
+                        <option>Certainty</option>
                         <option>Comment</option>
                         <option>Annotator</option>
                     </select>
@@ -490,6 +491,9 @@ function updateHash() {
     }
     if (filter['species']) {
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['species']?.toLowerCase() === filter['species'].toLowerCase().replace('%20', ' '));
+    }
+    if (filter['certainty']) {
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['identity_certainty']?.toLowerCase().includes(filter['certainty'].toLowerCase().replace('%20', ' ')));
     }
     if (filter['comment']) {
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['comment']?.toLowerCase().includes(filter['comment'].toLowerCase().replace('%20', ' ')));
