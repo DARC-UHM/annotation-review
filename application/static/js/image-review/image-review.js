@@ -426,7 +426,7 @@ function updateHash() {
     for (const key of Object.keys(filter)) {
         $('#filterList').append(`
             <span class="small filter-pill position-relative">
-                ${key[0].toUpperCase()}${key.substring(1)}: ${filter[key]}
+                ${key[0].toUpperCase()}${key.substring(1)}: ${filter[key].replace('%20', ' ')}
                 <button type="button" class="position-absolute filter-x" onclick="removeFilter('${key}', '${filter[key]}')">×</button>
             </span>
         `);
@@ -486,10 +486,10 @@ function updateHash() {
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['genus']?.toLowerCase() === filter['genus'].toLowerCase());
     }
     if (filter['species']) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['species']?.toLowerCase() === filter['species'].toLowerCase());
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['species']?.toLowerCase() === filter['species'].toLowerCase().replace('%20', ' '));
     }
     if (filter['comment']) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['comment']?.toLowerCase().includes(filter['comment'].toLowerCase()));
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['comment']?.toLowerCase().includes(filter['comment'].toLowerCase().replace('%20', ' ')));
     }
     if (filter['annotator']) {
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['annotator']?.toLowerCase().includes(filter['annotator'].toLowerCase()));
