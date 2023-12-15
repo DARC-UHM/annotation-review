@@ -48,8 +48,11 @@ class ImageProcessor:
                             as vars_tax_res:
                         if vars_tax_res.status_code == 200:
                             # this get us to phylum
-                            vars_tree = \
-                                vars_tax_res.json()['children'][0]['children'][0]['children'][0]['children'][0]['children'][0]
+                            try:
+                                vars_tree = vars_tax_res.json()['children'][0]['children'][0]['children'][0]['children'][0]['children'][0]
+                            except KeyError:
+                                print(f'\nVARS phylogeny for {annotation["concept"]} not in expected format')
+                                vars_tree = {}
                             while 'children' in vars_tree.keys():
                                 if 'rank' in vars_tree.keys():  # sometimes it's not
                                     concept_phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
