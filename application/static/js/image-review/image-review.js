@@ -319,7 +319,7 @@ function addFilter() {
 
 function sortBy(key) {
     let tempKey;
-    key = key.replace('%20', ' ');
+    key = key.replaceAll('%20', ' ');
     if (key === 'Default') {
         return;
     }
@@ -429,7 +429,7 @@ function updateHash() {
     for (const key of Object.keys(filter)) {
         $('#filterList').append(`
             <span class="small filter-pill position-relative">
-                ${key[0].toUpperCase()}${key.substring(1)}: ${filter[key].replace('%20', ' ')}
+                ${key[0].toUpperCase()}${key.substring(1)}: ${filter[key].replaceAll('%20', ' ')}
                 <button type="button" class="position-absolute filter-x" onclick="removeFilter('${key}', '${filter[key]}')">×</button>
             </span>
         `);
@@ -490,16 +490,16 @@ function updateHash() {
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['genus']?.toLowerCase() === filter['genus'].toLowerCase());
     }
     if (filter['species']) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['species']?.toLowerCase() === filter['species'].toLowerCase().replace('%20', ' '));
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['species']?.toLowerCase() === filter['species'].toLowerCase().replaceAll('%20', ' '));
     }
     if (filter['certainty']) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['identity_certainty']?.toLowerCase().includes(filter['certainty'].toLowerCase().replace('%20', ' ')));
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['identity_certainty']?.toLowerCase().includes(filter['certainty'].toLowerCase().replaceAll('%20', ' ')));
     }
     if (filter['comment']) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['comment']?.toLowerCase().includes(filter['comment'].toLowerCase().replace('%20', ' ')));
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['comment']?.toLowerCase().includes(filter['comment'].toLowerCase().replaceAll('%20', ' ')));
     }
     if (filter['annotator']) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['annotator']?.toLowerCase().includes(filter['annotator'].toLowerCase()));
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['annotator']?.toLowerCase().includes(filter['annotator'].toLowerCase().replaceAll('%20', ' ')));
     }
 
     if (!annotationsToDisplay.length) {
