@@ -5,6 +5,9 @@ import pandas as pd
 
 from .functions import *
 
+TERM_RED = '\033[1;31;48m'
+TERM_NORMAL = '\033[1;37;0m'
+
 
 class QaqcProcessor:
     """
@@ -79,7 +82,7 @@ class QaqcProcessor:
                             vars_tree = \
                                 vars_tax_res.json()['children'][0]['children'][0]['children'][0]['children'][0]['children'][0]
                         except KeyError:
-                            print(f'\nVARS phylogeny for {annotation["concept"]} not in expected format')
+                            print(f'\n{TERM_RED}VARS phylogeny for {annotation["concept"]} not in expected format{TERM_NORMAL}')
                             vars_tree = {}
                         while 'children' in vars_tree.keys():
                             if 'rank' in vars_tree.keys():  # sometimes it's not
@@ -88,7 +91,7 @@ class QaqcProcessor:
                         if 'rank' in vars_tree.keys():
                             concept_phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
                     else:
-                        print(f'\nUnable to find record for {annotation["concept"]}')
+                        print(f'\n{TERM_RED}Unable to find record for {annotation["concept"]}{TERM_NORMAL}')
 
             # get image url
             image_url = None
