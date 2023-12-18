@@ -60,6 +60,11 @@ $('#qaqcButton').on('click', () => {
     window.location.href = `/qaqc-checklist?sequence=${sequences.join('&sequence=')}`;
 });
 
+$('a.external-review-link').on('click', () => {
+    $('#load-overlay').removeClass('loader-bg-hidden');
+    $('#load-overlay').addClass('loader-bg');
+});
+
 $('#sequence1').on('input', checkSequence);
 $('#index').on('click', checkSequence);
 
