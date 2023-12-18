@@ -718,6 +718,10 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
     if (!vesselName) {
         // external review page
+        $('#changeExternalView').on('click', () => {
+            $('#load-overlay').removeClass('loader-bg-hidden');
+            $('#load-overlay').addClass('loader-bg');
+        });
         if (reviewer) {
             $('#vesselName').html(`External Review List (${reviewer})`);
             document.title = `DARC Image Review | External Review List (${reviewer})`;
@@ -830,4 +834,10 @@ $(document).ready(function () {
         $('#externalDeleteUrl').val(window.location.href);
         $('#externalDeleteUuid').val($(e.relatedTarget).data('anno').observation_uuid);
     });
+});
+
+// get rid of loading screen if back button is pressed (mozilla)
+$(window).bind('pageshow', (event) => {
+    $('#load-overlay').removeClass('loader-bg');
+    $('#load-overlay').addClass('loader-bg-hidden');
 });
