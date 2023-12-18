@@ -1,11 +1,7 @@
 {% extends "base.html" %}
 {% block title %}DARC Image Review | {{ data.annotations[0].video_sequence_name }}{% endblock title %}
 {% block content %}
-    <div id="load-overlay" class="loader-bg-hidden">
-        <div class="col d-flex justify-content-center">
-            <div class="loader"></div>
-        </div>
-    </div>
+    {% include 'components/loading.html' %}
     {% include 'components/back-to-home-button.html' %}
     <div class="text-center my-3 mx-5">
         {% include 'components/flash-container.html' %}

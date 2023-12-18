@@ -1,11 +1,7 @@
 {% extends "base.html" %}
 {% block title %}DARC QA/QC{% endblock title %}
 {% block content %}
-    <div id="load-overlay" class="loader-bg-hidden">
-        <div class="col d-flex justify-content-center">
-            <div class="loader"></div>
-        </div>
-    </div>
+    {% include 'components/loading-fish.html' %}
     <div id="fireworks" class="pyro" style="display: none;">
         <div class="before"></div>
         <div class="after"></div>
