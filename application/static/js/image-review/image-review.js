@@ -679,6 +679,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
     const queryAndHash = url.search + url.hash;
     let vesselName;
     let unread = false;
+    let reviewer = null;
 
     autocomplete($('#editConceptName'), allConcepts);
     autocomplete($('#editUpon'), allConcepts);
@@ -700,6 +701,8 @@ document.addEventListener('DOMContentLoaded', function(event) {
             }
         } else if (pair[0].includes('unread')) {
             unread = true;
+        } else if (pair[0].includes('reviewer')) {
+            reviewer = pair[1];
         }
     }
 
@@ -715,7 +718,12 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
     if (!vesselName) {
         // external review page
-        if (unread) {
+        if (reviewer) {
+            $('#vesselName').html(`External Review List (${reviewer})`);
+            document.title = `DARC Image Review | External Review List (${reviewer})`;
+            $('#changeExternalView').html('View All');
+            $('#changeExternalView').attr('href', '/external-review');
+        } else if (unread) {
             $('#vesselName').html('External Review List (Unread)');
             document.title = 'DARC Image Review | External Review List (Unread Comments)';
             $('#changeExternalView').html('View All');

@@ -205,6 +205,8 @@ def external_review():
         # get a list of comments from external review db
         if request.args.get('unread'):
             req = requests.get(f'{DARC_REVIEW_URL}/comment/unread')
+        elif request.args.get('reviewer'):
+            req = requests.get(f'{DARC_REVIEW_URL}/comment/reviewer/{request.args.get("reviewer")}')
         else:
             req = requests.get(f'{DARC_REVIEW_URL}/comment/all')
         comments = req.json()
