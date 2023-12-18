@@ -102,31 +102,32 @@
                 </table>
             </div>
         </div>
-        </div>
-            <div class="modal fade" id="quickCheckModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog pt-5">
-                <div class="modal-content">
-                    <div class="modal-header text-center">
-                        <h5 id="quickCheckModalHeader" class="modal-title mt-1 ms-4" style="font-weight: 600;"></h5>
-                        <button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body text-start mx-4">
-                        <span id="quickCheckNumProblemRecords"></span> out of <span id="quickCheckTotalRecords"></span> records are <span id="quickCheckCheck"></span>.
-                    </div>
-                    <div class="modal-footer">
-                        <div class="col text-end">
-                            <div>
-                                <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Back</button>
-                                <button id="quickCheckSeeDetailsBtn" type="button" class="btn btn-primary modal-button">See Details</button>
-                            </div>
-                            <div class="small text-end me-2 pe-1" style="opacity: 60%;">
-                                (slow if many records)
-                            </div>
+    </div>
+    <div class="modal fade" id="quickCheckModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog pt-5">
+            <div class="modal-content">
+                <div class="modal-header text-center">
+                    <h5 id="quickCheckModalHeader" class="modal-title mt-1 ms-4" style="font-weight: 600;"></h5>
+                    <button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-start mx-4">
+                    <span id="quickCheckNumProblemRecords"></span> out of <span id="quickCheckTotalRecords"></span> records are <span id="quickCheckCheck"></span>.
+                </div>
+                <div class="modal-footer">
+                    <div class="col text-end">
+                        <div>
+                            <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Back</button>
+                            <button id="quickCheckSeeDetailsBtn" type="button" class="btn btn-primary modal-button">See Details</button>
+                        </div>
+                        <div class="small text-end me-2 pe-1" style="opacity: 60%;">
+                            (slow if many records)
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+    <link rel="stylesheet" href="/static/css/fireworks.css" />
     <script src="/static/modules/jquery/jquery.min.js"></script>
     <script src="/static/modules/bootstrap/bootstrap.bundle.js"></script>
     <script src="/static/js/util/autocomplete.js"></script>
