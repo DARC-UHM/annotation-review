@@ -413,7 +413,7 @@ function addAssociationRow(observation_uuid) {
                     <option>identity-reference</option>
                     <option>identity-certainty</option>
                     <option>comment</option>
-                    <option>occurrence-remarks</option>
+                    <option>occurrence-remark</option>
                     <option>categorical-abundance</option>
                 </select>
             </div>
@@ -506,7 +506,7 @@ async function createAssociation(observation_uuid) {
     } else {
         // association uses link_value
         newAssociation.link_value = $('#newAssociationValue').val();
-        if ($('#newAssociationType').val() !== 'occurrence-remarks') {
+        if ($('#newAssociationType').val() !== 'occurrence-remark') {
             newAssociation.to_concept = 'self';
         }
     }
@@ -548,7 +548,7 @@ async function updateAssociation(uuid, link_name, textInputId) {
     } else {
         // association uses link_value
         updatedAssociation.link_value = $(`#${textInputId}`).val();
-        if (link_name !== 'occurrence-remarks') {
+        if (link_name !== 'occurrence-remark') {
             updatedAssociation.to_concept = 'self';
         }
     }
