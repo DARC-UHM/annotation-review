@@ -310,19 +310,19 @@ class QaqcProcessor:
         Finds annotations that have an upon association that is not an organism, but the 'upon' is not present in s1 or
         any s2
         """
-        # TODO do we want to exclude dead organisms from this check?
         for name in self.sequence_names:
             for annotation in self.fetch_annotations(name):
                 upon = None
                 missing_upon = False
                 for association in annotation['associations']:
                     if association['link_name'] == 'upon':
-                        if association['to_concept'][0].isupper():
+                        if association['to_concept'][0].isupper() or association['to_concept'].startswith('dead'):
                             # 'upon' is an organism, don't need it to be in s1/s2
-                            break
+                            pass
                         else:
                             # 'upon' should be in s1 or s2
                             upon = association['to_concept']
+                        break
                 if upon:
                     missing_upon = True
                     for association in annotation['associations']:
