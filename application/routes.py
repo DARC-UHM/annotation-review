@@ -214,12 +214,12 @@ def external_review():
         _reviewers = []
         print('\nERROR: unable to connect to external review server\n')
     comment_loader = CommentProcessor(comments)
-    if len(comment_loader.annotations) < 1:
+    if len(comment_loader.distilled_records) < 1:
         if request.args.get('unread'):
             return render_template('not-found.html', err='unread'), 404
         return render_template('not-found.html', err='comments'), 404
     data = {
-        'annotations': comment_loader.annotations,
+        'annotations': comment_loader.distilled_records,
         'concepts': vars_concepts,
         'reviewers': _reviewers,
         'comments': comments

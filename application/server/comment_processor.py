@@ -1,6 +1,5 @@
+import pandas as pd
 import requests
-
-from typing import Dict
 
 from .functions import *
 
@@ -14,11 +13,12 @@ class CommentProcessor:
     fetched annotation information with the data in the comment dict into an array of dicts (self.annotations).
     """
     def __init__(self, comments: Dict):
-        self.annotations = []
         self.comments = comments
+        self.distilled_records = []
         self.load_comments()
 
     def load_comments(self):
+        annotations = []
         concept_phylogeny = {'Animalia': {}}
         for comment in self.comments:
             joined_annotation = {}  # joined comment data and annotation data from VARS
@@ -69,14 +69,97 @@ class CommentProcessor:
             joined_annotation['image_url'] = self.comments[comment]['image_url']
             joined_annotation['video_sequence_name'] = self.comments[comment]['sequence']
             if get_association(annotation, 'identity-certainty'):
-                joined_annotation['identity_certainty'] = get_association(annotation, 'identity-certainty')['link_value']
+                joined_annotation['identity-certainty'] = get_association(annotation, 'identity-certainty')['link_value']
             if get_association(annotation, 'identity-reference'):
-                joined_annotation['identity_reference'] = get_association(annotation, 'identity-reference')['link_value']
+                joined_annotation['identity-reference'] = get_association(annotation, 'identity-reference')['link_value']
             if get_association(annotation, 'upon'):
                 joined_annotation['upon'] = get_association(annotation, 'upon')['to_concept']
             if get_association(annotation, 'comment'):
                 joined_annotation['comment'] = get_association(annotation, 'comment')['link_value']
             if get_association(annotation, 'guide-photo'):
-                joined_annotation['guide_photo'] = get_association(annotation, 'guide-photo')['to_concept']
+                joined_annotation['guide-photo'] = get_association(annotation, 'guide-photo')['to_concept']
 
-            self.annotations.append(joined_annotation)
+            annotations.append(joined_annotation)
+
+        """
+        Define dataframe for sorting data
+        """
+        annotation_df = pd.DataFrame(columns=[
+            'concept',
+            'identity-certainty',
+            'identity-reference',
+            'guide-photo',
+            'comment',
+            'image_url',
+            'video_url',
+            'upon',
+            'recorded_timestamp',
+            'video_sequence_name',
+            'annotator',
+            'depth',
+            'lat',
+            'long',
+            'phylum',
+            'subphylum',
+            'superclass',
+            'class',
+            'subclass',
+            'superorder',
+            'order',
+            'suborder',
+            'infraorder',
+            'superfamily',
+            'family',
+            'subfamily',
+            'genus',
+            'species'
+        ])
+
+        for anno in annotations:
+            annotation_df = annotation_df.append(anno, ignore_index=True)
+
+        annotation_df = annotation_df.sort_values(by=[
+            'phylum',
+            'subphylum',
+            'superclass',
+            'class',
+            'subclass',
+            'superorder',
+            'order',
+            'suborder',
+            'infraorder',
+            'superfamily',
+            'family',
+            'subfamily',
+            'genus',
+            'species',
+            'concept',
+            'identity-reference',
+            'identity-certainty',
+            'recorded_timestamp'
+        ])
+
+        for index, row in annotation_df.iterrows():
+            self.distilled_records.append({
+                'observation_uuid': row['observation_uuid'],
+                'concept': row['concept'],
+                'annotator': row['annotator'],
+                'depth': row['depth'],
+                'lat': row['lat'],
+                'long': row['long'],
+                'phylum': row['phylum'],
+                'class': row['class'],
+                'order': row['order'],
+                'family': row['family'],
+                'genus': row['genus'],
+                'species': row['species'],
+                'identity_certainty': row['identity-certainty'],
+                'identity_reference': row['identity-reference'],
+                'guide_photo': row['guide-photo'],
+                'comment': row['comment'],
+                'image_url': row['image_url'],
+                'video_url': row['video_url'],
+                'upon': row['upon'],
+                'recorded_timestamp': row['recorded_timestamp'],
+                'video_sequence_name': row['video_sequence_name']
+            })
