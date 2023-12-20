@@ -263,6 +263,7 @@ def sync_external_ctd():
         flash('Unable to sync CTD - please try again', 'danger')
     return redirect('/external-review')
 
+
 # deletes an item from the external review db
 @app.post('/delete-external-comment')
 def delete_external_comment():

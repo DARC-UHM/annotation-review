@@ -832,7 +832,6 @@ $(document).ready(function () {
     })
 
     $('#deleteReviewModal').on('show.bs.modal', function (e) {
-        $('#externalDeleteUrl').val(window.location.href);
         $('#externalDeleteUuid').val($(e.relatedTarget).data('anno').observation_uuid);
     });
 });
