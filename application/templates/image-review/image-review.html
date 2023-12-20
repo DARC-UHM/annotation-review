@@ -173,7 +173,20 @@
                                     Reviewer:<br>
                                     <a class="small editButton mt-2" style="font-weight: 500;" href="/reviewers" target="_blank">See all reviewers</a>
                                 </div>
-                                <div id="reviewerList" class="col"></div>
+                                <div class="col">
+                                    <div id="reviewerList"></div>
+                                    <div id="addReviewerButton" class="mt-2" style="display: flex;">
+                                        <div class="col w-100 d-flex justify-content-center me-1">
+                                            <button type="button" class="plusButton m-auto small d-flex" onClick="addReviewer()">
+                                                <div style="padding-top: 2px;">Add </div>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
+                                                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="col-1 me-4"></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="modal-footer">

@@ -344,6 +344,10 @@ function sortBy(key) {
 }
 
 function removeReviewer(num) {
+    if (totalReviewers === 1) {
+        return;
+    }
+    $('#addReviewerButton').show();
     $(`#reviewerRow${num}`).remove();
     totalReviewers--;
     $('#externalModalSubmitButton').prop('disabled', false);
@@ -374,29 +378,24 @@ function addReviewer(reviewerName, firstReviewer) {
                 </div>
             </button>
             <div class="col-1 mt-1">
-                ${firstReviewer
-                    ? `<button id="plusButton" type="button" class="plusButton" onClick="addReviewer()">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-plus"
-                             viewBox="0 0 16 16">
-                            <path
-                                d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
-                        </svg>
-                    </button>`
-                    : `<button id="xButton${thisReviewerIndex}" type="button" class="xButton">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
-                            <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
-                        </svg>
-                    </button>`
-                }
+                <button id="xButton${thisReviewerIndex}" type="button" class="xButton">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
+                        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                    </svg>
+                </button>
             </div>
         </div>
     `);
     $(`#xButton${thisReviewerIndex}`).on('click', () => removeReviewer(thisReviewerIndex));
     reviewerList($(`#reviewerName${thisReviewerIndex}Button`), recommendedReviewers, $(`#reviewerName${thisReviewerIndex}`));
+
+    if (totalReviewers === 5) {
+        $('#addReviewerButton').hide();
+    }
 }
 
-function updateFilterHint(value) {
-    $('#imageFilterEntry').attr('placeholder', `Enter ${value.toLowerCase()}`);
+function updateFilterHint(e) {
+    $('#imageFilterEntry').attr('placeholder', `Enter ${e.target.value.toLowerCase()}`);
 }
 
 function updateHash() {
@@ -439,7 +438,7 @@ function updateHash() {
         <span id="addFilterRow" class="small ms-3" style="display: none;">
             <form onsubmit="addFilter()" class="d-inline-block">
                 <span class="position-relative">
-                    <select id="imageFilterSelect" onchange="(e) => updateFilterHint(e.target.value)">
+                    <select id="imageFilterSelect" onchange="updateFilterHint()">
                         <option>Phylum</option>
                         <option>Class</option>
                         <option>Order</option>
