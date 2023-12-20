@@ -252,11 +252,11 @@ def sync_external_ctd():
                 if annotation['observation_uuid'] in sequences[sequence]:
                     if 'ancillary_data' in annotation.keys():
                         updated_ctd[annotation['observation_uuid']] = {
-                            'depth': round(annotation['ancillary_data']['depth_meters']),
-                            'lat': round(annotation['ancillary_data']['latitude'], 3),
-                            'long': round(annotation['ancillary_data']['longitude'], 3),
-                            'temperature': round(annotation['ancillary_data']['temperature_celsius'], 2),
-                            'oxygen_ml_l': round(annotation['ancillary_data']['oxygen_ml_l'], 3),
+                            'depth': round(annotation['ancillary_data']['depth_meters']) if 'depth_meters' in annotation['ancillary_data'].keys() else None,
+                            'lat': round(annotation['ancillary_data']['latitude'], 3) if 'latitude' in annotation['ancillary_data'].keys() else None,
+                            'long': round(annotation['ancillary_data']['longitude'], 3) if 'longitude' in annotation['ancillary_data'].keys() else None,
+                            'temperature': round(annotation['ancillary_data']['temperature_celsius'], 2) if 'temperature_celsius' in annotation['ancillary_data'].keys() else None,
+                            'oxygen_ml_l': round(annotation['ancillary_data']['oxygen_ml_l'], 3) if 'oxygen_ml_l' in annotation['ancillary_data'].keys() else None,
                         }
                     else:
                         missing_ctd_total += 1
