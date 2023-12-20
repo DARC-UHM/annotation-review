@@ -254,7 +254,9 @@ def sync_external_ctd():
                         updated_ctd[annotation['observation_uuid']] = {
                             'depth': round(annotation['ancillary_data']['depth_meters']),
                             'lat': round(annotation['ancillary_data']['latitude'], 3),
-                            'long': round(annotation['ancillary_data']['longitude'], 3)
+                            'long': round(annotation['ancillary_data']['longitude'], 3),
+                            'temperature': round(annotation['ancillary_data']['temperature_celsius'], 2),
+                            'oxygen_ml_l': round(annotation['ancillary_data']['oxygen_ml_l'], 3),
                         }
                     else:
                         missing_ctd_total += 1
@@ -345,7 +347,9 @@ def update_annotation_reviewer():
         'annotator': request.values.get('annotator'),
         'depth': request.values.get('depth'),
         'lat': request.values.get('lat'),
-        'long': request.values.get('long')
+        'long': request.values.get('long'),
+        'temperature': request.values.get('temperature'),
+        'oxygen_ml_l': request.values.get('oxygen_ml_l'),
     }
     with requests.post(f'{DARC_REVIEW_URL}/comment/add', data=data) as r:
         if r.status_code == 409:  # comment already exists in the db, update record
