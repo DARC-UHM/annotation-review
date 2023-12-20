@@ -819,6 +819,8 @@ $(document).ready(function () {
         $('#externalLat').val(currentAnnotation.lat);
         $('#externalLong').val(currentAnnotation.long);
         $('#externalDepth').val(currentAnnotation.depth);
+        $('#externalTemperature').val(currentAnnotation.temperature);
+        $('#externalOxygen').val(currentAnnotation.oxygen_ml_l);
     });
 
     $('#externalReviewModal').on('hide.bs.modal', () => {

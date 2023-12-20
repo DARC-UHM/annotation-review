@@ -40,24 +40,17 @@ def index():
     with requests.get(f'{HURLSTOR_URL}:8084/vam/v1/videosequences/names') as r:
         video_sequences = r.json()
     try:
-        with requests.get(f'{DARC_REVIEW_URL}/comment/unread') as r:
+        with requests.get(f'{DARC_REVIEW_URL}/stats') as r:
             try:
-                unread_comments = len(r.json())
+                res = r.json()
+                unread_comments = res['unread_comments']
+                total_comments = res['total_comments']
+                active_reviewers = res['active_reviewers']
             except JSONDecodeError:
-                print('Unable to fetch unread comments')
+                print('Unable to fetch stats from external review server')
                 unread_comments = 0
-        with requests.get(f'{DARC_REVIEW_URL}/active-reviewers') as r:
-            try:
-                active_reviewers = r.json()
-            except JSONDecodeError:
-                print('Unable to fetch reviewers')
-                active_reviewers = []
-        with requests.get(f'{DARC_REVIEW_URL}/comment/all') as r:
-            try:
-                total_comments = len(r.json())
-            except JSONDecodeError:
-                print('Unable to fetch comments')
                 total_comments = 0
+                active_reviewers = []
     except requests.exceptions.ConnectionError:
         unread_comments = 0
         active_reviewers = []
