@@ -386,10 +386,10 @@ def update_annotation():
     annosaurus = Annosaurus(ANNOSAURUS_URL)
     updated_annotation = {
         'concept': request.values.get('concept'),
-        'identity-certainty': request.values.get('identity-certainty'),
+        'identity-certainty': request.values.get('identity-certainty').replace('\'', ''),
         'identity-reference': request.values.get('identity-reference'),
-        'upon': request.values.get('upon'),
-        'comment': request.values.get('comment'),
+        'upon': request.values.get('upon').replace('\'', ''),
+        'comment': request.values.get('comment').replace('\'', ''),
         'guide-photo': request.values.get('guide-photo'),
     }
     status = annosaurus.update_annotation(
