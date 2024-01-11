@@ -169,10 +169,10 @@ const setCurrentPage = (pageNum) => {
                             ${comments[annotation.observation_uuid].reviewer_comments.map(item => {
                                 return item.comment 
                                     ? `${item.comment.length
-                                        ? `${item.comment}<br><span class="small fw-normal">- <a href="http://hurlstor.soest.hawaii.edu:5000/review/${item.reviewer}" class="aquaLink" target="_blank">${item.reviewer}</a> ${item.date_modified}</span>`
+                                        ? `${item.comment}<br><span class="small fw-normal">- <a href="https://hurlstor.soest.hawaii.edu/review/${item.reviewer}" class="aquaLink" target="_blank">${item.reviewer}</a> ${item.date_modified}</span>`
                                         : 'N/A'}<br><br>`
                                     : `<span class="fw-normal">
-                                        Awaiting comment from <a href="http://hurlstor.soest.hawaii.edu:5000/review/${item.reviewer}" class="aquaLink" target="_blank">${item.reviewer}</a>
+                                        Awaiting comment from <a href="https://hurlstor.soest.hawaii.edu/review/${item.reviewer}" class="aquaLink" target="_blank">${item.reviewer}</a>
                                         <div class="small">Added ${item.date_modified.substring(0, 6)}</div>
                                     </span><br>`;
                             }).join('')}
@@ -562,7 +562,7 @@ function updateExternalReviewers() {
                 if (!comments[formData.get('observation_uuid')]) {
                     comments[formData.get('observation_uuid')] = {};
                 }
-                fetch(`http://hurlstor.soest.hawaii.edu:5000/comment/get/${formData.get('observation_uuid')}`)
+                fetch(`https://hurlstor.soest.hawaii.edu/comment/get/${formData.get('observation_uuid')}`)
                     .then((res) => res.json())
                     .then((data) => {
                         comments[formData.get('observation_uuid')] = data;
@@ -585,7 +585,7 @@ function markCommentRead(commentUuid) {
     const url = new URL(window.location.href);
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
-    fetch(`http://hurlstor.soest.hawaii.edu:5000/comment/mark-read/${commentUuid}`, {
+    fetch(`https://hurlstor.soest.hawaii.edu/comment/mark-read/${commentUuid}`, {
         method: 'PUT',
     })
         .then((res) => {
