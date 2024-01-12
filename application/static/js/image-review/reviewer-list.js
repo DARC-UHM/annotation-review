@@ -1,5 +1,4 @@
-
-function reviewerList(button, arr, reviewerTextObj) {
+export function reviewerList(button, arr, reviewerTextObj) {
     let currentFocus;
     let menuOpen = true;
 

@@ -1,3 +1,6 @@
+import { updateFlashMessages } from "../util/updateFlashMessages";
+import { autocomplete } from "../util/autocomplete";
+
 const sequences = [];
 const toConcepts = ['s1', 's2', 'upon', 'size', 'guide-photo', 'habitat', 'megahabitat', 'sampled-by'];
 
@@ -8,20 +11,6 @@ let associationToDeleteUuid = '';
 function returnToCheckList() {
     const url = window.location.href;
     window.location.href = `/qaqc-checklist${url.substring(url.indexOf('?'))}`;
-}
-
-function updateFlashMessages(msg, cat) {
-    $('#flash-messages-container').html(`
-        <div class="alert alert-${cat} alert-dismissible px-5" style="position:fixed; left: 50%; transform: translate(-50%, 0); z-index: 10000;">
-            <span class="px-2" style="font-weight: 500;">${msg}</span>
-            <button type="button" class="btn-close small" data-bs-dismiss="alert" aria-label="Close"></button>
-            <div class="alert-bottom-bar alert-bottom-bar-${cat}"></div>
-        </div>
-    `);
-    $('#flash-messages-container').show();
-    setTimeout(() => {
-        $('#flash-messages-container').fadeOut(200);
-    }, 5000);
 }
 
 function validateName(name, button) {
