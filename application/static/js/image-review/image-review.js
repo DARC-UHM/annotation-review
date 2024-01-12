@@ -570,6 +570,8 @@ function updateExternalReviewers() {
         .catch((err) => console.log(err));
 }
 
+window.updateExternalReviewers = updateExternalReviewers;
+
 function markCommentRead(commentUuid) {
     event.preventDefault();
     const url = new URL(window.location.href);
@@ -627,6 +629,8 @@ function deleteFromExternalReview() {
         .catch((err) => console.log(err));
 }
 
+window.deleteFromExternalReview = deleteFromExternalReview;
+
 function updateAnnotation() {
     event.preventDefault();
     $('#load-overlay').removeClass('loader-bg-hidden');
@@ -655,6 +659,8 @@ function updateAnnotation() {
         })
         .catch((err) => console.log(err));
 }
+
+window.updateAnnotation = updateAnnotation;
 
 function saveScrollPosition(page) {
     const url = new URL(window.location.href);
@@ -785,7 +791,7 @@ $(document).ready(function () {
 
         document.getElementById("editGuidePhoto").options.length = 0; // clear options
         const guidePhotoSelect = $(this).find('#editGuidePhoto');
-        for (val of guidePhotoVals) { // append options back on with matching option selected
+        for (const val of guidePhotoVals) { // append options back on with matching option selected
             const opt = $('<option/>', { value: val })
                 .text(val)
                 .prop('selected', annotation.guide_photo === val || val === '' && !annotation.guide_photo);
