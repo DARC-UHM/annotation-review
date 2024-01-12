@@ -1,6 +1,6 @@
-import { autocomplete } from "../util/autocomplete";
-import { reviewerList } from "./reviewer-list";
-import { updateFlashMessages } from "../util/updateFlashMessages";
+import { autocomplete } from '../util/autocomplete.js';
+import { reviewerList } from './reviewer-list.js';
+import { updateFlashMessages } from '../util/updateFlashMessages.js';
 
 const paginationNumbers = document.getElementById('pagination-numbers');
 const nextButton = document.getElementById('next-button');

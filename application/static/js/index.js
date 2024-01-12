@@ -1,3 +1,6 @@
+import { updateFlashMessages } from './util/updateFlashMessages.js';
+import { autocomplete } from './util/autocomplete.js';
+
 let numSequences = 1;
 
 function checkSequence() {
