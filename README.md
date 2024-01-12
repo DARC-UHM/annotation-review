@@ -41,8 +41,8 @@ _Note: Environment variables must be configured in order to save annotation edit
    1. `Change reviewer` allows you to assign a different reviewer to the record.
    2. `Delete from external review` will remove the record from the external review database (the record will remain in the VARS database). The `Added for review` comment will be automatically deleted.
    3. `Reviewer comments` will display comments that the external reviewer has saved along with a timestamp of when the comment was written.
-4. Once a record has been added for external review, the reviewer can see all the images added for them by accessing their review page at https://hurlstor.soest.hawaii.edu/review/REVIEWER-NAME (spaces or dashes between first & last names are both okay).
-   1. Example: To share images for review with Jeff Drazen, share the link https://hurlstor.soest.hawaii.edu/review/Jeff-Drazen
+4. Once a record has been added for external review, the reviewer can see all the images added for them by accessing their review page at https://hurlstor.soest.hawaii.edu:5000/review/REVIEWER-NAME (spaces or dashes between first & last names are both okay).
+   1. Example: To share images for review with Jeff Drazen, share the link https://hurlstor.soest.hawaii.edu:5000/review/Jeff-Drazen
 
 ### Screenshots
 

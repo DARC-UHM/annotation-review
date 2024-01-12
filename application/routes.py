@@ -24,7 +24,7 @@ if _FLASK_ENV == 'no_server_edits':
 else:
     ANNOSAURUS_URL = os.environ.get('ANNOSAURUS_URL')
     ANNOSAURUS_CLIENT_SECRET = os.environ.get('ANNOSAURUS_CLIENT_SECRET')
-    DARC_REVIEW_URL = 'https://hurlstor.soest.hawaii.edu'
+    DARC_REVIEW_URL = 'https://hurlstor.soest.hawaii.edu:5000'
 
 app.secret_key = 'darc'
 
