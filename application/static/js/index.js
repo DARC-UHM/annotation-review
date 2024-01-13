@@ -14,6 +14,58 @@ function checkSequence() {
     $('#qaqcButton')[0].disabled = disabled;
 }
 
+async function tatorLogin() {
+    event.preventDefault();
+    $('#load-overlay').addClass('loader-bg');
+    $('#load-overlay').removeClass('loader-bg-hidden');
+    const formData = new FormData($('#tatorLogin')[0]);
+    const res = await fetch('/get-tator-token', {
+        method: 'POST',
+        body: formData,
+    });
+    const json = await res.json();
+    if (res.status === 200) {
+        updateFlashMessages('Logged in to Tator', 'success');
+        $('#tatorLogin').hide();
+        $('#tatorLoggedInUser').html(json.username);
+        $('#tatorIndexForm').show();
+    } else {
+        updateFlashMessages('Unable to log in to Tator', 'danger');
+    }
+
+    $('#load-overlay').addClass('loader-bg-hidden');
+    $('#load-overlay').removeClass('loader-bg');
+}
+
+window.tatorLogin = tatorLogin;
+
+$('#tatorLogin').hide();
+$('#tatorIndexForm').hide();
+
+$('#tatorSelect').on('click', async () => {
+    $('#load-overlay').addClass('loader-bg');
+    $('#load-overlay').removeClass('loader-bg-hidden');
+    $('#varsIndexForm').hide();
+    $('#platformSelectBtn').html('Tator');
+    const res = await fetch('/check-tator-token');
+    const json = await res.json();
+    if (res.status === 200) {
+        $('#tatorLoggedInUser').html(json.username);
+        $('#tatorIndexForm').show();
+    } else {
+        $('#tatorLogin').show();
+    }
+    $('#load-overlay').addClass('loader-bg-hidden');
+    $('#load-overlay').removeClass('loader-bg');
+});
+
+$('#varsSelect').on('click', () => {
+    $('#tatorLogin').hide();
+    $('#tatorIndexForm').hide();
+    $('#varsIndexForm').show();
+    $('#platformSelectBtn').html('VARS');
+});
+
 $('#plusButton').on('click', () => {
     $('#seqNameLabel')[0].innerText = 'Sequence Names:';
     const inputDive = $(`#sequence${numSequences}`).val();
@@ -52,14 +104,14 @@ $('#plusButton').on('click', () => {
 $('#imageReviewButton').on('click', () => {
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
-    const sequences = new FormData($('#indexForm')[0]).getAll('sequence');
+    const sequences = new FormData($('#varsIndexForm')[0]).getAll('sequence');
     window.location.href = `/image-review?sequence=${sequences.join('&sequence=')}`;
 });
 
 $('#qaqcButton').on('click', () => {
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
-    const sequences = new FormData($('#indexForm')[0]).getAll('sequence');
+    const sequences = new FormData($('#varsIndexForm')[0]).getAll('sequence');
     window.location.href = `/qaqc-checklist?sequence=${sequences.join('&sequence=')}`;
 });
 

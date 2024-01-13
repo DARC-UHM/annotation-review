@@ -1,7 +1,7 @@
 import os
 from json import JSONDecodeError
 
-from flask import render_template, request, redirect, flash
+from flask import render_template, request, redirect, flash, session
 from dotenv import load_dotenv
 
 from application import app
@@ -63,6 +63,40 @@ def index():
         total_comment_count=total_comments,
         active_reviewers=active_reviewers
     )
+
+
+# get token from tator
+@app.post('/get-tator-token')
+def tator_auth():
+    req = requests.post(
+            'https://cloud.tator.io/rest/Token',
+            headers={'Content-Type': 'application/json'},
+            data=json.dumps({
+                'username': request.values.get('username'),
+                'password': request.values.get('password'),
+                'refresh': True,
+            }),
+    )
+    if req.status_code == 201:
+        session['tator_token'] = req.json()['token']
+        return {'username': request.values.get('username')}, 200
+    return {}, 400
+
+
+# check if stored tator token is valid
+@app.get('/check-tator-token')
+def check_tator_token():
+    req = requests.get(
+        'https://cloud.tator.io/rest/User/GetCurrent',
+        headers={
+            'Authorization': f'Token {session["tator_token"]}',
+            'Content-Type': 'application/json',
+        },
+    )
+    if req.status_code == 200:
+        return {'username': req.json()['username']}, 200
+    session['tator_token'] = None
+    return {}, 400
 
 
 # view the annotations with images in a specified dive (or dives)

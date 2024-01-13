@@ -376,6 +376,43 @@ select:active {
     animation: progressBar 5s linear forwards;
 }
 
+.indexDropdownButton {
+    border: none;
+    background: transparent;
+    font-weight: 500;
+}
+
+.indexDropdownMenu {
+    color: var(--darc-text);
+    background: var(--darc-border);
+}
+
+.indexDropdownMenu .dropdown-item:hover, .dropdown-item:active {
+    background: #484e57;
+}
+
+.indexDropdownMenu li a, .indexDropdownMenu li a:hover, .indexDropdownMenu li a:active  {
+    color: var(--darc-text);
+}
+
+.indexDropdownMenu li button, .indexDropdownMenu li button:hover, .indexDropdownMenu li button:active {
+    color: var(--darc-text);
+}
+
+.sequenceName {
+    padding: 3px 8px;
+    width: 250px;
+    border: 0;
+}
+
+.tatorLoginInput {
+    padding: 3px 8px;
+    background: #2c363a;
+    color: var(--darc-text);
+    width: 150px;
+    border: 0;
+}
+
 @keyframes progressBar {
   0% {
     width: 100%;
@@ -409,12 +446,6 @@ select:active {
 
 #index input {
     border-radius: 3px;
-}
-
-.sequenceName {
-    padding: 3px 8px;
-    width: 250px;
-    border: 0;
 }
 
 #index .autocomplete-items {
@@ -509,23 +540,4 @@ select:active {
 
 #paginationSelect:active {
     border: 0;
-}
-
-#externalReviewDropdownBtn {
-    border: none;
-    background: transparent;
-    font-weight: 500;
-}
-
-#external-dropdown {
-    color: var(--darc-text);
-    background: var(--darc-border);
-}
-
-#external-dropdown .dropdown-item:hover, .dropdown-item:active {
-    background: #484e57;
-}
-
-#external-dropdown li a {
-    color: var(--darc-text);
 }

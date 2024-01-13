@@ -1,13 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
 {% include 'components/flash-container.html' %}
-    <div class="container mt-3 text-end small">
+    <div class="container mt-3 small text-end">
         <div class="dropdown">
-            <button id="externalReviewDropdownBtn" type="button" class="aquaLink me-2" data-bs-toggle="dropdown" aria-expanded="false">
+            <button type="button" class="aquaLink me-2 dropdown-toggle indexDropdownButton" data-bs-toggle="dropdown" aria-expanded="false">
                 External Image Review
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
-                  <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
-                </svg>
             </button>
             {% if unread_comment_count > 0 %}
             <span id="notif">
@@ -19,7 +16,7 @@
                 </a>
             </span>
             {% endif %}
-            <ul id="external-dropdown" class="dropdown-menu small">
+            <ul class="dropdown-menu indexDropdownMenu small">
                 <li><a class="dropdown-item small external-review-link" href="/external-review?unread=true">View Unread ({{ unread_comment_count }})</a></li>
                 <li><a class="dropdown-item small external-review-link" href="/external-review">View All ({{ total_comment_count }})</a></li>
                 <li><hr class="dropdown-divider"></li>
@@ -38,7 +35,16 @@
     <div id="index" class="text-center mb-3 mx-5">
         <img src="/static/img/logo_darc.png" class="mt-2" width="30%" style="max-width: 300px; min-width: 200px; pointer-events: none;" alt="DARC logo"/>
         <h1 class="my-3">DARC Review</h1>
-        <form id="indexForm">
+        <div class="dropdown mb-4">
+            <button id="platformSelectBtn" type="button" class="aquaLink dropdown-toggle indexDropdownButton" data-bs-toggle="dropdown" aria-expanded="false">
+                VARS
+            </button>
+            <ul class="dropdown-menu indexDropdownMenu">
+                <li><button id="varsSelect" class="dropdown-item small">VARS</button></li>
+                <li><button id="tatorSelect" class="dropdown-item small">Tator</button></li>
+            </ul>
+        </div>
+        <form id="varsIndexForm">
             <div id="sequenceList" class="ms-2">
                 <div id="seqList1">
                     <div class="row d-inline-flex">
@@ -64,11 +70,13 @@
             <button type="button" id="imageReviewButton" class="btn btn-success mb-5 indexButton" disabled>Image Review</button>
         </form>
         <form id="tatorLogin" onsubmit="tatorLogin()" autocomplete="off">
-            <input type="text" name="username">
-            <input type="password" name="password">
-            <button type="submit" id="loginBtn" class="btn btn-success">Login</button>
+            <input type="text" name="username" class="tatorLoginInput mb-2" placeholder="Username"><br>
+            <input type="password" name="password" class="tatorLoginInput mb-3" placeholder="Password"><br>
+            <button type="submit" id="loginBtn" class="btn btn-success px-4" style="font-weight: 500;">Login</button>
         </form>
-        <div id="tatorUser">Error</div>
+        <form id="tatorIndexForm">
+            <div class="small"><span style="opacity: 80%;">Logged in as</span> <span id="tatorLoggedInUser" style="font-weight: 500;"></span></div>
+        </form>
     </div>
     {% include 'components/loading-fish.html' %}
     <script src="/static/modules/jquery/jquery.min.js"></script>
