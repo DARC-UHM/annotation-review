@@ -19,7 +19,7 @@ async function tatorLogin() {
     $('#load-overlay').addClass('loader-bg');
     $('#load-overlay').removeClass('loader-bg-hidden');
     const formData = new FormData($('#tatorLogin')[0]);
-    const res = await fetch('/get-tator-token', {
+    const res = await fetch('/tator-login', {
         method: 'POST',
         body: formData,
     });
@@ -27,6 +27,7 @@ async function tatorLogin() {
     if (res.status === 200) {
         updateFlashMessages('Logged in to Tator', 'success');
         $('#tatorLogin').hide();
+        $('#password').val('');
         $('#tatorLoggedInUser').html(json.username);
         $('#tatorIndexForm').show();
     } else {
@@ -46,7 +47,7 @@ $('#tatorSelect').on('click', async () => {
     $('#load-overlay').addClass('loader-bg');
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#varsIndexForm').hide();
-    $('#platformSelectBtn').html('Tator');
+    $('#platformSelectBtn').html('Tator ');
     const res = await fetch('/check-tator-token');
     const json = await res.json();
     if (res.status === 200) {
@@ -63,7 +64,22 @@ $('#varsSelect').on('click', () => {
     $('#tatorLogin').hide();
     $('#tatorIndexForm').hide();
     $('#varsIndexForm').show();
-    $('#platformSelectBtn').html('VARS');
+    $('#platformSelectBtn').html('VARS ');
+});
+
+$('#logoutBtn').on('click', async () => {
+    $('#load-overlay').addClass('loader-bg');
+    $('#load-overlay').removeClass('loader-bg-hidden');
+    const res = await fetch('/tator-logout');
+    if (res.status === 200) {
+        $('#tatorLogin').show();
+        $('#tatorIndexForm').hide();
+        updateFlashMessages('Logged out of Tator', 'success');
+    } else {
+        updateFlashMessages('Error logging out', 'danger');
+    }
+    $('#load-overlay').addClass('loader-bg-hidden');
+    $('#load-overlay').removeClass('loader-bg');
 });
 
 $('#plusButton').on('click', () => {

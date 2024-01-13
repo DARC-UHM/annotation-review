@@ -71,11 +71,18 @@
         </form>
         <form id="tatorLogin" onsubmit="tatorLogin()" autocomplete="off">
             <input type="text" name="username" class="tatorLoginInput mb-2" placeholder="Username"><br>
-            <input type="password" name="password" class="tatorLoginInput mb-3" placeholder="Password"><br>
+            <input type="password" id="password" name="password" class="tatorLoginInput mb-3" placeholder="Password"><br>
             <button type="submit" id="loginBtn" class="btn btn-success px-4" style="font-weight: 500;">Login</button>
         </form>
         <form id="tatorIndexForm">
-            <div class="small"><span style="opacity: 80%;">Logged in as</span> <span id="tatorLoggedInUser" style="font-weight: 500;"></span></div>
+            <div class="small"><span style="opacity: 80%;">Logged in as</span>
+                <span class="dropdown mb-4">
+                    <button id="tatorLoggedInUser" type="button" class="dropdown-toggle indexDropdownButton" data-bs-toggle="dropdown" aria-expanded="false" style="font-weight: 500; color: white;"></button>
+                    <ul class="dropdown-menu indexDropdownMenu">
+                        <li><button id="logoutBtn" class="dropdown-item small">Sign out</button></li>
+                    </ul>
+                </span>
+            </div>
         </form>
     </div>
     {% include 'components/loading-fish.html' %}

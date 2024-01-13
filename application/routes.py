@@ -66,8 +66,8 @@ def index():
 
 
 # get token from tator
-@app.post('/get-tator-token')
-def tator_auth():
+@app.post('/tator-login')
+def tator_login():
     req = requests.post(
             'https://cloud.tator.io/rest/Token',
             headers={'Content-Type': 'application/json'},
@@ -97,6 +97,13 @@ def check_tator_token():
         return {'username': req.json()['username']}, 200
     session['tator_token'] = None
     return {}, 400
+
+
+# clears stored tator token
+@app.get('/tator-logout')
+def tator_logout():
+    session['tator_token'] = None
+    return {}, 200
 
 
 # view the annotations with images in a specified dive (or dives)
