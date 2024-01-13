@@ -1,4 +1,5 @@
 import os
+import tator
 from json import JSONDecodeError
 
 from flask import render_template, request, redirect, flash, session
@@ -80,23 +81,17 @@ def tator_login():
     if req.status_code == 201:
         session['tator_token'] = req.json()['token']
         return {'username': request.values.get('username')}, 200
-    return {}, 400
+    return {}, req.status_code
 
 
 # check if stored tator token is valid
 @app.get('/check-tator-token')
 def check_tator_token():
-    req = requests.get(
-        'https://cloud.tator.io/rest/User/GetCurrent',
-        headers={
-            'Authorization': f'Token {session["tator_token"]}',
-            'Content-Type': 'application/json',
-        },
-    )
-    if req.status_code == 200:
-        return {'username': req.json()['username']}, 200
-    session['tator_token'] = None
-    return {}, 400
+    try:
+        api = tator.get_api(host='https://cloud.tator.io', token=session['tator_token'])
+        return {'username': api.whoami().username}, 200
+    except tator.openapi.tator_openapi.exceptions.ApiException:
+        return {}, 400
 
 
 # clears stored tator token
@@ -104,6 +99,28 @@ def check_tator_token():
 def tator_logout():
     session['tator_token'] = None
     return {}, 200
+
+
+# get a list of projects associated with user from tator
+@app.get('/tator-projects')
+def tator_projects():
+    try:
+        api = tator.get_api(host='https://cloud.tator.io', token=session['tator_token'])
+        print(api.get_project_list())
+        # todo stopped here
+    except tator.openapi.tator_openapi.exceptions.ApiException:
+        return {}, 400
+    req = requests.get(
+        'https://cloud.tator.io/rest/Projects',
+        headers={
+            'Authorization': f'Token {session["tator_token"]}',
+            'Content-Type': 'application/json',
+        },
+    )
+    print(req.json())
+    if req.status_code == 200:
+        return [{key: item[key] for key in ['id', 'name']} for item in req.json()], 200
+    return {}, req.status_code
 
 
 # view the annotations with images in a specified dive (or dives)

@@ -14,6 +14,20 @@ function checkSequence() {
     $('#qaqcButton')[0].disabled = disabled;
 }
 
+async function getTatorProjects() {
+    const res = await fetch('/tator-projects');
+    const json = await res.json();
+    if (res.status === 200) {
+        $('#tatorProject').html('');
+        for (const project of json) {
+            $('#tatorProject').append(`<option value="${project.id}">${project.name}</option>`);
+        }
+        $('#tatorProject').val(json[0].name);
+    } else {
+        updateFlashMessages('Unable to get Tator projects', 'danger');
+    }
+}
+
 async function tatorLogin() {
     event.preventDefault();
     $('#load-overlay').addClass('loader-bg');
@@ -30,6 +44,7 @@ async function tatorLogin() {
         $('#password').val('');
         $('#tatorLoggedInUser').html(json.username);
         $('#tatorIndexForm').show();
+        getTatorProjects();
     } else {
         updateFlashMessages('Unable to log in to Tator', 'danger');
     }
@@ -53,6 +68,7 @@ $('#tatorSelect').on('click', async () => {
     if (res.status === 200) {
         $('#tatorLoggedInUser').html(json.username);
         $('#tatorIndexForm').show();
+        getTatorProjects();
     } else {
         $('#tatorLogin').show();
     }
