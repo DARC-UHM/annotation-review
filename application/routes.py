@@ -105,22 +105,10 @@ def tator_logout():
 @app.get('/tator-projects')
 def tator_projects():
     try:
-        api = tator.get_api(host='https://cloud.tator.io', token=session['tator_token'])
-        print(api.get_project_list())
-        # todo stopped here
+        project_list = tator.get_api(host='https://cloud.tator.io', token=session['tator_token']).get_project_list()
+        return [{'id': project.id, 'name': project.name} for project in project_list], 200
     except tator.openapi.tator_openapi.exceptions.ApiException:
         return {}, 400
-    req = requests.get(
-        'https://cloud.tator.io/rest/Projects',
-        headers={
-            'Authorization': f'Token {session["tator_token"]}',
-            'Content-Type': 'application/json',
-        },
-    )
-    print(req.json())
-    if req.status_code == 200:
-        return [{key: item[key] for key in ['id', 'name']} for item in req.json()], 200
-    return {}, req.status_code
 
 
 # view the annotations with images in a specified dive (or dives)
