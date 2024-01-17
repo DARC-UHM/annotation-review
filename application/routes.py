@@ -88,7 +88,7 @@ def tator_login():
 # check if stored tator token is valid
 @app.get('/check-tator-token')
 def check_tator_token():
-    print(session['tator_token'])
+    print(session['tator_token'])  # todo remove
     try:
         api = tator.get_api(host=TATOR_URL, token=session['tator_token'])
         return {'username': api.whoami().username}, 200
@@ -124,7 +124,7 @@ def tator_sections(project_id):
 
 
 # view the annotations with images in a specified dive (or dives)
-@app.get('/image-review')
+@app.get('/vars-image-review')
 def view_images():
     comments = {}
     sequences = request.args.getlist('sequence')
@@ -157,23 +157,23 @@ def view_images():
         'reviewers': _reviewers,
         'comments': comments
     }
-    return render_template('image-review/image-review.html', data=data)
+    return render_template('vars/image-review/image-review.html', data=data)
 
 
 # qaqc checklist page
-@app.get('/qaqc-checklist')
-def qaqc_checklist():
+@app.get('/vars-qaqc-checklist')
+def vars_qaqc_checklist():
     sequences = request.args.getlist('sequence')
     annotation_count = 0
     for sequence in sequences:
         with requests.get(f'{HURLSTOR_URL}:8086/query/dive/{sequence.replace(" ", "%20")}') as r:
             annotation_count += len(r.json()['annotations'])
-    return render_template('qaqc/qaqc-checklist.html', annotation_count=annotation_count)
+    return render_template('vars/qaqc/qaqc-checklist.html', annotation_count=annotation_count)
 
 
 # individual qaqc checks
-@app.get('/qaqc/<check>')
-def qaqc(check):
+@app.get('/vars-qaqc/<check>')
+def vars_qaqc(check):
     sequences = request.args.getlist('sequence')
     qaqc_annos = QaqcProcessor(sequences)
     # get concept list from vars (for input validation)
@@ -226,12 +226,12 @@ def qaqc(check):
         case 'unique-fields':
             qaqc_annos.find_unique_fields()
             data['unique_list'] = qaqc_annos.final_records
-            return render_template('qaqc/qaqc-unique.html', data=data)
+            return render_template('vars/qaqc/qaqc-unique.html', data=data)
     data['annotations'] = qaqc_annos.final_records
-    return render_template('qaqc/qaqc.html', data=data)
+    return render_template('vars/qaqc/qaqc.html', data=data)
 
 
-@app.get('/qaqc/quick/<check>')
+@app.get('/vars-qaqc/quick/<check>')
 def qaqc_quick(check):
     sequences = request.args.getlist('sequence')
     qaqc_annos = QaqcProcessor(sequences)
@@ -275,7 +275,7 @@ def external_review():
         'reviewers': _reviewers,
         'comments': comments
     }
-    return render_template('image-review/image-review.html', data=data)
+    return render_template('vars/image-review/image-review.html', data=data)
 
 
 # syncs ctd from vars db with external review db
@@ -346,7 +346,7 @@ def reviewers():
     except requests.exceptions.ConnectionError:
         print('\nERROR: unable to connect to external review server\n')
         flash('Unable to connect to external review server', 'danger')
-    return render_template('image-review/external-reviewers.html', reviewers=reviewer_list)
+    return render_template('external-reviewers.html', reviewers=reviewer_list)
 
 
 # update a reviewer's information

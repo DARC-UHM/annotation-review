@@ -86,13 +86,13 @@
             </div>
             <div>
                 <label for="tatorProject" class="small mb-2 mt-4">Project:</label><br>
-                <select id="tatorProject" class="sequenceName"></select><br>
+                <select id="tatorProject" name="project" class="sequenceName"></select><br>
                 <label for="tatorSection" class="small my-2">Section:</label><br>
-                <select id="tatorSection" class="sequenceName"></select>
+                <select id="tatorSection" name="section" class="sequenceName"></select>
             </div>
-            <button type="button" id="tatorQaqcButton" class="btn btn-success mt-5 mb-2 indexButton" disabled>QA/QC</button>
+            <button type="button" id="tatorQaqcButton" class="btn btn-success mt-5 mb-2 indexButton" disabled hidden>QA/QC</button>
             <br>
-            <button type="button" id="tatorImageReviewButton" class="btn btn-success mb-5 indexButton" disabled>Image Review</button>
+            <button type="button" id="tatorImageReviewButton" class="btn btn-success mb-5 indexButton mt-4" disabled>Image Review</button>
         </form>
     </div>
     {% include 'components/loading-fish.html' %}

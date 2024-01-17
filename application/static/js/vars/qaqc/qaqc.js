@@ -1,5 +1,5 @@
-import { updateFlashMessages } from '../util/updateFlashMessages.js';
-import { autocomplete } from '../util/autocomplete.js';
+import { updateFlashMessages } from '../../util/updateFlashMessages.js';
+import { autocomplete } from '../../util/autocomplete.js';
 
 const sequences = [];
 const toConcepts = ['s1', 's2', 'upon', 'size', 'guide-photo', 'habitat', 'megahabitat', 'sampled-by'];
@@ -10,7 +10,7 @@ let associationToDeleteUuid = '';
 
 function returnToCheckList() {
     const url = window.location.href;
-    window.location.href = `/qaqc-checklist${url.substring(url.indexOf('?'))}`;
+    window.location.href = `/vars-qaqc-checklist${url.substring(url.indexOf('?'))}`;
 }
 
 window.returnToCheckList = returnToCheckList;

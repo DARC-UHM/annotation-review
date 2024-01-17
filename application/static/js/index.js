@@ -155,14 +155,22 @@ $('#varsImageReviewButton').on('click', () => {
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
     const sequences = new FormData($('#varsIndexForm')[0]).getAll('sequence');
-    window.location.href = `/image-review?sequence=${sequences.join('&sequence=')}`;
+    window.location.href = `/vars-image-review?sequence=${sequences.join('&sequence=')}`;
 });
 
 $('#varsQaqcButton').on('click', () => {
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
     const sequences = new FormData($('#varsIndexForm')[0]).getAll('sequence');
-    window.location.href = `/qaqc-checklist?sequence=${sequences.join('&sequence=')}`;
+    window.location.href = `/vars-qaqc-checklist?sequence=${sequences.join('&sequence=')}`;
+});
+
+$('#tatorImageReviewButton').on('click', () => {
+    $('#load-overlay').removeClass('loader-bg-hidden');
+    $('#load-overlay').addClass('loader-bg');
+    const test = new FormData($('#tatorIndexForm')[0]);
+    console.log(test);
+    // window.location.href = `/tator-image-review?sequence=${sequences.join('&sequence=')}&projectId=${$('#tatorProject').val()}&sectionId=${$('#tatorSection').val()}`;
 });
 
 $('a.external-review-link').on('click', () => {
