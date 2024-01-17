@@ -13,9 +13,13 @@ function returnToCheckList() {
     window.location.href = `/qaqc-checklist${url.substring(url.indexOf('?'))}`;
 }
 
+window.returnToCheckList = returnToCheckList;
+
 function validateName(name, button) {
     button[0].disabled = name.length < 1 || !allConcepts.includes(name);
 }
+
+window.validateName = validateName;
 
 function sortBy(key) {
     let tempKey;
@@ -426,6 +430,8 @@ function addAssociationRow(observation_uuid) {
     addConceptInputValidation();
 }
 
+window.addAssociationRow = addAssociationRow;
+
 function updateInputValidation() {
     if (toConcepts.includes($('#newAssociationType').val())) {
         addConceptInputValidation();
@@ -433,6 +439,8 @@ function updateInputValidation() {
         removeConceptInputValidation();
     }
 }
+
+window.updateInputValidation = updateInputValidation;
 
 function addConceptInputValidation() {
     const inputValue = $('#newAssociationValue');
@@ -459,6 +467,8 @@ function cancelAddAssociation() {
     `);
 }
 
+window.cancelAddAssociation = cancelAddAssociation;
+
 async function updateConceptName(uuid) {
     const annoIndex = annotations.findIndex((anno) => anno.observation_uuid === workingAnnotationUuid);
     const formData = new FormData();
@@ -482,6 +492,8 @@ async function updateConceptName(uuid) {
         updateFlashMessages('Failed to update concept name', 'danger');
     }
 }
+
+window.updateConceptName = updateConceptName;
 
 async function createAssociation(observation_uuid) {
     const annoIndex = annotations.findIndex((anno) => anno.observation_uuid === workingAnnotationUuid);
@@ -527,6 +539,8 @@ async function createAssociation(observation_uuid) {
     }
 }
 
+window.createAssociation = createAssociation;
+
 async function updateAssociation(uuid, link_name, textInputId) {
     const annoIndex = annotations.findIndex((anno) => anno.observation_uuid === workingAnnotationUuid);
     const assIndex = annotations[annoIndex].associations.findIndex((ass) => ass.uuid === uuid);
@@ -561,6 +575,8 @@ async function updateAssociation(uuid, link_name, textInputId) {
     $(`#button${textInputId}`).attr('disabled', true);
 }
 
+window.updateAssociation = updateAssociation;
+
 async function deleteAssociation() {
     const annoIndex = annotations.findIndex((anno) => anno.observation_uuid === workingAnnotationUuid);
     const assIndex = annotations[annoIndex].associations.findIndex((ass) => ass.uuid === associationToDeleteUuid);
@@ -575,6 +591,8 @@ async function deleteAssociation() {
     }
     $('#deleteAssociationModal').modal('hide');
 }
+
+window.deleteAssociation = deleteAssociation;
 
 function loadModal(annotationData) {
     const sortedAssociations = annotationData.associations.sort((a, b) => (a.link_name > b.link_name) ? 1 : ((b.link_name > a.link_name) ? -1 : 0));

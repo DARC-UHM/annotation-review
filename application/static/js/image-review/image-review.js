@@ -296,6 +296,8 @@ function updateReviewerName(uuid) {
     }
 }
 
+window.updateReviewerName = updateReviewerName;
+
 // remove filter from hash
 function removeFilter(key, value) {
     const index = window.location.hash.indexOf(key);
@@ -304,10 +306,14 @@ function removeFilter(key, value) {
     location.hash = newHash;
 }
 
+window.removeFilter = removeFilter;
+
 function showAddFilter() {
     $('#addFilterRow').show();
     $('#addFilterButton').hide();
 }
+
+window.showAddFilter = showAddFilter;
 
 // add filter to hash
 function addFilter() {
@@ -320,6 +326,8 @@ function addFilter() {
         ? `${location.hash.substring(0, index - 1)}&${filterKey}=${filterVal}&pg=1`
         : `#${filterKey}=${filterVal}&pg=1`;
 }
+
+window.addFilter = addFilter;
 
 function sortBy(key) {
     let tempKey;
@@ -356,6 +364,8 @@ function removeReviewer(num) {
     totalReviewers--;
     $('#externalModalSubmitButton').prop('disabled', false);
 }
+
+window.removeReviewer = removeReviewer;
 
 function addReviewer(reviewerName, firstReviewer) {
     if (totalReviewers > 4) {
@@ -398,9 +408,13 @@ function addReviewer(reviewerName, firstReviewer) {
     }
 }
 
+window.addReviewer = addReviewer;
+
 function updateFilterHint(e) {
     $('#imageFilterEntry').attr('placeholder', `Enter ${e.target.value.toLowerCase()}`);
 }
+
+window.updateFilterHint = updateFilterHint;
 
 function updateHash() {
     const url = new URL(window.location.href);
@@ -601,6 +615,8 @@ function markCommentRead(commentUuid) {
         })
         .catch((err) => console.log(err));
 }
+
+window.markCommentRead = markCommentRead;
 
 function deleteFromExternalReview() {
     event.preventDefault();

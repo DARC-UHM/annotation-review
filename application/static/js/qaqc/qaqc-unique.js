@@ -5,6 +5,8 @@ function returnToCheckList() {
     window.location.href = `/qaqc-checklist${url.substring(url.indexOf('?'))}`;
 }
 
+window.returnToCheckList = returnToCheckList;
+
 function updateHash() {
     const hash = window.location.hash.slice(1);
     const fieldToCheck = hash.length ? hash.split('=')[1] : 'concept-names';
