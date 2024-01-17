@@ -10,21 +10,39 @@ function checkSequence() {
             disabled = true;
         }
     }
-    $('#imageReviewButton')[0].disabled = disabled;
-    $('#qaqcButton')[0].disabled = disabled;
+    $('#varsImageReviewButton')[0].disabled = disabled;
+    $('#varsQaqcButton')[0].disabled = disabled;
 }
 
 async function getTatorProjects() {
     const res = await fetch('/tator-projects');
     const json = await res.json();
     if (res.status === 200) {
-        $('#tatorProject').html('');
+        $('#tatorProject').html('<option value="" selected disabled>Select a project</option>');
         for (const project of json) {
             $('#tatorProject').append(`<option value="${project.id}">${project.name}</option>`);
         }
-        $('#tatorProject').val(json[0].name);
+        $('#tatorProject').val(json[0].id);
+        await getTatorSections(json[0].id);
     } else {
         updateFlashMessages('Unable to get Tator projects', 'danger');
+    }
+}
+
+async function getTatorSections(projectId) {
+    if (!projectId) {
+        return;
+    }
+    const res = await fetch(`/tator-sections/${projectId}`);
+    const json = await res.json();
+    if (res.status === 200) {
+        $('#tatorSection').html('<option value="" selected disabled>Select a section</option>');
+        for (const section of json) {
+            $('#tatorSection').append(`<option value="${section.id}">${section.name}</option>`);
+        }
+        $('#tatorSection').val(json[0].id);
+        $('#tatorQaqcButton')[0].disabled = false;
+        $('#tatorImageReviewButton')[0].disabled = false;
     }
 }
 
@@ -39,14 +57,14 @@ async function tatorLogin() {
     });
     const json = await res.json();
     if (res.status === 200) {
-        updateFlashMessages('Logged in to Tator', 'success');
         $('#tatorLogin').hide();
         $('#password').val('');
         $('#tatorLoggedInUser').html(json.username);
         $('#tatorIndexForm').show();
-        getTatorProjects();
+        await getTatorProjects();
+        updateFlashMessages('Logged in to Tator', 'success');
     } else {
-        updateFlashMessages('Unable to log in to Tator', 'danger');
+        updateFlashMessages('Could not log in to Tator', 'danger');
     }
 
     $('#load-overlay').addClass('loader-bg-hidden');
@@ -54,9 +72,6 @@ async function tatorLogin() {
 }
 
 window.tatorLogin = tatorLogin;
-
-$('#tatorLogin').hide();
-$('#tatorIndexForm').hide();
 
 $('#tatorSelect').on('click', async () => {
     $('#load-overlay').addClass('loader-bg');
@@ -68,13 +83,15 @@ $('#tatorSelect').on('click', async () => {
     if (res.status === 200) {
         $('#tatorLoggedInUser').html(json.username);
         $('#tatorIndexForm').show();
-        getTatorProjects();
+        await getTatorProjects();
     } else {
         $('#tatorLogin').show();
     }
     $('#load-overlay').addClass('loader-bg-hidden');
     $('#load-overlay').removeClass('loader-bg');
 });
+
+$('#tatorProject').on('change', getTatorSections($('#tatorProject').val()));
 
 $('#varsSelect').on('click', () => {
     $('#tatorLogin').hide();
@@ -84,6 +101,7 @@ $('#varsSelect').on('click', () => {
 });
 
 $('#logoutBtn').on('click', async () => {
+    console.log('wat')
     $('#load-overlay').addClass('loader-bg');
     $('#load-overlay').removeClass('loader-bg-hidden');
     const res = await fetch('/tator-logout');
@@ -133,14 +151,14 @@ $('#plusButton').on('click', () => {
     autocomplete($(`#sequence${numSequences}`), sequences);
 });
 
-$('#imageReviewButton').on('click', () => {
+$('#varsImageReviewButton').on('click', () => {
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
     const sequences = new FormData($('#varsIndexForm')[0]).getAll('sequence');
     window.location.href = `/image-review?sequence=${sequences.join('&sequence=')}`;
 });
 
-$('#qaqcButton').on('click', () => {
+$('#varsQaqcButton').on('click', () => {
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
     const sequences = new FormData($('#varsIndexForm')[0]).getAll('sequence');

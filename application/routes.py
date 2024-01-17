@@ -16,6 +16,7 @@ load_dotenv()
 _FLASK_ENV = os.environ.get('_FLASK_ENV')
 HURLSTOR_URL = 'http://hurlstor.soest.hawaii.edu'
 LOCAL_APP_URL = 'http://127.0.0.1:8000'
+TATOR_URL = 'https://cloud.tator.io'
 
 if _FLASK_ENV == 'no_server_edits':
     print('\n\nLOCAL DEVELOPMENT MODE: No server edits\n\n')
@@ -70,7 +71,7 @@ def index():
 @app.post('/tator-login')
 def tator_login():
     req = requests.post(
-            'https://cloud.tator.io/rest/Token',
+            f'{TATOR_URL}/rest/Token',
             headers={'Content-Type': 'application/json'},
             data=json.dumps({
                 'username': request.values.get('username'),
@@ -87,8 +88,9 @@ def tator_login():
 # check if stored tator token is valid
 @app.get('/check-tator-token')
 def check_tator_token():
+    print(session['tator_token'])
     try:
-        api = tator.get_api(host='https://cloud.tator.io', token=session['tator_token'])
+        api = tator.get_api(host=TATOR_URL, token=session['tator_token'])
         return {'username': api.whoami().username}, 200
     except tator.openapi.tator_openapi.exceptions.ApiException:
         return {}, 400
@@ -105,8 +107,18 @@ def tator_logout():
 @app.get('/tator-projects')
 def tator_projects():
     try:
-        project_list = tator.get_api(host='https://cloud.tator.io', token=session['tator_token']).get_project_list()
+        project_list = tator.get_api(host=TATOR_URL, token=session['tator_token']).get_project_list()
         return [{'id': project.id, 'name': project.name} for project in project_list], 200
+    except tator.openapi.tator_openapi.exceptions.ApiException:
+        return {}, 400
+
+
+# get a list of sections associated with a project from tator
+@app.get('/tator-sections/<project_id>')
+def tator_sections(project_id):
+    try:
+        section_list = tator.get_api(host=TATOR_URL, token=session['tator_token']).get_section_list(project_id)
+        return [{'id': section.id, 'name': section.name} for section in section_list], 200
     except tator.openapi.tator_openapi.exceptions.ApiException:
         return {}, 400
 

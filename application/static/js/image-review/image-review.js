@@ -410,8 +410,8 @@ function addReviewer(reviewerName, firstReviewer) {
 
 window.addReviewer = addReviewer;
 
-function updateFilterHint(e) {
-    $('#imageFilterEntry').attr('placeholder', `Enter ${e.target.value.toLowerCase()}`);
+function updateFilterHint() {
+    $('#imageFilterEntry').attr('placeholder', `Enter ${$('#imageFilterSelect').val().toLowerCase()}`);
 }
 
 window.updateFilterHint = updateFilterHint;

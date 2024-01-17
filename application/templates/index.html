@@ -35,7 +35,7 @@
     <div id="index" class="text-center mb-3 mx-5">
         <img src="/static/img/logo_darc.png" class="mt-2" width="30%" style="max-width: 300px; min-width: 200px; pointer-events: none;" alt="DARC logo"/>
         <h1 class="my-3">DARC Review</h1>
-        <div class="dropdown mb-4">
+        <div class="dropdown">
             <button id="platformSelectBtn" type="button" class="aquaLink dropdown-toggle indexDropdownButton" data-bs-toggle="dropdown" aria-expanded="false">
                 VARS
             </button>
@@ -45,7 +45,7 @@
             </ul>
         </div>
         <form id="varsIndexForm">
-            <div id="sequenceList" class="ms-2">
+            <div id="sequenceList" class="ms-2 mt-3 mb-2">
                 <div id="seqList1">
                     <div class="row d-inline-flex">
                         <div class="col-1"></div>
@@ -65,28 +65,34 @@
                     </div>
                 </div>
             </div>
-            <button type="button" id="qaqcButton" class="btn btn-success mt-4 mb-2 indexButton" disabled>QA/QC</button>
+            <button type="button" id="varsQaqcButton" class="btn btn-success mt-4 mb-2 indexButton" disabled>QA/QC</button>
             <br>
-            <button type="button" id="imageReviewButton" class="btn btn-success mb-5 indexButton" disabled>Image Review</button>
+            <button type="button" id="varsImageReviewButton" class="btn btn-success mb-5 indexButton" disabled>Image Review</button>
         </form>
-        <form id="tatorLogin" onsubmit="tatorLogin()" autocomplete="off">
+        <form id="tatorLogin" onsubmit="tatorLogin()" autocomplete="off" class="mt-4" style="display: none;">
             <input type="text" name="username" class="tatorLoginInput mb-2" placeholder="Username"><br>
-            <input type="password" id="password" name="password" class="tatorLoginInput mb-3" placeholder="Password"><br>
-            <button type="submit" id="loginBtn" class="btn btn-success px-4" style="font-weight: 500;">Login</button>
+            <input type="password" id="password" name="password" class="tatorLoginInput mb-2" placeholder="Password"><br>
+            <button type="submit" id="loginBtn" class="btn btn-success px-4 mt-4" style="font-weight: 500;">Login</button>
         </form>
-        <form id="tatorIndexForm">
-            <div class="small"><span style="opacity: 80%;">Logged in as</span>
+        <form id="tatorIndexForm" style="display: none;" autocomplete="off">
+            <div class="small">
+                <span style="opacity: 80%;">Logged in as</span>
                 <span class="dropdown mb-4">
                     <button id="tatorLoggedInUser" type="button" class="dropdown-toggle indexDropdownButton" data-bs-toggle="dropdown" aria-expanded="false" style="font-weight: 500; color: white;"></button>
                     <ul class="dropdown-menu indexDropdownMenu">
-                        <li><button id="logoutBtn" class="dropdown-item small">Sign out</button></li>
+                        <li><button id="logoutBtn" type="button" class="dropdown-item small">Sign out</button></li>
                     </ul>
                 </span>
             </div>
-            Select project: 
-            <select id="tatorProject">
-                <option value="" disabled selected>Select a project</option>
-            </select>
+            <div>
+                <label for="tatorProject" class="small mb-2 mt-4">Project:</label><br>
+                <select id="tatorProject" class="sequenceName"></select><br>
+                <label for="tatorSection" class="small my-2">Section:</label><br>
+                <select id="tatorSection" class="sequenceName"></select>
+            </div>
+            <button type="button" id="tatorQaqcButton" class="btn btn-success mt-5 mb-2 indexButton" disabled>QA/QC</button>
+            <br>
+            <button type="button" id="tatorImageReviewButton" class="btn btn-success mb-5 indexButton" disabled>Image Review</button>
         </form>
     </div>
     {% include 'components/loading-fish.html' %}
