@@ -168,9 +168,8 @@ $('#varsQaqcButton').on('click', () => {
 $('#tatorImageReviewButton').on('click', () => {
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
-    const test = new FormData($('#tatorIndexForm')[0]);
-    console.log(test);
-    // window.location.href = `/tator-image-review?sequence=${sequences.join('&sequence=')}&projectId=${$('#tatorProject').val()}&sectionId=${$('#tatorSection').val()}`;
+    const formData = new FormData($('#tatorIndexForm')[0]);
+    window.location.href = `/tator-image-review/${formData.get('project')}/${formData.get('section')}?sort_by=Scientific Name`;
 });
 
 $('a.external-review-link').on('click', () => {

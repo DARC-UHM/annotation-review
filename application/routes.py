@@ -123,7 +123,41 @@ def tator_sections(project_id):
         return {}, 400
 
 
-# view the annotations with images in a specified dive (or dives)
+# view all Tator annotations (localizations) in a specified project & section
+@app.get('/tator-image-review/<project_id>/<section_id>')
+def tator_image_review(project_id, section_id):
+    start = request.args.get('start') or 0
+    stop = request.args.get('stop') or 25
+    sort_by = request.args.get('sort_by') or None
+    localizations = tator.get_api(
+        host=TATOR_URL,
+        token=session['tator_token']
+    ).get_localization_list(
+        project=project_id,
+        section=section_id,
+        start=start,
+        stop=stop,
+        sort_by=sort_by,
+    )
+    localizations_json = [
+        {
+            'id': localization.id,
+            'type': localization.type,  # 48 = box, 49 = dot (for now?)
+            'media': localization.media,
+            'frame': localization.frame,
+            'attributes': localization.attributes,
+            'created_by': localization.created_by,
+            'x': localization.x,
+            'y': localization.y,
+        }
+        for localization in localizations
+    ]
+    for localization in localizations_json:
+        print(localization['attributes']['Scientific Name'])
+    return render_template('tator/image-review/image-review.html', localizations=localizations_json)
+
+
+# view VARS annotations with images in a specified dive (or dives)
 @app.get('/vars-image-review')
 def view_images():
     comments = {}

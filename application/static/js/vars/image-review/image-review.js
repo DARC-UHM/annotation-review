@@ -1,5 +1,5 @@
 import { autocomplete } from '../../util/autocomplete.js';
-import { reviewerList } from './reviewer-list.js';
+import { reviewerList } from '../../util/reviewer-list.js';
 import { updateFlashMessages } from '../../util/updateFlashMessages.js';
 
 const paginationNumbers = document.getElementById('pagination-numbers');
