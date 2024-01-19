@@ -1,8 +1,9 @@
 import os
 import tator
-from json import JSONDecodeError
+import base64
 
-from flask import render_template, request, redirect, flash, session
+from flask import render_template, request, redirect, flash, session, Response
+from json import JSONDecodeError
 from dotenv import load_dotenv
 
 from application import app
@@ -28,7 +29,7 @@ else:
     ANNOSAURUS_CLIENT_SECRET = os.environ.get('ANNOSAURUS_CLIENT_SECRET')
     DARC_REVIEW_URL = 'https://hurlstor.soest.hawaii.edu:5000'
 
-app.secret_key = 'darc'
+app.secret_key = os.environ.get('APP_SECRET_KEY')
 
 
 @app.route('/favicon.ico')
@@ -88,6 +89,8 @@ def tator_login():
 # check if stored tator token is valid
 @app.get('/check-tator-token')
 def check_tator_token():
+    if 'tator_token' not in session.keys():
+        return {}, 400
     print(session['tator_token'])  # todo remove
     try:
         api = tator.get_api(host=TATOR_URL, token=session['tator_token'])
@@ -149,14 +152,24 @@ def tator_image_review(project_id, section_id):
             'created_by': localization.created_by,
             'x': localization.x,
             'y': localization.y,
+            'image_url': f'/tator-image/{localization.id}'
         }
         for localization in localizations
     ]
-    for localization in localizations_json:
-        print(localization['attributes']['Scientific Name'])
     return render_template('tator/image-review/image-review.html', localizations=localizations_json)
 
 
+# route for viewing tator images (necessary because images are behind api auth and don't want to expose token)
+@app.get('/tator-image/<localization_id>')
+def tator_image(localization_id):
+    req = requests.get(
+        f'{TATOR_URL}/rest/LocalizationGraphic/{localization_id}?use_default_margins=false&margin_x=1000&margin_y=600',
+        headers={'Authorization': f'Token {session["tator_token"]}'}
+    )
+    if req.status_code == 200:
+        base64_image = base64.b64encode(req.content).decode('utf-8')
+        return Response(base64.b64decode(base64_image), content_type='image/png'), 200
+    return '', 500
 # view VARS annotations with images in a specified dive (or dives)
 @app.get('/vars-image-review')
 def view_images():

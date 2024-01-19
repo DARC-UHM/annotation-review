@@ -1,3 +1,10 @@
+const knownAnnotators = {
+    22: 'Jeff Drazen',
+    24: 'Meagan Putts',
+    25: 'Sarah Bingo',
+    332: 'Nikki Cunanan',
+    433: 'Aaron Judah',
+};
 
 $('#annotationTable tbody').remove();
 $('#annotationTable').append('<tbody class="text-start"></tbody>');
@@ -20,12 +27,12 @@ for (const localization of localizations) {
                     Annotator:
                 </div>
                 <div class="col values">
-                    ${localization.created_by}<br>
+                    ${knownAnnotators[localization.created_by]}<br>
                 </div>
             </div>
             <td class="text-center">
-                <a href="${localization.media}" target="_blank">
-                    <img src="${localization.media}" style="width: 580px;"/>
+                <a href="${localization}" target="_blank">
+                    <img src="${localization.image_url}" style="width: 580px;"/>
                 </a>
             </td>
         </tr>
