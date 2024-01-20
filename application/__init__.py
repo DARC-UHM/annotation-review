@@ -32,7 +32,8 @@ app.config['SESSION_USE_SIGNER'] = True
 
 Session(app)
 
-atexit.register(remove_session_files)
+if os.environ.get('_FLASK_ENV') == 'production':
+    atexit.register(remove_session_files)
 
 print('\nLaunching application...')
 Timer(1, open_browser).start()

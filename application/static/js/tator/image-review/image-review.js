@@ -15,7 +15,7 @@ for (const localization of localizations) {
         <tr>
             <td class="ps-5">
                 <div class="row">
-                    <div class="col-4">
+                    <div class="col-5">
                         Scientific Name:
                     </div>
                     <div class="col values">
@@ -23,15 +23,7 @@ for (const localization of localizations) {
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-4">
-                        Tentative ID:
-                    </div>
-                    <div class="col values">
-                        ${localization.attributes['Tentative ID']}<br>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-4">
+                    <div class="col-5">
                         Annotator:
                     </div>
                     <div class="col values">
@@ -39,7 +31,7 @@ for (const localization of localizations) {
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-4">
+                    <div class="col-5">
                         Attracted:
                     </div>
                     <div class="col values">
@@ -47,39 +39,7 @@ for (const localization of localizations) {
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-4">
-                        Categorical Abundance:
-                    </div>
-                    <div class="col values">
-                        ${localization.attributes['Categorical Abundance']}<br>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-4">
-                        Identification Remarks:
-                    </div>
-                    <div class="col values">
-                        ${localization.attributes['IdentificationRemarks']}<br>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-4">
-                        Identified By:
-                    </div>
-                    <div class="col values">
-                        ${localization.attributes['Identified By']}<br>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-4">
-                        Notes:
-                    </div>
-                    <div class="col values">
-                        ${localization.attributes['Notes']}<br>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-4">
+                    <div class="col-5">
                         Qualifier:
                     </div>
                     <div class="col values">
@@ -87,11 +47,51 @@ for (const localization of localizations) {
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-4">
+                    <div class="col-5">
+                        Categorical Abundance:
+                    </div>
+                    <div class="col values">
+                        ${localization.attributes['Categorical Abundance']}<br>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-5">
                         Reason:
                     </div>
                     <div class="col values">
                         ${localization.attributes['Reason']}<br>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-5">
+                        Tentative ID:
+                    </div>
+                    <div class="col values">
+                        ${localization.attributes['Tentative ID']}<br>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-5">
+                        Identification Remarks:
+                    </div>
+                    <div class="col values">
+                        ${localization.attributes['IdentificationRemarks']}<br>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-5">
+                        Identified By:
+                    </div>
+                    <div class="col values">
+                        ${localization.attributes['Identified By']}<br>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-5">
+                        Notes:
+                    </div>
+                    <div class="col values">
+                        ${localization.attributes['Notes']}<br>
                     </div>
                 </div>
                 <br>

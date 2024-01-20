@@ -10,6 +10,7 @@ from application import app
 from application.server.image_processor import ImageProcessor
 from application.server.comment_processor import CommentProcessor
 from application.server.qaqc_processor import QaqcProcessor
+from application.server.localization_processor import LocalizationProcessor
 from application.server.annosaurus import *
 
 load_dotenv()
@@ -129,45 +130,12 @@ def tator_sections(project_id):
 # view all Tator annotations (localizations) in a specified project & section
 @app.get('/tator-image-review/<project_id>/<section_id>')
 def tator_image_review(project_id, section_id):
-    start = request.args.get('start') or 0
-    stop = request.args.get('stop') or 25
-    sort_by = request.args.get('sort_by') or None
-    api = tator.get_api(
-        host=TATOR_URL,
-        token=session['tator_token']
-    )
-    section_name = api.get_section(section_id).name
-    localization_count = api.get_localization_count(
-        project=project_id,
-        section=section_id,
-    )
-    localizations = api.get_localization_list(
-        project=project_id,
-        section=section_id,
-        start=start,
-        sort_by=sort_by,
-    )
-    print(localizations)
-    return
-    localizations_json = [
-        {
-            'id': localization.id,
-            'type': localization.type,  # 48 = box, 49 = dot (for now?)
-            'media': localization.media,
-            'frame': localization.frame,
-            'attributes': localization.attributes,
-            'created_by': localization.created_by,
-            'x': localization.x,
-            'y': localization.y,
-            'image_url': f'/tator-image/{localization.id}',
-            'frame_url': f'/tator-frame/{localization.media}/{localization.frame}',
-        }
-        for localization in localizations
-    ]
+    if 'tator_token' not in session.keys():
+        return redirect('/')
+    localization_processor = LocalizationProcessor(project_id, section_id)
     data = {
-        'localization_count': localization_count,
-        'localizations': localizations_json,
-        'section_name': section_name,
+        'localizations': localization_processor.distilled_records,
+        'section_name': localization_processor.section_name,
     }
     return render_template('tator/image-review/image-review.html', data=data)
 
@@ -591,9 +559,9 @@ def video():
     return render_template('video.html', data=data), 200
 
 
-@app.errorhandler(Exception)
-def server_error(e):
-    error = f'{type(e).__name__}: {e}'
-    print('\nApplication error 😔')
-    print(error)
-    return render_template('error.html', err=error), 500
+# @app.errorhandler(Exception)
+# def server_error(e):
+#     error = f'{type(e).__name__}: {e}'
+#     print('\nApplication error 😔')
+#     print(error)
+#     return render_template('error.html', err=error), 500
