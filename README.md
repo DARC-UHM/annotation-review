@@ -61,4 +61,5 @@ The environment variables must be set before any changes can be made to the serv
 ANNOSAURUS_URL = '...'
 ANNOSAURUS_CLIENT_SECRET = '...'
 _FLASK_ENV = '...'
+APP_SECRET_KEY = '...'
 ```
