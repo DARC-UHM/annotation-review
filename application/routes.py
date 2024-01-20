@@ -132,16 +132,23 @@ def tator_image_review(project_id, section_id):
     start = request.args.get('start') or 0
     stop = request.args.get('stop') or 25
     sort_by = request.args.get('sort_by') or None
-    localizations = tator.get_api(
+    api = tator.get_api(
         host=TATOR_URL,
         token=session['tator_token']
-    ).get_localization_list(
+    )
+    section_name = api.get_section(section_id).name
+    localization_count = api.get_localization_count(
+        project=project_id,
+        section=section_id,
+    )
+    localizations = api.get_localization_list(
         project=project_id,
         section=section_id,
         start=start,
-        stop=stop,
         sort_by=sort_by,
     )
+    print(localizations)
+    return
     localizations_json = [
         {
             'id': localization.id,
@@ -152,14 +159,20 @@ def tator_image_review(project_id, section_id):
             'created_by': localization.created_by,
             'x': localization.x,
             'y': localization.y,
-            'image_url': f'/tator-image/{localization.id}'
+            'image_url': f'/tator-image/{localization.id}',
+            'frame_url': f'/tator-frame/{localization.media}/{localization.frame}',
         }
         for localization in localizations
     ]
-    return render_template('tator/image-review/image-review.html', localizations=localizations_json)
+    data = {
+        'localization_count': localization_count,
+        'localizations': localizations_json,
+        'section_name': section_name,
+    }
+    return render_template('tator/image-review/image-review.html', data=data)
 
 
-# route for viewing tator images (necessary because images are behind api auth and don't want to expose token)
+# view tator localization image, cropped (necessary because images are behind api auth and don't want to expose token)
 @app.get('/tator-image/<localization_id>')
 def tator_image(localization_id):
     req = requests.get(
@@ -170,6 +183,21 @@ def tator_image(localization_id):
         base64_image = base64.b64encode(req.content).decode('utf-8')
         return Response(base64.b64decode(base64_image), content_type='image/png'), 200
     return '', 500
+
+
+# view tator video frame (not cropped)
+@app.get('/tator-frame/<media_id>/<frame>')
+def tator_frame(media_id, frame):
+    req = requests.get(
+        f'{TATOR_URL}/rest/GetFrame/{media_id}?frames={frame}',
+        headers={'Authorization': f'Token {session["tator_token"]}'}
+    )
+    if req.status_code == 200:
+        base64_image = base64.b64encode(req.content).decode('utf-8')
+        return Response(base64.b64decode(base64_image), content_type='image/png'), 200
+    return '', 500
+
+
 # view VARS annotations with images in a specified dive (or dives)
 @app.get('/vars-image-review')
 def view_images():

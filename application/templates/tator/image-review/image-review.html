@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}DARC Image Review | Tator{% endblock title %}
+{% block title %}DARC Image Review | {{ data.section_name }}{% endblock title %}
 {% block content %}
     {% include 'components/loading.html' %}
     {% include 'components/back-to-home-button.html' %}
@@ -8,12 +8,12 @@
         <div class="col mt-3 m-auto" style="max-width: 1200px;">
             <div class="row m-auto">
                 <div class="col-9 text-start">
-                    <h3 id="projectName" class="m-0 p-0 pb-2" style="font-weight: 600;"></h3>
+                    <h3 class="m-0 p-0 pb-2" style="font-weight: 600;">{{ data.section_name }}</h3>
                 </div>
                 <div class="col-3 text-end mt-auto">
                     <div>
                         Page:&nbsp;&nbsp;<span id="currentPageNum" style="font-weight: 600;"></span>/<span id="totalPageNum" style="font-weight: 600;"></span><br>
-                        Total Images:&nbsp;&nbsp;<span id="annotationCount" style="font-weight: 600;"></span><br>
+                        Total Images:&nbsp;&nbsp;<span style="font-weight: 600;">{{ data.localization_count }}</span><br>
                     </div>
                     <div class="small mt-1">
                         Sort by:
@@ -221,7 +221,8 @@
         const nan = null;
         const True = true;
         const False = false;
-        const localizations = {{ localizations|safe }};
+        const localizationCount = {{ data.localization_count }};
+        const localizations = {{ data.localizations|safe }};
     </script>
     <script type="module" src="/static/js/tator/image-review/image-review.js"></script>
 {% endblock content %}
