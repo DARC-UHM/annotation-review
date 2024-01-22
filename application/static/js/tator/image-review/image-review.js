@@ -19,7 +19,7 @@ for (const localization of localizations) {
                         Scientific Name:
                     </div>
                     <div class="col values">
-                        ${localization.attributes['Scientific Name']}<br>
+                        ${localization.scientific_name}<br>
                     </div>
                 </div>
                 <div class="row">
@@ -27,7 +27,7 @@ for (const localization of localizations) {
                         Annotator:
                     </div>
                     <div class="col values">
-                        ${knownAnnotators[localization.created_by]}<br>
+                        ${knownAnnotators[localization.annotator]}<br>
                     </div>
                 </div>
                 <div class="row">
@@ -35,7 +35,7 @@ for (const localization of localizations) {
                         Attracted:
                     </div>
                     <div class="col values">
-                        ${localization.attributes['Attracted']}<br>
+                        ${localization.attracted}<br>
                     </div>
                 </div>
                 <div class="row">
@@ -43,7 +43,7 @@ for (const localization of localizations) {
                         Qualifier:
                     </div>
                     <div class="col values">
-                        ${localization.attributes['Qualifier']}<br>
+                        ${localization.qualifier}<br>
                     </div>
                 </div>
                 <div class="row">
@@ -51,7 +51,7 @@ for (const localization of localizations) {
                         Categorical Abundance:
                     </div>
                     <div class="col values">
-                        ${localization.attributes['Categorical Abundance']}<br>
+                        ${localization.categorical_abundance}<br>
                     </div>
                 </div>
                 <div class="row">
@@ -59,7 +59,7 @@ for (const localization of localizations) {
                         Reason:
                     </div>
                     <div class="col values">
-                        ${localization.attributes['Reason']}<br>
+                        ${localization.reason}<br>
                     </div>
                 </div>
                 <div class="row">
@@ -67,7 +67,7 @@ for (const localization of localizations) {
                         Tentative ID:
                     </div>
                     <div class="col values">
-                        ${localization.attributes['Tentative ID']}<br>
+                        ${localization.tentative_id}<br>
                     </div>
                 </div>
                 <div class="row">
@@ -75,7 +75,7 @@ for (const localization of localizations) {
                         Identification Remarks:
                     </div>
                     <div class="col values">
-                        ${localization.attributes['IdentificationRemarks']}<br>
+                        ${localization.identification_remarks}<br>
                     </div>
                 </div>
                 <div class="row">
@@ -83,7 +83,7 @@ for (const localization of localizations) {
                         Identified By:
                     </div>
                     <div class="col values">
-                        ${localization.attributes['Identified By']}<br>
+                        ${localization.identified_by}<br>
                     </div>
                 </div>
                 <div class="row">
@@ -91,32 +91,20 @@ for (const localization of localizations) {
                         Notes:
                     </div>
                     <div class="col values">
-                        ${localization.attributes['Notes']}<br>
+                        ${localization.notes}<br>
                     </div>
                 </div>
                 <br>
-                <a class="editButton" href="https://cloud.tator.io/26/annotation/${localization.media}?frame=${localization.frame}" target="_blank">View on Tator</a>
+                <a class="editButton" href="https://cloud.tator.io/26/annotation/${localization.media_id}?frame=${localization.frame}" target="_blank">View on Tator</a>
             </td>
             <td class="text-center">
                 <a href="${localization.frame_url}" target="_blank">
-                    <img src="${localization.image_url}" style="width: 580px;" alt="${localization.attributes['Scientific Name']}"/>
+                    <img src="${localization.frame_url}" style="width: 580px;" alt="${localization.scientific_name}"/>
                 </a>
             </td>
         </tr>
     `);
 }
-
-/*
-"Categorical Abundance": "--"
-IdentificationRemarks: ""
-"Identified By": ""
-Notes: ""
-"Public URL": ""
-Qualifier: "indet."
-Reason: "--"
-"Scientific Name": "Neolithodes"
-"Tentative ID": ""
- */
 
 // get rid of loading screen if back button is pressed (mozilla)
 $(window).bind('pageshow', (event) => {

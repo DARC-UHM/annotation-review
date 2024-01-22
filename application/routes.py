@@ -13,6 +13,12 @@ from application.server.qaqc_processor import QaqcProcessor
 from application.server.localization_processor import LocalizationProcessor
 from application.server.annosaurus import *
 
+# TODO
+#  - VARS: store list of dives in session rather than loading each time
+#  - VARS: store concepts in session
+#  - Tator: add deployment filter to homepage (so don't have to load entire dive every time)
+#  - VARS/Tator: store concept_phylogeny in session?
+
 load_dotenv()
 
 _FLASK_ENV = os.environ.get('_FLASK_ENV')
@@ -132,7 +138,12 @@ def tator_sections(project_id):
 def tator_image_review(project_id, section_id):
     if 'tator_token' not in session.keys():
         return redirect('/')
-    localization_processor = LocalizationProcessor(project_id, section_id)
+    try:
+        api = tator.get_api(host=TATOR_URL, token=session['tator_token'])
+        localization_processor = LocalizationProcessor(project_id, section_id, api)
+    except tator.openapi.tator_openapi.exceptions.ApiException:
+        flash('Please log in to Tator', 'info')
+        return redirect('/')
     data = {
         'localizations': localization_processor.distilled_records,
         'section_name': localization_processor.section_name,

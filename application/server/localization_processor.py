@@ -1,13 +1,7 @@
-import requests
 import pandas as pd
 import tator
 
 from flask import session
-from .functions import *
-
-TATOR_URL = 'https://cloud.tator.io'
-TERM_RED = '\033[1;31;48m'
-TERM_NORMAL = '\033[1;37;0m'
 
 
 class LocalizationProcessor:
@@ -16,72 +10,202 @@ class LocalizationProcessor:
     on the image review pages.
     """
 
-    def __init__(self, project_id: int, section_id: int):
+    # TODO
+    #  add dots
+    #  add ability to edit all clips in a deployment (FOV, substrate, location, etc)
+    #  add external image review (download to server?)
+
+    def __init__(self, project_id: int, section_id: int, api: tator.api):
         self.project_id = project_id
         self.section_id = section_id
         self.deployment_list = set()
         self.media_list = {}
         self.distilled_records = []
-        self.api = tator.get_api(
-            host=TATOR_URL,
-            token=session['tator_token'],
-        )
+        self.api = api
         self.section_name = self.api.get_section(self.section_id).name
         self.load_media()
         self.load_localizations()
 
     def load_media(self):
-        print('Loading media...', end='')
-        for media in self.api.get_media_list(project=self.project_id, section=self.section_id):
-            self.media_list[media.id] = media.name
-            self.deployment_list.add(media.name[:11])
-        for media in self.media_list:
-            print(media, self.media_list[media])
-        for deployment in self.deployment_list:
-            print(deployment)
-        print('done!')
+        if f'{self.project_id}_{self.section_id}' in session.keys():
+            self.media_list = session[f'{self.project_id}_{self.section_id}']['media_list']
+            self.deployment_list = session[f'{self.project_id}_{self.section_id}']['deployment_list']
+            print('Loaded media from session')
+        else:
+            print('Loading media...', end='')
+            for media in self.api.get_media_list(project=self.project_id, section=self.section_id):
+                self.media_list[media.id] = media.name
+                self.deployment_list.add(media.name[:11])
+            session[f'{self.project_id}_{self.section_id}'] = {
+                'media_list': self.media_list,
+                'deployment_list': self.deployment_list
+            }
+            session.modified = True
+            print('done!')
 
     def load_localizations(self):
         print('Loading localizations...', end='')
+        phylogeny = {'Animalia': {}}
         localizations = self.api.get_localization_list(
             project=self.project_id,
             section=self.section_id,
             start=0,
             stop=10,  # todo remove
         )
-        self.distilled_records = [
-            {
-                'id': localization.id,
-                'type': localization.type,  # 48 = box, 49 = dot (for now?)
-                'media': localization.media,
-                'frame': localization.frame,
-                'attributes': localization.attributes,
-                'created_by': localization.created_by,
-                'x': localization.x,
-                'y': localization.y,
-                'image_url': f'/tator-image/{localization.id}',
-                'frame_url': f'/tator-frame/{localization.media}/{localization.frame}',
-            }
-            for localization in localizations
-        ]
-        print('done!')
 
-    def load_images(self, name: str):
-        print(f'Fetching annotations for sequence {name} from VARS...', end='')
-        concept_phylogeny = {'Animalia': {}}
-        image_records = []
-        videos = []
+        """
+        Define dataframe for sorting data
+        """
+        localization_df = pd.DataFrame(columns=[
+            'id',
+            'type',
+            'x',
+            'y',
+            'scientific_name',
+            'attracted',
+            'categorical_abundance',
+            'identification_remarks',
+            'identified_by',
+            'notes',
+            'qualifier',
+            'reason',
+            'tentative_id',
+            'annotator',
+            'frame',
+            'frame_url',
+            'media_id',
+            'phylum',
+            'subphylum',
+            'superclass',
+            'class',
+            'subclass',
+            'superorder',
+            'order',
+            'suborder',
+            'infraorder',
+            'superfamily',
+            'family',
+            'subfamily',
+            'genus',
+            'species',
+        ])
 
-        with requests.get(f'http://hurlstor.soest.hawaii.edu:8086/query/dive/{name.replace(" ", "%20")}') as r:
-            response = r.json()
-            print('fetched!')
-        print('Processing annotations...', end='')
-        # get list of video links and start timestamps
-        for video in response['media']:
-            if 'urn:imagecollection:org' not in video['uri']:
-                videos.append([parse_datetime(video['start_timestamp']),
-                               video['uri'].replace('http://hurlstor.soest.hawaii.edu/videoarchive',
-                                                    'https://hurlvideo.soest.hawaii.edu')])
+        # add the records to the dataframe
+        for localization in localizations:
+            scientific_name = localization.attributes['Scientific Name']
+            if scientific_name not in phylogeny.keys():
+                phylogeny[scientific_name] = {}
+            temp_df = pd.DataFrame([[
+                localization.id,
+                localization.type,
+                localization.x,
+                localization.y,
+                scientific_name,
+                localization.attributes['Attracted'] if 'Attracted' in localization.attributes.keys() else None,
+                localization.attributes['Categorical Abundance'] if 'Categorical Abundance' in localization.attributes.keys() else None,
+                localization.attributes['IdentificationRemarks'] if 'IdentificationRemarks' in localization.attributes.keys() else None,
+                localization.attributes['Identified By'] if 'Identified By' in localization.attributes.keys() else None,
+                localization.attributes['Notes'] if 'Notes' in localization.attributes.keys() else None,
+                localization.attributes['Qualifier'] if 'Qualifier' in localization.attributes.keys() else None,
+                localization.attributes['Reason'] if 'Reason' in localization.attributes.keys() else None,
+                localization.attributes['Tentative ID'] if 'Tentative ID' in localization.attributes.keys() else None,
+                localization.created_by,
+                localization.frame,
+                f'/tator-frame/{localization.media}/{localization.frame}',
+                localization.media,
+                phylogeny[scientific_name]['phylum'] if 'phylum' in phylogeny[scientific_name].keys() else None,
+                phylogeny[scientific_name]['subphylum'] if 'subphylum' in phylogeny[scientific_name].keys() else None,
+                phylogeny[scientific_name]['superclass'] if 'superclass' in phylogeny[scientific_name].keys() else None,
+                phylogeny[scientific_name]['class'] if 'class' in phylogeny[scientific_name].keys() else None,
+                phylogeny[scientific_name]['subclass'] if 'subclass' in phylogeny[scientific_name].keys() else None,
+                phylogeny[scientific_name]['superorder'] if 'superorder' in phylogeny[scientific_name].keys() else None,
+                phylogeny[scientific_name]['order'] if 'order' in phylogeny[scientific_name].keys() else None,
+                phylogeny[scientific_name]['suborder'] if 'suborder' in phylogeny[scientific_name].keys() else None,
+                phylogeny[scientific_name]['infraorder'] if 'infraorder' in phylogeny[scientific_name].keys() else None,
+                phylogeny[scientific_name]['superfamily'] if 'superfamily' in phylogeny[scientific_name].keys() else None,
+                phylogeny[scientific_name]['family'] if 'family' in phylogeny[scientific_name].keys() else None,
+                phylogeny[scientific_name]['subfamily'] if 'subfamily' in phylogeny[scientific_name].keys() else None,
+                phylogeny[scientific_name]['genus'] if 'genus' in phylogeny[scientific_name].keys() else None,
+                phylogeny[scientific_name]['species'] if 'species' in phylogeny[scientific_name].keys() else None,
+            ]], columns=[
+                'id',
+                'type',
+                'x',
+                'y',
+                'scientific_name',
+                'attracted',
+                'categorical_abundance',
+                'identification_remarks',
+                'identified_by',
+                'notes',
+                'qualifier',
+                'reason',
+                'tentative_id',
+                'annotator',
+                'frame',
+                'frame_url',
+                'media_id',
+                'phylum',
+                'subphylum',
+                'superclass',
+                'class',
+                'subclass',
+                'superorder',
+                'order',
+                'suborder',
+                'infraorder',
+                'superfamily',
+                'family',
+                'subfamily',
+                'genus',
+                'species',
+            ])
 
-        video_sequence_name = response['media'][0]['video_sequence_name']
+            localization_df = pd.concat([localization_df, temp_df], ignore_index=True)
 
+        localization_df = localization_df.sort_values(by=[
+            'phylum',
+            'subphylum',
+            'superclass',
+            'class',
+            'subclass',
+            'superorder',
+            'order',
+            'suborder',
+            'infraorder',
+            'superfamily',
+            'family',
+            'subfamily',
+            'genus',
+            'species',
+            'frame',
+            'media_id',
+        ])
+
+        for index, row in localization_df.iterrows():
+            self.distilled_records.append({
+                'id': row['id'],
+                'type': row['type'],
+                'media_id': row['media_id'],
+                'frame': row['frame'],
+                'frame_url': row['frame_url'],
+                'annotator': row['annotator'],
+                'x': row['x'],
+                'y': row['y'],
+                'scientific_name': row['scientific_name'],
+                'attracted': row['attracted'],
+                'categorical_abundance': row['categorical_abundance'],
+                'identification_remarks': row['identification_remarks'],
+                'identified_by': row['identified_by'],
+                'notes': row['notes'],
+                'qualifier': row['qualifier'],
+                'reason': row['reason'],
+                'tentative_id': row['tentative_id'],
+                'phylum': row['phylum'],
+                'class': row['class'],
+                'order': row['order'],
+                'family': row['family'],
+                'genus': row['genus'],
+                'species': row['species'],
+            })
+        print('processed!')
