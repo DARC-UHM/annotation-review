@@ -413,6 +413,13 @@ select:active {
     border: 0;
 }
 
+.tator-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: yellow;
+}
+
 @keyframes progressBar {
   0% {
     width: 100%;

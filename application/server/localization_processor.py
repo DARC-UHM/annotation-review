@@ -59,9 +59,9 @@ class LocalizationProcessor:
         localization_df = pd.DataFrame(columns=[
             'id',
             'type',
-            'x',
-            'y',
+            'points',
             'scientific_name',
+            'count',
             'attracted',
             'categorical_abundance',
             'identification_remarks',
@@ -98,9 +98,9 @@ class LocalizationProcessor:
             temp_df = pd.DataFrame([[
                 localization.id,
                 localization.type,
-                localization.x,
-                localization.y,
+                [localization.x, localization.y],
                 scientific_name,
+                1,
                 localization.attributes['Attracted'] if 'Attracted' in localization.attributes.keys() else None,
                 localization.attributes['Categorical Abundance'] if 'Categorical Abundance' in localization.attributes.keys() else None,
                 localization.attributes['IdentificationRemarks'] if 'IdentificationRemarks' in localization.attributes.keys() else None,
@@ -130,9 +130,9 @@ class LocalizationProcessor:
             ]], columns=[
                 'id',
                 'type',
-                'x',
-                'y',
+                'points',
                 'scientific_name',
+                'count',
                 'attracted',
                 'categorical_abundance',
                 'identification_remarks',
@@ -182,6 +182,40 @@ class LocalizationProcessor:
             'media_id',
         ])
 
+        def collect_points(points):
+            return [point for point in points]
+
+        localization_df = localization_df.groupby(['media_id', 'frame', 'scientific_name']).agg({
+                'id': 'first',
+                'type': 'first',
+                'points': collect_points,
+                'count': 'sum',
+                'attracted': 'first',
+                'categorical_abundance': 'first',
+                'identification_remarks': 'first',
+                'identified_by': 'first',
+                'notes': 'first',
+                'qualifier': 'first',
+                'reason': 'first',
+                'tentative_id': 'first',
+                'annotator': 'first',
+                'frame_url': 'first',
+                'phylum': 'first',
+                'subphylum': 'first',
+                'superclass': 'first',
+                'class': 'first',
+                'subclass': 'first',
+                'superorder': 'first',
+                'order': 'first',
+                'suborder': 'first',
+                'infraorder': 'first',
+                'superfamily': 'first',
+                'family': 'first',
+                'subfamily': 'first',
+                'genus': 'first',
+                'species': 'first',
+        }).reset_index()
+
         for index, row in localization_df.iterrows():
             self.distilled_records.append({
                 'id': row['id'],
@@ -190,9 +224,9 @@ class LocalizationProcessor:
                 'frame': row['frame'],
                 'frame_url': row['frame_url'],
                 'annotator': row['annotator'],
-                'x': row['x'],
-                'y': row['y'],
+                'points': row['points'],
                 'scientific_name': row['scientific_name'],
+                'count': row['count'],
                 'attracted': row['attracted'],
                 'categorical_abundance': row['categorical_abundance'],
                 'identification_remarks': row['identification_remarks'],

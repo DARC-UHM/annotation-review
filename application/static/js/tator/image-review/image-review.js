@@ -99,7 +99,12 @@ for (const localization of localizations) {
             </td>
             <td class="text-center">
                 <a href="${localization.frame_url}" target="_blank">
-                    <img src="${localization.frame_url}" style="width: 580px;" alt="${localization.scientific_name}"/>
+                    <div class="position-relative" style="width: 580px;">
+                        <img src="${localization.frame_url}" style="width: 580px;" alt="${localization.scientific_name}"/>
+                        ${localization.points.map((point) => {
+                            return `<span class="position-absolute tator-dot" style="top: ${point[1] * 100}%; left: ${point[0] * 100}%;"></span>`;
+                        }).join('')}
+                    </div>
                 </a>
             </td>
         </tr>
