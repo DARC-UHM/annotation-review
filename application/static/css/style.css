@@ -417,7 +417,12 @@ select:active {
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background-color: yellow;
+    background-color: #b5e2f6;
+}
+
+.tator-box {
+    background-color: rgba(119, 214, 255, 0.37);
+    border: 2px solid #49bcec;
 }
 
 @keyframes progressBar {

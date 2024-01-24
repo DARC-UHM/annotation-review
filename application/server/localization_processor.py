@@ -11,7 +11,6 @@ class LocalizationProcessor:
     """
 
     # TODO
-    #  add dots
     #  add ability to edit all clips in a deployment (FOV, substrate, location, etc)
     #  add external image review (download to server?)
 
@@ -60,6 +59,7 @@ class LocalizationProcessor:
             'id',
             'type',
             'points',
+            'dimensions',
             'scientific_name',
             'count',
             'attracted',
@@ -92,6 +92,7 @@ class LocalizationProcessor:
 
         # add the records to the dataframe
         for localization in localizations:
+            print(localization)
             scientific_name = localization.attributes['Scientific Name']
             if scientific_name not in phylogeny.keys():
                 phylogeny[scientific_name] = {}
@@ -99,6 +100,7 @@ class LocalizationProcessor:
                 localization.id,
                 localization.type,
                 [localization.x, localization.y],
+                [localization.width, localization.height] if localization.type == 48 else None,
                 scientific_name,
                 1,
                 localization.attributes['Attracted'] if 'Attracted' in localization.attributes.keys() else None,
@@ -131,6 +133,7 @@ class LocalizationProcessor:
                 'id',
                 'type',
                 'points',
+                'dimensions',
                 'scientific_name',
                 'count',
                 'attracted',
@@ -189,6 +192,7 @@ class LocalizationProcessor:
                 'id': 'first',
                 'type': 'first',
                 'points': collect_points,
+                'dimensions': 'first',
                 'count': 'sum',
                 'attracted': 'first',
                 'categorical_abundance': 'first',
@@ -225,6 +229,7 @@ class LocalizationProcessor:
                 'frame_url': row['frame_url'],
                 'annotator': row['annotator'],
                 'points': row['points'],
+                'dimensions': row['dimensions'],
                 'scientific_name': row['scientific_name'],
                 'count': row['count'],
                 'attracted': row['attracted'],

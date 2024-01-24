@@ -24,6 +24,14 @@ for (const localization of localizations) {
                 </div>
                 <div class="row">
                     <div class="col-5">
+                        Count:
+                    </div>
+                    <div class="col values">
+                        ${localization.count}<br>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-5">
                         Annotator:
                     </div>
                     <div class="col values">
@@ -99,16 +107,34 @@ for (const localization of localizations) {
             </td>
             <td class="text-center">
                 <a href="${localization.frame_url}" target="_blank">
-                    <div class="position-relative" style="width: 580px;">
+                    <div id="${localization.id}_image" class="position-relative" style="width: 580px;">
                         <img src="${localization.frame_url}" style="width: 580px;" alt="${localization.scientific_name}"/>
-                        ${localization.points.map((point) => {
-                            return `<span class="position-absolute tator-dot" style="top: ${point[1] * 100}%; left: ${point[0] * 100}%;"></span>`;
-                        }).join('')}
+                        <div id="${localization.id}_overlay">
+                        ${localization.type === 49
+                            ? localization.points.map((point) => {
+                                return `<span class="position-absolute tator-dot" style="top: ${point[1] * 100}%; left: ${point[0] * 100}%;"></span>`;
+                            }).join('')
+                            : `<span
+                                class="position-absolute tator-box"
+                                style="top: ${localization.points[0][1] * 100}%; left: ${localization.points[0][0] * 100}%; width: ${localization.dimensions[0] * 100}%; height: ${localization.dimensions[1] * 100}%;"
+                            ></span>`
+                        }
+                        </div>
                     </div>
                 </a>
             </td>
         </tr>
     `);
+
+    $(`#${localization.id}_overlay`).css('opacity', '0.5');
+    $(`#${localization.id}_image`).hover((e) => {
+        if (e.type === 'mouseenter') {
+            $(`#${localization.id}_overlay`).css('opacity', '1.0');
+        }
+        else if (e.type === 'mouseleave') {
+            $(`#${localization.id}_overlay`).css('opacity', '0.5');
+        }
+    });
 }
 
 // get rid of loading screen if back button is pressed (mozilla)
