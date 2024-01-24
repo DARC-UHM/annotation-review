@@ -2,9 +2,6 @@ import { autocomplete } from '../../util/autocomplete.js';
 import { reviewerList } from '../../util/reviewer-list.js';
 import { updateFlashMessages } from '../../util/updateFlashMessages.js';
 
-const paginationNumbers = document.getElementById('pagination-numbers');
-const nextButton = document.getElementById('next-button');
-const prevButton = document.getElementById('prev-button');
 const guidePhotoVals = ['1 best', '2 good', '3 okay', ''];
 const sequences = [];
 
@@ -25,7 +22,7 @@ const getPaginationNumbers = () => {
         pageNumber.innerHTML = i;
         pageNumber.setAttribute('page-index', i);
         pageNumber.setAttribute('aria-label', 'Page ' + i);
-        paginationNumbers.appendChild(pageNumber);
+        $('#pagination-numbers').append(pageNumber);
     }
     document.querySelectorAll('.pagination-number').forEach((button) => {
         const pageIndex = Number(button.getAttribute('page-index'));
@@ -257,26 +254,16 @@ const setCurrentPage = (pageNum) => {
     }
 };
 
-const disableButton = (button) => {
-    button.classList.add('disabled');
-    button.setAttribute('disabled', true);
-};
-
-const enableButton = (button) => {
-    button.classList.remove('disabled');
-    button.removeAttribute('disabled');
-};
-
 const handlePageButtonsStatus = () => {
     if (currentPage === 1) {
-        disableButton(prevButton);
+        $('#prev-button').prop('disabled', true);
     } else {
-        enableButton(prevButton);
+        $('#prev-button').prop('disabled', false);
     }
     if (pageCount === currentPage) {
-        disableButton(nextButton);
+        $('#next-button').prop('disabled', true);
     } else {
-        enableButton(nextButton);
+        $('#next-button').prop('disabled', false);
     }
 };
 
@@ -719,11 +706,11 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
     updateHash();
 
-    prevButton.addEventListener("click", () => {
+    $('#prev-button').on('click', () => {
         setCurrentPage(parseInt(currentPage) - 1);
     });
 
-    nextButton.addEventListener("click", () => {
+    $('#next-button').on('click', () => {
         setCurrentPage(parseInt(currentPage) + 1);
     });
 

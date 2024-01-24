@@ -57,13 +57,9 @@ class LocalizationProcessor:
         print('fetched!')
         print('Processing localizations...', end='')
 
-        # format the localizations into a dataframe
         formatted_localizations = []
 
-        count = 0
-        # add the records to the dataframe
         for localization in localizations:
-            count += 1
             scientific_name = localization['attributes']['Scientific Name']
             if scientific_name not in phylogeny.keys():
                 phylogeny[scientific_name] = {}
@@ -101,9 +97,6 @@ class LocalizationProcessor:
                 'genus': phylogeny[scientific_name]['genus'] if 'genus' in phylogeny[scientific_name].keys() else None,
                 'species': phylogeny[scientific_name]['species'] if 'species' in phylogeny[scientific_name].keys() else None,
             })
-
-            if count % 1000 == 0:
-                print(f'{count}...')
 
         localization_df = pd.DataFrame(formatted_localizations)
         localization_df = localization_df.sort_values(by=[
