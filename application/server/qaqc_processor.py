@@ -1,5 +1,3 @@
-import json
-
 import requests
 import pandas as pd
 
@@ -40,34 +38,7 @@ class QaqcProcessor:
 
     def process_records(self):
         concept_phylogeny = {}
-        annotation_df = pd.DataFrame(columns=[
-            'observation_uuid',
-            'concept',
-            'identity-reference',
-            'associations',
-            'image_url',
-            'video_url',
-            'recorded_timestamp',
-            'video_sequence_name',
-            'annotator',
-            'depth',
-            'lat',
-            'long',
-            'phylum',
-            'subphylum',
-            'superclass',
-            'class',
-            'subclass',
-            'superorder',
-            'order',
-            'suborder',
-            'infraorder',
-            'superfamily',
-            'family',
-            'subfamily',
-            'genus',
-            'species'
-        ])
+        formatted_annos = []
 
         for annotation in self.working_records:
             concept_name = annotation['concept']
@@ -118,80 +89,37 @@ class QaqcProcessor:
                 video_sequence_name = video_url[2]
                 video_url = f'{video_url[1]}#t={int(time_diff.total_seconds()) - 5}'
 
-            temp_df = pd.DataFrame([[
-                annotation['observation_uuid'],
-                concept_name,
-                get_association(annotation, 'identity-reference')['link_value'] if get_association(annotation, 'identity-reference') else None,
-                annotation['associations'],
-                image_url,
-                video_url,
-                annotation['recorded_timestamp'],
-                video_sequence_name,
-                format_annotator(annotation['observer']),
-                annotation['activity'] if 'activity' in annotation.keys() else None,
-                int(annotation['ancillary_data']['depth_meters']) if 'ancillary_data' in annotation.keys() else None,
-                round(annotation['ancillary_data']['latitude'], 3) if 'ancillary_data' in annotation.keys() else None,
-                round(annotation['ancillary_data']['longitude'], 3) if 'ancillary_data' in annotation.keys() else None,
-                concept_phylogeny[concept_name]['phylum'] if 'phylum' in concept_phylogeny[
-                    concept_name].keys() else None,
-                concept_phylogeny[concept_name]['subphylum'] if 'subphylum' in concept_phylogeny[
-                    concept_name].keys() else None,
-                concept_phylogeny[concept_name]['superclass'] if 'superclass' in concept_phylogeny[
-                    concept_name].keys() else None,
-                concept_phylogeny[concept_name]['class'] if 'class' in concept_phylogeny[
-                    concept_name].keys() else None,
-                concept_phylogeny[concept_name]['subclass'] if 'subclass' in concept_phylogeny[
-                    concept_name].keys() else None,
-                concept_phylogeny[concept_name]['superorder'] if 'superorder' in concept_phylogeny[
-                    concept_name].keys() else None,
-                concept_phylogeny[concept_name]['order'] if 'order' in concept_phylogeny[
-                    concept_name].keys() else None,
-                concept_phylogeny[concept_name]['suborder'] if 'suborder' in concept_phylogeny[
-                    concept_name].keys() else None,
-                concept_phylogeny[concept_name]['infraorder'] if 'infraorder' in concept_phylogeny[
-                    concept_name].keys() else None,
-                concept_phylogeny[concept_name]['superfamily'] if 'superfamily' in concept_phylogeny[
-                    concept_name].keys() else None,
-                concept_phylogeny[concept_name]['family'] if 'family' in concept_phylogeny[
-                    concept_name].keys() else None,
-                concept_phylogeny[concept_name]['subfamily'] if 'subfamily' in concept_phylogeny[
-                    concept_name].keys() else None,
-                concept_phylogeny[concept_name]['genus'] if 'genus' in concept_phylogeny[
-                    concept_name].keys() else None,
-                concept_phylogeny[concept_name]['species'] if 'species' in concept_phylogeny[
-                    concept_name].keys() else None,
-            ]], columns=[
-                'observation_uuid',
-                'concept',
-                'identity-reference',
-                'associations',
-                'image_url',
-                'video_url',
-                'recorded_timestamp',
-                'video_sequence_name',
-                'annotator',
-                'activity',
-                'depth',
-                'lat',
-                'long',
-                'phylum',
-                'subphylum',
-                'superclass',
-                'class',
-                'subclass',
-                'superorder',
-                'order',
-                'suborder',
-                'infraorder',
-                'superfamily',
-                'family',
-                'subfamily',
-                'genus',
-                'species'
-            ])
+            formatted_annos.append({
+                'observation_uuid': annotation['observation_uuid'],
+                'concept': concept_name,
+                'identity-reference': get_association(annotation, 'identity-reference')['link_value'] if get_association(annotation, 'identity-reference') else None,
+                'associations': annotation['associations'],
+                'image_url': image_url,
+                'video_url': video_url,
+                'recorded_timestamp': annotation['recorded_timestamp'],
+                'video_sequence_name': video_sequence_name,
+                'annotator': format_annotator(annotation['observer']),
+                'activity': annotation['activity'] if 'activity' in annotation.keys() else None,
+                'depth': int(annotation['ancillary_data']['depth_meters']) if 'ancillary_data' in annotation.keys() else None,
+                'lat': round(annotation['ancillary_data']['latitude'], 3) if 'ancillary_data' in annotation.keys() else None,
+                'long': round(annotation['ancillary_data']['longitude'], 3) if 'ancillary_data' in annotation.keys() else None,
+                'phylum': concept_phylogeny[concept_name]['phylum'] if 'phylum' in concept_phylogeny[concept_name].keys() else None,
+                'subphylum': concept_phylogeny[concept_name]['subphylum'] if 'subphylum' in concept_phylogeny[concept_name].keys() else None,
+                'superclass': concept_phylogeny[concept_name]['superclass'] if 'superclass' in concept_phylogeny[concept_name].keys() else None,
+                'class': concept_phylogeny[concept_name]['class'] if 'class' in concept_phylogeny[concept_name].keys() else None,
+                'subclass': concept_phylogeny[concept_name]['subclass'] if 'subclass' in concept_phylogeny[concept_name].keys() else None,
+                'superorder': concept_phylogeny[concept_name]['superorder'] if 'superorder' in concept_phylogeny[concept_name].keys() else None,
+                'order': concept_phylogeny[concept_name]['order'] if 'order' in concept_phylogeny[concept_name].keys() else None,
+                'suborder': concept_phylogeny[concept_name]['suborder'] if 'suborder' in concept_phylogeny[concept_name].keys() else None,
+                'infraorder': concept_phylogeny[concept_name]['infraorder'] if 'infraorder' in concept_phylogeny[concept_name].keys() else None,
+                'superfamily': concept_phylogeny[concept_name]['superfamily'] if 'superfamily' in concept_phylogeny[concept_name].keys() else None,
+                'family': concept_phylogeny[concept_name]['family'] if 'family' in concept_phylogeny[concept_name].keys() else None,
+                'subfamily': concept_phylogeny[concept_name]['subfamily'] if 'subfamily' in concept_phylogeny[concept_name].keys() else None,
+                'genus': concept_phylogeny[concept_name]['genus'] if 'genus' in concept_phylogeny[concept_name].keys() else None,
+                'species': concept_phylogeny[concept_name]['species'] if 'species' in concept_phylogeny[concept_name].keys() else None,
+            })
 
-            annotation_df = pd.concat([annotation_df, temp_df], ignore_index=True)
-
+        annotation_df = pd.DataFrame(formatted_annos)
         annotation_df = annotation_df.sort_values(by=[
             'phylum',
             'subphylum',

@@ -20,43 +20,9 @@ class CommentProcessor:
     def load_comments(self):
         concept_phylogeny = {'Animalia': {}}
 
-        """
-        Define dataframe for sorting data
-        """
-        annotation_df = pd.DataFrame(columns=[
-            'observation_uuid',
-            'concept',
-            'identity-certainty',
-            'identity-reference',
-            'guide-photo',
-            'comment',
-            'image_url',
-            'video_url',
-            'upon',
-            'recorded_timestamp',
-            'video_sequence_name',
-            'annotator',
-            'depth',
-            'lat',
-            'long',
-            'temperature',
-            'oxygen_ml_l',
-            'phylum',
-            'subphylum',
-            'superclass',
-            'class',
-            'subclass',
-            'superorder',
-            'order',
-            'suborder',
-            'infraorder',
-            'superfamily',
-            'family',
-            'subfamily',
-            'genus',
-            'species'
-        ])
+        formatted_comments = []
 
+        # add formatted comments to list
         for comment in self.comments:
             annotation = requests.get(f'http://hurlstor.soest.hawaii.edu:8082/anno/v1/annotations/{comment}').json()
             concept_name = annotation['concept']
@@ -82,74 +48,42 @@ class CommentProcessor:
                     else:
                         print(f'\n{TERM_RED}Unable to find record for {annotation["concept"]}{TERM_NORMAL}')
 
-            temp_df = pd.DataFrame([[
-                annotation['observation_uuid'],
-                concept_name,
-                get_association(annotation, 'identity-certainty')['link_value'] if get_association(annotation, 'identity-certainty') else None,
-                get_association(annotation, 'identity-reference')['link_value'] if get_association(annotation, 'identity-reference') else None,
-                get_association(annotation, 'guide-photo')['to_concept'] if get_association(annotation, 'guide-photo') else None,
-                get_association(annotation, 'comment')['link_value'] if get_association(annotation, 'comment') else None,
-                self.comments[comment]['image_url'],
-                self.comments[comment]['video_url'],
-                get_association(annotation, 'upon')['to_concept'] if get_association(annotation, 'upon') else None,
-                parse_datetime(annotation['recorded_timestamp']).strftime('%d %b %y %H:%M:%S UTC'),
-                self.comments[comment]['sequence'],
-                format_annotator(annotation['observer']),
-                self.comments[comment]['depth'],
-                self.comments[comment]['lat'] if 'lat' in self.comments[comment].keys() else None,
-                self.comments[comment]['long'] if 'long' in self.comments[comment].keys() else None,
-                self.comments[comment]['temperature'] if 'temperature' in self.comments[comment].keys() else None,
-                self.comments[comment]['oxygen_ml_l'] if 'oxygen_ml_l' in self.comments[comment].keys() else None,
-                concept_phylogeny[concept_name]['phylum'] if 'phylum' in concept_phylogeny[concept_name].keys() else None,
-                concept_phylogeny[concept_name]['subphylum'] if 'subphylum' in concept_phylogeny[concept_name].keys() else None,
-                concept_phylogeny[concept_name]['superclass'] if 'superclass' in concept_phylogeny[concept_name].keys() else None,
-                concept_phylogeny[concept_name]['class'] if 'class' in concept_phylogeny[concept_name].keys() else None,
-                concept_phylogeny[concept_name]['subclass'] if 'subclass' in concept_phylogeny[concept_name].keys() else None,
-                concept_phylogeny[concept_name]['superorder'] if 'superorder' in concept_phylogeny[concept_name].keys() else None,
-                concept_phylogeny[concept_name]['order'] if 'order' in concept_phylogeny[concept_name].keys() else None,
-                concept_phylogeny[concept_name]['suborder'] if 'suborder' in concept_phylogeny[concept_name].keys() else None,
-                concept_phylogeny[concept_name]['infraorder'] if 'infraorder' in concept_phylogeny[concept_name].keys() else None,
-                concept_phylogeny[concept_name]['superfamily'] if 'superfamily' in concept_phylogeny[concept_name].keys() else None,
-                concept_phylogeny[concept_name]['family'] if 'family' in concept_phylogeny[concept_name].keys() else None,
-                concept_phylogeny[concept_name]['subfamily'] if 'subfamily' in concept_phylogeny[concept_name].keys() else None,
-                concept_phylogeny[concept_name]['genus'] if 'genus' in concept_phylogeny[concept_name].keys() else None,
-                concept_phylogeny[concept_name]['species'] if 'species' in concept_phylogeny[concept_name].keys() else None,
-            ]], columns=[
-                'observation_uuid',
-                'concept',
-                'identity-certainty',
-                'identity-reference',
-                'guide-photo',
-                'comment',
-                'image_url',
-                'video_url',
-                'upon',
-                'recorded_timestamp',
-                'video_sequence_name',
-                'annotator',
-                'depth',
-                'lat',
-                'long',
-                'temperature',
-                'oxygen_ml_l',
-                'phylum',
-                'subphylum',
-                'superclass',
-                'class',
-                'subclass',
-                'superorder',
-                'order',
-                'suborder',
-                'infraorder',
-                'superfamily',
-                'family',
-                'subfamily',
-                'genus',
-                'species'
-            ])
+            formatted_comments.append({
+                'observation_uuid': annotation['observation_uuid'],
+                'concept': concept_name,
+                'identity-certainty': get_association(annotation, 'identity-certainty')['link_value'] if get_association(annotation, 'identity-certainty') else None,
+                'identity-reference': get_association(annotation, 'identity-reference')['link_value'] if get_association(annotation, 'identity-reference') else None,
+                'guide-photo': get_association(annotation, 'guide-photo')['to_concept'] if get_association(annotation, 'guide-photo') else None,
+                'comment': get_association(annotation, 'comment')['link_value'] if get_association(annotation, 'comment') else None,
+                'image_url': self.comments[comment]['image_url'],
+                'video_url': self.comments[comment]['video_url'],
+                'upon': get_association(annotation, 'upon')['to_concept'] if get_association(annotation, 'upon') else None,
+                'recorded_timestamp': parse_datetime(annotation['recorded_timestamp']).strftime('%d %b %y %H:%M:%S UTC'),
+                'video_sequence_name': self.comments[comment]['sequence'],
+                'annotator': format_annotator(annotation['observer']),
+                'depth': self.comments[comment]['depth'],
+                'lat': self.comments[comment]['lat'] if 'lat' in self.comments[comment].keys() else None,
+                'long': self.comments[comment]['long'] if 'long' in self.comments[comment].keys() else None,
+                'temperature': self.comments[comment]['temperature'] if 'temperature' in self.comments[comment].keys() else None,
+                'oxygen_ml_l': self.comments[comment]['oxygen_ml_l'] if 'oxygen_ml_l' in self.comments[comment].keys() else None,
+                'phylum': concept_phylogeny[concept_name]['phylum'] if 'phylum' in concept_phylogeny[concept_name].keys() else None,
+                'subphylum': concept_phylogeny[concept_name]['subphylum'] if 'subphylum' in concept_phylogeny[concept_name].keys() else None,
+                'superclass': concept_phylogeny[concept_name]['superclass'] if 'superclass' in concept_phylogeny[concept_name].keys() else None,
+                'class': concept_phylogeny[concept_name]['class'] if 'class' in concept_phylogeny[concept_name].keys() else None,
+                'subclass': concept_phylogeny[concept_name]['subclass'] if 'subclass' in concept_phylogeny[concept_name].keys() else None,
+                'superorder': concept_phylogeny[concept_name]['superorder'] if 'superorder' in concept_phylogeny[concept_name].keys() else None,
+                'order': concept_phylogeny[concept_name]['order'] if 'order' in concept_phylogeny[concept_name].keys() else None,
+                'suborder': concept_phylogeny[concept_name]['suborder'] if 'suborder' in concept_phylogeny[concept_name].keys() else None,
+                'infraorder': concept_phylogeny[concept_name]['infraorder'] if 'infraorder' in concept_phylogeny[concept_name].keys() else None,
+                'superfamily': concept_phylogeny[concept_name]['superfamily'] if 'superfamily' in concept_phylogeny[concept_name].keys() else None,
+                'family': concept_phylogeny[concept_name]['family'] if 'family' in concept_phylogeny[concept_name].keys() else None,
+                'subfamily': concept_phylogeny[concept_name]['subfamily'] if 'subfamily' in concept_phylogeny[concept_name].keys() else None,
+                'genus': concept_phylogeny[concept_name]['genus'] if 'genus' in concept_phylogeny[concept_name].keys() else None,
+                'species': concept_phylogeny[concept_name]['species'] if 'species' in concept_phylogeny[concept_name].keys() else None,
+            })
 
-            annotation_df = pd.concat([annotation_df, temp_df], ignore_index=True)
-
+        # add to dataframe for sorting
+        annotation_df = pd.DataFrame(formatted_comments)
         annotation_df = annotation_df.sort_values(by=[
             'phylum',
             'subphylum',
