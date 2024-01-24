@@ -1,4 +1,5 @@
 import pandas as pd
+import requests
 import tator
 
 from flask import session
@@ -29,9 +30,9 @@ class LocalizationProcessor:
         if f'{self.project_id}_{self.section_id}' in session.keys():
             self.media_list = session[f'{self.project_id}_{self.section_id}']['media_list']
             self.deployment_list = session[f'{self.project_id}_{self.section_id}']['deployment_list']
-            print('Loaded media from session')
+            print('Loaded media list from session')
         else:
-            print('Loading media...', end='')
+            print('Fetching media list...', end='')
             for media in self.api.get_media_list(project=self.project_id, section=self.section_id):
                 self.media_list[media.id] = media.name
                 self.deployment_list.add(media.name[:11])
@@ -40,132 +41,71 @@ class LocalizationProcessor:
                 'deployment_list': self.deployment_list
             }
             session.modified = True
-            print('done!')
+            print('fetched!')
 
     def load_localizations(self):
-        print('Loading localizations...', end='')
+        print('Fetching localizations...', end='')
         phylogeny = {'Animalia': {}}
-        localizations = self.api.get_localization_list(
-            project=self.project_id,
-            section=self.section_id,
-            start=0,
-            stop=10,  # todo remove
-        )
+        # REST is much faster than Python API for large queries
+        req = requests.get(
+            f'https://cloud.tator.io/rest/Localizations/{self.project_id}?section={self.section_id}',
+            headers={
+                'Content-Type': 'application/json',
+                'Authorization': f'Token {session["tator_token"]}',
+            })
+        localizations = req.json()
+        print('fetched!')
+        print('Processing localizations...', end='')
 
-        """
-        Define dataframe for sorting data
-        """
-        localization_df = pd.DataFrame(columns=[
-            'id',
-            'type',
-            'points',
-            'dimensions',
-            'scientific_name',
-            'count',
-            'attracted',
-            'categorical_abundance',
-            'identification_remarks',
-            'identified_by',
-            'notes',
-            'qualifier',
-            'reason',
-            'tentative_id',
-            'annotator',
-            'frame',
-            'frame_url',
-            'media_id',
-            'phylum',
-            'subphylum',
-            'superclass',
-            'class',
-            'subclass',
-            'superorder',
-            'order',
-            'suborder',
-            'infraorder',
-            'superfamily',
-            'family',
-            'subfamily',
-            'genus',
-            'species',
-        ])
+        # format the localizations into a dataframe
+        formatted_localizations = []
 
+        count = 0
         # add the records to the dataframe
         for localization in localizations:
-            print(localization)
-            scientific_name = localization.attributes['Scientific Name']
+            count += 1
+            scientific_name = localization['attributes']['Scientific Name']
             if scientific_name not in phylogeny.keys():
                 phylogeny[scientific_name] = {}
-            temp_df = pd.DataFrame([[
-                localization.id,
-                localization.type,
-                [localization.x, localization.y],
-                [localization.width, localization.height] if localization.type == 48 else None,
-                scientific_name,
-                1,
-                localization.attributes['Attracted'] if 'Attracted' in localization.attributes.keys() else None,
-                localization.attributes['Categorical Abundance'] if 'Categorical Abundance' in localization.attributes.keys() else None,
-                localization.attributes['IdentificationRemarks'] if 'IdentificationRemarks' in localization.attributes.keys() else None,
-                localization.attributes['Identified By'] if 'Identified By' in localization.attributes.keys() else None,
-                localization.attributes['Notes'] if 'Notes' in localization.attributes.keys() else None,
-                localization.attributes['Qualifier'] if 'Qualifier' in localization.attributes.keys() else None,
-                localization.attributes['Reason'] if 'Reason' in localization.attributes.keys() else None,
-                localization.attributes['Tentative ID'] if 'Tentative ID' in localization.attributes.keys() else None,
-                localization.created_by,
-                localization.frame,
-                f'/tator-frame/{localization.media}/{localization.frame}',
-                localization.media,
-                phylogeny[scientific_name]['phylum'] if 'phylum' in phylogeny[scientific_name].keys() else None,
-                phylogeny[scientific_name]['subphylum'] if 'subphylum' in phylogeny[scientific_name].keys() else None,
-                phylogeny[scientific_name]['superclass'] if 'superclass' in phylogeny[scientific_name].keys() else None,
-                phylogeny[scientific_name]['class'] if 'class' in phylogeny[scientific_name].keys() else None,
-                phylogeny[scientific_name]['subclass'] if 'subclass' in phylogeny[scientific_name].keys() else None,
-                phylogeny[scientific_name]['superorder'] if 'superorder' in phylogeny[scientific_name].keys() else None,
-                phylogeny[scientific_name]['order'] if 'order' in phylogeny[scientific_name].keys() else None,
-                phylogeny[scientific_name]['suborder'] if 'suborder' in phylogeny[scientific_name].keys() else None,
-                phylogeny[scientific_name]['infraorder'] if 'infraorder' in phylogeny[scientific_name].keys() else None,
-                phylogeny[scientific_name]['superfamily'] if 'superfamily' in phylogeny[scientific_name].keys() else None,
-                phylogeny[scientific_name]['family'] if 'family' in phylogeny[scientific_name].keys() else None,
-                phylogeny[scientific_name]['subfamily'] if 'subfamily' in phylogeny[scientific_name].keys() else None,
-                phylogeny[scientific_name]['genus'] if 'genus' in phylogeny[scientific_name].keys() else None,
-                phylogeny[scientific_name]['species'] if 'species' in phylogeny[scientific_name].keys() else None,
-            ]], columns=[
-                'id',
-                'type',
-                'points',
-                'dimensions',
-                'scientific_name',
-                'count',
-                'attracted',
-                'categorical_abundance',
-                'identification_remarks',
-                'identified_by',
-                'notes',
-                'qualifier',
-                'reason',
-                'tentative_id',
-                'annotator',
-                'frame',
-                'frame_url',
-                'media_id',
-                'phylum',
-                'subphylum',
-                'superclass',
-                'class',
-                'subclass',
-                'superorder',
-                'order',
-                'suborder',
-                'infraorder',
-                'superfamily',
-                'family',
-                'subfamily',
-                'genus',
-                'species',
-            ])
+            formatted_localizations.append({
+                'id': localization['id'],
+                'type': localization['type'],
+                'points': [localization['x'], localization['y']],
+                'dimensions': [localization['width'], localization['height']] if localization['type'] == 48 else None,
+                'scientific_name': scientific_name,
+                'count': 1,
+                'attracted': localization['attributes']['Attracted'] if 'Attracted' in localization['attributes'].keys() else None,
+                'categorical_abundance': localization['attributes']['Categorical Abundance'] if 'Categorical Abundance' in localization['attributes'].keys() else None,
+                'identification_remarks': localization['attributes']['IdentificationRemarks'] if 'IdentificationRemarks' in localization['attributes'].keys() else None,
+                'identified_by': localization['attributes']['Identified By'] if 'Identified By' in localization['attributes'].keys() else None,
+                'notes': localization['attributes']['Notes'] if 'Notes' in localization['attributes'].keys() else None,
+                'qualifier': localization['attributes']['Qualifier'] if 'Qualifier' in localization['attributes'].keys() else None,
+                'reason': localization['attributes']['Reason'] if 'Reason' in localization['attributes'].keys() else None,
+                'tentative_id': localization['attributes']['Tentative ID'] if 'Tentative ID' in localization['attributes'].keys() else None,
+                'annotator': localization['created_by'],
+                'frame': localization['frame'],
+                'frame_url': f'/tator-frame/{localization["media"]}/{localization["frame"]}',
+                'media_id': localization['media'],
+                'phylum': phylogeny[scientific_name]['phylum'] if 'phylum' in phylogeny[scientific_name].keys() else None,
+                'subphylum': phylogeny[scientific_name]['subphylum'] if 'subphylum' in phylogeny[scientific_name].keys() else None,
+                'superclass': phylogeny[scientific_name]['superclass'] if 'superclass' in phylogeny[scientific_name].keys() else None,
+                'class': phylogeny[scientific_name]['class'] if 'class' in phylogeny[scientific_name].keys() else None,
+                'subclass': phylogeny[scientific_name]['subclass'] if 'subclass' in phylogeny[scientific_name].keys() else None,
+                'superorder': phylogeny[scientific_name]['superorder'] if 'superorder' in phylogeny[scientific_name].keys() else None,
+                'order': phylogeny[scientific_name]['order'] if 'order' in phylogeny[scientific_name].keys() else None,
+                'suborder': phylogeny[scientific_name]['suborder'] if 'suborder' in phylogeny[scientific_name].keys() else None,
+                'infraorder': phylogeny[scientific_name]['infraorder'] if 'infraorder' in phylogeny[scientific_name].keys() else None,
+                'superfamily': phylogeny[scientific_name]['superfamily'] if 'superfamily' in phylogeny[scientific_name].keys() else None,
+                'family': phylogeny[scientific_name]['family'] if 'family' in phylogeny[scientific_name].keys() else None,
+                'subfamily': phylogeny[scientific_name]['subfamily'] if 'subfamily' in phylogeny[scientific_name].keys() else None,
+                'genus': phylogeny[scientific_name]['genus'] if 'genus' in phylogeny[scientific_name].keys() else None,
+                'species': phylogeny[scientific_name]['species'] if 'species' in phylogeny[scientific_name].keys() else None,
+            })
 
-            localization_df = pd.concat([localization_df, temp_df], ignore_index=True)
+            if count % 1000 == 0:
+                print(f'{count}...')
 
+        localization_df = pd.DataFrame(formatted_localizations)
         localization_df = localization_df.sort_values(by=[
             'phylum',
             'subphylum',

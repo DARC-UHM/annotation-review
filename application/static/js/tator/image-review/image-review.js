@@ -35,7 +35,7 @@ for (const localization of localizations) {
                         Annotator:
                     </div>
                     <div class="col values">
-                        ${knownAnnotators[localization.annotator]}<br>
+                        ${knownAnnotators[localization.annotator] || `Unknown annotator (#${localization.annotator})`}<br>
                     </div>
                 </div>
                 <div class="row">
@@ -102,8 +102,21 @@ for (const localization of localizations) {
                         ${localization.notes}<br>
                     </div>
                 </div>
-                <br>
-                <a class="editButton" href="https://cloud.tator.io/26/annotation/${localization.media_id}?frame=${localization.frame}" target="_blank">View on Tator</a>
+                <div class="row mt-2">
+                    <div class="col-5">
+                        <a class="editButton" href="https://cloud.tator.io/26/annotation/${localization.media_id}?frame=${localization.frame}" target="_blank">View on Tator</a>
+                    </div>
+                    <div class="col">
+                        <button 
+                            type="button" 
+                            data-bs-toggle="modal" 
+                            data-anno="${JSON.stringify(localization)}" 
+                            data-bs-target="#externalReviewModal" 
+                            class="editButton">
+                                Add to external review
+                        </button>
+                    </div>
+                </div>
             </td>
             <td class="text-center">
                 <a href="${localization.frame_url}" target="_blank">
