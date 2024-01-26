@@ -1,7 +1,11 @@
 import { updateFlashMessages } from './util/updateFlashMessages.js';
 import { autocomplete } from './util/autocomplete.js';
 
-let numSequences = 1;
+let numSequences = 1; // VARS
+let numDeployments = 1; // TATOR
+let deploymentList = [];
+
+// TODO add refresh deployments button
 
 function checkSequence() {
     let disabled = false;
@@ -53,14 +57,14 @@ async function getTatorDeployments(projectId, sectionId) {
     $('#load-overlay').removeClass('loader-bg-hidden');
     const res = await fetch(`/tator-deployments/${projectId}/${sectionId}`);
     const json = await res.json();
-    console.log(json);
     if (res.status === 200) {
-        $('#tatorDeployment').html('<option value="" selected disabled>Select a deployment</option>');
+        $('#deployment1').html('<option value="" selected disabled>Select a deployment</option>');
         for (const deployment of json) {
-            $('#tatorDeployment').append(`<option value="${deployment}">${deployment}</option>`);
+            $('#deployment1').append(`<option value="${deployment}">${deployment}</option>`);
         }
-        $('#tatorDeployment').val(json[0]);
+        $('#deployment1').val(json[0]);
     }
+    deploymentList = json;
     $('#load-overlay').addClass('loader-bg-hidden');
     $('#load-overlay').removeClass('loader-bg');
 }
@@ -81,8 +85,6 @@ async function tatorLogin() {
         $('#tatorLoggedInUser').html(json.username);
         $('#tatorIndexForm').show();
         await getTatorProjects();
-        $('#tatorQaqcButton')[0].disabled = false;
-        $('#tatorImageReviewButton')[0].disabled = false;
         updateFlashMessages('Logged in to Tator', 'success');
     } else {
         updateFlashMessages('Could not log in to Tator', 'danger');
@@ -138,6 +140,7 @@ $('#logoutBtn').on('click', async () => {
     $('#load-overlay').removeClass('loader-bg');
 });
 
+// vars plus button
 $('#plusButton').on('click', () => {
     $('#seqNameLabel')[0].innerText = 'Sequence Names:';
     const inputDive = $(`#sequence${numSequences}`).val();
@@ -173,6 +176,40 @@ $('#plusButton').on('click', () => {
     autocomplete($(`#sequence${numSequences}`), sequences);
 });
 
+$('#tatorPlusButton').on('click', () => {
+    $('#tatorDeploymentLabel')[0].innerText = 'Deployments:';
+    const inputDeployment = $(`#deployment${numDeployments}`).val();
+    numDeployments++;
+
+    $('#tatorDeploymentList').append(`
+        <div id="depList${numDeployments}">
+            <div class="row d-inline-flex">
+                <div class="col-1"></div>
+                <div class="col-10 p-0">
+                    <select id="deployment${numDeployments}" name="deployment" class="sequenceName"></select>
+                </div>
+                <div class="col-1 ps-0">
+                    <button id="xButton${numDeployments}" type="button" class="xButton">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
+                          <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `);
+    for (const deployment of deploymentList) {
+        $(`#deployment${numDeployments}`).append(`<option value="${deployment}">${deployment}</option>`);
+    }
+    $(`#deployment${numDeployments}`).val(() => {
+        let index = deploymentList.indexOf(inputDeployment);
+        return index < 0 ? '' : deploymentList[index + 1];
+    });
+
+    const currentNum = numDeployments;
+    $(`#xButton${numDeployments}`).on('click', () => $(`#depList${currentNum}`)[0].remove());
+});
+
 $('#varsImageReviewButton').on('click', () => {
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
@@ -191,7 +228,7 @@ $('#tatorImageReviewButton').on('click', () => {
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
     const formData = new FormData($('#tatorIndexForm')[0]);
-    window.location.href = `/tator-image-review/${formData.get('project')}/${formData.get('section')}`;
+    window.location.href = `/tator-image-review/${formData.get('project')}/${formData.get('section')}?deployment=${formData.getAll('deployment').join('&deployment=')}`;
 });
 
 $('a.external-review-link').on('click', () => {

@@ -135,7 +135,7 @@ def tator_sections(project_id):
 # get a list of deployments associated with a project & section from tator
 @app.get('/tator-deployments/<project_id>/<section_id>')
 def load_media(project_id, section_id):
-    if f'{project_id}_{section_id}_dep_list' in session.keys():
+    if f'{project_id}_{section_id}_dep_list' in session.keys() and request.args.get('refresh') != 'true':
         return session[f'{project_id}_{section_id}_dep_list']
     else:
         try:

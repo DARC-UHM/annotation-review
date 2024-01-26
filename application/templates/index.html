@@ -100,8 +100,8 @@
                         <div class="row d-inline-flex">
                             <div class="col-1"></div>
                             <div class="col-10 p-0">
-                                <label for="tatorDeployment" class="small mb-2">Deployments:</label><br>
-                                <select id="tatorDeployment" name="project" class="sequenceName"></select><br>
+                                <label for="deployment1" id="tatorDeploymentLabel" class="small mb-2">Deployment:</label><br>
+                                <select id="deployment1" name="deployment" class="sequenceName"></select>
                             </div>
                             <div class="col-1 ps-0 mt-auto">
                                 <button id="tatorPlusButton" type="button" class="plusButton">
@@ -114,9 +114,9 @@
                     </div>
                 </div>
             </div>
-            <button type="button" id="tatorQaqcButton" class="btn btn-success mt-5 mb-2 indexButton" disabled hidden>QA/QC</button>
+            <button type="button" id="tatorQaqcButton" class="btn btn-success mt-5 mb-2 indexButton" hidden>QA/QC</button>
             <br>
-            <button type="button" id="tatorImageReviewButton" class="btn btn-success mb-5 indexButton mt-4" disabled>Image Review</button>
+            <button type="button" id="tatorImageReviewButton" class="btn btn-success mb-5 indexButton mt-4">Image Review</button>
         </form>
     </div>
     {% include 'components/loading-fish.html' %}
