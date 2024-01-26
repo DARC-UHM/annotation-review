@@ -1,8 +1,24 @@
+import os
+import json
 import pandas as pd
 import requests
 import tator
 
+from typing import Dict
 from flask import session
+
+
+def flatten_taxa_tree(tree: Dict, flat: Dict):
+    """
+    Recursive function taking a taxonomy tree returned from WoRMS API and flattening it into a single dictionary.
+
+    :param Dict tree: The nested taxon tree from WoRMS.
+    :param Dict flat: The newly created flat taxon tree.
+    """
+    flat[tree['rank']] = tree['scientificname']
+    if tree['child'] is not None:
+        flatten_taxa_tree(tree['child'], flat)
+    return flat
 
 
 class LocalizationProcessor:
@@ -26,7 +42,7 @@ class LocalizationProcessor:
 
     def load_localizations(self):
         print('Fetching localizations...', end='')
-        phylogeny = {'Animalia': {}}
+        phylogeny = {}
         media_ids = []
         localizations = []
         for deployment in self.deployments:
@@ -46,11 +62,21 @@ class LocalizationProcessor:
         print('Processing localizations...', end='')
 
         formatted_localizations = []
+        try:
+            with open(os.path.join('cache', 'phylogeny.json'), 'r') as f:
+                phylogeny = json.load(f)
+        except FileNotFoundError:
+            pass
 
         for localization in localizations:
             scientific_name = localization['attributes']['Scientific Name']
             if scientific_name not in phylogeny.keys():
-                phylogeny[scientific_name] = {}
+                req = requests.get(f'https://www.marinespecies.org/rest/AphiaIDByName/{scientific_name}?marine_only=true')
+                if req.status_code == 200:
+                    aphia_id = req.json()
+                    req = requests.get(f'https://www.marinespecies.org/rest/AphiaClassificationByAphiaID/{aphia_id}')
+                    if req.status_code == 200:
+                        phylogeny[scientific_name] = flatten_taxa_tree(req.json(), {})
             formatted_localizations.append({
                 'id': localization['id'],
                 'type': localization['type'],
@@ -70,41 +96,23 @@ class LocalizationProcessor:
                 'frame': localization['frame'],
                 'frame_url': f'/tator-frame/{localization["media"]}/{localization["frame"]}',
                 'media_id': localization['media'],
-                'phylum': phylogeny[scientific_name]['phylum'] if 'phylum' in phylogeny[scientific_name].keys() else None,
-                'subphylum': phylogeny[scientific_name]['subphylum'] if 'subphylum' in phylogeny[scientific_name].keys() else None,
-                'superclass': phylogeny[scientific_name]['superclass'] if 'superclass' in phylogeny[scientific_name].keys() else None,
-                'class': phylogeny[scientific_name]['class'] if 'class' in phylogeny[scientific_name].keys() else None,
-                'subclass': phylogeny[scientific_name]['subclass'] if 'subclass' in phylogeny[scientific_name].keys() else None,
-                'superorder': phylogeny[scientific_name]['superorder'] if 'superorder' in phylogeny[scientific_name].keys() else None,
-                'order': phylogeny[scientific_name]['order'] if 'order' in phylogeny[scientific_name].keys() else None,
-                'suborder': phylogeny[scientific_name]['suborder'] if 'suborder' in phylogeny[scientific_name].keys() else None,
-                'infraorder': phylogeny[scientific_name]['infraorder'] if 'infraorder' in phylogeny[scientific_name].keys() else None,
-                'superfamily': phylogeny[scientific_name]['superfamily'] if 'superfamily' in phylogeny[scientific_name].keys() else None,
-                'family': phylogeny[scientific_name]['family'] if 'family' in phylogeny[scientific_name].keys() else None,
-                'subfamily': phylogeny[scientific_name]['subfamily'] if 'subfamily' in phylogeny[scientific_name].keys() else None,
-                'genus': phylogeny[scientific_name]['genus'] if 'genus' in phylogeny[scientific_name].keys() else None,
-                'species': phylogeny[scientific_name]['species'] if 'species' in phylogeny[scientific_name].keys() else None,
+                'phylum': phylogeny[scientific_name]['Phylum'] if 'Phylum' in phylogeny[scientific_name].keys() else None,
+                'subphylum': phylogeny[scientific_name]['Subphylum'] if 'Subphylum' in phylogeny[scientific_name].keys() else None,
+                'superclass': phylogeny[scientific_name]['Superclass'] if 'Superclass' in phylogeny[scientific_name].keys() else None,
+                'class': phylogeny[scientific_name]['Class'] if 'Class' in phylogeny[scientific_name].keys() else None,
+                'subclass': phylogeny[scientific_name]['Subclass'] if 'Subclass' in phylogeny[scientific_name].keys() else None,
+                'superorder': phylogeny[scientific_name]['Superorder'] if 'Superorder' in phylogeny[scientific_name].keys() else None,
+                'order': phylogeny[scientific_name]['Order'] if 'Order' in phylogeny[scientific_name].keys() else None,
+                'suborder': phylogeny[scientific_name]['Suborder'] if 'Suborder' in phylogeny[scientific_name].keys() else None,
+                'infraorder': phylogeny[scientific_name]['Infraorder'] if 'Infraorder' in phylogeny[scientific_name].keys() else None,
+                'superfamily': phylogeny[scientific_name]['Superfamily'] if 'Superfamily' in phylogeny[scientific_name].keys() else None,
+                'family': phylogeny[scientific_name]['Family'] if 'Family' in phylogeny[scientific_name].keys() else None,
+                'subfamily': phylogeny[scientific_name]['Subfamily'] if 'Subfamily' in phylogeny[scientific_name].keys() else None,
+                'genus': phylogeny[scientific_name]['Genus'] if 'Genus' in phylogeny[scientific_name].keys() else None,
+                'species': phylogeny[scientific_name]['Species'] if 'Species' in phylogeny[scientific_name].keys() else None,
             })
 
         localization_df = pd.DataFrame(formatted_localizations)
-        localization_df = localization_df.sort_values(by=[
-            'phylum',
-            'subphylum',
-            'superclass',
-            'class',
-            'subclass',
-            'superorder',
-            'order',
-            'suborder',
-            'infraorder',
-            'superfamily',
-            'family',
-            'subfamily',
-            'genus',
-            'species',
-            'frame',
-            'media_id',
-        ])
 
         def collect_points(points):
             return [point for point in points]
@@ -141,6 +149,25 @@ class LocalizationProcessor:
                 'species': 'first',
         }).reset_index()
 
+        localization_df = localization_df.sort_values(by=[
+            'phylum',
+            'subphylum',
+            'superclass',
+            'class',
+            'subclass',
+            'superorder',
+            'order',
+            'suborder',
+            'infraorder',
+            'superfamily',
+            'family',
+            'subfamily',
+            'genus',
+            'species',
+            'frame',
+            'media_id',
+        ])
+
         for index, row in localization_df.iterrows():
             self.distilled_records.append({
                 'id': row['id'],
@@ -168,4 +195,13 @@ class LocalizationProcessor:
                 'genus': row['genus'],
                 'species': row['species'],
             })
+
+        try:
+            with open(os.path.join('cache', 'phylogeny.json'), 'w') as f:
+                json.dump(phylogeny, f, indent=2)
+        except FileNotFoundError:
+            os.makedirs('cache')
+            with open(os.path.join('cache', 'phylogeny.json'), 'w') as f:
+                json.dump(phylogeny, f, indent=2)
+
         print('processed!')

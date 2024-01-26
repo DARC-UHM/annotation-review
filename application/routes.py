@@ -15,8 +15,8 @@ from application.server.annosaurus import *
 
 # TODO
 #  - VARS: store list of dives in session rather than loading each time
-#  - VARS: store concepts in session
-#  - VARS/Tator: store concept_phylogeny in session?
+#  - VARS: store VARS concepts in file
+#  - VARS/Tator: store concept_phylogeny in file
 
 load_dotenv()
 

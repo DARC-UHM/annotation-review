@@ -1,4 +1,3 @@
-import { autocomplete } from '../../util/autocomplete.js';
 import { reviewerList } from '../../util/reviewer-list.js';
 import { updateFlashMessages } from '../../util/updateFlashMessages.js';
 
