@@ -1,6 +1,5 @@
 import os
 import webbrowser
-import atexit
 
 from flask import Flask
 from flask_session import Session
@@ -31,9 +30,6 @@ app.config['SESSION_PERMANENT'] = False
 app.config['SESSION_USE_SIGNER'] = True
 
 Session(app)
-
-if os.environ.get('_FLASK_ENV') == 'production':
-    atexit.register(remove_session_files)
 
 print('\nLaunching application...')
 Timer(1, open_browser).start()

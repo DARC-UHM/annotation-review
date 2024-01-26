@@ -41,9 +41,28 @@ async function getTatorSections(projectId) {
             $('#tatorSection').append(`<option value="${section.id}">${section.name}</option>`);
         }
         $('#tatorSection').val(json[0].id);
-        $('#tatorQaqcButton')[0].disabled = false;
-        $('#tatorImageReviewButton')[0].disabled = false;
+        await getTatorDeployments(projectId, json[0].id);
     }
+}
+
+async function getTatorDeployments(projectId, sectionId) {
+    if (!projectId || !sectionId) {
+        return;
+    }
+    $('#load-overlay').addClass('loader-bg');
+    $('#load-overlay').removeClass('loader-bg-hidden');
+    const res = await fetch(`/tator-deployments/${projectId}/${sectionId}`);
+    const json = await res.json();
+    console.log(json);
+    if (res.status === 200) {
+        $('#tatorDeployment').html('<option value="" selected disabled>Select a deployment</option>');
+        for (const deployment of json) {
+            $('#tatorDeployment').append(`<option value="${deployment}">${deployment}</option>`);
+        }
+        $('#tatorDeployment').val(json[0]);
+    }
+    $('#load-overlay').addClass('loader-bg-hidden');
+    $('#load-overlay').removeClass('loader-bg');
 }
 
 async function tatorLogin() {
@@ -62,6 +81,8 @@ async function tatorLogin() {
         $('#tatorLoggedInUser').html(json.username);
         $('#tatorIndexForm').show();
         await getTatorProjects();
+        $('#tatorQaqcButton')[0].disabled = false;
+        $('#tatorImageReviewButton')[0].disabled = false;
         updateFlashMessages('Logged in to Tator', 'success');
     } else {
         updateFlashMessages('Could not log in to Tator', 'danger');
@@ -91,7 +112,8 @@ $('#tatorSelect').on('click', async () => {
     $('#load-overlay').removeClass('loader-bg');
 });
 
-$('#tatorProject').on('change', getTatorSections($('#tatorProject').val()));
+$('#tatorProject').on('change', () => getTatorSections($('#tatorProject').val()));
+$('#tatorSection').on('change', () => getTatorDeployments($('#tatorProject').val(), $('#tatorSection').val()));
 
 $('#varsSelect').on('click', () => {
     $('#tatorLogin').hide();

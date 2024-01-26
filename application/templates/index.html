@@ -85,10 +85,34 @@
                 </span>
             </div>
             <div>
-                <label for="tatorProject" class="small mb-2 mt-4">Project:</label><br>
-                <select id="tatorProject" name="project" class="sequenceName"></select><br>
-                <label for="tatorSection" class="small my-2">Section:</label><br>
-                <select id="tatorSection" name="section" class="sequenceName"></select>
+                <div class="row d-inline-flex">
+                    <div class="col-1"></div>
+                    <div class="col-10 p-0">
+                        <label for="tatorProject" class="small mb-2 mt-4">Project:</label><br>
+                        <select id="tatorProject" name="project" class="sequenceName"></select><br>
+                        <label for="tatorSection" class="small mb-2 mt-3">Section:</label><br>
+                        <select id="tatorSection" name="section" class="sequenceName"></select><br>
+                    </div>
+                    <div class="col-1"></div>
+                </div>
+                <div id="tatorDeploymentList" class="my-2">
+                    <div id="depList1">
+                        <div class="row d-inline-flex">
+                            <div class="col-1"></div>
+                            <div class="col-10 p-0">
+                                <label for="tatorDeployment" class="small mb-2">Deployments:</label><br>
+                                <select id="tatorDeployment" name="project" class="sequenceName"></select><br>
+                            </div>
+                            <div class="col-1 ps-0 mt-auto">
+                                <button id="tatorPlusButton" type="button" class="plusButton">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
+                                      <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <button type="button" id="tatorQaqcButton" class="btn btn-success mt-5 mb-2 indexButton" disabled hidden>QA/QC</button>
             <br>

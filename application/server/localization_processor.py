@@ -18,30 +18,10 @@ class LocalizationProcessor:
     def __init__(self, project_id: int, section_id: int, api: tator.api):
         self.project_id = project_id
         self.section_id = section_id
-        self.deployment_list = set()
-        self.media_list = {}
         self.distilled_records = []
         self.api = api
         self.section_name = self.api.get_section(self.section_id).name
-        self.load_media()
         self.load_localizations()
-
-    def load_media(self):
-        if f'{self.project_id}_{self.section_id}' in session.keys():
-            self.media_list = session[f'{self.project_id}_{self.section_id}']['media_list']
-            self.deployment_list = session[f'{self.project_id}_{self.section_id}']['deployment_list']
-            print('Loaded media list from session')
-        else:
-            print('Fetching media list...', end='')
-            for media in self.api.get_media_list(project=self.project_id, section=self.section_id):
-                self.media_list[media.id] = media.name
-                self.deployment_list.add(media.name[:11])
-            session[f'{self.project_id}_{self.section_id}'] = {
-                'media_list': self.media_list,
-                'deployment_list': self.deployment_list
-            }
-            session.modified = True
-            print('fetched!')
 
     def load_localizations(self):
         print('Fetching localizations...', end='')

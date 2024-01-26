@@ -16,7 +16,6 @@ from application.server.annosaurus import *
 # TODO
 #  - VARS: store list of dives in session rather than loading each time
 #  - VARS: store concepts in session
-#  - Tator: add deployment filter to homepage (so don't have to load entire dive every time)
 #  - VARS/Tator: store concept_phylogeny in session?
 
 load_dotenv()
@@ -131,6 +130,28 @@ def tator_sections(project_id):
         return [{'id': section.id, 'name': section.name} for section in section_list], 200
     except tator.openapi.tator_openapi.exceptions.ApiException:
         return {}, 400
+
+
+# get a list of deployments associated with a project & section from tator
+@app.get('/tator-deployments/<project_id>/<section_id>')
+def load_media(project_id, section_id):
+    if f'{project_id}_{section_id}_dep_list' in session.keys():
+        return session[f'{project_id}_{section_id}_dep_list']
+    else:
+        try:
+            deployment_list = set()
+            for media in tator.get_api(
+                    host=TATOR_URL,
+                    token=session['tator_token'],
+            ).get_media_list(
+                    project=project_id,
+                    section=section_id,):
+                deployment_list.add(media.name[:11])
+            sorted_list = sorted(list(deployment_list))
+            session[f'{project_id}_{section_id}_dep_list'] = sorted_list
+            return sorted_list, 200
+        except tator.openapi.tator_openapi.exceptions.ApiException:
+            return {}, 400
 
 
 # view all Tator annotations (localizations) in a specified project & section
