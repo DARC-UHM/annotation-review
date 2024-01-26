@@ -1,6 +1,6 @@
 import os
-import tator
 import base64
+import tator
 
 from flask import render_template, request, redirect, flash, session, Response
 from json import JSONDecodeError
@@ -135,23 +135,26 @@ def tator_sections(project_id):
 # get a list of deployments associated with a project & section from tator
 @app.get('/tator-deployments/<project_id>/<section_id>')
 def load_media(project_id, section_id):
-    if f'{project_id}_{section_id}_dep_list' in session.keys() and request.args.get('refresh') != 'true':
-        return session[f'{project_id}_{section_id}_dep_list']
+    if f'{project_id}_{section_id}' in session.keys() and request.args.get('refresh') != 'true':
+        return sorted(session[f'{project_id}_{section_id}'].keys()), 200
     else:
-        try:
-            deployment_list = set()
-            for media in tator.get_api(
-                    host=TATOR_URL,
-                    token=session['tator_token'],
-            ).get_media_list(
-                    project=project_id,
-                    section=section_id,):
-                deployment_list.add(media.name[:11])
-            sorted_list = sorted(list(deployment_list))
-            session[f'{project_id}_{section_id}_dep_list'] = sorted_list
-            return sorted_list, 200
-        except tator.openapi.tator_openapi.exceptions.ApiException:
-            return {}, 400
+        deployment_list = {}
+        # REST is much faster than Python API for large queries
+        req = requests.get(
+            f'https://cloud.tator.io/rest/Medias/{project_id}?section={section_id}',
+            headers={
+                'Content-Type': 'application/json',
+                'Authorization': f'Token {session["tator_token"]}',
+            })
+        if req.status_code != 200:
+            return {}, req.status_code
+        for media in req.json():
+            if media['name'][:11] not in deployment_list.keys():
+                deployment_list[media['name'][:11]] = [media['id']]
+            else:
+                deployment_list[media['name'][:11]].append(media['id'])
+        session[f'{project_id}_{section_id}'] = deployment_list
+        return sorted(deployment_list.keys()), 200
 
 
 # view all Tator annotations (localizations) in a specified project & section
@@ -161,7 +164,12 @@ def tator_image_review(project_id, section_id):
         return redirect('/')
     try:
         api = tator.get_api(host=TATOR_URL, token=session['tator_token'])
-        localization_processor = LocalizationProcessor(project_id, section_id, api)
+        localization_processor = LocalizationProcessor(
+            project_id=project_id,
+            section_id=section_id,
+            api=api,
+            deployment_list=request.args.getlist('deployment')
+        )
     except tator.openapi.tator_openapi.exceptions.ApiException:
         flash('Please log in to Tator', 'info')
         return redirect('/')

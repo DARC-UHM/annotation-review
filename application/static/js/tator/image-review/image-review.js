@@ -283,8 +283,15 @@ function saveScrollPosition(page) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    const deployments = [];
     const url = new URL(window.location.href);
     const queryAndHash = url.search + url.hash;
+
+    for (const pair of url.searchParams.entries()) { // the only search params we expect here are deployments
+        deployments.push(pair[1]);
+    }
+
+    $('#deploymentList').html(deployments.join(', '));
 
     if (sessionStorage.getItem(`scrollPos${queryAndHash}`)) {
         window.scrollTo({

@@ -15,25 +15,33 @@ class LocalizationProcessor:
     #  add ability to edit all clips in a deployment (FOV, substrate, location, etc)
     #  add external image review (download to server?)
 
-    def __init__(self, project_id: int, section_id: int, api: tator.api):
+    def __init__(self, project_id: int, section_id: int, api: tator.api, deployment_list: list):
         self.project_id = project_id
         self.section_id = section_id
-        self.distilled_records = []
         self.api = api
+        self.deployments = deployment_list
+        self.distilled_records = []
         self.section_name = self.api.get_section(self.section_id).name
         self.load_localizations()
 
     def load_localizations(self):
         print('Fetching localizations...', end='')
         phylogeny = {'Animalia': {}}
+        media_ids = []
+        localizations = []
+        for deployment in self.deployments:
+            media_ids += session[f'{self.project_id}_{self.section_id}'][deployment]
         # REST is much faster than Python API for large queries
-        req = requests.get(
-            f'https://cloud.tator.io/rest/Localizations/{self.project_id}?section={self.section_id}',
-            headers={
-                'Content-Type': 'application/json',
-                'Authorization': f'Token {session["tator_token"]}',
-            })
-        localizations = req.json()
+        # adding too many media ids results in a query that is too long, so we have to break it up
+        for i in range(0, len(media_ids), 300):
+            chunk = media_ids[i:i + 300]
+            req = requests.get(
+                f'https://cloud.tator.io/rest/Localizations/{self.project_id}?media_id={",".join(map(str, chunk))}',
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Token {session["tator_token"]}',
+                })
+            localizations += req.json()
         print('fetched!')
         print('Processing localizations...', end='')
 
