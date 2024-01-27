@@ -123,10 +123,6 @@ class LocalizationProcessor:
                 'species': phylogeny[scientific_name]['Species'] if 'Species' in phylogeny[scientific_name].keys() else None,
             })
 
-        for localization in formatted_localizations:
-            for key in localization.keys():
-                print(key, localization[key])
-            print()
         localization_df = pd.DataFrame(formatted_localizations)
 
         def collect_points(points):

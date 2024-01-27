@@ -408,13 +408,9 @@ function updateHash() {
     }
     if (filter['annotator']) {
         const annotatorNum = Object.keys(knownAnnotators).find((key) => knownAnnotators[key].toLowerCase().includes(filter['annotator'].toLowerCase().replaceAll('%20', ' ')));
-        console.log(annotatorNum);
         localizationsToDisplay = localizationsToDisplay.filter((anno) => anno['annotator'] === parseInt(annotatorNum));
     }
 
-    for (const localization of localizationsToDisplay) {
-        console.log(localization);
-    }
     if (!localizationsToDisplay.length) {
         $('#404').show();
     } else {
