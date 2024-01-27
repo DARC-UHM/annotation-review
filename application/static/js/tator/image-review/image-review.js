@@ -1,3 +1,4 @@
+import { autocomplete } from '../../util/autocomplete.js';
 import { reviewerList } from '../../util/reviewer-list.js';
 import { updateFlashMessages } from '../../util/updateFlashMessages.js';
 
@@ -241,10 +242,42 @@ const handlePageButtonsStatus = () => {
     }
 };
 
+// remove filter from hash
+function removeFilter(key, value) {
+    const index = window.location.hash.indexOf(key);
+    const newHash = `${window.location.hash.substring(0, index)}${window.location.hash.substring(index + key.length + value.length + 2)}`;
+    saveScrollPosition(currentPage);
+    location.hash = newHash;
+}
+
+window.removeFilter = removeFilter;
+
+function showAddFilter() {
+    $('#addFilterRow').show();
+    $('#addFilterButton').hide();
+}
+
+window.showAddFilter = showAddFilter;
+
+// add filter to hash
+function addFilter() {
+    event.preventDefault();
+    const index = window.location.hash.indexOf('pg=');
+    const filterKey = $('#imageFilterSelect').val().toLowerCase();
+    const filterVal = $('#imageFilterEntry').val();
+    saveScrollPosition(currentPage);
+    location.hash = location.hash.substring(0, index - 1).length > 1
+        ? `${location.hash.substring(0, index - 1)}&${filterKey}=${filterVal}&pg=1`
+        : `#${filterKey}=${filterVal}&pg=1`;
+}
+
+window.addFilter = addFilter;
+
 function sortBy(key) {
     let tempKey;
     key = key.replaceAll('%20', ' ');
     if (key === 'Default') {
+        localizationsToDisplay = localizations;
         return;
     }
     tempKey = key.toLowerCase();
@@ -260,11 +293,18 @@ function sortBy(key) {
     $('#sortSelect').val(key);
 }
 
+function updateFilterHint() {
+    $('#imageFilterEntry').attr('placeholder', `Enter ${$('#imageFilterSelect').val().toLowerCase()}`);
+}
+
+window.updateFilterHint = updateFilterHint;
+
 function updateHash() {
     const url = new URL(window.location.href);
     const hash = url.hash.slice(1);
     const filterPairs = hash.split('&');
     const filter = {};
+    const deployments = [];
 
     localizationsToDisplay = localizations;
 
@@ -280,6 +320,95 @@ function updateHash() {
         }
     }
 
+    for (const pair of url.searchParams.entries()) { // the only search params we expect here are deployments
+        deployments.push(pair[1]);
+    }
+
+    $('#deploymentList').empty();
+    $('#deploymentList').html(deployments.join(', '));
+    $('#deploymentList').append(`<div id="filterList" class="small mt-2">Filters: ${Object.keys(filter).length ? '' : 'None'}</div>`);
+
+    for (const key of Object.keys(filter)) {
+        $('#filterList').append(`
+            <span class="small filter-pill position-relative">
+                ${key[0].toUpperCase()}${key.substring(1)}: ${filter[key].replaceAll('%20', ' ')}
+                <button type="button" class="position-absolute filter-x" onclick="removeFilter('${key}', '${filter[key]}')">×</button>
+            </span>
+        `);
+    }
+
+    $('#filterList').append(`
+        <span id="addFilterRow" class="small ms-3" style="display: none;">
+            <form onsubmit="addFilter()" class="d-inline-block">
+                <span class="position-relative">
+                    <select id="imageFilterSelect" onchange="updateFilterHint()">
+                        <option>Phylum</option>
+                        <option>Class</option>
+                        <option>Order</option>
+                        <option>Family</option>
+                        <option>Genus</option>
+                        <option>Species</option>
+                        <option>Certainty</option>
+                        <option>Notes</option>
+                        <option>Annotator</option>
+                    </select>
+                    <span class="position-absolute dropdown-chev">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
+                          <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                        </svg>
+                    </span>
+                </span>
+                <input type="text" id="imageFilterEntry" name="blank" placeholder="Enter phylum" autocomplete="off">
+                <button id="saveFilterButton" type="submit" class="plusButton">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-check" viewBox="0 0 16 16">
+                      <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
+                    </svg>
+                </button>
+            </form>
+        </span>
+        <button id="addFilterButton" type="button" class="plusButton ms-2" onclick="showAddFilter()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-plus"
+                 viewBox="0 0 16 16">
+                <path
+                    d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+            </svg>
+        </button>
+    `);
+    autocomplete($('#imageFilterEntry'), allConcepts);
+
+    if (filter['phylum']) {
+        localizationsToDisplay = localizationsToDisplay.filter((anno) => anno['phylum']?.toLowerCase() === filter['phylum'].toLowerCase());
+    }
+    if (filter['class']) {
+        localizationsToDisplay = localizationsToDisplay.filter((anno) => anno['class']?.toLowerCase() === filter['class'].toLowerCase());
+    }
+    if (filter['order']) {
+        localizationsToDisplay = localizationsToDisplay.filter((anno) => anno['order']?.toLowerCase() === filter['order'].toLowerCase());
+    }
+    if (filter['family']) {
+        localizationsToDisplay = localizationsToDisplay.filter((anno) => anno['family']?.toLowerCase() === filter['family'].toLowerCase());
+    }
+    if (filter['genus']) {
+        localizationsToDisplay = localizationsToDisplay.filter((anno) => anno['genus']?.toLowerCase() === filter['genus'].toLowerCase());
+    }
+    if (filter['species']) {
+        localizationsToDisplay = localizationsToDisplay.filter((anno) => anno['species']?.toLowerCase() === filter['species'].toLowerCase().replaceAll('%20', ' '));
+    }
+    if (filter['certainty']) {
+        localizationsToDisplay = localizationsToDisplay.filter((anno) => anno['identity_certainty']?.toLowerCase().includes(filter['certainty'].toLowerCase().replaceAll('%20', ' ')));
+    }
+    if (filter['notes']) {
+        localizationsToDisplay = localizationsToDisplay.filter((anno) => anno['notes']?.toLowerCase().includes(filter['notes'].toLowerCase().replaceAll('%20', ' ')));
+    }
+    if (filter['annotator']) {
+        const annotatorNum = Object.keys(knownAnnotators).find((key) => knownAnnotators[key].toLowerCase().includes(filter['annotator'].toLowerCase().replaceAll('%20', ' ')));
+        console.log(annotatorNum);
+        localizationsToDisplay = localizationsToDisplay.filter((anno) => anno['annotator'] === parseInt(annotatorNum));
+    }
+
+    for (const localization of localizationsToDisplay) {
+        console.log(localization);
+    }
     if (!localizationsToDisplay.length) {
         $('#404').show();
     } else {
@@ -311,15 +440,8 @@ function saveScrollPosition(page) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    const deployments = [];
     const url = new URL(window.location.href);
     const queryAndHash = url.search + url.hash;
-
-    for (const pair of url.searchParams.entries()) { // the only search params we expect here are deployments
-        deployments.push(pair[1]);
-    }
-
-    $('#deploymentList').html(deployments.join(', '));
 
     if (sessionStorage.getItem(`scrollPos${queryAndHash}`)) {
         window.scrollTo({

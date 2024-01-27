@@ -320,6 +320,7 @@ function sortBy(key) {
     let tempKey;
     key = key.replaceAll('%20', ' ');
     if (key === 'Default') {
+        annotationsToDisplay = annotations;
         return;
     }
     if (key === 'Timestamp') {

@@ -25,6 +25,7 @@ function sortBy(key) {
     let tempKey;
     key = key.replace('%20', ' ');
     if (key === 'Default') {
+        annotationsToDisplay = annotations;
         return;
     }
     if (key === 'Timestamp') {

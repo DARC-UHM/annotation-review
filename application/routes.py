@@ -173,9 +173,12 @@ def tator_image_review(project_id, section_id):
     except tator.openapi.tator_openapi.exceptions.ApiException:
         flash('Please log in to Tator', 'info')
         return redirect('/')
+    with requests.get(f'{HURLSTOR_URL}:8083/kb/v1/concept') as r:
+        vars_concepts = r.json()
     data = {
         'localizations': localization_processor.distilled_records,
         'section_name': localization_processor.section_name,
+        'concepts': vars_concepts,
     }
     return render_template('tator/image-review/image-review.html', data=data)
 
