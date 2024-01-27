@@ -186,14 +186,20 @@ const setCurrentPage = (pageNum) => {
                                 <img src="${localization.frame_url}" style="width: 580px;" alt="${localization.scientific_name}"/>
                                 <div id="${localization.id}_overlay">
                                 ${localization.type === 49
-                ? localization.points.map((point) => {
-                    return `<span class="position-absolute tator-dot" style="top: ${point[1] * 100}%; left: ${point[0] * 100}%;"></span>`;
-                }).join('')
-                : `<span
-                                        class="position-absolute tator-box"
-                                        style="top: ${localization.points[0][1] * 100}%; left: ${localization.points[0][0] * 100}%; width: ${localization.dimensions[0] * 100}%; height: ${localization.dimensions[1] * 100}%;"
-                                    ></span>`
-            }
+                                    ? localization.points.map((point) => {
+                                        return `<span class="position-absolute tator-dot" style="top: ${point[1] * 100}%; left: ${point[0] * 100}%;"></span>`;
+                                    }).join('')
+                                    : localization.points.map((point, index) => {
+                                        if (index < 1) {
+                                            return `<span
+                                                class="position-absolute tator-box"
+                                                style="top: ${point[1] * 100}%; left: ${point[0] * 100}%; width: ${localization.dimensions[0] * 100}%; height: ${localization.dimensions[1] * 100}%;"
+                                            ></span>`
+                                        } else {
+                                            return `<span class="position-absolute tator-dot" style="top: ${point[1] * 100}%; left: ${point[0] * 100}%;"></span>`;
+                                        }
+                                    }).join('')
+                                }
                                 </div>
                             </div>
                         </a>

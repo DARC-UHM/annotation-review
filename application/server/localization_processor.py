@@ -72,18 +72,29 @@ class LocalizationProcessor:
             scientific_name = localization['attributes']['Scientific Name']
             if scientific_name not in phylogeny.keys():
                 req = requests.get(f'https://www.marinespecies.org/rest/AphiaIDByName/{scientific_name}?marine_only=true')
-                if req.status_code == 200:
+                phylogeny[scientific_name] = {}
+                if req.status_code == 200 and req.json() != -999:  # -999 means more than one matching record
                     aphia_id = req.json()
                     req = requests.get(f'https://www.marinespecies.org/rest/AphiaClassificationByAphiaID/{aphia_id}')
                     if req.status_code == 200:
                         phylogeny[scientific_name] = flatten_taxa_tree(req.json(), {})
+                else:
+                    req = requests.get(f'https://www.marinespecies.org/rest/AphiaRecordsByName/{scientific_name}?like=false&marine_only=true&offset=1')
+                    if req.status_code == 200 and len(req.json()) > 0:
+                        # just take the first accepted record
+                        for record in req.json():
+                            if record['status'] == 'accepted':
+                                req = requests.get(f'https://www.marinespecies.org/rest/AphiaClassificationByAphiaID/{record["AphiaID"]}')
+                                if req.status_code == 200:
+                                    phylogeny[scientific_name] = flatten_taxa_tree(req.json(), {})
+                                break
             formatted_localizations.append({
                 'id': localization['id'],
                 'type': localization['type'],
                 'points': [localization['x'], localization['y']],
                 'dimensions': [localization['width'], localization['height']] if localization['type'] == 48 else None,
                 'scientific_name': scientific_name,
-                'count': 1,
+                'count': 0 if localization['type'] == 48 else 1,
                 'attracted': localization['attributes']['Attracted'] if 'Attracted' in localization['attributes'].keys() else None,
                 'categorical_abundance': localization['attributes']['Categorical Abundance'] if 'Categorical Abundance' in localization['attributes'].keys() else None,
                 'identification_remarks': localization['attributes']['IdentificationRemarks'] if 'IdentificationRemarks' in localization['attributes'].keys() else None,
@@ -112,6 +123,10 @@ class LocalizationProcessor:
                 'species': phylogeny[scientific_name]['Species'] if 'Species' in phylogeny[scientific_name].keys() else None,
             })
 
+        for localization in formatted_localizations:
+            for key in localization.keys():
+                print(key, localization[key])
+            print()
         localization_df = pd.DataFrame(formatted_localizations)
 
         def collect_points(points):
