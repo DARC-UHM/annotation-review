@@ -241,6 +241,25 @@ const handlePageButtonsStatus = () => {
     }
 };
 
+function sortBy(key) {
+    let tempKey;
+    key = key.replaceAll('%20', ' ');
+    if (key === 'Default') {
+        return;
+    }
+    tempKey = key.toLowerCase();
+    if (tempKey === 'timestamp') {
+        localizationsToDisplay = localizationsToDisplay.sort((a, b) => a.frame - b.frame);
+        localizationsToDisplay = localizationsToDisplay.sort((a, b) => a.media_id - b.media_id);
+    } else {
+        // move all records missing specified property to bottom
+        let filtered = localizationsToDisplay.filter((localization) => localization[tempKey]);
+        filtered = filtered.sort((a, b) => (a[tempKey] > b[tempKey]) ? 1 : ((b[tempKey] > a[tempKey]) ? -1 : 0));
+        localizationsToDisplay = filtered.concat(localizationsToDisplay.filter((anno) => !anno[tempKey]));
+    }
+    $('#sortSelect').val(key);
+}
+
 function updateHash() {
     const url = new URL(window.location.href);
     const hash = url.hash.slice(1);
@@ -250,6 +269,16 @@ function updateHash() {
     localizationsToDisplay = localizations;
 
     filterPairs.pop(); // pop page number
+
+    for (const pair of filterPairs) {
+        const key = pair.split('=')[0];
+        const value = pair.split('=')[1];
+        if (key !== 'sort') {
+            filter[key] = value;
+        } else {
+            sortBy(value);
+        }
+    }
 
     if (!localizationsToDisplay.length) {
         $('#404').show();
@@ -317,6 +346,13 @@ document.addEventListener('DOMContentLoaded', () => {
         setCurrentPage(1);
         $('#totalPageNum').html(pageCount);
         $('#totalPageNumBottom').html(pageCount);
+    });
+
+    $('#sortSelect').on('change', () => {
+        const hashList = window.location.hash.substring(1).split('&');
+        hashList.shift();
+        saveScrollPosition(currentPage);
+        location.hash = `#sort=${$('#sortSelect').val()}&${hashList.join('&')}`;
     });
 
 });

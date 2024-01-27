@@ -331,7 +331,6 @@ function sortBy(key) {
     }
     // move all records missing specified property to bottom
     let filtered = annotationsToDisplay.filter((anno) => anno[tempKey]);
-    filtered = filtered.sort((a, b) => (a.concept > b.concept) ? 1 : ((b.concept > a.concept) ? -1 : 0));
     if (tempKey === 'depth' || tempKey === 'identity_reference') {
         filtered = filtered.sort((a, b) => a[tempKey] - b[tempKey]); // sort by number instead of string
     } else {
