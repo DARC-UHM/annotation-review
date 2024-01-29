@@ -42,7 +42,6 @@ class LocalizationProcessor:
 
     def load_localizations(self):
         print('Fetching localizations...', end='')
-        phylogeny = {}
         media_ids = []
         localizations = []
         for deployment in self.deployments:
@@ -66,7 +65,7 @@ class LocalizationProcessor:
             with open(os.path.join('cache', 'phylogeny.json'), 'r') as f:
                 phylogeny = json.load(f)
         except FileNotFoundError:
-            pass
+            phylogeny = {}
 
         for localization in localizations:
             scientific_name = localization['attributes']['Scientific Name']

@@ -1,3 +1,6 @@
+import json
+import os
+
 import requests
 import pandas as pd
 
@@ -20,7 +23,6 @@ class ImageProcessor:
 
     def load_images(self, name: str):
         print(f'Fetching annotations for sequence {name} from VARS...', end='')
-        concept_phylogeny = {'Animalia': {}}
         image_records = []
         videos = []
 
@@ -37,16 +39,20 @@ class ImageProcessor:
 
         video_sequence_name = response['media'][0]['video_sequence_name']
 
-        """ 
-        Get all of the animal annotations that have images
-        """
+        try:
+            with open(os.path.join('cache', 'phylogeny.json'), 'r') as f:
+                phylogeny = json.load(f)
+        except FileNotFoundError:
+            phylogeny = {'Animalia': {}}
+
+        # Get all of the annotations that have images
         for annotation in response['annotations']:
             concept_name = annotation['concept']
             if annotation['image_references'] and concept_name[0].isupper():
                 image_records.append(annotation)
-                if concept_name not in concept_phylogeny.keys():
+                if concept_name not in phylogeny.keys():
                     # get the phylogeny from VARS kb
-                    concept_phylogeny[concept_name] = {}
+                    phylogeny[concept_name] = {}
                     with requests.get(f'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/{concept_name}') \
                             as vars_tax_res:
                         if vars_tax_res.status_code == 200:
@@ -58,10 +64,10 @@ class ImageProcessor:
                                 vars_tree = {}
                             while 'children' in vars_tree.keys():
                                 if 'rank' in vars_tree.keys():  # sometimes it's not
-                                    concept_phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
+                                    phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
                                 vars_tree = vars_tree['children'][0]
                             if 'rank' in vars_tree.keys():
-                                concept_phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
+                                phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
                         else:
                             print(f'\n{TERM_RED}Unable to find record for {annotation["concept"]}{TERM_NORMAL}')
 
@@ -110,20 +116,20 @@ class ImageProcessor:
                 'long': round(record['ancillary_data']['longitude'], 3) if 'ancillary_data' in record.keys() and 'longitude' in record['ancillary_data'].keys() else None,
                 'temperature': round(record['ancillary_data']['temperature_celsius'], 2) if 'ancillary_data' in record.keys() and 'temperature_celsius' in record['ancillary_data'].keys() else None,
                 'oxygen_ml_l': round(record['ancillary_data']['oxygen_ml_l'], 3) if 'ancillary_data' in record.keys() and 'oxygen_ml_l' in record['ancillary_data'].keys() else None,
-                'phylum': concept_phylogeny[concept_name]['phylum'] if 'phylum' in concept_phylogeny[concept_name].keys() else None,
-                'subphylum': concept_phylogeny[concept_name]['subphylum'] if 'subphylum' in concept_phylogeny[concept_name].keys() else None,
-                'superclass': concept_phylogeny[concept_name]['superclass'] if 'superclass' in concept_phylogeny[concept_name].keys() else None,
-                'class': concept_phylogeny[concept_name]['class'] if 'class' in concept_phylogeny[concept_name].keys() else None,
-                'subclass': concept_phylogeny[concept_name]['subclass'] if 'subclass' in concept_phylogeny[concept_name].keys() else None,
-                'superorder': concept_phylogeny[concept_name]['superorder'] if 'superorder' in concept_phylogeny[concept_name].keys() else None,
-                'order': concept_phylogeny[concept_name]['order'] if 'order' in concept_phylogeny[concept_name].keys() else None,
-                'suborder': concept_phylogeny[concept_name]['suborder'] if 'suborder' in concept_phylogeny[concept_name].keys() else None,
-                'infraorder': concept_phylogeny[concept_name]['infraorder'] if 'infraorder' in concept_phylogeny[concept_name].keys() else None,
-                'superfamily': concept_phylogeny[concept_name]['superfamily'] if 'superfamily' in concept_phylogeny[concept_name].keys() else None,
-                'family': concept_phylogeny[concept_name]['family'] if 'family' in concept_phylogeny[concept_name].keys() else None,
-                'subfamily': concept_phylogeny[concept_name]['subfamily'] if 'subfamily' in concept_phylogeny[concept_name].keys() else None,
-                'genus': concept_phylogeny[concept_name]['genus'] if 'genus' in concept_phylogeny[concept_name].keys() else None,
-                'species': concept_phylogeny[concept_name]['species'] if 'species' in concept_phylogeny[concept_name].keys() else None,
+                'phylum': phylogeny[concept_name]['phylum'] if 'phylum' in phylogeny[concept_name].keys() else None,
+                'subphylum': phylogeny[concept_name]['subphylum'] if 'subphylum' in phylogeny[concept_name].keys() else None,
+                'superclass': phylogeny[concept_name]['superclass'] if 'superclass' in phylogeny[concept_name].keys() else None,
+                'class': phylogeny[concept_name]['class'] if 'class' in phylogeny[concept_name].keys() else None,
+                'subclass': phylogeny[concept_name]['subclass'] if 'subclass' in phylogeny[concept_name].keys() else None,
+                'superorder': phylogeny[concept_name]['superorder'] if 'superorder' in phylogeny[concept_name].keys() else None,
+                'order': phylogeny[concept_name]['order'] if 'order' in phylogeny[concept_name].keys() else None,
+                'suborder': phylogeny[concept_name]['suborder'] if 'suborder' in phylogeny[concept_name].keys() else None,
+                'infraorder': phylogeny[concept_name]['infraorder'] if 'infraorder' in phylogeny[concept_name].keys() else None,
+                'superfamily': phylogeny[concept_name]['superfamily'] if 'superfamily' in phylogeny[concept_name].keys() else None,
+                'family': phylogeny[concept_name]['family'] if 'family' in phylogeny[concept_name].keys() else None,
+                'subfamily': phylogeny[concept_name]['subfamily'] if 'subfamily' in phylogeny[concept_name].keys() else None,
+                'genus': phylogeny[concept_name]['genus'] if 'genus' in phylogeny[concept_name].keys() else None,
+                'species': phylogeny[concept_name]['species'] if 'species' in phylogeny[concept_name].keys() else None,
             })
 
         # add to dataframe for quick sorting
@@ -176,4 +182,13 @@ class ImageProcessor:
                 'recorded_timestamp': parse_datetime(row['recorded_timestamp']).strftime('%d %b %y %H:%M:%S UTC'),
                 'video_sequence_name': row['video_sequence_name']
             })
+
+        try:
+            with open(os.path.join('cache', 'phylogeny.json'), 'w') as f:
+                json.dump(phylogeny, f, indent=2)
+        except FileNotFoundError:
+            os.makedirs('cache')
+            with open(os.path.join('cache', 'phylogeny.json'), 'w') as f:
+                json.dump(phylogeny, f, indent=2)
+
         print('processed!')

@@ -13,18 +13,15 @@ from application.server.qaqc_processor import QaqcProcessor
 from application.server.localization_processor import LocalizationProcessor
 from application.server.annosaurus import *
 
-# TODO
-#  - VARS: store concept_phylogeny in file
 
 load_dotenv()
 
-_FLASK_ENV = os.environ.get('_FLASK_ENV')
 HURLSTOR_URL = 'http://hurlstor.soest.hawaii.edu'
 LOCAL_APP_URL = 'http://127.0.0.1:8000'
 TATOR_URL = 'https://cloud.tator.io'
 DARC_REVIEW_HEADERS = {'API-Key': os.environ.get('DARC_REVIEW_API_KEY')}
 
-if _FLASK_ENV == 'no_server_edits':
+if os.environ.get('_FLASK_ENV') == 'no_server_edits':
     print('\n\nLOCAL DEVELOPMENT MODE: No server edits\n\n')
     ANNOSAURUS_URL = ''
     ANNOSAURUS_CLIENT_SECRET = ''
