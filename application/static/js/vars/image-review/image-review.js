@@ -279,7 +279,7 @@ function updateReviewerName(uuid) {
     const reviewerComments = comments[uuid].reviewer_comments;
     $('#reviewerName1').html(reviewerComments[0].reviewer);
     for (let i = 1; i < reviewerComments.length; i++) {
-        addReviewer(reviewerComments[i].reviewer, false);
+        addReviewer(reviewerComments[i].reviewer);
     }
 }
 
@@ -354,7 +354,7 @@ function removeReviewer(num) {
 
 window.removeReviewer = removeReviewer;
 
-function addReviewer(reviewerName, firstReviewer) {
+function addReviewer(reviewerName) {
     if (totalReviewers > 4) {
         return;
     }
@@ -805,9 +805,8 @@ $(document).ready(function () {
     $('#externalReviewModal').on('show.bs.modal', (e) => {
         currentAnnotation = $(e.relatedTarget).data('anno');
         $('#externalModalSubmitButton').prop('disabled', true);
-        addReviewer(null, true);
+        addReviewer(null);
 
-        $('#externalUrl').val(window.location.href);
         $('#externalObservationUuid').val(currentAnnotation.observation_uuid);
         $('#externalSequence').val(currentAnnotation.video_sequence_name);
         $('#externalTimestamp').val(currentAnnotation.recorded_timestamp);

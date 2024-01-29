@@ -172,7 +172,7 @@ const setCurrentPage = (pageNum) => {
                                 <button 
                                     type="button" 
                                     data-bs-toggle="modal" 
-                                    data-anno="${JSON.stringify(localization)}" 
+                                    data-anno='${JSON.stringify(localization)}' 
                                     data-bs-target="#externalReviewModal" 
                                     class="editButton">
                                         Add to external review
@@ -298,6 +298,71 @@ function sortBy(key) {
     }
     $('#sortSelect').val(key);
 }
+
+function removeReviewer(num) {
+    if (totalReviewers === 1) {
+        return;
+    }
+    $('#addReviewerButton').show();
+    $(`#reviewerRow${num}`).remove();
+    totalReviewers--;
+    $('#externalModalSubmitButton').prop('disabled', false);
+}
+
+window.removeReviewer = removeReviewer;
+
+function addReviewer(reviewerName) {
+    if (totalReviewers > 4) {
+        return;
+    }
+    const phylum = currentLocalization.phylum.toLowerCase();
+    const recommendedReviewers = reviewers.filter((obj) => obj.phylum.toLowerCase().includes(phylum));
+    const thisReviewerIndex = ++reviewerIndex;
+
+    totalReviewers++;
+
+    $('#reviewerList').append(`
+        <div id="reviewerRow${thisReviewerIndex}" class="row pt-1">
+            <input type="hidden" id="externalReviewer${thisReviewerIndex}" name="reviewer${thisReviewerIndex}">
+            <button type="button" id="reviewerName${thisReviewerIndex}Button" class="btn reviewerNameButton" name="reviewerName">
+                <div class="row">
+                    <div class="col-1 ms-2"></div>
+                    <div id="reviewerName${thisReviewerIndex}" class="col reviewerName">${reviewerName || 'Select'}</div>
+                    <div class="col-1 me-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
+                          <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                        </svg>
+                    </div>
+                </div>
+            </button>
+            <div class="col-1 mt-1">
+                <button id="xButton${thisReviewerIndex}" type="button" class="xButton">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
+                        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    `);
+    $(`#xButton${thisReviewerIndex}`).on('click', () => removeReviewer(thisReviewerIndex));
+    reviewerList($(`#reviewerName${thisReviewerIndex}Button`), recommendedReviewers, $(`#reviewerName${thisReviewerIndex}`));
+
+    if (totalReviewers === 5) {
+        $('#addReviewerButton').hide();
+    }
+}
+
+window.addReviewer = addReviewer;
+
+function updateReviewerName(uuid) {
+    const reviewerComments = comments[uuid].reviewer_comments;
+    $('#reviewerName1').html(reviewerComments[0].reviewer);
+    for (let i = 1; i < reviewerComments.length; i++) {
+        addReviewer(reviewerComments[i].reviewer);
+    }
+}
+
+window.updateReviewerName = updateReviewerName;
 
 function updateFilterHint() {
     $('#imageFilterEntry').attr('placeholder', `Enter ${$('#imageFilterSelect').val().toLowerCase()}`);
@@ -465,7 +530,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     $('#paginationSelect').on('change', () => {
         paginationLimit = $('#paginationSelect').val();
-        pageCount = Math.ceil(annotationsToDisplay.length / paginationLimit);
+        pageCount = Math.ceil(localizationsToDisplay.length / paginationLimit);
         getPaginationNumbers();
         setCurrentPage(1);
         $('#totalPageNum').html(pageCount);
@@ -490,6 +555,36 @@ window.onbeforeunload = (e) => {
 window.onhashchange = () => {
     updateHash();
 };
+
+$(document).ready(function () {
+    $('#externalReviewModal').on('show.bs.modal', (e) => {
+        currentLocalization = $(e.relatedTarget).data('anno');
+        console.log(currentLocalization);
+        $('#externalModalSubmitButton').prop('disabled', true);
+        addReviewer(null);
+
+        $('#externalId').val(currentLocalization.id);
+        $('#externalScientificName').val(currentLocalization.scientific_name);
+        $('#externalImageUrl').val(currentLocalization.image_url);
+        $('#externalAnnotator').val(knownAnnotators[currentLocalization.annotator]);
+        $('#externalLat').val(currentLocalization.lat);
+        $('#externalLong').val(currentLocalization.long);
+        $('#externalDepth').val(currentLocalization.depth);
+    });
+
+    $('#externalReviewModal').on('hide.bs.modal', () => {
+        currentLocalization = null;
+        totalReviewers = 0;
+        reviewerIndex = 0;
+
+        // clear the reviewer list from the modal
+        $('#reviewerList').empty();
+    })
+
+    $('#deleteReviewModal').on('show.bs.modal', function (e) {
+        $('#externalDeleteUuid').val($(e.relatedTarget).data('anno').observation_uuid);
+    });
+});
 
 
 // get rid of loading screen if back button is pressed (mozilla)

@@ -19,7 +19,6 @@ def favicon():
 
 @app.route('/')
 def index():
-    print(app.config)
     if 'reviewers' not in session.keys():
         # get list of reviewers from external review db
         try:
@@ -32,19 +31,18 @@ def index():
             print('\nERROR: unable to connect to external review server\n')
             flash('Unable to connect to external review server', 'danger')
             session['reviewers'] = []
-    if 'vars_video_sequences' not in session.keys() or 'vars_concepts' not in session.keys():
-        try:
-            # get list of sequences from vars
-            with requests.get(f'{app.config.get("HURLSTOR_URL")}:8084/vam/v1/videosequences/names') as req:
-                session['vars_video_sequences'] = req.json()
-            # get concept list from vars (for input validation)
-            with requests.get(f'{app.config.get("HURLSTOR_URL")}:8083/kb/v1/concept') as req:
-                session['vars_concepts'] = req.json()
-        except requests.exceptions.ConnectionError:
-            print('\nERROR: unable to connect to VARS\n')
-            flash('Unable to connect to VARS', 'danger')
-            session['vars_video_sequences'] = []
-            session['vars_concepts'] = []
+    try:
+        # get list of sequences from vars
+        with requests.get(f'{app.config.get("HURLSTOR_URL")}:8084/vam/v1/videosequences/names') as req:
+            session['vars_video_sequences'] = req.json()
+        # get concept list from vars (for input validation)
+        with requests.get(f'{app.config.get("HURLSTOR_URL")}:8083/kb/v1/concept') as req:
+            session['vars_concepts'] = req.json()
+    except requests.exceptions.ConnectionError:
+        print('\nERROR: unable to connect to VARS\n')
+        flash('Unable to connect to VARS', 'danger')
+        session['vars_video_sequences'] = []
+        session['vars_concepts'] = []
     try:
         with requests.get(
             f'{app.config.get("DARC_REVIEW_URL")}/stats',
@@ -108,7 +106,7 @@ def check_tator_token():
 # clears stored tator token
 @app.get('/tator-logout')
 def tator_logout():
-    session['tator_token'] = None
+    session.pop('tator_token', None)
     return {}, 200
 
 
@@ -183,6 +181,7 @@ def tator_image_review(project_id, section_id):
         'localizations': localization_processor.distilled_records,
         'section_name': localization_processor.section_name,
         'concepts': session['vars_concepts'],
+        'reviewers': session['reviewers'],
     }
     return render_template('tator/image-review/image-review.html', data=data)
 
@@ -631,9 +630,9 @@ def video():
     return render_template('video.html', data=data), 200
 
 
-# @app.errorhandler(Exception)
-# def server_error(e):
-#     error = f'{type(e).__name__}: {e}'
-#     print('\nApplication error 😔')
-#     print(error)
-#     return render_template('error.html', err=error), 500
+@app.errorhandler(Exception)
+def server_error(e):
+    error = f'{type(e).__name__}: {e}'
+    print('\nApplication error 😔')
+    print(error)
+    return render_template('error.html', err=error), 500

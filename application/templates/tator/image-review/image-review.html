@@ -155,7 +155,7 @@
                 <form id="updateExternalReviewerForm" onsubmit="updateExternalReviewers()" autocomplete="off">
                     <div class="modal-content">
                         <div class="modal-header text-center">
-                            <h5 class="modal-title mt-1 ms-4" style="font-weight: 600;">NOT YET IMPLEMENTED</h5>
+                            <h5 class="modal-title mt-1 ms-4" style="font-weight: 600;">External Review</h5>
                             <button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body text-start">
@@ -183,17 +183,12 @@
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Cancel</button>
                             <input type="hidden" id="externalReviewers" name="reviewers">
-                            <input type="hidden" id="externalObservationUuid" name="observation_uuid">
-                            <input type="hidden" id="externalSequence" name="sequence">
-                            <input type="hidden" id="externalTimestamp" name="timestamp">
+                            <input type="hidden" id="externalId" name="id">
                             <input type="hidden" id="externalImageUrl" name="image_url">
-                            <input type="hidden" id="externalVideoUrl" name="video_url">
                             <input type="hidden" id="externalAnnotator" name="annotator">
                             <input type="hidden" id="externalLat" name="lat">
                             <input type="hidden" id="externalLong" name="long">
                             <input type="hidden" id="externalDepth" name="depth">
-                            <input type="hidden" id="externalTemperature" name="temperature">
-                            <input type="hidden" id="externalOxygen" name="oxygen_ml_l">
                             <input type="submit" id="externalModalSubmitButton" class="btn btn-success modal-button" value="Save">
                         </div>
                     </div>
@@ -229,6 +224,7 @@
         const True = true;
         const False = false;
         const allConcepts = {{ data.concepts|safe }};
+        const reviewers = {{ data.reviewers|safe }};
         const localizations = {{ data.localizations|safe }};
     </script>
     <script type="module" src="/static/js/tator/image-review/image-review.js"></script>
