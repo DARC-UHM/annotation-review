@@ -183,7 +183,9 @@
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Cancel</button>
                             <input type="hidden" id="externalReviewers" name="reviewers">
-                            <input type="hidden" id="externalId" name="id">
+                            <input type="hidden" id="externalId" name="observation_uuid">
+                            <input type="hidden" id="externalScientificName" name="scientific_name">
+                            <input type="hidden" id="externalSequence" name="sequence">
                             <input type="hidden" id="externalImageUrl" name="image_url">
                             <input type="hidden" id="externalAnnotator" name="annotator">
                             <input type="hidden" id="externalLat" name="lat">
@@ -226,6 +228,7 @@
         const allConcepts = {{ data.concepts|safe }};
         const reviewers = {{ data.reviewers|safe }};
         const localizations = {{ data.localizations|safe }};
+        const tatorMedia = {{ data.tator_media|safe }};
     </script>
     <script type="module" src="/static/js/tator/image-review/image-review.js"></script>
 {% endblock content %}

@@ -32,7 +32,7 @@ class CommentProcessor:
         # add formatted comments to list
         for comment in self.comments:
             annotation = requests.get(f'http://hurlstor.soest.hawaii.edu:8082/anno/v1/annotations/{comment}').json()
-            concept_name = annotation['concept']
+            concept_name = annotation['concept'] if 'concept' in annotation.keys() else self.comments[comment]['scientific_name']
 
             if concept_name not in phylogeny.keys():
                 # get the phylogeny from VARS kb
@@ -56,7 +56,7 @@ class CommentProcessor:
                         print(f'\n{TERM_RED}Unable to find record for {annotation["concept"]}{TERM_NORMAL}')
 
             formatted_comments.append({
-                'observation_uuid': annotation['observation_uuid'],
+                'observation_uuid': comment,
                 'concept': concept_name,
                 'identity-certainty': get_association(annotation, 'identity-certainty')['link_value'] if get_association(annotation, 'identity-certainty') else None,
                 'identity-reference': get_association(annotation, 'identity-reference')['link_value'] if get_association(annotation, 'identity-reference') else None,
@@ -65,9 +65,9 @@ class CommentProcessor:
                 'image_url': self.comments[comment]['image_url'],
                 'video_url': self.comments[comment]['video_url'],
                 'upon': get_association(annotation, 'upon')['to_concept'] if get_association(annotation, 'upon') else None,
-                'recorded_timestamp': parse_datetime(annotation['recorded_timestamp']).strftime('%d %b %y %H:%M:%S UTC'),
+                'recorded_timestamp': parse_datetime(annotation['recorded_timestamp']).strftime('%d %b %y %H:%M:%S UTC') if 'recorded_timestamp' in annotation.keys() else None,
                 'video_sequence_name': self.comments[comment]['sequence'],
-                'annotator': format_annotator(annotation['observer']),
+                'annotator': format_annotator(annotation['observer']) if 'observer' in annotation.keys() else self.comments[comment]['annotator'],
                 'depth': self.comments[comment]['depth'],
                 'lat': self.comments[comment]['lat'] if 'lat' in self.comments[comment].keys() else None,
                 'long': self.comments[comment]['long'] if 'long' in self.comments[comment].keys() else None,

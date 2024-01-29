@@ -177,11 +177,15 @@ def tator_image_review(project_id, section_id):
     except tator.openapi.tator_openapi.exceptions.ApiException:
         flash('Please log in to Tator', 'info')
         return redirect('/')
+    tator_media = {}
+    for deployment in request.args.getlist('deployment'):
+        tator_media[deployment] = session[f'{project_id}_{section_id}'][deployment]
     data = {
         'localizations': localization_processor.distilled_records,
         'section_name': localization_processor.section_name,
         'concepts': session['vars_concepts'],
         'reviewers': session['reviewers'],
+        'tator_media': tator_media,
     }
     return render_template('tator/image-review/image-review.html', data=data)
 
@@ -497,6 +501,7 @@ def delete_reviewer(name):
 def update_annotation_reviewer():
     data = {
         'uuid': request.values.get('observation_uuid'),
+        'scientific_name': request.values.get('scientific_name'),
         'sequence': request.values.get('sequence'),
         'timestamp': request.values.get('timestamp'),
         'image_url': request.values.get('image_url'),
@@ -630,9 +635,9 @@ def video():
     return render_template('video.html', data=data), 200
 
 
-@app.errorhandler(Exception)
-def server_error(e):
-    error = f'{type(e).__name__}: {e}'
-    print('\nApplication error 😔')
-    print(error)
-    return render_template('error.html', err=error), 500
+# @app.errorhandler(Exception)
+# def server_error(e):
+#     error = f'{type(e).__name__}: {e}'
+#     print('\nApplication error 😔')
+#     print(error)
+#     return render_template('error.html', err=error), 500

@@ -23,6 +23,8 @@ def get_association(annotation: Dict, link_name: str) -> dict:
     :param str link_name: The specific key we want to get the value for.
     :return dict: The matching value dict.
     """
+    if 'associations' not in annotation.keys():
+        return {}
     for association in annotation['associations']:
         if association['link_name'] == link_name:
             return association

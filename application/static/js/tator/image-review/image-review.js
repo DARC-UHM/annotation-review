@@ -499,6 +499,29 @@ function updateHash() {
     $('#totalPageNumBottom').html(pageCount);
 }
 
+async function updateExternalReviewers() {
+    // loads reviewers to form fields and submits form
+    event.preventDefault();
+
+    const reviewers = [];
+    for (const item of document.getElementsByClassName('reviewerName')) {
+        reviewers.push(item.innerHTML);
+    }
+    $('#load-overlay').removeClass('loader-bg-hidden');
+    $('#load-overlay').addClass('loader-bg');
+    $('#externalReviewModal').modal('hide');
+    $('#externalReviewers').val(JSON.stringify(reviewers));
+
+    const formData = new FormData($('#updateExternalReviewerForm')[0]);
+    const index = localizations.findIndex((anno) => anno.id === formData.get('id'));
+    const updateReviewer = await fetch('/update-annotation-reviewer', {
+        method: 'POST',
+        body: formData,
+    });
+}
+
+window.updateExternalReviewers = updateExternalReviewers;
+
 function saveScrollPosition(page) {
     const url = new URL(window.location.href);
     const index = url.hash.indexOf('pg=');
@@ -563,9 +586,17 @@ $(document).ready(function () {
         $('#externalModalSubmitButton').prop('disabled', true);
         addReviewer(null);
 
+        // get name of deployment
+        for (const key of Object.keys(tatorMedia)) {
+            if (tatorMedia[key].includes(currentLocalization.media_id)) {
+                $('#externalSequence').val(key);
+                break;
+            }
+        }
+
         $('#externalId').val(currentLocalization.id);
         $('#externalScientificName').val(currentLocalization.scientific_name);
-        $('#externalImageUrl').val(currentLocalization.image_url);
+        $('#externalImageUrl').val(currentLocalization.frame_url);
         $('#externalAnnotator').val(knownAnnotators[currentLocalization.annotator]);
         $('#externalLat').val(currentLocalization.lat);
         $('#externalLong').val(currentLocalization.long);
