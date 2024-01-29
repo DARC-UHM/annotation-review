@@ -1,10 +1,8 @@
-import os
 import base64
 import tator
 
 from flask import render_template, request, redirect, flash, session, Response
 from json import JSONDecodeError
-from dotenv import load_dotenv
 
 from application import app
 from application.server.image_processor import ImageProcessor
@@ -14,46 +12,6 @@ from application.server.localization_processor import LocalizationProcessor
 from application.server.annosaurus import *
 
 
-load_dotenv()
-
-HURLSTOR_URL = 'http://hurlstor.soest.hawaii.edu'
-LOCAL_APP_URL = 'http://127.0.0.1:8000'
-TATOR_URL = 'https://cloud.tator.io'
-DARC_REVIEW_HEADERS = {'API-Key': os.environ.get('DARC_REVIEW_API_KEY')}
-
-if os.environ.get('_FLASK_ENV') == 'no_server_edits':
-    print('\n\nLOCAL DEVELOPMENT MODE: No server edits\n\n')
-    ANNOSAURUS_URL = ''
-    ANNOSAURUS_CLIENT_SECRET = ''
-    DARC_REVIEW_URL = 'http://127.0.0.1:5000'
-else:
-    ANNOSAURUS_URL = os.environ.get('ANNOSAURUS_URL')
-    ANNOSAURUS_CLIENT_SECRET = os.environ.get('ANNOSAURUS_CLIENT_SECRET')
-    DARC_REVIEW_URL = 'https://hurlstor.soest.hawaii.edu:5000'
-
-app.secret_key = os.environ.get('APP_SECRET_KEY')
-
-try:
-    # get list of reviewers from external review db
-    with requests.get(
-        f'{DARC_REVIEW_URL}/reviewer/all',
-        headers=DARC_REVIEW_HEADERS,
-    ) as req:
-        session['reviewers'] = req.json()
-    # get list of sequences from vars
-    with requests.get(f'{HURLSTOR_URL}:8084/vam/v1/videosequences/names') as req:
-        session['vars_video_sequences'] = req.json()
-    # get concept list from vars (for input validation)
-    with requests.get(f'{HURLSTOR_URL}:8083/kb/v1/concept') as req:
-        session['vars_concepts'] = req.json()
-except requests.exceptions.ConnectionError:
-    print('\nERROR: unable to connect to VARS/external review server\n')
-    flash('Unable to connect to VARS/external review server', 'danger')
-    session['reviewers'] = []
-    session['vars_video_sequences'] = []
-    session['vars_concepts'] = []
-
-
 @app.route('/favicon.ico')
 def favicon():
     return app.send_static_file('img/favicon.ico')
@@ -61,10 +19,36 @@ def favicon():
 
 @app.route('/')
 def index():
+    print(app.config)
+    if 'reviewers' not in session.keys():
+        # get list of reviewers from external review db
+        try:
+            with requests.get(
+                    f'{app.config.get("DARC_REVIEW_URL")}/reviewer/all',
+                    headers=app.config.get('DARC_REVIEW_HEADERS'),
+            ) as req:
+                session['reviewers'] = req.json()
+        except requests.exceptions.ConnectionError:
+            print('\nERROR: unable to connect to external review server\n')
+            flash('Unable to connect to external review server', 'danger')
+            session['reviewers'] = []
+    if 'vars_video_sequences' not in session.keys() or 'vars_concepts' not in session.keys():
+        try:
+            # get list of sequences from vars
+            with requests.get(f'{app.config.get("HURLSTOR_URL")}:8084/vam/v1/videosequences/names') as req:
+                session['vars_video_sequences'] = req.json()
+            # get concept list from vars (for input validation)
+            with requests.get(f'{app.config.get("HURLSTOR_URL")}:8083/kb/v1/concept') as req:
+                session['vars_concepts'] = req.json()
+        except requests.exceptions.ConnectionError:
+            print('\nERROR: unable to connect to VARS\n')
+            flash('Unable to connect to VARS', 'danger')
+            session['vars_video_sequences'] = []
+            session['vars_concepts'] = []
     try:
         with requests.get(
-            f'{DARC_REVIEW_URL}/stats',
-            headers=DARC_REVIEW_HEADERS,
+            f'{app.config.get("DARC_REVIEW_URL")}/stats',
+            headers=app.config.get('DARC_REVIEW_HEADERS'),
         ) as r:
             try:
                 res = r.json()
@@ -94,7 +78,7 @@ def index():
 @app.post('/tator-login')
 def tator_login():
     req = requests.post(
-            f'{TATOR_URL}/rest/Token',
+            f'{app.config.get("TATOR_URL")}/rest/Token',
             headers={'Content-Type': 'application/json'},
             data=json.dumps({
                 'username': request.values.get('username'),
@@ -115,7 +99,7 @@ def check_tator_token():
         return {}, 400
     print(session['tator_token'])  # todo remove
     try:
-        api = tator.get_api(host=TATOR_URL, token=session['tator_token'])
+        api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
         return {'username': api.whoami().username}, 200
     except tator.openapi.tator_openapi.exceptions.ApiException:
         return {}, 400
@@ -132,7 +116,10 @@ def tator_logout():
 @app.get('/tator-projects')
 def tator_projects():
     try:
-        project_list = tator.get_api(host=TATOR_URL, token=session['tator_token']).get_project_list()
+        project_list = tator.get_api(
+            host=app.config.get('TATOR_URL'),
+            token=session['tator_token'],
+        ).get_project_list()
         return [{'id': project.id, 'name': project.name} for project in project_list], 200
     except tator.openapi.tator_openapi.exceptions.ApiException:
         return {}, 400
@@ -142,7 +129,10 @@ def tator_projects():
 @app.get('/tator-sections/<project_id>')
 def tator_sections(project_id):
     try:
-        section_list = tator.get_api(host=TATOR_URL, token=session['tator_token']).get_section_list(project_id)
+        section_list = tator.get_api(
+            host=app.config.get('TATOR_URL'),
+            token=session['tator_token'],
+        ).get_section_list(project_id)
         return [{'id': section.id, 'name': section.name} for section in section_list], 200
     except tator.openapi.tator_openapi.exceptions.ApiException:
         return {}, 400
@@ -179,7 +169,7 @@ def tator_image_review(project_id, section_id):
     if 'tator_token' not in session.keys():
         return redirect('/')
     try:
-        api = tator.get_api(host=TATOR_URL, token=session['tator_token'])
+        api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
         localization_processor = LocalizationProcessor(
             project_id=project_id,
             section_id=section_id,
@@ -201,7 +191,7 @@ def tator_image_review(project_id, section_id):
 @app.get('/tator-image/<localization_id>')
 def tator_image(localization_id):
     req = requests.get(
-        f'{TATOR_URL}/rest/LocalizationGraphic/{localization_id}?use_default_margins=false&margin_x=1000&margin_y=600',
+        f'{app.config.get("TATOR_URL")}/rest/LocalizationGraphic/{localization_id}?use_default_margins=false&margin_x=1000&margin_y=600',
         headers={'Authorization': f'Token {session["tator_token"]}'}
     )
     if req.status_code == 200:
@@ -214,7 +204,7 @@ def tator_image(localization_id):
 @app.get('/tator-frame/<media_id>/<frame>')
 def tator_frame(media_id, frame):
     req = requests.get(
-        f'{TATOR_URL}/rest/GetFrame/{media_id}?frames={frame}',
+        f'{app.config.get("TATOR_URL")}/rest/GetFrame/{media_id}?frames={frame}',
         headers={'Authorization': f'Token {session["tator_token"]}'}
     )
     if req.status_code == 200:
@@ -232,8 +222,8 @@ def view_images():
     try:
         for sequence in sequences:
             with requests.get(
-                f'{DARC_REVIEW_URL}/comment/sequence/{sequence}',
-                headers=DARC_REVIEW_HEADERS,
+                f'{app.config.get("DARC_REVIEW_URL")}/comment/sequence/{sequence}',
+                headers=app.config.get('DARC_REVIEW_HEADERS'),
             ) as r:
                 comments = comments | r.json()  # merge dicts
             if sequence not in session['vars_video_sequences']:
@@ -259,7 +249,7 @@ def vars_qaqc_checklist():
     sequences = request.args.getlist('sequence')
     annotation_count = 0
     for sequence in sequences:
-        with requests.get(f'{HURLSTOR_URL}:8086/query/dive/{sequence.replace(" ", "%20")}') as r:
+        with requests.get(f'{app.config.get("HURLSTOR_URL")}:8086/query/dive/{sequence.replace(" ", "%20")}') as r:
             annotation_count += len(r.json()['annotations'])
     return render_template('vars/qaqc/qaqc-checklist.html', annotation_count=annotation_count)
 
@@ -340,18 +330,18 @@ def external_review():
         # get a list of comments from external review db
         if request.args.get('unread'):
             req = requests.get(
-                f'{DARC_REVIEW_URL}/comment/unread',
-                headers=DARC_REVIEW_HEADERS,
+                f'{app.config.get("DARC_REVIEW_URL")}/comment/unread',
+                headers=app.config.get('DARC_REVIEW_HEADERS'),
             )
         elif request.args.get('reviewer'):
             req = requests.get(
-                f'{DARC_REVIEW_URL}/comment/reviewer/{request.args.get("reviewer")}',
-                headers=DARC_REVIEW_HEADERS,
+                f'{app.config.get("DARC_REVIEW_URL")}/comment/reviewer/{request.args.get("reviewer")}',
+                headers=app.config.get('DARC_REVIEW_HEADERS'),
             )
         else:
             req = requests.get(
-                f'{DARC_REVIEW_URL}/comment/all',
-                headers=DARC_REVIEW_HEADERS,
+                f'{app.config.get("DARC_REVIEW_URL")}/comment/all',
+                headers=app.config.get('DARC_REVIEW_HEADERS'),
             )
         comments = req.json()
     except requests.exceptions.ConnectionError:
@@ -379,8 +369,8 @@ def sync_external_ctd():
     missing_ctd_total = 0
     try:
         req = requests.get(
-            f'{DARC_REVIEW_URL}/comment/all',
-            headers=DARC_REVIEW_HEADERS,
+            f'{app.config.get("DARC_REVIEW_URL")}/comment/all',
+            headers=app.config.get('DARC_REVIEW_HEADERS'),
         )
     except requests.exceptions.ConnectionError:
         print('\nERROR: unable to connect to external review server\n')
@@ -393,7 +383,7 @@ def sync_external_ctd():
         else:
             sequences[val['sequence']].append(key)
     for sequence in sequences.keys():
-        with requests.get(f'{HURLSTOR_URL}:8086/query/dive/{sequence.replace(" ", "%20")}') as r:
+        with requests.get(f'{app.config.get("HURLSTOR_URL")}:8086/query/dive/{sequence.replace(" ", "%20")}') as r:
             response = r.json()
             for annotation in response['annotations']:
                 if annotation['observation_uuid'] in sequences[sequence]:
@@ -408,8 +398,8 @@ def sync_external_ctd():
                     else:
                         missing_ctd_total += 1
     req = requests.put(
-        f'{DARC_REVIEW_URL}/sync-ctd',
-        headers=DARC_REVIEW_HEADERS,
+        f'{app.config.get("DARC_REVIEW_URL")}/sync-ctd',
+        headers=app.config.get('DARC_REVIEW_HEADERS'),
         data=json.dumps(updated_ctd),
     )
     if req.status_code == 200:
@@ -426,8 +416,8 @@ def sync_external_ctd():
 @app.post('/delete-external-comment')
 def delete_external_comment():
     req = requests.delete(
-        f'{DARC_REVIEW_URL}/comment/delete/{request.values.get("uuid")}',
-        headers=DARC_REVIEW_HEADERS,
+        f'{app.config.get("DARC_REVIEW_URL")}/comment/delete/{request.values.get("uuid")}',
+        headers=app.config.get('DARC_REVIEW_HEADERS'),
     )
     if req.status_code == 200:
         new_comment = {
@@ -435,7 +425,7 @@ def delete_external_comment():
             'reviewer': '[]',
             'action': 'DELETE'
         }
-        requests.post(f'{LOCAL_APP_URL}/update-annotation-comment', new_comment)
+        requests.post(f'{app.config.get("LOCAL_APP_URL")}/update-annotation-comment', new_comment)
         return {}, 200
     return {}, 500
 
@@ -459,15 +449,15 @@ def update_reviewer_info():
         'email': request.values.get('editEmail')
     }
     req = requests.put(
-        f'{DARC_REVIEW_URL}/reviewer/update/{name}',
-        headers=DARC_REVIEW_HEADERS,
+        f'{app.config.get("DARC_REVIEW_URL")}/reviewer/update/{name}',
+        headers=app.config.get('DARC_REVIEW_HEADERS'),
         data=data,
     )
     if req.status_code == 404:
         data['name'] = data['new_name']
         req = requests.post(
-            f'{DARC_REVIEW_URL}/reviewer/add',
-            headers=DARC_REVIEW_HEADERS,
+            f'{app.config.get("DARC_REVIEW_URL")}/reviewer/add',
+            headers=app.config.get('DARC_REVIEW_HEADERS'),
             data=data,
         )
         if req.status_code == 201:
@@ -482,8 +472,8 @@ def update_reviewer_info():
         flash('Unable to update reviewer', 'danger')
     if success:
         with requests.get(
-            f'{DARC_REVIEW_URL}/reviewer/all',
-            headers=DARC_REVIEW_HEADERS,
+            f'{app.config.get("DARC_REVIEW_URL")}/reviewer/all',
+            headers=app.config.get('DARC_REVIEW_HEADERS'),
         ) as r:
             session['reviewers'] = r.json()
     return redirect('/reviewers')
@@ -493,8 +483,8 @@ def update_reviewer_info():
 @app.get('/delete_reviewer/<name>')
 def delete_reviewer(name):
     req = requests.delete(
-        f'{DARC_REVIEW_URL}/reviewer/delete/{name}',
-        headers=DARC_REVIEW_HEADERS,
+        f'{app.config.get("DARC_REVIEW_URL")}/reviewer/delete/{name}',
+        headers=app.config.get('DARC_REVIEW_HEADERS'),
     )
     if req.status_code == 200:
         flash('Reviewer successfully deleted', 'success')
@@ -521,14 +511,14 @@ def update_annotation_reviewer():
         'oxygen_ml_l': request.values.get('oxygen_ml_l'),
     }
     with requests.post(
-        f'{DARC_REVIEW_URL}/comment/add',
-        headers=DARC_REVIEW_HEADERS,
+        f'{app.config.get("DARC_REVIEW_URL")}/comment/add',
+        headers=app.config.get('DARC_REVIEW_HEADERS'),
         data=data,
     ) as r:
         if r.status_code == 409:  # comment already exists in the db, update record
             req = requests.put(
-                f'{DARC_REVIEW_URL}/comment/update-reviewers/{data["uuid"]}',
-                headers=DARC_REVIEW_HEADERS,
+                f'{app.config.get("DARC_REVIEW_URL")}/comment/update-reviewers/{data["uuid"]}',
+                headers=app.config.get('DARC_REVIEW_HEADERS'),
                 data=data,
             )
             if req.status_code == 200:
@@ -537,7 +527,7 @@ def update_annotation_reviewer():
                     'reviewers': request.values.get("reviewers"),
                     'action': 'ADD'
                 }
-                requests.post(f'{LOCAL_APP_URL}/update-annotation-comment', new_comment)
+                requests.post(f'{app.config.get("LOCAL_APP_URL")}/update-annotation-comment', new_comment)
                 return {}, 200
         elif r.status_code == 201:  # comment added to db, update VARS "comment" field
             new_comment = {
@@ -545,7 +535,7 @@ def update_annotation_reviewer():
                 'reviewers': request.values.get('reviewers'),
                 'action': 'ADD'
             }
-            requests.post(f'{LOCAL_APP_URL}/update-annotation-comment', new_comment)
+            requests.post(f'{app.config.get("LOCAL_APP_URL")}/update-annotation-comment', new_comment)
             return {}, 201
         return {}, 500
 
@@ -553,12 +543,12 @@ def update_annotation_reviewer():
 # updates the comment in the vars db to reflect that the record has been added to the comment db
 @app.post('/update-annotation-comment')
 def update_annotation_comment():
-    annosaurus = Annosaurus(ANNOSAURUS_URL)
+    annosaurus = Annosaurus(app.config.get('ANNOSAURUS_URL'))
     annosaurus.update_annotation_comment(
         observation_uuid=request.values.get('observation_uuid'),
         reviewers=request.values.get('reviewers'),
         action=request.values.get('action'),
-        client_secret=ANNOSAURUS_CLIENT_SECRET
+        client_secret=app.config.get('ANNOSAURUS_CLIENT_SECRET')
     )
     return ''
 
@@ -566,7 +556,7 @@ def update_annotation_comment():
 # updates annotation with new concept name or associations. this is called from the image review page
 @app.post('/update-annotation')
 def update_annotation():
-    annosaurus = Annosaurus(ANNOSAURUS_URL)
+    annosaurus = Annosaurus(app.config.get('ANNOSAURUS_URL'))
     updated_annotation = {
         'concept': request.values.get('concept'),
         'identity-certainty': request.values.get('identity-certainty').replace('\'', ''),
@@ -578,7 +568,7 @@ def update_annotation():
     status = annosaurus.update_annotation(
         observation_uuid=request.values.get('observation_uuid'),
         updated_annotation=updated_annotation,
-        client_secret=ANNOSAURUS_CLIENT_SECRET
+        client_secret=app.config.get('ANNOSAURUS_CLIENT_SECRET')
     )
     if status == 1:
         return {}, 204
@@ -591,7 +581,7 @@ def update_annotation():
 # creates a new association for an annotation
 @app.post('/create-association')
 def create_association():
-    annosaurus = Annosaurus(ANNOSAURUS_URL)
+    annosaurus = Annosaurus(app.config.get('ANNOSAURUS_URL'))
     new_association = {
         'link_name': request.values.get('link_name'),
         'link_value': request.values.get('link_value'),
@@ -600,7 +590,7 @@ def create_association():
     status = annosaurus.create_association(
         observation_uuid=request.values.get('observation_uuid'),
         association=new_association,
-        client_secret=ANNOSAURUS_CLIENT_SECRET
+        client_secret=app.config.get('ANNOSAURUS_CLIENT_SECRET')
     )
     if status == 200:
         return {}, 201
@@ -610,7 +600,7 @@ def create_association():
 # updates an association
 @app.post('/update-association')
 def update_association():
-    annosaurus = Annosaurus(ANNOSAURUS_URL)
+    annosaurus = Annosaurus(app.config.get('ANNOSAURUS_URL'))
     updated_association = {
         'link_name': request.values.get('link_name'),
         'link_value': request.values.get('link_value'),
@@ -619,15 +609,15 @@ def update_association():
     status = annosaurus.update_association(
         uuid=request.values.get('uuid'),
         association=updated_association,
-        client_secret=ANNOSAURUS_CLIENT_SECRET
+        client_secret=app.config.get('ANNOSAURUS_CLIENT_SECRET')
     )
     return {}, status
 
 
 @app.get('/delete-association/<uuid>')
 def delete_association(uuid):
-    annosaurus = Annosaurus(ANNOSAURUS_URL)
-    return {}, annosaurus.delete_association(uuid=uuid, client_secret=ANNOSAURUS_CLIENT_SECRET)
+    annosaurus = Annosaurus(app.config.get('ANNOSAURUS_URL'))
+    return {}, annosaurus.delete_association(uuid=uuid, client_secret=app.config.get('ANNOSAURUS_CLIENT_SECRET'))
 
 
 @app.errorhandler(404)
