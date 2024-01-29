@@ -14,9 +14,7 @@ from application.server.localization_processor import LocalizationProcessor
 from application.server.annosaurus import *
 
 # TODO
-#  - VARS: store list of dives in session rather than loading each time
-#  - VARS: store VARS concepts in file
-#  - VARS/Tator: store concept_phylogeny in file
+#  - VARS: store concept_phylogeny in file
 
 load_dotenv()
 
@@ -24,6 +22,7 @@ _FLASK_ENV = os.environ.get('_FLASK_ENV')
 HURLSTOR_URL = 'http://hurlstor.soest.hawaii.edu'
 LOCAL_APP_URL = 'http://127.0.0.1:8000'
 TATOR_URL = 'https://cloud.tator.io'
+DARC_REVIEW_HEADERS = {'API-Key': os.environ.get('DARC_REVIEW_API_KEY')}
 
 if _FLASK_ENV == 'no_server_edits':
     print('\n\nLOCAL DEVELOPMENT MODE: No server edits\n\n')
@@ -37,6 +36,26 @@ else:
 
 app.secret_key = os.environ.get('APP_SECRET_KEY')
 
+try:
+    # get list of reviewers from external review db
+    with requests.get(
+        f'{DARC_REVIEW_URL}/reviewer/all',
+        headers=DARC_REVIEW_HEADERS,
+    ) as req:
+        session['reviewers'] = req.json()
+    # get list of sequences from vars
+    with requests.get(f'{HURLSTOR_URL}:8084/vam/v1/videosequences/names') as req:
+        session['vars_video_sequences'] = req.json()
+    # get concept list from vars (for input validation)
+    with requests.get(f'{HURLSTOR_URL}:8083/kb/v1/concept') as req:
+        session['vars_concepts'] = req.json()
+except requests.exceptions.ConnectionError:
+    print('\nERROR: unable to connect to VARS/external review server\n')
+    flash('Unable to connect to VARS/external review server', 'danger')
+    session['reviewers'] = []
+    session['vars_video_sequences'] = []
+    session['vars_concepts'] = []
+
 
 @app.route('/favicon.ico')
 def favicon():
@@ -45,11 +64,11 @@ def favicon():
 
 @app.route('/')
 def index():
-    # get list of sequences from vars
-    with requests.get(f'{HURLSTOR_URL}:8084/vam/v1/videosequences/names') as r:
-        video_sequences = r.json()
     try:
-        with requests.get(f'{DARC_REVIEW_URL}/stats') as r:
+        with requests.get(
+            f'{DARC_REVIEW_URL}/stats',
+            headers=DARC_REVIEW_HEADERS,
+        ) as r:
             try:
                 res = r.json()
                 unread_comments = res['unread_comments']
@@ -67,7 +86,7 @@ def index():
         print('\nERROR: unable to connect to external review server\n')
     return render_template(
         'index.html',
-        sequences=video_sequences,
+        sequences=session['vars_video_sequences'],
         unread_comment_count=unread_comments,
         total_comment_count=total_comments,
         active_reviewers=active_reviewers
@@ -173,12 +192,10 @@ def tator_image_review(project_id, section_id):
     except tator.openapi.tator_openapi.exceptions.ApiException:
         flash('Please log in to Tator', 'info')
         return redirect('/')
-    with requests.get(f'{HURLSTOR_URL}:8083/kb/v1/concept') as r:
-        vars_concepts = r.json()
     data = {
         'localizations': localization_processor.distilled_records,
         'section_name': localization_processor.section_name,
-        'concepts': vars_concepts,
+        'concepts': session['vars_concepts'],
     }
     return render_template('tator/image-review/image-review.html', data=data)
 
@@ -214,24 +231,17 @@ def tator_frame(media_id, frame):
 def view_images():
     comments = {}
     sequences = request.args.getlist('sequence')
-    # get list of sequences from vars
-    with requests.get(f'{HURLSTOR_URL}:8084/vam/v1/videosequences/names') as r:
-        video_sequences = r.json()
-    # get concept list from vars (for input validation)
-    with requests.get(f'{HURLSTOR_URL}:8083/kb/v1/concept') as r:
-        vars_concepts = r.json()
-    # get list of reviewers from external review db
+    # get comments from external review db
     try:
-        with requests.get(f'{DARC_REVIEW_URL}/reviewer/all') as r:
-            _reviewers = r.json()
-        # get comments from the review db
         for sequence in sequences:
-            with requests.get(f'{DARC_REVIEW_URL}/comment/sequence/{sequence}') as r:
+            with requests.get(
+                f'{DARC_REVIEW_URL}/comment/sequence/{sequence}',
+                headers=DARC_REVIEW_HEADERS,
+            ) as r:
                 comments = comments | r.json()  # merge dicts
-            if sequence not in video_sequences:
+            if sequence not in session['vars_video_sequences']:
                 return render_template('not-found.html', err='dive'), 404
     except requests.exceptions.ConnectionError:
-        _reviewers = []
         print('\nERROR: unable to connect to external review server\n')
     # get images in sequence
     image_loader = ImageProcessor(sequences)
@@ -239,9 +249,9 @@ def view_images():
         return render_template('not-found.html', err='pics'), 404
     data = {
         'annotations': image_loader.distilled_records,
-        'concepts': vars_concepts,
-        'reviewers': _reviewers,
-        'comments': comments
+        'concepts': session['vars_concepts'],
+        'reviewers': session['reviewers'],
+        'comments': comments,
     }
     return render_template('vars/image-review/image-review.html', data=data)
 
@@ -262,11 +272,8 @@ def vars_qaqc_checklist():
 def vars_qaqc(check):
     sequences = request.args.getlist('sequence')
     qaqc_annos = QaqcProcessor(sequences)
-    # get concept list from vars (for input validation)
-    with requests.get(f'{HURLSTOR_URL}:8083/kb/v1/concept') as r:
-        vars_concepts = r.json()
     data = {
-        'concepts': vars_concepts,
+        'concepts': session['vars_concepts'],
         'title': check.replace('-', ' ').title(),
     }
     match check:
@@ -332,20 +339,23 @@ def qaqc_quick(check):
 @app.get('/external-review')
 def external_review():
     comments = []
-    # get concept list from vars (for input validation)
-    with requests.get(f'{HURLSTOR_URL}:8083/kb/v1/concept') as r:
-        vars_concepts = r.json()
-    # get list of reviewers from external review db
     try:
-        with requests.get(f'{DARC_REVIEW_URL}/reviewer/all') as r:
-            _reviewers = r.json()
         # get a list of comments from external review db
         if request.args.get('unread'):
-            req = requests.get(f'{DARC_REVIEW_URL}/comment/unread')
+            req = requests.get(
+                f'{DARC_REVIEW_URL}/comment/unread',
+                headers=DARC_REVIEW_HEADERS,
+            )
         elif request.args.get('reviewer'):
-            req = requests.get(f'{DARC_REVIEW_URL}/comment/reviewer/{request.args.get("reviewer")}')
+            req = requests.get(
+                f'{DARC_REVIEW_URL}/comment/reviewer/{request.args.get("reviewer")}',
+                headers=DARC_REVIEW_HEADERS,
+            )
         else:
-            req = requests.get(f'{DARC_REVIEW_URL}/comment/all')
+            req = requests.get(
+                f'{DARC_REVIEW_URL}/comment/all',
+                headers=DARC_REVIEW_HEADERS,
+            )
         comments = req.json()
     except requests.exceptions.ConnectionError:
         _reviewers = []
@@ -357,8 +367,8 @@ def external_review():
         return render_template('not-found.html', err='comments'), 404
     data = {
         'annotations': comment_loader.distilled_records,
-        'concepts': vars_concepts,
-        'reviewers': _reviewers,
+        'concepts': session['vars_concepts'],
+        'reviewers': session['reviewers'],
         'comments': comments
     }
     return render_template('vars/image-review/image-review.html', data=data)
@@ -371,7 +381,10 @@ def sync_external_ctd():
     sequences = {}
     missing_ctd_total = 0
     try:
-        req = requests.get(f'{DARC_REVIEW_URL}/comment/all')
+        req = requests.get(
+            f'{DARC_REVIEW_URL}/comment/all',
+            headers=DARC_REVIEW_HEADERS,
+        )
     except requests.exceptions.ConnectionError:
         print('\nERROR: unable to connect to external review server\n')
         flash('Unable to connect to external review server', 'danger')
@@ -397,7 +410,11 @@ def sync_external_ctd():
                         }
                     else:
                         missing_ctd_total += 1
-    req = requests.put(f'{DARC_REVIEW_URL}/sync-ctd', data=json.dumps(updated_ctd))
+    req = requests.put(
+        f'{DARC_REVIEW_URL}/sync-ctd',
+        headers=DARC_REVIEW_HEADERS,
+        data=json.dumps(updated_ctd),
+    )
     if req.status_code == 200:
         msg = 'CTD synced'
         if missing_ctd_total > 0:
@@ -411,7 +428,10 @@ def sync_external_ctd():
 # deletes an item from the external review db
 @app.post('/delete-external-comment')
 def delete_external_comment():
-    req = requests.delete(f'{DARC_REVIEW_URL}/comment/delete/{request.values.get("uuid")}')
+    req = requests.delete(
+        f'{DARC_REVIEW_URL}/comment/delete/{request.values.get("uuid")}',
+        headers=DARC_REVIEW_HEADERS,
+    )
     if req.status_code == 200:
         new_comment = {
             'observation_uuid': request.values.get('uuid'),
@@ -426,18 +446,13 @@ def delete_external_comment():
 # displays information about all the reviewers in the hurl db
 @app.get('/reviewers')
 def reviewers():
-    try:
-        with requests.get(f'{DARC_REVIEW_URL}/reviewer/all') as r:
-            reviewer_list = r.json()
-    except requests.exceptions.ConnectionError:
-        print('\nERROR: unable to connect to external review server\n')
-        flash('Unable to connect to external review server', 'danger')
-    return render_template('external-reviewers.html', reviewers=reviewer_list)
+    return render_template('external-reviewers.html', reviewers=session['reviewers'])
 
 
 # update a reviewer's information
 @app.post('/update-reviewer-info')
 def update_reviewer_info():
+    success = False
     name = request.values.get('ogReviewerName') or 'nobody'
     data = {
         'new_name': request.values.get('editReviewerName'),
@@ -446,25 +461,44 @@ def update_reviewer_info():
         'organization': request.values.get('editOrganization'),
         'email': request.values.get('editEmail')
     }
-    req = requests.put(f'{DARC_REVIEW_URL}/reviewer/update/{name}', data=data)
+    req = requests.put(
+        f'{DARC_REVIEW_URL}/reviewer/update/{name}',
+        headers=DARC_REVIEW_HEADERS,
+        data=data,
+    )
     if req.status_code == 404:
         data['name'] = data['new_name']
-        req = requests.post(f'{DARC_REVIEW_URL}/reviewer/add', data=data)
+        req = requests.post(
+            f'{DARC_REVIEW_URL}/reviewer/add',
+            headers=DARC_REVIEW_HEADERS,
+            data=data,
+        )
         if req.status_code == 201:
+            success = True
             flash('Successfully added reviewer', 'success')
         else:
             flash('Unable to add reviewer', 'danger')
     elif req.status_code == 200:
+        success = True
         flash('Successfully updated reviewer', 'success')
     else:
         flash('Unable to update reviewer', 'danger')
+    if success:
+        with requests.get(
+            f'{DARC_REVIEW_URL}/reviewer/all',
+            headers=DARC_REVIEW_HEADERS,
+        ) as r:
+            session['reviewers'] = r.json()
     return redirect('/reviewers')
 
 
 # delete a reviewer
 @app.get('/delete_reviewer/<name>')
 def delete_reviewer(name):
-    req = requests.delete(f'{DARC_REVIEW_URL}/reviewer/delete/{name}')
+    req = requests.delete(
+        f'{DARC_REVIEW_URL}/reviewer/delete/{name}',
+        headers=DARC_REVIEW_HEADERS,
+    )
     if req.status_code == 200:
         flash('Reviewer successfully deleted', 'success')
     else:
@@ -489,9 +523,17 @@ def update_annotation_reviewer():
         'temperature': request.values.get('temperature'),
         'oxygen_ml_l': request.values.get('oxygen_ml_l'),
     }
-    with requests.post(f'{DARC_REVIEW_URL}/comment/add', data=data) as r:
+    with requests.post(
+        f'{DARC_REVIEW_URL}/comment/add',
+        headers=DARC_REVIEW_HEADERS,
+        data=data,
+    ) as r:
         if r.status_code == 409:  # comment already exists in the db, update record
-            req = requests.put(f'{DARC_REVIEW_URL}/comment/update-reviewers/{data["uuid"]}', data=data)
+            req = requests.put(
+                f'{DARC_REVIEW_URL}/comment/update-reviewers/{data["uuid"]}',
+                headers=DARC_REVIEW_HEADERS,
+                data=data,
+            )
             if req.status_code == 200:
                 new_comment = {
                     'observation_uuid': request.values.get('observation_uuid'),
