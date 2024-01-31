@@ -1,6 +1,8 @@
 import { autocomplete } from '../util/autocomplete.js';
 import { reviewerList } from '../util/reviewer-list.js';
 import { updateFlashMessages } from '../util/updateFlashMessages.js';
+import { varsAnnotationTableRow } from './vars-annotation-table-row.js';
+import { tatorLocalizationRow } from './tator-localization-table-row.js';
 
 const guidePhotoVals = ['1 best', '2 good', '3 okay', ''];
 const sequences = [];
@@ -66,174 +68,21 @@ const setCurrentPage = (pageNum) => {
     $('#annotationTable').append('<tbody class="text-start"></tbody>');
 
     annotationsToDisplay.forEach((annotation, index) => {
-        let videoUrl = annotation.video_url;
-        if (videoUrl.includes('.mov')) {
-            videoUrl = `/video?link=${videoUrl.split('#t=')[0]}&time=${videoUrl.split('#t=')[1]}`;
-        }
+        const externalComment = Object.keys(comments).includes(annotation.observation_uuid) ? comments[annotation.observation_uuid] : null;
         if (index >= prevRange && index < currRange) {
-            $('#annotationTable').find('tbody').append(`
-            <tr>
-                <td class="ps-5">
-                    <div class="row">
-                        <div class="col-4">
-                            Concept:
-                        </div>
-                        <div class="col values">
-                            ${annotation.concept}<br>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-4">
-                            Annotator:
-                        </div>
-                        <div class="col values">
-                            ${annotation.annotator}<br>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-4">
-                            ID certainty:<br>
-                        </div>
-                        <div class="col values">
-                            ${annotation.identity_certainty ? annotation.identity_certainty : '-'}<br>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-4">
-                            ID reference:<br>
-                        </div>
-                        <div class="col values">
-                            ${annotation.identity_reference ? annotation.identity_reference : '-'}<br>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-4">
-                            Upon:<br>
-                        </div>
-                        <div class="col values">
-                            ${annotation.upon ? annotation.upon : '-'}<br>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-4">
-                            Comments:<br>
-                        </div>
-                        <div class="col values">
-                            ${annotation.comment ? annotation.comment : '-'}<br>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-4">
-                            Guide photo:<br>
-                        </div>
-                        <div class="col values">
-                            ${annotation.guide_photo ? annotation.guide_photo : '-'}<br>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-4">
-                            Depth:
-                        </div>
-                        <div class="col values">
-                            ${annotation.depth || '?'} m<br>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-4">
-                            Timestamp:
-                        </div>
-                        <div class="col values">
-                            ${annotation.recorded_timestamp}<br>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-4">
-                            Video sequence:
-                        </div>
-                        <div class="col values">
-                            ${annotation.video_sequence_name}<br>
-                        </div>
-                    </div>
-                    ${ Object.keys(comments).includes(annotation.observation_uuid) ?
-                    `
-                    <div class="row mt-2">
-                        <div class="col-4">
-                            Reviewer comments:<br>
-                            ${comments[annotation.observation_uuid].unread ?
-                            `<button class="editButton" onclick="markCommentRead('${annotation.observation_uuid}')">
-                                Mark read
-                            </button>
-                            `
-                            : ''}
-                        </div>
-                        <div class="col values">
-                            ${comments[annotation.observation_uuid].reviewer_comments.map(item => {
-                                return item.comment 
-                                    ? `${item.comment.length
-                                        ? `${item.comment}<br><span class="small fw-normal">- <a href="https://hurlstor.soest.hawaii.edu:5000/review/${item.reviewer}" class="aquaLink" target="_blank">${item.reviewer}</a> ${item.date_modified}</span>`
-                                        : 'N/A'}<br><br>`
-                                    : `<span class="fw-normal">
-                                        Awaiting comment from <a href="https://hurlstor.soest.hawaii.edu:5000/review/${item.reviewer}" class="aquaLink" target="_blank">${item.reviewer}</a>
-                                        <div class="small">Added ${item.date_modified.substring(0, 6)}</div>
-                                    </span><br>`;
-                            }).join('')}
-                        </div>
-                    </div>
-                    ` : '' }
-                    <div class="row mt-2">
-                        <div class="col-4">
-                            <button 
-                                type="button" 
-                                data-bs-toggle="modal" 
-                                data-anno='${ JSON.stringify(annotation) }' 
-                                data-bs-target="#editVarsAnnotationModal" 
-                                class="editButton">
-                                    Edit annotation
-                            </button>
-                            <br>
-                            <a class="editButton" href="${videoUrl}" target="_blank">See video</a>
-                            <br>
-                        </div>
-                        <div class="col values">
-                            ${ !Object.keys(comments).includes(annotation.observation_uuid) ?
-                            `<button 
-                                type="button" 
-                                data-bs-toggle="modal" 
-                                data-anno='${ JSON.stringify(annotation) }' 
-                                data-bs-target="#externalReviewModal" 
-                                class="editButton">
-                                    Add to external review
-                            </button>`
-                                :
-                            `<button 
-                                type="button" 
-                                data-bs-toggle="modal" 
-                                data-anno='${ JSON.stringify(annotation) }'
-                                data-bs-target="#externalReviewModal" 
-                                class="editButton" 
-                                onclick="updateReviewerName('${annotation.observation_uuid}')">
-                                    Change reviewer
-                            </button>
-                            <br>
-                            <button 
-                                type="button" 
-                                data-bs-toggle="modal" 
-                                data-anno='${JSON.stringify(annotation)}'
-                                data-bs-target="#deleteReviewModal" 
-                                class="editButton">
-                                    Delete from external review
-                            </button>`
-                            }
-                        </div>
-                    </div>
-                </td>
-                <td class="text-center">
-                    <a href="${annotation.image_url}" target="_blank">
-                        <img src="${annotation.image_url}" style="width: 580px;"/>
-                    </a>
-                </td>
-            </tr>
-            `);
+            if (annotation.scientific_name) { // this is a tator localization
+                $('#annotationTable').find('tbody').append(tatorLocalizationRow(annotation, externalComment));
+                $(`#${annotation.id}_overlay`).css('opacity', '0.5');
+                $(`#${annotation.id}_image`).hover((e) => {
+                    if (e.type === 'mouseenter') {
+                        $(`#${annotation.id}_overlay`).css('opacity', '1.0');
+                    } else if (e.type === 'mouseleave') {
+                        $(`#${annotation.id}_overlay`).css('opacity', '0.5');
+                    }
+                });
+            } else { // this is a VARS annotation
+                $('#annotationTable').find('tbody').append(varsAnnotationTableRow(annotation, externalComment));
+            }
         }
     });
 
@@ -275,16 +124,6 @@ function validateName(name) {
     $('#editModalSubmitButton')[0].disabled = disabled;
 }
 
-function updateReviewerName(uuid) {
-    const reviewerComments = comments[uuid].reviewer_comments;
-    $('#reviewerName1').html(reviewerComments[0].reviewer);
-    for (let i = 1; i < reviewerComments.length; i++) {
-        addReviewer(reviewerComments[i].reviewer);
-    }
-}
-
-window.updateReviewerName = updateReviewerName;
-
 // remove filter from hash
 function removeFilter(key, value) {
     const index = window.location.hash.indexOf(key);
@@ -325,6 +164,9 @@ function sortBy(key) {
     }
     if (key === 'Timestamp') {
         tempKey = 'recorded_timestamp';
+        // this is for tator localizations
+        annotationsToDisplay = annotationsToDisplay.sort((a, b) => a.frame - b.frame);
+        annotationsToDisplay = annotationsToDisplay.sort((a, b) => a.media_id - b.media_id);
     } else if (key === 'ID Reference') {
         tempKey = 'identity_reference';
     } else {
@@ -397,6 +239,16 @@ function addReviewer(reviewerName) {
 
 window.addReviewer = addReviewer;
 
+function updateReviewerName(uuid) {
+    const reviewerComments = comments[uuid].reviewer_comments;
+    $('#reviewerName1').html(reviewerComments[0].reviewer);
+    for (let i = 1; i < reviewerComments.length; i++) {
+        addReviewer(reviewerComments[i].reviewer);
+    }
+}
+
+window.updateReviewerName = updateReviewerName;
+
 function updateFilterHint() {
     $('#imageFilterEntry').attr('placeholder', `Enter ${$('#imageFilterSelect').val().toLowerCase()}`);
 }
@@ -413,11 +265,6 @@ function updateHash() {
 
     filterPairs.pop(); // pop page number
 
-    $('#sequenceList').empty();
-    if (sequences.length) {
-        $('#sequenceList').html(`${sequences.join(', ')}<br>`);
-    }
-
     for (const pair of filterPairs) {
         const key = pair.split('=')[0];
         const value = pair.split('=')[1];
@@ -428,6 +275,8 @@ function updateHash() {
         }
     }
 
+    $('#sequenceList').empty();
+    $('#sequenceList').html(`${sequences.join(', ')}<br>`);
     $('#sequenceList').append(`<div id="filterList" class="small mt-2">Filters: ${Object.keys(filter).length ? '' : 'None'}</div>`);
 
     for (const key of Object.keys(filter)) {
@@ -451,7 +300,8 @@ function updateHash() {
                         <option>Genus</option>
                         <option>Species</option>
                         <option>Certainty</option>
-                        <option>Comment</option>
+                        <option>Comment (VARS)</option>
+                        <option>Notes (Tator)</option>
                         <option>Annotator</option>
                     </select>
                     <span class="position-absolute dropdown-chev">
@@ -690,7 +540,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
     }
 
     for (const pair of url.searchParams.entries()) {
-        if (pair[0].includes('sequence')) {
+        if (pair[0].includes('sequence') || pair[0].includes('deployment')) {
             const param = pair[1].split(' ');
             sequences.push(param.pop());
         } else if (pair[0].includes('unread')) {
@@ -765,7 +615,6 @@ window.onhashchange = () => {
 
 // get the annotation data and add it to the modal
 $(document).ready(function () {
-
     $('#editVarsAnnotationModal').on('show.bs.modal', function (e) {
         const annotation = $(e.relatedTarget).data('anno');
         const conceptNameField = $(this).find('#editConceptName');
@@ -800,6 +649,7 @@ $(document).ready(function () {
 
         $('#externalObservationUuid').val(currentAnnotation.observation_uuid);
         $('#externalSequence').val(currentAnnotation.video_sequence_name);
+        $('#externalScientificName').val(currentLocalization.scientific_name);
         $('#externalTimestamp').val(currentAnnotation.recorded_timestamp);
         $('#externalImageUrl').val(currentAnnotation.image_url);
         $('#externalVideoUrl').val(currentAnnotation.video_url);

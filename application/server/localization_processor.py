@@ -8,6 +8,15 @@ from typing import Dict
 from flask import session
 
 
+KNOWN_ANNOTATORS = {
+    22: 'Jeff Drazen',
+    24: 'Meagan Putts',
+    25: 'Sarah Bingo',
+    332: 'Nikki Cunanan',
+    433: 'Aaron Judah',
+}
+
+
 def flatten_taxa_tree(tree: Dict, flat: Dict):
     """
     Recursive function taking a taxonomy tree returned from WoRMS API and flattening it into a single dictionary.
@@ -43,8 +52,11 @@ class LocalizationProcessor:
     def load_localizations(self):
         print('Fetching localizations...', end='')
         media_ids = []
+        deployment_media_dict = {}
         localizations = []
         for deployment in self.deployments:
+            for media_id in session[f'{self.project_id}_{self.section_id}'][deployment]:
+                deployment_media_dict[media_id] = deployment
             media_ids += session[f'{self.project_id}_{self.section_id}'][deployment]
         # REST is much faster than Python API for large queries
         # adding too many media ids results in a query that is too long, so we have to break it up
@@ -92,6 +104,7 @@ class LocalizationProcessor:
                 'type': localization['type'],
                 'points': [localization['x'], localization['y']],
                 'dimensions': [localization['width'], localization['height']] if localization['type'] == 48 else None,
+                'video_sequence_name': deployment_media_dict[localization['media']],
                 'scientific_name': scientific_name,
                 'count': 0 if localization['type'] == 48 else 1,
                 'attracted': localization['attributes']['Attracted'] if 'Attracted' in localization['attributes'].keys() else None,
@@ -102,7 +115,7 @@ class LocalizationProcessor:
                 'qualifier': localization['attributes']['Qualifier'] if 'Qualifier' in localization['attributes'].keys() else None,
                 'reason': localization['attributes']['Reason'] if 'Reason' in localization['attributes'].keys() else None,
                 'tentative_id': localization['attributes']['Tentative ID'] if 'Tentative ID' in localization['attributes'].keys() else None,
-                'annotator': localization['created_by'],
+                'annotator': KNOWN_ANNOTATORS[localization['created_by']] if localization['created_by'] in KNOWN_ANNOTATORS.keys() else f'Unknown Annotator (#{localization["created_by"]})',
                 'frame': localization['frame'],
                 'frame_url': f'/tator/frame/{localization["media"]}/{localization["frame"]}',
                 'media_id': localization['media'],
@@ -141,6 +154,7 @@ class LocalizationProcessor:
                 'qualifier': 'first',
                 'reason': 'first',
                 'tentative_id': 'first',
+                'video_sequence_name': 'first',
                 'annotator': 'first',
                 'frame_url': 'first',
                 'phylum': 'first',
@@ -180,7 +194,7 @@ class LocalizationProcessor:
 
         for index, row in localization_df.iterrows():
             self.distilled_records.append({
-                'id': row['id'],
+                'observation_uuid': row['id'],
                 'type': row['type'],
                 'media_id': row['media_id'],
                 'frame': row['frame'],
@@ -189,6 +203,7 @@ class LocalizationProcessor:
                 'points': row['points'],
                 'dimensions': row['dimensions'],
                 'scientific_name': row['scientific_name'],
+                'video_sequence_name': row['video_sequence_name'],
                 'count': row['count'],
                 'attracted': row['attracted'],
                 'categorical_abundance': row['categorical_abundance'],

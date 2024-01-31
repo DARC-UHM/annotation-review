@@ -177,17 +177,26 @@ def tator_image_review(project_id, section_id):
     except tator.openapi.tator_openapi.exceptions.ApiException:
         flash('Please log in to Tator', 'info')
         return redirect('/')
-    tator_media = {}
-    for deployment in request.args.getlist('deployment'):
-        tator_media[deployment] = session[f'{project_id}_{section_id}'][deployment]
+    comments = {}
+    deployments = request.args.getlist('deployment')
+    # get comments from external review db
+    try:
+        for deployment in deployments:
+            with requests.get(
+                f'{app.config.get("DARC_REVIEW_URL")}/comment/sequence/{deployment}',
+                headers=app.config.get('DARC_REVIEW_HEADERS'),
+            ) as r:
+                comments = comments | r.json()  # merge dicts
+    except requests.exceptions.ConnectionError:
+        print('\nERROR: unable to connect to external review server\n')
     data = {
-        'localizations': localization_processor.distilled_records,
+        'annotations': localization_processor.distilled_records,
         'title': localization_processor.section_name,
         'concepts': session['vars_concepts'],
         'reviewers': session['reviewers'],
-        'tator_media': tator_media,
+        'comments': comments,
     }
-    return render_template('tator/image-review/image-review.html', data=data)
+    return render_template('image-review/image-review.html', data=data)
 
 
 # view tator video frame (not cropped)
