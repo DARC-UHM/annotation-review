@@ -326,6 +326,14 @@ def qaqc_quick(check):
 @app.get('/external-review')
 def external_review():
     comments = []
+    if 'tator_token' not in session.keys():
+        flash('Please log in to Tator', 'info')
+        return redirect('/')
+    try:
+        tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
+    except tator.openapi.tator_openapi.exceptions.ApiException:
+        flash('Please log in to Tator', 'info')
+        return redirect('/')
     try:
         # get a list of comments from external review db
         if request.args.get('unread'):

@@ -24,7 +24,7 @@ def flatten_taxa_tree(tree: Dict, flat: Dict):
     :param Dict tree: The nested taxon tree from WoRMS.
     :param Dict flat: The newly created flat taxon tree.
     """
-    flat[tree['rank']] = tree['scientificname']
+    flat[tree['rank'].lower()] = tree['scientificname']
     if tree['child'] is not None:
         flatten_taxa_tree(tree['child'], flat)
     return flat
@@ -68,6 +68,7 @@ class LocalizationProcessor:
                     'Content-Type': 'application/json',
                     'Authorization': f'Token {session["tator_token"]}',
                 })
+            print(req.text)
             localizations += req.json()
         print('fetched!')
         print('Processing localizations...', end='')
@@ -119,20 +120,20 @@ class LocalizationProcessor:
                 'frame': localization['frame'],
                 'frame_url': f'/tator/frame/{localization["media"]}/{localization["frame"]}',
                 'media_id': localization['media'],
-                'phylum': phylogeny[scientific_name]['Phylum'] if 'Phylum' in phylogeny[scientific_name].keys() else None,
-                'subphylum': phylogeny[scientific_name]['Subphylum'] if 'Subphylum' in phylogeny[scientific_name].keys() else None,
-                'superclass': phylogeny[scientific_name]['Superclass'] if 'Superclass' in phylogeny[scientific_name].keys() else None,
-                'class': phylogeny[scientific_name]['Class'] if 'Class' in phylogeny[scientific_name].keys() else None,
-                'subclass': phylogeny[scientific_name]['Subclass'] if 'Subclass' in phylogeny[scientific_name].keys() else None,
-                'superorder': phylogeny[scientific_name]['Superorder'] if 'Superorder' in phylogeny[scientific_name].keys() else None,
-                'order': phylogeny[scientific_name]['Order'] if 'Order' in phylogeny[scientific_name].keys() else None,
-                'suborder': phylogeny[scientific_name]['Suborder'] if 'Suborder' in phylogeny[scientific_name].keys() else None,
-                'infraorder': phylogeny[scientific_name]['Infraorder'] if 'Infraorder' in phylogeny[scientific_name].keys() else None,
-                'superfamily': phylogeny[scientific_name]['Superfamily'] if 'Superfamily' in phylogeny[scientific_name].keys() else None,
-                'family': phylogeny[scientific_name]['Family'] if 'Family' in phylogeny[scientific_name].keys() else None,
-                'subfamily': phylogeny[scientific_name]['Subfamily'] if 'Subfamily' in phylogeny[scientific_name].keys() else None,
-                'genus': phylogeny[scientific_name]['Genus'] if 'Genus' in phylogeny[scientific_name].keys() else None,
-                'species': phylogeny[scientific_name]['Species'] if 'Species' in phylogeny[scientific_name].keys() else None,
+                'phylum': phylogeny[scientific_name]['phylum'] if 'phylum' in phylogeny[scientific_name].keys() else None,
+                'subphylum': phylogeny[scientific_name]['subphylum'] if 'subphylum' in phylogeny[scientific_name].keys() else None,
+                'superclass': phylogeny[scientific_name]['superclass'] if 'superclass' in phylogeny[scientific_name].keys() else None,
+                'class': phylogeny[scientific_name]['class'] if 'class' in phylogeny[scientific_name].keys() else None,
+                'subclass': phylogeny[scientific_name]['subclass'] if 'subclass' in phylogeny[scientific_name].keys() else None,
+                'superorder': phylogeny[scientific_name]['superorder'] if 'superorder' in phylogeny[scientific_name].keys() else None,
+                'order': phylogeny[scientific_name]['order'] if 'order' in phylogeny[scientific_name].keys() else None,
+                'suborder': phylogeny[scientific_name]['suborder'] if 'suborder' in phylogeny[scientific_name].keys() else None,
+                'infraorder': phylogeny[scientific_name]['infraorder'] if 'infraorder' in phylogeny[scientific_name].keys() else None,
+                'superfamily': phylogeny[scientific_name]['superfamily'] if 'superfamily' in phylogeny[scientific_name].keys() else None,
+                'family': phylogeny[scientific_name]['family'] if 'family' in phylogeny[scientific_name].keys() else None,
+                'subfamily': phylogeny[scientific_name]['subfamily'] if 'subfamily' in phylogeny[scientific_name].keys() else None,
+                'genus': phylogeny[scientific_name]['genus'] if 'genus' in phylogeny[scientific_name].keys() else None,
+                'species': phylogeny[scientific_name]['species'] if 'species' in phylogeny[scientific_name].keys() else None,
             })
 
         localization_df = pd.DataFrame(formatted_localizations)

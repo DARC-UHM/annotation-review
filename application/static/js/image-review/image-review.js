@@ -68,20 +68,21 @@ const setCurrentPage = (pageNum) => {
     $('#annotationTable').append('<tbody class="text-start"></tbody>');
 
     annotationsToDisplay.forEach((annotation, index) => {
-        const externalComment = Object.keys(comments).includes(annotation.observation_uuid) ? comments[annotation.observation_uuid] : null;
+        console.log(annotation.observation_uuid)
+        console.log(comments[annotation.observation_uuid]);
         if (index >= prevRange && index < currRange) {
             if (annotation.scientific_name) { // this is a tator localization
-                $('#annotationTable').find('tbody').append(tatorLocalizationRow(annotation, externalComment));
-                $(`#${annotation.id}_overlay`).css('opacity', '0.5');
-                $(`#${annotation.id}_image`).hover((e) => {
+                $('#annotationTable').find('tbody').append(tatorLocalizationRow(annotation, comments[annotation.observation_uuid]));
+                $(`#${annotation.observation_uuid}_overlay`).css('opacity', '0.5');
+                $(`#${annotation.observation_uuid}_image`).hover((e) => {
                     if (e.type === 'mouseenter') {
-                        $(`#${annotation.id}_overlay`).css('opacity', '1.0');
+                        $(`#${annotation.observation_uuid}_overlay`).css('opacity', '1.0');
                     } else if (e.type === 'mouseleave') {
-                        $(`#${annotation.id}_overlay`).css('opacity', '0.5');
+                        $(`#${annotation.observation_uuid}_overlay`).css('opacity', '0.5');
                     }
                 });
             } else { // this is a VARS annotation
-                $('#annotationTable').find('tbody').append(varsAnnotationTableRow(annotation, externalComment));
+                $('#annotationTable').find('tbody').append(varsAnnotationTableRow(annotation, comments[annotation.observation_uuid]));
             }
         }
     });
@@ -649,9 +650,9 @@ $(document).ready(function () {
 
         $('#externalObservationUuid').val(currentAnnotation.observation_uuid);
         $('#externalSequence').val(currentAnnotation.video_sequence_name);
-        $('#externalScientificName').val(currentLocalization.scientific_name);
+        $('#externalScientificName').val(currentAnnotation.scientific_name);
         $('#externalTimestamp').val(currentAnnotation.recorded_timestamp);
-        $('#externalImageUrl').val(currentAnnotation.image_url);
+        $('#externalImageUrl').val(currentAnnotation.image_url || currentAnnotation.frame_url);
         $('#externalVideoUrl').val(currentAnnotation.video_url);
         $('#externalAnnotator').val(currentAnnotation.annotator);
         $('#externalLat').val(currentAnnotation.lat);

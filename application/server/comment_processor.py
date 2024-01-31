@@ -1,8 +1,10 @@
 import json
 import os
-
 import pandas as pd
 import requests
+import tator
+
+from flask import session
 
 from .functions import *
 
@@ -12,8 +14,8 @@ TERM_NORMAL = '\033[1;37;0m'
 
 class CommentProcessor:
     """
-    Fetches annotation information from the VARS db on HURLSTOR given a dict of comments (key = uuid). Merges the
-    fetched annotation information with the data in the comment dict into an array of dicts (self.annotations).
+    Fetches annotation information from the VARS db on HURLSTOR and Tator given a dict of comments (key = uuid). Merges
+    fetched annotations with the data in the comment dict into an array of dicts (self.annotations).
     """
     def __init__(self, comments: Dict):
         self.comments = comments
@@ -31,8 +33,22 @@ class CommentProcessor:
 
         # add formatted comments to list
         for comment in self.comments:
-            annotation = requests.get(f'http://hurlstor.soest.hawaii.edu:8082/anno/v1/annotations/{comment}').json()
-            concept_name = annotation['concept'] if 'concept' in annotation.keys() else self.comments[comment]['scientific_name']
+            if self.comments[comment]['scientific_name'] is None:
+                # vars annotation
+                annotation = requests.get(f'http://hurlstor.soest.hawaii.edu:8082/anno/v1/annotations/{comment}').json()
+                concept_name = annotation['concept']
+            else:
+                # tator localization
+
+                # TODO add different logic for tator localizations. consider incorporating localization processor...
+
+                concept_name = self.comments[comment]['scientific_name']
+                annotation = requests.get(
+                    f'https://cloud.tator.io/rest/Localization/{comment}',
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Token {session["tator_token"]}',
+                    }).json()
 
             if concept_name not in phylogeny.keys():
                 # get the phylogeny from VARS kb
@@ -58,6 +74,7 @@ class CommentProcessor:
             formatted_comments.append({
                 'observation_uuid': comment,
                 'concept': concept_name,
+                'scientific_name': self.comments[comment]['scientific_name'],
                 'identity-certainty': get_association(annotation, 'identity-certainty')['link_value'] if get_association(annotation, 'identity-certainty') else None,
                 'identity-reference': get_association(annotation, 'identity-reference')['link_value'] if get_association(annotation, 'identity-reference') else None,
                 'guide-photo': get_association(annotation, 'guide-photo')['to_concept'] if get_association(annotation, 'guide-photo') else None,
@@ -116,6 +133,7 @@ class CommentProcessor:
             self.distilled_records.append({
                 'observation_uuid': row['observation_uuid'],
                 'concept': row['concept'],
+                'scientific_name': row['scientific_name'],
                 'annotator': row['annotator'],
                 'depth': row['depth'],
                 'lat': row['lat'],
