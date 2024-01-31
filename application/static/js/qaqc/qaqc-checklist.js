@@ -95,31 +95,31 @@ document.addEventListener('DOMContentLoaded',  (event) => {
         }
     };
 
-    $('#multipleAssociationAnchor').attr('href', `/vars-qaqc/multiple-associations?sequence=${sequences.join('&sequence=')}`);
+    $('#multipleAssociationAnchor').attr('href', `/vars/qaqc/multiple-associations?sequence=${sequences.join('&sequence=')}`);
     $('#multipleAssociationAnchor').on('click', () => showLoader());
-    $('#primarySubstrateAnchor').attr('href', `/vars-qaqc/missing-primary-substrate?sequence=${sequences.join('&sequence=')}`);
+    $('#primarySubstrateAnchor').attr('href', `/vars/qaqc/missing-primary-substrate?sequence=${sequences.join('&sequence=')}`);
     $('#primarySubstrateAnchor').on('click', () => showLoader());
-    $('#identicalS1S2Anchor').attr('href', `/vars-qaqc/identical-s1-&-s2?sequence=${sequences.join('&sequence=')}`);
+    $('#identicalS1S2Anchor').attr('href', `/vars/qaqc/identical-s1-&-s2?sequence=${sequences.join('&sequence=')}`);
     $('#identicalS1S2Anchor').on('click', () => showLoader());
-    $('#duplicateS2Anchor').attr('href', `/vars-qaqc/duplicate-s2?sequence=${sequences.join('&sequence=')}`);
+    $('#duplicateS2Anchor').attr('href', `/vars/qaqc/duplicate-s2?sequence=${sequences.join('&sequence=')}`);
     $('#duplicateS2Anchor').on('click', () => showLoader());
-    $('#uponSubstrateAnchor').attr('href', `/vars-qaqc/missing-upon-substrate?sequence=${sequences.join('&sequence=')}`);
+    $('#uponSubstrateAnchor').attr('href', `/vars/qaqc/missing-upon-substrate?sequence=${sequences.join('&sequence=')}`);
     $('#uponSubstrateAnchor').on('click', () => showLoader());
-    $('#timestampSubstrateAnchor').attr('href', `/vars-qaqc/mismatched-substrates?sequence=${sequences.join('&sequence=')}#sort=Timestamp`);
+    $('#timestampSubstrateAnchor').attr('href', `/vars/qaqc/mismatched-substrates?sequence=${sequences.join('&sequence=')}#sort=Timestamp`);
     $('#timestampSubstrateAnchor').on('click', () => showLoader());
-    $('#missingUponAnchor').attr('href', `/vars-qaqc/missing-upon?sequence=${sequences.join('&sequence=')}`);
+    $('#missingUponAnchor').attr('href', `/vars/qaqc/missing-upon?sequence=${sequences.join('&sequence=')}`);
     $('#missingUponAnchor').on('click', () => showLoader());
-    $('#refIdConceptNameAnchor').attr('href', `/vars-qaqc/id-ref-concept-name?sequence=${sequences.join('&sequence=')}#sort=ID Reference`);
+    $('#refIdConceptNameAnchor').attr('href', `/vars/qaqc/id-ref-concept-name?sequence=${sequences.join('&sequence=')}#sort=ID Reference`);
     $('#refIdConceptNameAnchor').on('click', () => showLoader());
-    $('#refIdAssociationsAnchor').attr('href', `/vars-qaqc/id-ref-associations?sequence=${sequences.join('&sequence=')}#sort=ID Reference`);
+    $('#refIdAssociationsAnchor').attr('href', `/vars/qaqc/id-ref-associations?sequence=${sequences.join('&sequence=')}#sort=ID Reference`);
     $('#refIdAssociationsAnchor').on('click', () => showLoader());
-    $('#suspiciousHostAnchor').attr('href', `/vars-qaqc/suspicious-hosts?sequence=${sequences.join('&sequence=')}`);
+    $('#suspiciousHostAnchor').attr('href', `/vars/qaqc/suspicious-hosts?sequence=${sequences.join('&sequence=')}`);
     $('#suspiciousHostAnchor').on('click', () => showLoader());
-    $('#expectedAssociationAnchor').attr('href', `/vars-qaqc/expected-associations?sequence=${sequences.join('&sequence=')}`);
+    $('#expectedAssociationAnchor').attr('href', `/vars/qaqc/expected-associations?sequence=${sequences.join('&sequence=')}`);
     $('#expectedAssociationAnchor').on('click', () => showLoader());
-    $('#timeDiffHostUponAnchor').attr('href', `/vars-qaqc/host-associate-time-diff?sequence=${sequences.join('&sequence=')}`);
+    $('#timeDiffHostUponAnchor').attr('href', `/vars/qaqc/host-associate-time-diff?sequence=${sequences.join('&sequence=')}`);
     $('#timeDiffHostUponAnchor').on('click', () => showLoader());
-    $('#uniqueFieldsAnchor').attr('href', `/vars-qaqc/unique-fields?sequence=${sequences.join('&sequence=')}#unique=concept-names`);
+    $('#uniqueFieldsAnchor').attr('href', `/vars/qaqc/unique-fields?sequence=${sequences.join('&sequence=')}#unique=concept-names`);
     $('#uniqueFieldsAnchor').on('click', () => showLoader());
 
     $('#missingAncillaryAnchor').on('click', async () => {
@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded',  (event) => {
         $('#quickCheckCheck').html('missing ancillary data');
         $('#load-overlay').removeClass('loader-bg-hidden');
         $('#load-overlay').addClass('loader-bg');
-        const res = await fetch(`/vars-qaqc/quick/missing-ancillary-data?sequence=${sequences.join('&sequence=')}`);
+        const res = await fetch(`/vars/qaqc/quick/missing-ancillary-data?sequence=${sequences.join('&sequence=')}`);
         const json = await res.json();
         $('#load-overlay').removeClass('loader-bg');
         $('#load-overlay').addClass('loader-bg-hidden');
@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded',  (event) => {
         $('#quickCheckSeeDetailsBtn').on('click', () => {
             $('#load-overlay').removeClass('loader-bg-hidden');
             $('#load-overlay').addClass('loader-bg');
-            window.location.href = `/vars-qaqc/missing-ancillary-data?sequence=${sequences.join('&sequence=')}`
+            window.location.href = `/vars/qaqc/missing-ancillary-data?sequence=${sequences.join('&sequence=')}`
         });
     });
 

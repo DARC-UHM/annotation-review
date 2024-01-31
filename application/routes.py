@@ -73,7 +73,7 @@ def index():
 
 
 # get token from tator
-@app.post('/tator-login')
+@app.post('/tator/login')
 def tator_login():
     req = requests.post(
             f'{app.config.get("TATOR_URL")}/rest/Token',
@@ -91,7 +91,7 @@ def tator_login():
 
 
 # check if stored tator token is valid
-@app.get('/check-tator-token')
+@app.get('/tator/check-token')
 def check_tator_token():
     if 'tator_token' not in session.keys():
         return {}, 400
@@ -104,14 +104,14 @@ def check_tator_token():
 
 
 # clears stored tator token
-@app.get('/tator-logout')
+@app.get('/tator/logout')
 def tator_logout():
     session.pop('tator_token', None)
     return {}, 200
 
 
 # get a list of projects associated with user from tator
-@app.get('/tator-projects')
+@app.get('/tator/projects')
 def tator_projects():
     try:
         project_list = tator.get_api(
@@ -124,7 +124,7 @@ def tator_projects():
 
 
 # get a list of sections associated with a project from tator
-@app.get('/tator-sections/<project_id>')
+@app.get('/tator/sections/<project_id>')
 def tator_sections(project_id):
     try:
         section_list = tator.get_api(
@@ -137,7 +137,7 @@ def tator_sections(project_id):
 
 
 # get a list of deployments associated with a project & section from tator
-@app.get('/tator-deployments/<project_id>/<section_id>')
+@app.get('/tator/deployments/<project_id>/<section_id>')
 def load_media(project_id, section_id):
     if f'{project_id}_{section_id}' in session.keys() and request.args.get('refresh') != 'true':
         return sorted(session[f'{project_id}_{section_id}'].keys()), 200
@@ -162,7 +162,7 @@ def load_media(project_id, section_id):
 
 
 # view all Tator annotations (localizations) in a specified project & section
-@app.get('/tator-image-review/<project_id>/<section_id>')
+@app.get('/tator/image-review/<project_id>/<section_id>')
 def tator_image_review(project_id, section_id):
     if 'tator_token' not in session.keys():
         return redirect('/')
@@ -182,7 +182,7 @@ def tator_image_review(project_id, section_id):
         tator_media[deployment] = session[f'{project_id}_{section_id}'][deployment]
     data = {
         'localizations': localization_processor.distilled_records,
-        'section_name': localization_processor.section_name,
+        'title': localization_processor.section_name,
         'concepts': session['vars_concepts'],
         'reviewers': session['reviewers'],
         'tator_media': tator_media,
@@ -190,21 +190,8 @@ def tator_image_review(project_id, section_id):
     return render_template('tator/image-review/image-review.html', data=data)
 
 
-# view tator localization image, cropped (necessary because images are behind api auth and don't want to expose token)
-@app.get('/tator-image/<localization_id>')
-def tator_image(localization_id):
-    req = requests.get(
-        f'{app.config.get("TATOR_URL")}/rest/LocalizationGraphic/{localization_id}?use_default_margins=false&margin_x=1000&margin_y=600',
-        headers={'Authorization': f'Token {session["tator_token"]}'}
-    )
-    if req.status_code == 200:
-        base64_image = base64.b64encode(req.content).decode('utf-8')
-        return Response(base64.b64decode(base64_image), content_type='image/png'), 200
-    return '', 500
-
-
 # view tator video frame (not cropped)
-@app.get('/tator-frame/<media_id>/<frame>')
+@app.get('/tator/frame/<media_id>/<frame>')
 def tator_frame(media_id, frame):
     req = requests.get(
         f'{app.config.get("TATOR_URL")}/rest/GetFrame/{media_id}?frames={frame}',
@@ -217,7 +204,7 @@ def tator_frame(media_id, frame):
 
 
 # view VARS annotations with images in a specified dive (or dives)
-@app.get('/vars-image-review')
+@app.get('/vars/image-review')
 def view_images():
     comments = {}
     sequences = request.args.getlist('sequence')
@@ -239,26 +226,27 @@ def view_images():
         return render_template('not-found.html', err='pics'), 404
     data = {
         'annotations': image_loader.distilled_records,
+        'title': image_loader.vessel_name,
         'concepts': session['vars_concepts'],
         'reviewers': session['reviewers'],
         'comments': comments,
     }
-    return render_template('vars/image-review/image-review.html', data=data)
+    return render_template('image-review/image-review.html', data=data)
 
 
 # qaqc checklist page
-@app.get('/vars-qaqc-checklist')
+@app.get('/vars/qaqc-checklist')
 def vars_qaqc_checklist():
     sequences = request.args.getlist('sequence')
     annotation_count = 0
     for sequence in sequences:
         with requests.get(f'{app.config.get("HURLSTOR_URL")}:8086/query/dive/{sequence.replace(" ", "%20")}') as r:
             annotation_count += len(r.json()['annotations'])
-    return render_template('vars/qaqc/qaqc-checklist.html', annotation_count=annotation_count)
+    return render_template('qaqc/qaqc-checklist.html', annotation_count=annotation_count)
 
 
 # individual qaqc checks
-@app.get('/vars-qaqc/<check>')
+@app.get('/vars/qaqc/<check>')
 def vars_qaqc(check):
     sequences = request.args.getlist('sequence')
     qaqc_annos = QaqcProcessor(sequences)
@@ -309,12 +297,12 @@ def vars_qaqc(check):
         case 'unique-fields':
             qaqc_annos.find_unique_fields()
             data['unique_list'] = qaqc_annos.final_records
-            return render_template('vars/qaqc/qaqc-unique.html', data=data)
+            return render_template('qaqc/qaqc-unique.html', data=data)
     data['annotations'] = qaqc_annos.final_records
-    return render_template('vars/qaqc/qaqc.html', data=data)
+    return render_template('qaqc/qaqc.html', data=data)
 
 
-@app.get('/vars-qaqc/quick/<check>')
+@app.get('/vars/qaqc/quick/<check>')
 def qaqc_quick(check):
     sequences = request.args.getlist('sequence')
     qaqc_annos = QaqcProcessor(sequences)
@@ -357,15 +345,16 @@ def external_review():
         return render_template('not-found.html', err='comments'), 404
     data = {
         'annotations': comment_loader.distilled_records,
+        'title': 'External Review (Unread)' if request.args.get('unread') else 'External Review (All)',
         'concepts': session['vars_concepts'],
         'reviewers': session['reviewers'],
         'comments': comments
     }
-    return render_template('vars/image-review/image-review.html', data=data)
+    return render_template('image-review/image-review.html', data=data)
 
 
 # syncs ctd from vars db with external review db
-@app.get('/sync-external-ctd')
+@app.get('/vars/sync-external-ctd')
 def sync_external_ctd():
     updated_ctd = {}
     sequences = {}
@@ -483,7 +472,7 @@ def update_reviewer_info():
 
 
 # delete a reviewer
-@app.get('/delete_reviewer/<name>')
+@app.get('/delete-reviewer/<name>')
 def delete_reviewer(name):
     req = requests.delete(
         f'{app.config.get("DARC_REVIEW_URL")}/reviewer/delete/{name}',
@@ -582,8 +571,8 @@ def update_annotation():
         return {}, 500
 
 
-# creates a new association for an annotation
-@app.post('/create-association')
+# creates a new association for a VARS annotation
+@app.post('/vars/create-association')
 def create_association():
     annosaurus = Annosaurus(app.config.get('ANNOSAURUS_URL'))
     new_association = {
@@ -601,8 +590,8 @@ def create_association():
     return {}, status
 
 
-# updates an association
-@app.post('/update-association')
+# updates a VARS association
+@app.post('/vars/update-association')
 def update_association():
     annosaurus = Annosaurus(app.config.get('ANNOSAURUS_URL'))
     updated_association = {
@@ -618,7 +607,8 @@ def update_association():
     return {}, status
 
 
-@app.get('/delete-association/<uuid>')
+# deletes a VARS association
+@app.get('/vars/delete-association/<uuid>')
 def delete_association(uuid):
     annosaurus = Annosaurus(app.config.get('ANNOSAURUS_URL'))
     return {}, annosaurus.delete_association(uuid=uuid, client_secret=app.config.get('ANNOSAURUS_CLIENT_SECRET'))

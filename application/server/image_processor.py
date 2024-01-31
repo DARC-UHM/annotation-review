@@ -18,6 +18,9 @@ class ImageProcessor:
 
     def __init__(self, sequence_names: list):
         self.distilled_records = []
+        temp_name = sequence_names[0].split()
+        temp_name.pop()
+        self.vessel_name = ' '.join(temp_name)
         for name in sequence_names:
             self.load_images(name)
 

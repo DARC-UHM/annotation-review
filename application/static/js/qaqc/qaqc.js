@@ -10,7 +10,7 @@ let associationToDeleteUuid = '';
 
 function returnToCheckList() {
     const url = window.location.href;
-    window.location.href = `/vars-qaqc-checklist${url.substring(url.indexOf('?'))}`;
+    window.location.href = `/vars/qaqc-checklist${url.substring(url.indexOf('?'))}`;
 }
 
 window.returnToCheckList = returnToCheckList;
@@ -514,7 +514,7 @@ async function createAssociation(observation_uuid) {
     }
     const formData = new FormData();
     Object.keys(newAssociation).forEach((key) => formData.append(key, newAssociation[key]));
-    const res = await fetch('/create-association', {
+    const res = await fetch('/vars/create-association', {
         method: 'POST',
         body: formData,
     });
@@ -558,7 +558,7 @@ async function updateAssociation(uuid, link_name, textInputId) {
     }
     const formData = new FormData();
     Object.keys(updatedAssociation).forEach((key) => formData.append(key, updatedAssociation[key]));
-    const res = await fetch('/update-association', {
+    const res = await fetch('/vars/update-association', {
         method: 'POST',
         body: formData,
     });
@@ -581,7 +581,7 @@ window.updateAssociation = updateAssociation;
 async function deleteAssociation() {
     const annoIndex = annotations.findIndex((anno) => anno.observation_uuid === workingAnnotationUuid);
     const assIndex = annotations[annoIndex].associations.findIndex((ass) => ass.uuid === associationToDeleteUuid);
-    const res = await fetch(`/delete-association/${associationToDeleteUuid}`);
+    const res = await fetch(`/vars/delete-association/${associationToDeleteUuid}`);
     if (res.status === 204) {
         updateFlashMessages('Successfully deleted association', 'success');
         annotations[annoIndex].associations.splice(assIndex, 1);

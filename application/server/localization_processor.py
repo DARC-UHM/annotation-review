@@ -104,7 +104,7 @@ class LocalizationProcessor:
                 'tentative_id': localization['attributes']['Tentative ID'] if 'Tentative ID' in localization['attributes'].keys() else None,
                 'annotator': localization['created_by'],
                 'frame': localization['frame'],
-                'frame_url': f'/tator-frame/{localization["media"]}/{localization["frame"]}',
+                'frame_url': f'/tator/frame/{localization["media"]}/{localization["frame"]}',
                 'media_id': localization['media'],
                 'phylum': phylogeny[scientific_name]['Phylum'] if 'Phylum' in phylogeny[scientific_name].keys() else None,
                 'subphylum': phylogeny[scientific_name]['Subphylum'] if 'Subphylum' in phylogeny[scientific_name].keys() else None,

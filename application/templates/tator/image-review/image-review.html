@@ -9,7 +9,7 @@
             <div class="row m-auto">
                 <div class="col-9 text-start">
                     <h3 class="m-0 p-0 pb-2" style="font-weight: 600;">{{ data.section_name }}</h3>
-                    <div id="deploymentList"></div>
+                    <div id="sequenceList"></div>
                 </div>
                 <div class="col-3 text-end mt-auto">
                     <div>
@@ -145,53 +145,6 @@
                             <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Cancel</button>
                             <input type="hidden" id="editObservationUuid" name="observation_uuid">
                             <input type="submit" id="editModalSubmitButton" class="btn btn-success modal-button" value="Save Changes">
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-        <div class="modal fade" id="externalReviewModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <form id="updateExternalReviewerForm" onsubmit="updateExternalReviewers()" autocomplete="off">
-                    <div class="modal-content">
-                        <div class="modal-header text-center">
-                            <h5 class="modal-title mt-1 ms-4" style="font-weight: 600;">External Review</h5>
-                            <button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body text-start">
-                            <div class="row">
-                                <div class="col-4 ms-4 ps-4 mt-2 modal-label">
-                                    Reviewer:<br>
-                                    <a class="small editButton mt-2" style="font-weight: 500;" href="/reviewers" target="_blank">See all reviewers</a>
-                                </div>
-                                <div class="col">
-                                    <div id="reviewerList"></div>
-                                    <div id="addReviewerButton" class="mt-2" style="display: flex;">
-                                        <div class="col w-100 d-flex justify-content-center me-1">
-                                            <button type="button" class="plusButton m-auto small d-flex" onClick="addReviewer()">
-                                                <div style="padding-top: 2px;">Add </div>
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
-                                                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                        <div class="col-1 me-4"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Cancel</button>
-                            <input type="hidden" id="externalReviewers" name="reviewers">
-                            <input type="hidden" id="externalId" name="observation_uuid">
-                            <input type="hidden" id="externalScientificName" name="scientific_name">
-                            <input type="hidden" id="externalSequence" name="sequence">
-                            <input type="hidden" id="externalImageUrl" name="image_url">
-                            <input type="hidden" id="externalAnnotator" name="annotator">
-                            <input type="hidden" id="externalLat" name="lat">
-                            <input type="hidden" id="externalLong" name="long">
-                            <input type="hidden" id="externalDepth" name="depth">
-                            <input type="submit" id="externalModalSubmitButton" class="btn btn-success modal-button" value="Save">
                         </div>
                     </div>
                 </form>

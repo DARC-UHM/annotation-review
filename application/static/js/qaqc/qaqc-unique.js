@@ -2,7 +2,7 @@ const sequences = [];
 
 function returnToCheckList() {
     const url = window.location.href;
-    window.location.href = `/vars-qaqc-checklist${url.substring(url.indexOf('?'))}`;
+    window.location.href = `/vars/qaqc-checklist${url.substring(url.indexOf('?'))}`;
 }
 
 window.returnToCheckList = returnToCheckList;

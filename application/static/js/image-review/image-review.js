@@ -1,6 +1,6 @@
-import { autocomplete } from '../../util/autocomplete.js';
-import { reviewerList } from '../../util/reviewer-list.js';
-import { updateFlashMessages } from '../../util/updateFlashMessages.js';
+import { autocomplete } from '../util/autocomplete.js';
+import { reviewerList } from '../util/reviewer-list.js';
+import { updateFlashMessages } from '../util/updateFlashMessages.js';
 
 const guidePhotoVals = ['1 best', '2 good', '3 okay', ''];
 const sequences = [];
@@ -186,7 +186,7 @@ const setCurrentPage = (pageNum) => {
                                 type="button" 
                                 data-bs-toggle="modal" 
                                 data-anno='${ JSON.stringify(annotation) }' 
-                                data-bs-target="#editModal" 
+                                data-bs-target="#editVarsAnnotationModal" 
                                 class="editButton">
                                     Edit annotation
                             </button>
@@ -638,7 +638,7 @@ function updateAnnotation() {
     event.preventDefault();
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
-    $('#editModal').modal('hide');
+    $('#editVarsAnnotationModal').modal('hide');
     const formData = new FormData($('#updateAnnotationForm')[0]);
     fetch('/update-annotation', {
         method: 'POST',
@@ -675,7 +675,6 @@ function saveScrollPosition(page) {
 document.addEventListener('DOMContentLoaded', function(event) {
     const url = new URL(window.location.href);
     const queryAndHash = url.search + url.hash;
-    let vesselName;
     let unread = false;
     let reviewer = null;
 
@@ -694,9 +693,6 @@ document.addEventListener('DOMContentLoaded', function(event) {
         if (pair[0].includes('sequence')) {
             const param = pair[1].split(' ');
             sequences.push(param.pop());
-            if (!vesselName) {
-                vesselName = param.join(' ');
-            }
         } else if (pair[0].includes('unread')) {
             unread = true;
         } else if (pair[0].includes('reviewer')) {
@@ -714,25 +710,21 @@ document.addEventListener('DOMContentLoaded', function(event) {
         setCurrentPage(parseInt(currentPage) + 1);
     });
 
-    if (!vesselName) {
+    if (url.pathname.includes('external-review')) {
         // external review page
         $('#changeExternalView').on('click', () => {
             $('#load-overlay').removeClass('loader-bg-hidden');
             $('#load-overlay').addClass('loader-bg');
         });
         if (reviewer) {
-            $('#vesselName').html(`External Review List (${reviewer})`);
+            $('#title').html(`External Review List (${reviewer})`);
             document.title = `DARC Image Review | External Review List (${reviewer})`;
             $('#changeExternalView').html('View All');
             $('#changeExternalView').attr('href', '/external-review');
         } else if (unread) {
-            $('#vesselName').html('External Review List (Unread)');
-            document.title = 'DARC Image Review | External Review List (Unread Comments)';
             $('#changeExternalView').html('View All');
             $('#changeExternalView').attr('href', '/external-review');
         } else {
-            $('#vesselName').html('External Review List (All)');
-            document.title = 'DARC Image Review | External Review List (All)';
             $('#changeExternalView').html('View Unread');
             $('#changeExternalView').attr('href', '/external-review?unread=true');
         }
@@ -740,7 +732,6 @@ document.addEventListener('DOMContentLoaded', function(event) {
         // regular dive page
         $('#syncCTD').hide();
         $('#changeExternalView').hide();
-        $('#vesselName').html(vesselName);
     }
 
     $('#paginationSelect').on('change', () => {
@@ -775,7 +766,7 @@ window.onhashchange = () => {
 // get the annotation data and add it to the modal
 $(document).ready(function () {
 
-    $('#editModal').on('show.bs.modal', function (e) {
+    $('#editVarsAnnotationModal').on('show.bs.modal', function (e) {
         const annotation = $(e.relatedTarget).data('anno');
         const conceptNameField = $(this).find('#editConceptName');
         const uponField = $(this).find('#editUpon');

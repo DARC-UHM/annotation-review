@@ -1,0 +1,67 @@
+<div class="modal fade" id="editVarsAnnotationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form id="updateAnnotationForm" onsubmit="updateAnnotation()" autocomplete="off">
+            <div class="modal-content">
+                <div class="modal-header text-center">
+                    <h5 class="modal-title mt-1 ms-4" style="font-weight: 600;">Edit Annotation</h5>
+                    <button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-start">
+                    <div class="row pb-2">
+                        <div class="col-4 ms-4 ps-4 modal-label">
+                            Concept:
+                        </div>
+                        <div class="col">
+                            <input type="text" id="editConceptName" name="concept" class="modal-text">
+                        </div>
+                    </div>
+                    <div class="row pb-2">
+                        <div class="col-4 ms-4 ps-4 modal-label">
+                            ID Certainty:
+                        </div>
+                        <div class="col">
+                            <input type="text" id="editIdCert" name="identity-certainty" class="modal-text">
+                        </div>
+                    </div>
+                    <div class="row pb-2">
+                        <div class="col-4 ms-4 ps-4 modal-label">
+                            ID Reference:
+                        </div>
+                        <div class="col">
+                            <input type="text" id="editIdRef" name="identity-reference" class="modal-text">
+                        </div>
+                    </div>
+                    <div class="row pb-2">
+                        <div class="col-4 ms-4 ps-4 modal-label">
+                            Upon:
+                        </div>
+                        <div class="col">
+                            <input type="text" id="editUpon" name="upon" class="modal-text">
+                        </div>
+                    </div>
+                    <div class="row pb-2">
+                        <div class="col-4 ms-4 ps-4 modal-label">
+                            Comments:
+                        </div>
+                        <div class="col">
+                            <input type="text" id="editComments" name="comment" class="modal-text">
+                        </div>
+                    </div>
+                    <div class="row pb-2">
+                        <div class="col-4 ms-4 ps-4 modal-label">
+                            Guide Photo:
+                        </div>
+                        <div class="col">
+                            <select id="editGuidePhoto" name="guide-photo"></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Cancel</button>
+                    <input type="hidden" id="editObservationUuid" name="observation_uuid">
+                    <input type="submit" id="editModalSubmitButton" class="btn btn-success modal-button" value="Save Changes">
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

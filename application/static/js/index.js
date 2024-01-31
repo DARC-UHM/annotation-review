@@ -19,7 +19,7 @@ function checkSequence() {
 }
 
 async function getTatorProjects() {
-    const res = await fetch('/tator-projects');
+    const res = await fetch('/tator/projects');
     const json = await res.json();
     if (res.status === 200) {
         $('#tatorProject').html('<option value="" selected disabled>Select a project</option>');
@@ -37,7 +37,7 @@ async function getTatorSections(projectId) {
     if (!projectId) {
         return;
     }
-    const res = await fetch(`/tator-sections/${projectId}`);
+    const res = await fetch(`/tator/sections/${projectId}`);
     const json = await res.json();
     if (res.status === 200) {
         $('#tatorSection').html('<option value="" selected disabled>Select a section</option>');
@@ -55,7 +55,7 @@ async function getTatorDeployments(projectId, sectionId) {
     }
     $('#load-overlay').addClass('loader-bg');
     $('#load-overlay').removeClass('loader-bg-hidden');
-    const res = await fetch(`/tator-deployments/${projectId}/${sectionId}`);
+    const res = await fetch(`/tator/deployments/${projectId}/${sectionId}`);
     const json = await res.json();
     if (res.status === 200) {
         $('#deployment1').html('<option value="" selected disabled>Select a deployment</option>');
@@ -74,7 +74,7 @@ async function tatorLogin() {
     $('#load-overlay').addClass('loader-bg');
     $('#load-overlay').removeClass('loader-bg-hidden');
     const formData = new FormData($('#tatorLogin')[0]);
-    const res = await fetch('/tator-login', {
+    const res = await fetch('/tator/login', {
         method: 'POST',
         body: formData,
     });
@@ -101,7 +101,7 @@ $('#tatorSelect').on('click', async () => {
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#varsIndexForm').hide();
     $('#platformSelectBtn').html('Tator ');
-    const res = await fetch('/check-tator-token');
+    const res = await fetch('/tator/check-token');
     const json = await res.json();
     if (res.status === 200) {
         $('#tatorLoggedInUser').html(json.username);
@@ -128,7 +128,7 @@ $('#logoutBtn').on('click', async () => {
     console.log('wat')
     $('#load-overlay').addClass('loader-bg');
     $('#load-overlay').removeClass('loader-bg-hidden');
-    const res = await fetch('/tator-logout');
+    const res = await fetch('/tator/logout');
     if (res.status === 200) {
         $('#tatorLogin').show();
         $('#tatorIndexForm').hide();
@@ -214,21 +214,21 @@ $('#varsImageReviewButton').on('click', () => {
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
     const sequences = new FormData($('#varsIndexForm')[0]).getAll('sequence');
-    window.location.href = `/vars-image-review?sequence=${sequences.join('&sequence=')}`;
+    window.location.href = `/vars/image-review?sequence=${sequences.join('&sequence=')}`;
 });
 
 $('#varsQaqcButton').on('click', () => {
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
     const sequences = new FormData($('#varsIndexForm')[0]).getAll('sequence');
-    window.location.href = `/vars-qaqc-checklist?sequence=${sequences.join('&sequence=')}`;
+    window.location.href = `/vars/qaqc-checklist?sequence=${sequences.join('&sequence=')}`;
 });
 
 $('#tatorImageReviewButton').on('click', () => {
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
     const formData = new FormData($('#tatorIndexForm')[0]);
-    window.location.href = `/tator-image-review/${formData.get('project')}/${formData.get('section')}?deployment=${formData.getAll('deployment').join('&deployment=')}`;
+    window.location.href = `/tator/image-review/${formData.get('project')}/${formData.get('section')}?deployment=${formData.getAll('deployment').join('&deployment=')}`;
 });
 
 $('a.external-review-link').on('click', () => {

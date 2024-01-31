@@ -44,7 +44,7 @@ $(document).ready(function () {
         $(this).find('#lastContacted').val(reviewer.last_contacted);
 
         $('#deleteReviewerName').html(reviewer.name);
-        $('#deleteReviewerButton').attr('href', `/delete_reviewer/${reviewer.name}`);
+        $('#deleteReviewerButton').attr('href', `/delete-reviewer/${reviewer.name}`);
 
         nameField.on('input', () => checkEmpty(phylumField.val(), nameField.val()));
         phylumField.on('input', () => checkEmpty(phylumField.val(), nameField.val()));
