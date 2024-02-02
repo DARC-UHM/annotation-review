@@ -1,3 +1,5 @@
+import { updateFlashMessages } from './util/updateFlashMessages.js';
+
 function checkEmpty(str1, str2) {
     $('#editReviewerSubmitButton')[0].disabled = !(str1.length > 0 && str2.length > 0);
 }
@@ -44,7 +46,12 @@ $(document).ready(function () {
         $(this).find('#lastContacted').val(reviewer.last_contacted);
 
         $('#deleteReviewerName').html(reviewer.name);
-        $('#deleteReviewerButton').attr('href', `/delete-reviewer/${reviewer.name}`);
+        $('#deleteReviewerButton').on('click', async () => {
+            const res = await fetch(`/reviewer/${reviewer.name}`,{ method: 'DELETE' });
+            if (res.ok) {
+                window.location.reload();
+            }
+        });
 
         nameField.on('input', () => checkEmpty(phylumField.val(), nameField.val()));
         phylumField.on('input', () => checkEmpty(phylumField.val(), nameField.val()));

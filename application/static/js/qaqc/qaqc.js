@@ -480,8 +480,8 @@ async function updateConceptName(uuid) {
     formData.append('upon', '');               // don't feel like creating a new route/function just
     formData.append('comment', '');            // for updating the concept name :)
     formData.append('guide-photo', '');
-    const res = await fetch('/update-annotation', {
-        method: 'POST',
+    const res = await fetch('/vars/annotation', {
+        method: 'PATCH',
         body: formData,
     });
     if (res.status === 204) {
@@ -514,7 +514,7 @@ async function createAssociation(observation_uuid) {
     }
     const formData = new FormData();
     Object.keys(newAssociation).forEach((key) => formData.append(key, newAssociation[key]));
-    const res = await fetch('/vars/create-association', {
+    const res = await fetch('/vars/association', {
         method: 'POST',
         body: formData,
     });
@@ -558,8 +558,8 @@ async function updateAssociation(uuid, link_name, textInputId) {
     }
     const formData = new FormData();
     Object.keys(updatedAssociation).forEach((key) => formData.append(key, updatedAssociation[key]));
-    const res = await fetch('/vars/update-association', {
-        method: 'POST',
+    const res = await fetch('/vars/association', {
+        method: 'PATCH',
         body: formData,
     });
     if (res.status === 200) {
@@ -581,7 +581,7 @@ window.updateAssociation = updateAssociation;
 async function deleteAssociation() {
     const annoIndex = annotations.findIndex((anno) => anno.observation_uuid === workingAnnotationUuid);
     const assIndex = annotations[annoIndex].associations.findIndex((ass) => ass.uuid === associationToDeleteUuid);
-    const res = await fetch(`/vars/delete-association/${associationToDeleteUuid}`);
+    const res = await fetch(`/vars/association/${associationToDeleteUuid}`, { method: 'DELETE' });
     if (res.status === 204) {
         updateFlashMessages('Successfully deleted association', 'success');
         annotations[annoIndex].associations.splice(assIndex, 1);

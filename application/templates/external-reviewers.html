@@ -37,7 +37,7 @@
         </div>
         <div class="modal fade" id="editReviewerModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg">
-                <form action="/update-reviewer-info" method="post" autocomplete="off">
+                <form action="/reviewer" method="post" autocomplete="off">
                     <div class="modal-content">
                         <div class="modal-header text-center">
                             <h5 class="modal-title mt-1 ms-4" style="font-weight: 600;">Edit Reviewer</h5>
@@ -108,21 +108,19 @@
         </div>
         <div class="modal fade" id="deleteReviewerModal" role="dialog" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg">
-                <form action="#" method="post" autocomplete="off">
-                    <div class="modal-content">
-                        <div class="modal-header text-center">
-                            <h5 class="modal-title mt-1 ms-4" style="font-weight: 600;">Delete Reviewer</h5>
-                            <button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body text-start mx-4">
-                            Are you sure you want to remove <span id="deleteReviewerName">this reviewer</span> from the list of external reviewers?
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Cancel</button>
-                            <a id="deleteReviewerButton" class="btn btn-danger modal-button">Delete</a>
-                        </div>
+                <div class="modal-content">
+                    <div class="modal-header text-center">
+                        <h5 class="modal-title mt-1 ms-4" style="font-weight: 600;">Delete Reviewer</h5>
+                        <button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                </form>
+                    <div class="modal-body text-start mx-4">
+                        Are you sure you want to remove <span id="deleteReviewerName">this reviewer</span> from the list of external reviewers?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Cancel</button>
+                        <button id="deleteReviewerButton" class="btn btn-danger modal-button">Delete</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

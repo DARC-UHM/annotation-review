@@ -422,10 +422,10 @@ def sync_external_ctd():
 
 
 # deletes an item from the external review db
-@app.post('/delete-external-comment')
+@app.delete('/external-comment')
 def delete_external_comment():
     req = requests.delete(
-        f'{app.config.get("DARC_REVIEW_URL")}/comment/delete/{request.values.get("uuid")}',
+        f'{app.config.get("DARC_REVIEW_URL")}/comment/{request.values.get("uuid")}',
         headers=app.config.get('DARC_REVIEW_HEADERS'),
     )
     if req.status_code == 200:
@@ -434,7 +434,7 @@ def delete_external_comment():
             'reviewer': '[]',
             'action': 'DELETE'
         }
-        requests.post(f'{app.config.get("LOCAL_APP_URL")}/update-annotation-comment', new_comment)
+        requests.patch(f'{app.config.get("LOCAL_APP_URL")}/vars/annotation/comment', new_comment)
         return {}, 200
     return {}, 500
 
@@ -445,8 +445,8 @@ def reviewers():
     return render_template('external-reviewers.html', reviewers=session['reviewers'])
 
 
-# update a reviewer's information
-@app.post('/update-reviewer-info')
+# create or update a reviewer's information
+@app.post('/reviewer')
 def update_reviewer_info():
     success = False
     name = request.values.get('ogReviewerName') or 'nobody'
@@ -457,15 +457,15 @@ def update_reviewer_info():
         'organization': request.values.get('editOrganization'),
         'email': request.values.get('editEmail')
     }
-    req = requests.put(
-        f'{app.config.get("DARC_REVIEW_URL")}/reviewer/update/{name}',
+    req = requests.patch(
+        f'{app.config.get("DARC_REVIEW_URL")}/reviewer/{name}',
         headers=app.config.get('DARC_REVIEW_HEADERS'),
         data=data,
     )
     if req.status_code == 404:
         data['name'] = data['new_name']
         req = requests.post(
-            f'{app.config.get("DARC_REVIEW_URL")}/reviewer/add',
+            f'{app.config.get("DARC_REVIEW_URL")}/reviewer',
             headers=app.config.get('DARC_REVIEW_HEADERS'),
             data=data,
         )
@@ -489,22 +489,38 @@ def update_reviewer_info():
 
 
 # delete a reviewer
-@app.get('/delete-reviewer/<name>')
+@app.delete('/reviewer/<name>')
 def delete_reviewer(name):
     req = requests.delete(
-        f'{app.config.get("DARC_REVIEW_URL")}/reviewer/delete/{name}',
+        f'{app.config.get("DARC_REVIEW_URL")}/reviewer/{name}',
         headers=app.config.get('DARC_REVIEW_HEADERS'),
     )
     if req.status_code == 200:
-        flash('Reviewer successfully deleted', 'success')
+        flash('Successfully deleted reviewer', 'success')
+        with requests.get(
+            f'{app.config.get("DARC_REVIEW_URL")}/reviewer/all',
+            headers=app.config.get('DARC_REVIEW_HEADERS'),
+        ) as req:
+            session['reviewers'] = req.json()
     else:
         flash('Error deleting reviewer', 'danger')
-    return redirect('/reviewers')
+    return {}, req.status_code
 
 
 # adds an annotation for review/updates the reviewer for an annotation
-@app.post('/update-annotation-reviewer')
+@app.post('/annotation/reviewer')
 def update_annotation_reviewer():
+    def add_vars_or_tator_comment():
+        if not request.values.get('scientific_name'):  # VARS annotation, update VARS comment
+            new_comment = {
+                'observation_uuid': request.values.get('observation_uuid'),
+                'reviewers': request.values.get("reviewers"),
+                'action': 'ADD'
+            }
+            requests.patch(f'{app.config.get("LOCAL_APP_URL")}/vars/annotation/comment', new_comment)
+            return {}, 200
+        else:  # Tator localization, update Tator notes
+            pass  # todo
     data = {
         'uuid': request.values.get('observation_uuid'),
         'scientific_name': request.values.get('scientific_name'),
@@ -521,37 +537,25 @@ def update_annotation_reviewer():
         'oxygen_ml_l': request.values.get('oxygen_ml_l'),
     }
     with requests.post(
-        f'{app.config.get("DARC_REVIEW_URL")}/comment/add',
+        f'{app.config.get("DARC_REVIEW_URL")}/comment',
         headers=app.config.get('DARC_REVIEW_HEADERS'),
         data=data,
     ) as r:
         if r.status_code == 409:  # comment already exists in the db, update record
             req = requests.put(
-                f'{app.config.get("DARC_REVIEW_URL")}/comment/update-reviewers/{data["uuid"]}',
+                f'{app.config.get("DARC_REVIEW_URL")}/comment/reviewers/{data["uuid"]}',
                 headers=app.config.get('DARC_REVIEW_HEADERS'),
                 data=data,
             )
             if req.status_code == 200:
-                new_comment = {
-                    'observation_uuid': request.values.get('observation_uuid'),
-                    'reviewers': request.values.get("reviewers"),
-                    'action': 'ADD'
-                }
-                requests.post(f'{app.config.get("LOCAL_APP_URL")}/update-annotation-comment', new_comment)
-                return {}, 200
+                add_vars_or_tator_comment()
         elif r.status_code == 201:  # comment added to db, update VARS "comment" field
-            new_comment = {
-                'observation_uuid': request.values.get('observation_uuid'),
-                'reviewers': request.values.get('reviewers'),
-                'action': 'ADD'
-            }
-            requests.post(f'{app.config.get("LOCAL_APP_URL")}/update-annotation-comment', new_comment)
-            return {}, 201
+            add_vars_or_tator_comment()
         return {}, 500
 
 
 # updates the comment in the vars db to reflect that the record has been added to the comment db
-@app.post('/update-annotation-comment')
+@app.patch('/vars/annotation/comment')
 def update_annotation_comment():
     annosaurus = Annosaurus(app.config.get('ANNOSAURUS_URL'))
     annosaurus.update_annotation_comment(
@@ -564,7 +568,7 @@ def update_annotation_comment():
 
 
 # updates annotation with new concept name or associations. this is called from the image review page
-@app.post('/update-annotation')
+@app.patch('/vars/annotation')
 def update_annotation():
     annosaurus = Annosaurus(app.config.get('ANNOSAURUS_URL'))
     updated_annotation = {
@@ -589,7 +593,7 @@ def update_annotation():
 
 
 # creates a new association for a VARS annotation
-@app.post('/vars/create-association')
+@app.post('/vars/association')
 def create_association():
     annosaurus = Annosaurus(app.config.get('ANNOSAURUS_URL'))
     new_association = {
@@ -608,7 +612,7 @@ def create_association():
 
 
 # updates a VARS association
-@app.post('/vars/update-association')
+@app.patch('/vars/association')
 def update_association():
     annosaurus = Annosaurus(app.config.get('ANNOSAURUS_URL'))
     updated_association = {
@@ -625,7 +629,7 @@ def update_association():
 
 
 # deletes a VARS association
-@app.get('/vars/delete-association/<uuid>')
+@app.delete('/vars/association/<uuid>')
 def delete_association(uuid):
     annosaurus = Annosaurus(app.config.get('ANNOSAURUS_URL'))
     return {}, annosaurus.delete_association(uuid=uuid, client_secret=app.config.get('ANNOSAURUS_CLIENT_SECRET'))

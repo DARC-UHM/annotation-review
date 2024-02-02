@@ -394,7 +394,7 @@ function updateExternalReviewers() {
     $('#externalReviewers').val(JSON.stringify(reviewers));
 
     const formData = new FormData($('#updateExternalReviewerForm')[0]);
-    fetch('/update-annotation-reviewer', {
+    fetch('/annotation/reviewer', {
         method: 'POST',
         body: formData,
     })
@@ -463,8 +463,8 @@ function deleteFromExternalReview() {
     $('#deleteReviewModal').modal('hide');
 
     const formData = new FormData($('#deleteFromExternalReviewForm')[0]);
-    fetch('/delete-external-comment', {
-        method: 'POST',
+    fetch('/external-comment', {
+        method: 'DELETE',
         body: formData,
     })
         .then((res) => {
@@ -491,8 +491,8 @@ function updateAnnotation() {
     $('#load-overlay').addClass('loader-bg');
     $('#editVarsAnnotationModal').modal('hide');
     const formData = new FormData($('#updateAnnotationForm')[0]);
-    fetch('/update-annotation', {
-        method: 'POST',
+    fetch('/vars/annotation', {
+        method: 'PATCH',
         body: formData,
     })
         .then((result) => {
