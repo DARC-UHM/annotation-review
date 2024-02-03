@@ -68,8 +68,6 @@ const setCurrentPage = (pageNum) => {
     $('#annotationTable').append('<tbody class="text-start"></tbody>');
 
     annotationsToDisplay.forEach((annotation, index) => {
-        console.log(annotation.observation_uuid)
-        console.log(comments[annotation.observation_uuid]);
         if (index >= prevRange && index < currRange) {
             if (annotation.scientific_name) { // this is a tator localization
                 $('#annotationTable').find('tbody').append(tatorLocalizationRow(annotation, comments[annotation.observation_uuid]));

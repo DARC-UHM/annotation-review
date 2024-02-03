@@ -90,6 +90,14 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                         ${localization.notes || '-'}<br>
                     </div>
                 </div>
+                <div class="row">
+                    <div class="col-4">
+                        Deployment:
+                    </div>
+                    <div class="col values">
+                        ${localization.video_sequence_name || '-'}<br>
+                    </div>
+                </div>
                 ${externalComment
                     ? `
                         <div class="row mt-2">
@@ -165,9 +173,9 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                 </div>
             </td>
             <td class="text-center">
-                <a href="${localization.frame_url}" target="_blank">
+                <a href="${localization.frame_url || localization.image_url}" target="_blank">
                     <div id="${localization.observation_uuid}_image" class="position-relative" style="width: 580px;">
-                        <img src="${localization.frame_url}" style="width: 580px;" alt="${localization.scientific_name}"/>
+                        <img src="${localization.frame_url || localization.image_url}" style="width: 580px;" alt="${localization.scientific_name}"/>
                         <div id="${localization.observation_uuid}_overlay">
                         ${localization.points ?
                             `${localization.type === 49

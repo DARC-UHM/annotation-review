@@ -12,6 +12,7 @@ from application.server.qaqc_processor import QaqcProcessor
 from application.server.localization_processor import LocalizationProcessor
 from application.server.annosaurus import *
 
+# TODO consider adding points, type, and dimensions to tator localizations on the external review page...
 
 @app.route('/favicon.ico')
 def favicon():

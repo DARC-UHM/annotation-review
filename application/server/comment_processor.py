@@ -2,7 +2,6 @@ import json
 import os
 import pandas as pd
 import requests
-import tator
 
 from flask import session
 
@@ -33,22 +32,18 @@ class CommentProcessor:
 
         # add formatted comments to list
         for comment in self.comments:
-            if self.comments[comment]['scientific_name'] is None:
-                # vars annotation
+            if self.comments[comment]['scientific_name'] is None:  # vars annotation
                 annotation = requests.get(f'{os.environ.get("ANNOSAURUS_URL")}/annotations/{comment}').json()
                 concept_name = annotation['concept']
-            else:
-                # tator localization
-
-                # TODO add different logic for tator localizations. consider incorporating localization processor...
-
+            else:  # tator localization
                 concept_name = self.comments[comment]['scientific_name']
                 annotation = requests.get(
                     f'https://cloud.tator.io/rest/Localization/{comment}',
                     headers={
                         'Content-Type': 'application/json',
                         'Authorization': f'Token {session["tator_token"]}',
-                    }).json()
+                    }
+                ).json()
 
             if concept_name not in phylogeny.keys():
                 # get the phylogeny from VARS kb
@@ -75,6 +70,14 @@ class CommentProcessor:
                 'observation_uuid': comment,
                 'concept': concept_name,
                 'scientific_name': self.comments[comment]['scientific_name'],
+                'attracted': annotation['attributes']['Attracted'] if 'attributes' in annotation.keys() and 'Attracted' in annotation['attributes'].keys() else None,
+                'categorical_abundance': annotation['attributes']['Categorical Abundance'] if 'attributes' in annotation.keys() and 'Categorical Abundance' in annotation['attributes'].keys() else None,
+                'identification_remarks': annotation['attributes']['IdentificationRemarks'] if 'attributes' in annotation.keys() and 'IdentificationRemarks' in annotation['attributes'].keys() else None,
+                'identified_by': annotation['attributes']['Identified By'] if 'attributes' in annotation.keys() and 'Identified By' in annotation['attributes'].keys() else None,
+                'notes': annotation['attributes']['Notes'] if 'attributes' in annotation.keys() and 'Notes' in annotation['attributes'].keys() else None,
+                'qualifier': annotation['attributes']['Qualifier'] if 'attributes' in annotation.keys() and 'Qualifier' in annotation['attributes'].keys() else None,
+                'reason': annotation['attributes']['Reason'] if 'attributes' in annotation.keys() and 'Reason' in annotation['attributes'].keys() else None,
+                'tentative_id': annotation['attributes']['Tentative ID'] if 'attributes' in annotation.keys() and 'Tentative ID' in annotation['attributes'].keys() else None,
                 'identity-certainty': get_association(annotation, 'identity-certainty')['link_value'] if get_association(annotation, 'identity-certainty') else None,
                 'identity-reference': get_association(annotation, 'identity-reference')['link_value'] if get_association(annotation, 'identity-reference') else None,
                 'guide-photo': get_association(annotation, 'guide-photo')['to_concept'] if get_association(annotation, 'guide-photo') else None,
@@ -134,6 +137,14 @@ class CommentProcessor:
                 'observation_uuid': row['observation_uuid'],
                 'concept': row['concept'],
                 'scientific_name': row['scientific_name'],
+                'attracted': row['attracted'],
+                'categorical_abundance': row['categorical_abundance'],
+                'identification_remarks': row['identification_remarks'],
+                'identified_by': row['identified_by'],
+                'notes': row['notes'],
+                'qualifier': row['qualifier'],
+                'reason': row['reason'],
+                'tentative_id': row['tentative_id'],
                 'annotator': row['annotator'],
                 'depth': row['depth'],
                 'lat': row['lat'],

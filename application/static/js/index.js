@@ -125,7 +125,6 @@ $('#varsSelect').on('click', () => {
 });
 
 $('#logoutBtn').on('click', async () => {
-    console.log('wat')
     $('#load-overlay').addClass('loader-bg');
     $('#load-overlay').removeClass('loader-bg-hidden');
     const res = await fetch('/tator/logout');
