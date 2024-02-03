@@ -35,7 +35,7 @@ class CommentProcessor:
         for comment in self.comments:
             if self.comments[comment]['scientific_name'] is None:
                 # vars annotation
-                annotation = requests.get(f'http://hurlstor.soest.hawaii.edu:8082/anno/v1/annotations/{comment}').json()
+                annotation = requests.get(f'{os.environ.get("ANNOSAURUS_URL")}/annotations/{comment}').json()
                 concept_name = annotation['concept']
             else:
                 # tator localization

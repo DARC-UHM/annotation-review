@@ -399,7 +399,7 @@ function updateExternalReviewers() {
         body: formData,
     })
         .then((result) => {
-            const index = annotations.findIndex((anno) => anno.observation_uuid === formData.get('observation_uuid'));
+            const index = annotations.findIndex((anno) => anno.observation_uuid.toString() === formData.get('observation_uuid'));
             if (result.status === 200 || result.status === 201) {
                 if (!comments[formData.get('observation_uuid')]) {
                     comments[formData.get('observation_uuid')] = {};
@@ -469,7 +469,7 @@ function deleteFromExternalReview() {
     })
         .then((res) => {
             if (res.status === 200) {
-                const index = annotations.findIndex((anno) => anno.observation_uuid === formData.get('uuid'));
+                const index = annotations.findIndex((anno) => anno.observation_uuid.toString() === formData.get('uuid'));
                 delete comments[formData.get('uuid')];
                 annotations[index].comment = '';
                 updateFlashMessages('Removed annotation from external review', 'success');
@@ -672,6 +672,7 @@ $(document).ready(function () {
     })
 
     $('#deleteReviewModal').on('show.bs.modal', function (e) {
+        $('#externalDeleteTator').val($(e.relatedTarget).data('anno').scientific_name != null);
         $('#externalDeleteUuid').val($(e.relatedTarget).data('anno').observation_uuid);
     });
 });

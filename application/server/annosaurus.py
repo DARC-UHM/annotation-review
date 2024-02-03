@@ -1,5 +1,6 @@
 import requests
 import json
+
 from typing import Dict
 
 
@@ -108,7 +109,7 @@ class Annosaurus(JWTAuthentication):
         jwt = self.authorize(client_secret, jwt)
         ret_status = 0
 
-        with requests.get(f'http://hurlstor.soest.hawaii.edu:8082/anno/v1/observations/{observation_uuid}') as r:
+        with requests.get(f'{self.base_url}/observations/{observation_uuid}') as r:
             if r.status_code != 200:
                 print(f'{update_str}Unable to find annotation on server')
                 return -1
@@ -216,7 +217,7 @@ class Annosaurus(JWTAuthentication):
         update_str = f'UUID: {observation_uuid}\n'
         jwt = self.authorize(client_secret, jwt)
 
-        with requests.get(f'http://hurlstor.soest.hawaii.edu:8082/anno/v1/observations/{observation_uuid}') as r:
+        with requests.get(f'{self.base_url}/observations/{observation_uuid}') as r:
             if r.status_code != 200:
                 print(f'{update_str}Unable to find annotation on server')
                 return -1

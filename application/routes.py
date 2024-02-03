@@ -1,6 +1,7 @@
 import base64
 import tator
 
+from io import BytesIO
 from flask import render_template, request, redirect, flash, session, Response
 from json import JSONDecodeError
 
@@ -202,9 +203,13 @@ def tator_image_review(project_id, section_id):
 # view tator video frame (not cropped)
 @app.get('/tator/frame/<media_id>/<frame>')
 def tator_frame(media_id, frame):
+    if 'tator_token' in session.keys():
+        token = session['tator_token']
+    else:
+        token = request.args.get('token')
     req = requests.get(
         f'{app.config.get("TATOR_URL")}/rest/GetFrame/{media_id}?frames={frame}',
-        headers={'Authorization': f'Token {session["tator_token"]}'}
+        headers={'Authorization': f'Token {token}'}
     )
     if req.status_code == 200:
         base64_image = base64.b64encode(req.content).decode('utf-8')
@@ -429,12 +434,15 @@ def delete_external_comment():
         headers=app.config.get('DARC_REVIEW_HEADERS'),
     )
     if req.status_code == 200:
-        new_comment = {
-            'observation_uuid': request.values.get('uuid'),
-            'reviewer': '[]',
-            'action': 'DELETE'
-        }
-        requests.patch(f'{app.config.get("LOCAL_APP_URL")}/vars/annotation/comment', new_comment)
+        if request.values.get('tator'):  # tator localization
+            pass
+        else:  # VARS annotation
+            new_comment = {
+                'observation_uuid': request.values.get('uuid'),
+                'reviewer': '[]',
+                'action': 'DELETE'
+            }
+            requests.patch(f'{app.config.get("LOCAL_APP_URL")}/vars/annotation/comment', new_comment)
         return {}, 200
     return {}, 500
 
@@ -510,7 +518,7 @@ def delete_reviewer(name):
 # adds an annotation for review/updates the reviewer for an annotation
 @app.post('/annotation/reviewer')
 def update_annotation_reviewer():
-    def add_vars_or_tator_comment():
+    def add_vars_or_tator_comment(status_code):
         if not request.values.get('scientific_name'):  # VARS annotation, update VARS comment
             new_comment = {
                 'observation_uuid': request.values.get('observation_uuid'),
@@ -518,9 +526,9 @@ def update_annotation_reviewer():
                 'action': 'ADD'
             }
             requests.patch(f'{app.config.get("LOCAL_APP_URL")}/vars/annotation/comment', new_comment)
-            return {}, 200
         else:  # Tator localization, update Tator notes
             pass  # todo
+        return {}, status_code
     data = {
         'uuid': request.values.get('observation_uuid'),
         'scientific_name': request.values.get('scientific_name'),
@@ -536,8 +544,17 @@ def update_annotation_reviewer():
         'temperature': request.values.get('temperature'),
         'oxygen_ml_l': request.values.get('oxygen_ml_l'),
     }
+    image_binary = None
+    if request.values.get('scientific_name'):  # tator localization
+        # get image so we can post to review server
+        req = requests.get(f'{app.config.get("LOCAL_APP_URL")}/{data["image_url"]}?token={session["tator_token"]}')
+        if req.status_code == 200:
+            image_binary = BytesIO(req.content)
+        else:
+            return {500: 'Could not get image'}, 500
     with requests.post(
         f'{app.config.get("DARC_REVIEW_URL")}/comment',
+        files={'image': (f'{data["uuid"]}.png', image_binary, 'image/png')} if request.values.get('scientific_name') else None,
         headers=app.config.get('DARC_REVIEW_HEADERS'),
         data=data,
     ) as r:
@@ -548,9 +565,9 @@ def update_annotation_reviewer():
                 data=data,
             )
             if req.status_code == 200:
-                add_vars_or_tator_comment()
+                return add_vars_or_tator_comment(200)
         elif r.status_code == 201:  # comment added to db, update VARS "comment" field
-            add_vars_or_tator_comment()
+            return add_vars_or_tator_comment(201)
         return {}, 500
 
 
