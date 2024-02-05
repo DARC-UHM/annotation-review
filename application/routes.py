@@ -46,6 +46,9 @@ def index():
         flash('Unable to connect to VARS', 'danger')
         session['vars_video_sequences'] = []
         session['vars_concepts'] = []
+    unread_comments = 0
+    total_comments = 0
+    active_reviewers = []
     try:
         with requests.get(
             f'{app.config.get("DARC_REVIEW_URL")}/stats',
@@ -57,15 +60,14 @@ def index():
                 total_comments = res['total_comments']
                 active_reviewers = res['active_reviewers']
             except JSONDecodeError:
+                flash('Unable to connect to external review server', 'danger')
                 print('Unable to fetch stats from external review server')
-                unread_comments = 0
-                total_comments = 0
-                active_reviewers = []
+            except KeyError:
+                flash('Unable to connect to external review server', 'danger')
+                print('Unable to fetch stats from external review server')
     except requests.exceptions.ConnectionError:
-        unread_comments = 0
-        active_reviewers = []
-        total_comments = 0
-        print('\nERROR: unable to connect to external review server\n')
+        flash('Unable to connect to external review server', 'danger')
+        print('Unable to fetch stats from external review server')
     return render_template(
         'index.html',
         sequences=session['vars_video_sequences'],
@@ -665,10 +667,9 @@ def video():
     return render_template('video.html', data=data), 200
 
 
-# todo uncomment
-# @app.errorhandler(Exception)
-# def server_error(e):
-#     error = f'{type(e).__name__}: {e}'
-#     print('\nApplication error 😔')
-#     print(error)
-#     return render_template('error.html', err=error), 500
+@app.errorhandler(Exception)
+def server_error(e):
+    error = f'{type(e).__name__}: {e}'
+    print('\nApplication error 😔')
+    print(error)
+    return render_template('error.html', err=error), 500
