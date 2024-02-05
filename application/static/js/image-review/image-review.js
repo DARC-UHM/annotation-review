@@ -275,7 +275,7 @@ function updateHash() {
     }
 
     $('#sequenceList').empty();
-    $('#sequenceList').html(`${sequences.join(', ')}<br>`);
+    $('#sequenceList').html(sequences.join(', '));
     $('#sequenceList').append(`<div id="filterList" class="small mt-2">Filters: ${Object.keys(filter).length ? '' : 'None'}</div>`);
 
     for (const key of Object.keys(filter)) {

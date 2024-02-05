@@ -33,7 +33,7 @@ class CommentProcessor:
         # add formatted comments to list
         for comment in self.comments:
             tator_overlay = None
-            if self.comments[comment]['scientific_name'] is None:  # vars annotation
+            if 'scientific_name' not in self.comments[comment].keys() or self.comments[comment]['scientific_name'] is None:  # vars annotation
                 annotation = requests.get(f'{os.environ.get("ANNOSAURUS_URL")}/annotations/{comment}').json()
                 concept_name = annotation['concept']
             else:  # tator localization
@@ -71,7 +71,7 @@ class CommentProcessor:
             formatted_comments.append({
                 'observation_uuid': comment,
                 'concept': concept_name,
-                'scientific_name': self.comments[comment]['scientific_name'],
+                'scientific_name': self.comments[comment]['scientific_name'] if 'scientific_name' in self.comments[comment].keys() else None,
                 'attracted': annotation['attributes']['Attracted'] if 'attributes' in annotation.keys() and 'Attracted' in annotation['attributes'].keys() else None,
                 'categorical_abundance': annotation['attributes']['Categorical Abundance'] if 'attributes' in annotation.keys() and 'Categorical Abundance' in annotation['attributes'].keys() else None,
                 'identification_remarks': annotation['attributes']['IdentificationRemarks'] if 'attributes' in annotation.keys() and 'IdentificationRemarks' in annotation['attributes'].keys() else None,
