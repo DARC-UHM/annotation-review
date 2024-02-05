@@ -407,6 +407,7 @@ function updateExternalReviewers() {
                     .then((data) => {
                         comments[formData.get('observation_uuid')] = data;
                         annotations[index].comment = `Added for review: ${reviewers.join(', ')}`; // doesn't accurately reflect data on server, but that's okay
+                        annotations[index].notes = `Added for review: ${reviewers.join(', ')}`; // doesn't accurately reflect data on server, but that's okay
                         updateFlashMessages(result.status === 200 ? 'Reviewers successfully updated' : 'Successfully added for review', 'success');
                         updateHash();
                     })
@@ -470,6 +471,7 @@ function deleteFromExternalReview() {
                 const index = annotations.findIndex((anno) => anno.observation_uuid.toString() === formData.get('uuid'));
                 delete comments[formData.get('uuid')];
                 annotations[index].comment = '';
+                annotations[index].notes = '';
                 updateFlashMessages('Removed annotation from external review', 'success');
                 updateHash();
             } else {

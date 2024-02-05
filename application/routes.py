@@ -438,7 +438,7 @@ def delete_external_comment():
     )
     if req.status_code == 200:
         if request.values.get('tator'):  # tator localization
-            pass
+            pass  # TODO delete tator notes
         else:  # VARS annotation
             new_comment = {
                 'observation_uuid': request.values.get('uuid'),
@@ -530,7 +530,18 @@ def update_annotation_reviewer():
             }
             requests.patch(f'{app.config.get("LOCAL_APP_URL")}/vars/annotation/comment', new_comment)
         else:  # Tator localization, update Tator notes
-            pass  # todo
+            api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
+            current_notes = api.get_localization(id=request.values.get('observation_uuid')).attributes.get('Notes', '').split('; ')
+            current_notes = [note for note in current_notes if 'send to' not in note.lower()]  # get rid of 'send to expert' notes
+            current_notes = [note for note in current_notes if 'added for review' not in note.lower()]  # get rid of old 'added for review' notes
+            current_notes = '; '.join(current_notes)
+            new_notes = f'{current_notes + "; " if current_notes else ""}Added for review: {", ".join(json.loads(request.values.get("reviewers")))}'
+            api.update_localization(
+                id=request.values.get('observation_uuid'),
+                localization_update=tator.models.LocalizationUpdate(
+                    attributes={'Notes': new_notes},
+                )
+            )
         return {}, status_code
     data = {
         'uuid': request.values.get('observation_uuid'),

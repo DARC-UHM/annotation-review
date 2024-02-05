@@ -228,8 +228,8 @@ class Annosaurus(JWTAuthentication):
             if old_association:
                 # there's already a comment
                 old_comment = old_association['link_value'].split('; ')
-                old_comment = [cmt for cmt in old_comment if 'send to' not in cmt.lower()]
-                old_comment = [cmt for cmt in old_comment if 'added for review' not in cmt.lower()]
+                old_comment = [cmt for cmt in old_comment if 'send to' not in cmt.lower()]  # get rid of 'send to expert' notes
+                old_comment = [cmt for cmt in old_comment if 'added for review' not in cmt.lower()]  # get rid of old 'added for review' notes
                 old_comment = '; '.join(old_comment)
                 if old_comment:
                     if action == 'ADD':
