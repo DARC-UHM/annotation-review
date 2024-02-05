@@ -32,6 +32,7 @@ class CommentProcessor:
 
         # add formatted comments to list
         for comment in self.comments:
+            tator_overlay = None
             if self.comments[comment]['scientific_name'] is None:  # vars annotation
                 annotation = requests.get(f'{os.environ.get("ANNOSAURUS_URL")}/annotations/{comment}').json()
                 concept_name = annotation['concept']
@@ -44,6 +45,7 @@ class CommentProcessor:
                         'Authorization': f'Token {session["tator_token"]}',
                     }
                 ).json()
+                tator_overlay = json.loads(self.comments[comment]['tator_overlay'] if 'tator_overlay' in self.comments[comment].keys() and self.comments[comment]['tator_overlay'] else '{}')
 
             if concept_name not in phylogeny.keys():
                 # get the phylogeny from VARS kb
@@ -78,6 +80,10 @@ class CommentProcessor:
                 'qualifier': annotation['attributes']['Qualifier'] if 'attributes' in annotation.keys() and 'Qualifier' in annotation['attributes'].keys() else None,
                 'reason': annotation['attributes']['Reason'] if 'attributes' in annotation.keys() and 'Reason' in annotation['attributes'].keys() else None,
                 'tentative_id': annotation['attributes']['Tentative ID'] if 'attributes' in annotation.keys() and 'Tentative ID' in annotation['attributes'].keys() else None,
+                'count': tator_overlay['count'] if tator_overlay and 'count' in tator_overlay.keys() else None,
+                'type': tator_overlay['type'] if tator_overlay and 'type' in tator_overlay.keys() else None,
+                'points': tator_overlay['points'] if tator_overlay and 'points' in tator_overlay.keys() else None,
+                'dimensions': tator_overlay['dimensions'] if tator_overlay and 'dimensions' in tator_overlay.keys() else None,
                 'identity-certainty': get_association(annotation, 'identity-certainty')['link_value'] if get_association(annotation, 'identity-certainty') else None,
                 'identity-reference': get_association(annotation, 'identity-reference')['link_value'] if get_association(annotation, 'identity-reference') else None,
                 'guide-photo': get_association(annotation, 'guide-photo')['to_concept'] if get_association(annotation, 'guide-photo') else None,
@@ -145,6 +151,10 @@ class CommentProcessor:
                 'qualifier': row['qualifier'],
                 'reason': row['reason'],
                 'tentative_id': row['tentative_id'],
+                'count': row['count'],
+                'type': row['type'],
+                'points': row['points'],
+                'dimensions': row['dimensions'],
                 'annotator': row['annotator'],
                 'depth': row['depth'],
                 'lat': row['lat'],

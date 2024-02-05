@@ -68,7 +68,6 @@ class LocalizationProcessor:
                     'Content-Type': 'application/json',
                     'Authorization': f'Token {session["tator_token"]}',
                 })
-            print(req.text)
             localizations += req.json()
         print('fetched!')
         print('Processing localizations...', end='')
@@ -103,7 +102,7 @@ class LocalizationProcessor:
             formatted_localizations.append({
                 'id': localization['id'],
                 'type': localization['type'],
-                'points': [localization['x'], localization['y']],
+                'points': [round(localization['x'], 5), round(localization['y'], 5)],
                 'dimensions': [localization['width'], localization['height']] if localization['type'] == 48 else None,
                 'video_sequence_name': deployment_media_dict[localization['media']],
                 'scientific_name': scientific_name,

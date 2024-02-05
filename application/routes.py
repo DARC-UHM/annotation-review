@@ -12,7 +12,8 @@ from application.server.qaqc_processor import QaqcProcessor
 from application.server.localization_processor import LocalizationProcessor
 from application.server.annosaurus import *
 
-# TODO consider adding points, type, and dimensions to tator localizations on the external review page...
+# TODO add location information to localizations
+
 
 @app.route('/favicon.ico')
 def favicon():
@@ -97,7 +98,6 @@ def tator_login():
 def check_tator_token():
     if 'tator_token' not in session.keys():
         return {}, 400
-    print(session['tator_token'])  # todo remove
     try:
         api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
         return {'username': api.whoami().username}, 200
@@ -533,6 +533,7 @@ def update_annotation_reviewer():
     data = {
         'uuid': request.values.get('observation_uuid'),
         'scientific_name': request.values.get('scientific_name'),
+        'tator_overlay': request.values.get('tator_overlay'),
         'sequence': request.values.get('sequence'),
         'timestamp': request.values.get('timestamp'),
         'image_url': request.values.get('image_url'),
@@ -664,6 +665,7 @@ def video():
     return render_template('video.html', data=data), 200
 
 
+# todo uncomment
 # @app.errorhandler(Exception)
 # def server_error(e):
 #     error = f'{type(e).__name__}: {e}'

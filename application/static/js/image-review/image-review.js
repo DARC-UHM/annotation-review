@@ -645,10 +645,19 @@ $(document).ready(function () {
         currentAnnotation = $(e.relatedTarget).data('anno');
         $('#externalModalSubmitButton').prop('disabled', true);
         addReviewer(null);
-
+        let tatorOverlay = null;
+        if (currentAnnotation.type) {
+            tatorOverlay = JSON.stringify({
+                type: currentAnnotation.type,
+                points: currentAnnotation.points,
+                count: currentAnnotation.count,
+                dimensions: currentAnnotation.dimensions,
+            });
+        }
         $('#externalObservationUuid').val(currentAnnotation.observation_uuid);
         $('#externalSequence').val(currentAnnotation.video_sequence_name);
         $('#externalScientificName').val(currentAnnotation.scientific_name);
+        $('#externalTatorOverlay').val(tatorOverlay);
         $('#externalTimestamp').val(currentAnnotation.recorded_timestamp);
         $('#externalImageUrl').val(currentAnnotation.image_url || currentAnnotation.frame_url);
         $('#externalVideoUrl').val(currentAnnotation.video_url);
