@@ -137,7 +137,13 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                 }
                 <div class="row mt-2">
                     <div class="col-4">
-                        <a class="editButton" href="https://cloud.tator.io/26/annotation/${localization.media_id}?frame=${localization.frame}" target="_blank">View on Tator</a>
+                        <a
+                            class="editButton"
+                            href="https://cloud.tator.io/26/annotation/${localization.media_id}?playQuality=720&playbackRate=1&frame=${localization.frame}&version=45&lock=0&fill_boxes=1&toggle_text=1&selected_entity=${localization.observation_uuid}&selected_type=dot_49"
+                            target="_blank"
+                        >
+                            View on Tator
+                        </a>
                     </div>
                     <div class="col values">
                         ${ externalComment ? (
