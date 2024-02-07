@@ -210,8 +210,7 @@ class Annosaurus(JWTAuthentication):
 
     def update_annotation_comment(self,
                                   observation_uuid: str,
-                                  reviewers: str,
-                                  action: str,
+                                  reviewers: list,
                                   client_secret: str = None,
                                   jwt: str = None):
         update_str = f'UUID: {observation_uuid}\n'
@@ -232,13 +231,13 @@ class Annosaurus(JWTAuthentication):
                 old_comment = [cmt for cmt in old_comment if 'added for review' not in cmt.lower()]  # get rid of old 'added for review' notes
                 old_comment = '; '.join(old_comment)
                 if old_comment:
-                    if action == 'ADD':
-                        new_comment = f'{old_comment}; Added for review: {", ".join(json.loads(reviewers))}'
-                    else:
+                    if reviewers:  # add reviewers to the current comment
+                        new_comment = f'{old_comment}; Added for review: {", ".join(reviewers)}'
+                    else:  # remove reviewers from the comment
                         new_comment = old_comment
-                elif action == 'ADD':
-                    new_comment = f'Added for review: {", ".join(json.loads(reviewers))}'
-                else:
+                elif reviewers:  # create a new comment with reviewers
+                    new_comment = f'Added for review: {", ".join(reviewers)}'
+                else:  # remove the comment
                     new_comment = ''
 
                 new_association = {'link_value': new_comment}
@@ -254,7 +253,7 @@ class Annosaurus(JWTAuthentication):
                     update_str += 'Updated comment'
             else:
                 # make a new comment
-                new_comment = f'Added for review: {", ".join(json.loads(reviewers))}'
+                new_comment = f'Added for review: {", ".join(reviewers)}'
                 new_association = {
                     'link_name': 'comment',
                     'link_value': new_comment

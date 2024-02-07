@@ -10,6 +10,15 @@ _Requirements: Python ≥ 3.10_
 1. Clone this repository.
 2. Activate your Python virtual environment (optional).
 3. `cd` into the root of the repository and run the command `pip3 install -r requirements.txt`.
+4. Set environment variables. Without these, the app will not be able to access the VARS server or the DARC external review server. Environment variables can be set by creating a file named `.env` in the root of the repository with the following content (replace the `...` with the appropriate values):
+
+```python
+ANNOSAURUS_URL = '...'
+ANNOSAURUS_CLIENT_SECRET = '...'
+_FLASK_ENV = '...'
+APP_SECRET_KEY = '...'
+DARC_REVIEW_API_KEY = '...'
+```
 
 ### Usage
 
@@ -30,8 +39,6 @@ _Requirements: Python ≥ 3.10_
 
 Both the `QA/QC` and `Image Review` sections have the ability to edit annotations: edits can be done directly in the browser without having to go through VARS.
 
-_Note: Environment variables must be configured in order to save annotation edits to the server. See the section at the bottom of this doc for information about setting environment variables_.
-
 ### External Review
 
 1. Add records for external review via the `Add to external review` popup menu on the `Image Review` page. The dropdown menu lists external reviewers that match the current record's phylum.
@@ -51,16 +58,3 @@ _Note: Environment variables must be configured in order to save annotation edit
 ![QA/QC Checklist](https://i.imgur.com/TYYFT5P.png)
 ![QA/QC Page](https://i.imgur.com/yMNIzyY.png)
 ![QA/QC Edit Annotation](https://i.imgur.com/GqxueOH.png)
-
-
-### Setting Environment Variables
-
-The environment variables must be set before any changes can be made to the server. These can be set by creating a file named `.env` in the root of the repository with the following content:
-
-```python
-ANNOSAURUS_URL = '...'
-ANNOSAURUS_CLIENT_SECRET = '...'
-_FLASK_ENV = '...'
-APP_SECRET_KEY = '...'
-DARC_REVIEW_API_KEY = '...'
-```

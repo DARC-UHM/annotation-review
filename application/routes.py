@@ -332,7 +332,7 @@ def qaqc_quick(check):
 
 # displays all comments in the external review db
 @app.get('/external-review')
-def external_review():
+def get_external_review():
     comments = []
     if 'tator_token' not in session.keys():
         flash('Please log in to Tator', 'info')
@@ -376,6 +376,104 @@ def external_review():
         'comments': comments
     }
     return render_template('image-review/image-review.html', data=data)
+
+
+# adds an annotation for review/updates the reviewer for an annotation
+@app.post('/external-review')
+def add_external_review():
+    def add_vars_or_tator_comment(status_code):
+        if not request.values.get('scientific_name'):  # VARS annotation, update VARS comment
+            annosaurus = Annosaurus(app.config.get('ANNOSAURUS_URL'))
+            annosaurus.update_annotation_comment(
+                observation_uuid=request.values.get('observation_uuid'),
+                reviewers=json.loads(request.values.get('reviewers')),
+                client_secret=app.config.get('ANNOSAURUS_CLIENT_SECRET')
+            )
+        else:  # Tator localization, update Tator notes
+            api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
+            current_notes = api.get_localization(id=request.values.get('observation_uuid')).attributes.get('Notes', '').split('; ')
+            current_notes = [note for note in current_notes if 'send to' not in note.lower()]  # get rid of 'send to expert' notes
+            current_notes = [note for note in current_notes if 'added for review' not in note.lower()]  # get rid of old 'added for review' notes
+            current_notes = '; '.join(current_notes)
+            new_notes = f'{current_notes + "; " if current_notes else ""}Added for review: {", ".join(json.loads(request.values.get("reviewers")))}'
+            api.update_localization(
+                id=request.values.get('observation_uuid'),
+                localization_update=tator.models.LocalizationUpdate(
+                    attributes={'Notes': new_notes},
+                )
+            )
+        return {}, status_code
+    data = {
+        'uuid': request.values.get('observation_uuid'),
+        'scientific_name': request.values.get('scientific_name'),
+        'tator_overlay': request.values.get('tator_overlay'),
+        'sequence': request.values.get('sequence'),
+        'timestamp': request.values.get('timestamp'),
+        'image_url': request.values.get('image_url'),
+        'reviewers': request.values.get('reviewers'),
+        'video_url': request.values.get('video_url'),
+        'annotator': request.values.get('annotator'),
+        'depth': request.values.get('depth'),
+        'lat': request.values.get('lat'),
+        'long': request.values.get('long'),
+        'temperature': request.values.get('temperature'),
+        'oxygen_ml_l': request.values.get('oxygen_ml_l'),
+    }
+    image_binary = None
+    if request.values.get('scientific_name'):  # tator localization
+        # get image so we can post to review server
+        req = requests.get(f'{app.config.get("LOCAL_APP_URL")}/{data["image_url"]}?token={session["tator_token"]}')
+        if req.status_code == 200:
+            image_binary = BytesIO(req.content)
+        else:
+            return {500: 'Could not get image'}, 500
+    with requests.post(
+            f'{app.config.get("DARC_REVIEW_URL")}/comment',
+            files={'image': (f'{data["uuid"]}.png', image_binary, 'image/png')} if request.values.get('scientific_name') else None,
+            headers=app.config.get('DARC_REVIEW_HEADERS'),
+            data=data,
+    ) as r:
+        if r.status_code == 409:  # comment already exists in the db, update record
+            req = requests.put(
+                f'{app.config.get("DARC_REVIEW_URL")}/comment/reviewers/{data["uuid"]}',
+                headers=app.config.get('DARC_REVIEW_HEADERS'),
+                data=data,
+            )
+            if req.status_code == 200:
+                return add_vars_or_tator_comment(200)
+        elif r.status_code == 201:  # comment added to db, update VARS "comment" field
+            return add_vars_or_tator_comment(201)
+        return {}, 500
+
+
+# deletes an item from the external review db
+@app.delete('/external-review')
+def delete_external_review():
+    req = requests.delete(
+        f'{app.config.get("DARC_REVIEW_URL")}/comment/{request.values.get("uuid")}',
+        headers=app.config.get('DARC_REVIEW_HEADERS'),
+    )
+    if req.status_code == 200:
+        if request.values.get('tator'):  # tator localization
+            api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
+            current_notes = api.get_localization(id=request.values.get('uuid')).attributes.get('Notes', '').split('; ')
+            current_notes = [note for note in current_notes if 'send to' not in note.lower()]  # get rid of 'send to expert' notes
+            current_notes = [note for note in current_notes if 'added for review' not in note.lower()]  # get rid of old 'added for review' notes
+            api.update_localization(
+                id=request.values.get('uuid'),
+                localization_update=tator.models.LocalizationUpdate(
+                    attributes={'Notes': '; '.join(current_notes)},
+                )
+            )
+        else:  # VARS annotation
+            annosaurus = Annosaurus(app.config.get('ANNOSAURUS_URL'))
+            annosaurus.update_annotation_comment(
+                observation_uuid=request.values.get('uuid'),
+                reviewers=[],
+                client_secret=app.config.get('ANNOSAURUS_CLIENT_SECRET')
+            )
+        return {}, 200
+    return {}, 500
 
 
 # syncs ctd from vars db with external review db
@@ -427,27 +525,6 @@ def sync_external_ctd():
     else:
         flash('Unable to sync CTD - please try again', 'danger')
     return redirect('/external-review')
-
-
-# deletes an item from the external review db
-@app.delete('/external-comment')
-def delete_external_comment():
-    req = requests.delete(
-        f'{app.config.get("DARC_REVIEW_URL")}/comment/{request.values.get("uuid")}',
-        headers=app.config.get('DARC_REVIEW_HEADERS'),
-    )
-    if req.status_code == 200:
-        if request.values.get('tator'):  # tator localization
-            pass  # TODO delete tator notes
-        else:  # VARS annotation
-            new_comment = {
-                'observation_uuid': request.values.get('uuid'),
-                'reviewer': '[]',
-                'action': 'DELETE'
-            }
-            requests.patch(f'{app.config.get("LOCAL_APP_URL")}/vars/annotation/comment', new_comment)
-        return {}, 200
-    return {}, 500
 
 
 # displays information about all the reviewers in the hurl db
@@ -516,87 +593,6 @@ def delete_reviewer(name):
     else:
         flash('Error deleting reviewer', 'danger')
     return {}, req.status_code
-
-
-# adds an annotation for review/updates the reviewer for an annotation
-@app.post('/annotation/reviewer')
-def update_annotation_reviewer():
-    def add_vars_or_tator_comment(status_code):
-        if not request.values.get('scientific_name'):  # VARS annotation, update VARS comment
-            new_comment = {
-                'observation_uuid': request.values.get('observation_uuid'),
-                'reviewers': request.values.get("reviewers"),
-                'action': 'ADD'
-            }
-            requests.patch(f'{app.config.get("LOCAL_APP_URL")}/vars/annotation/comment', new_comment)
-        else:  # Tator localization, update Tator notes
-            api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
-            current_notes = api.get_localization(id=request.values.get('observation_uuid')).attributes.get('Notes', '').split('; ')
-            current_notes = [note for note in current_notes if 'send to' not in note.lower()]  # get rid of 'send to expert' notes
-            current_notes = [note for note in current_notes if 'added for review' not in note.lower()]  # get rid of old 'added for review' notes
-            current_notes = '; '.join(current_notes)
-            new_notes = f'{current_notes + "; " if current_notes else ""}Added for review: {", ".join(json.loads(request.values.get("reviewers")))}'
-            api.update_localization(
-                id=request.values.get('observation_uuid'),
-                localization_update=tator.models.LocalizationUpdate(
-                    attributes={'Notes': new_notes},
-                )
-            )
-        return {}, status_code
-    data = {
-        'uuid': request.values.get('observation_uuid'),
-        'scientific_name': request.values.get('scientific_name'),
-        'tator_overlay': request.values.get('tator_overlay'),
-        'sequence': request.values.get('sequence'),
-        'timestamp': request.values.get('timestamp'),
-        'image_url': request.values.get('image_url'),
-        'reviewers': request.values.get('reviewers'),
-        'video_url': request.values.get('video_url'),
-        'annotator': request.values.get('annotator'),
-        'depth': request.values.get('depth'),
-        'lat': request.values.get('lat'),
-        'long': request.values.get('long'),
-        'temperature': request.values.get('temperature'),
-        'oxygen_ml_l': request.values.get('oxygen_ml_l'),
-    }
-    image_binary = None
-    if request.values.get('scientific_name'):  # tator localization
-        # get image so we can post to review server
-        req = requests.get(f'{app.config.get("LOCAL_APP_URL")}/{data["image_url"]}?token={session["tator_token"]}')
-        if req.status_code == 200:
-            image_binary = BytesIO(req.content)
-        else:
-            return {500: 'Could not get image'}, 500
-    with requests.post(
-        f'{app.config.get("DARC_REVIEW_URL")}/comment',
-        files={'image': (f'{data["uuid"]}.png', image_binary, 'image/png')} if request.values.get('scientific_name') else None,
-        headers=app.config.get('DARC_REVIEW_HEADERS'),
-        data=data,
-    ) as r:
-        if r.status_code == 409:  # comment already exists in the db, update record
-            req = requests.put(
-                f'{app.config.get("DARC_REVIEW_URL")}/comment/reviewers/{data["uuid"]}',
-                headers=app.config.get('DARC_REVIEW_HEADERS'),
-                data=data,
-            )
-            if req.status_code == 200:
-                return add_vars_or_tator_comment(200)
-        elif r.status_code == 201:  # comment added to db, update VARS "comment" field
-            return add_vars_or_tator_comment(201)
-        return {}, 500
-
-
-# updates the comment in the vars db to reflect that the record has been added to the comment db
-@app.patch('/vars/annotation/comment')
-def update_annotation_comment():
-    annosaurus = Annosaurus(app.config.get('ANNOSAURUS_URL'))
-    annosaurus.update_annotation_comment(
-        observation_uuid=request.values.get('observation_uuid'),
-        reviewers=request.values.get('reviewers'),
-        action=request.values.get('action'),
-        client_secret=app.config.get('ANNOSAURUS_CLIENT_SECRET')
-    )
-    return ''
 
 
 # updates annotation with new concept name or associations. this is called from the image review page
