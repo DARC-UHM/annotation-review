@@ -1,5 +1,5 @@
 export const tatorLocalizationRow = (localization, externalComment) => {
-    console.log(localization);
+    // console.log(localization);
     return (`
         <tr>
             <td class="ps-5">
@@ -138,6 +138,15 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                 }
                 <div class="row mt-2">
                     <div class="col-4">
+                        <!-- <button 
+                            type="button" 
+                            data-bs-toggle="modal" 
+                            data-anno='${ JSON.stringify(localization) }' 
+                            data-bs-target="#editTatorLocalizationModal" 
+                            class="editButton">
+                                Edit annotation
+                        </button>
+                        <br> -->
                         <a
                             class="editButton"
                             href="https://cloud.tator.io/26/annotation/${localization.media_id}?playQuality=720&playbackRate=1&frame=${localization.frame}&version=45&lock=0&fill_boxes=1&toggle_text=1&selected_entity=${localization.observation_uuid}&selected_type=dot_49"

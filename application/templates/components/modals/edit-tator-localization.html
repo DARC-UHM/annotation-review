@@ -1,0 +1,91 @@
+<div class="modal fade" id="editTatorLocalizationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form id="updateLocalizationForm" onsubmit="updateLocalization()" autocomplete="off">
+            <div class="modal-content">
+                <div class="modal-header text-center">
+                    <h5 class="modal-title mt-1 ms-4" style="font-weight: 600;">Edit Annotation</h5>
+                    <button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-start">
+                    <div class="row pb-2">
+                        <div class="col-4 ms-4 ps-4 modal-label">
+                            Scientific Name:
+                        </div>
+                        <div class="col">
+                            <input type="text" id="editScientificName" name="scientific_name" class="modal-text">
+                        </div>
+                    </div>
+                    <div class="row pb-2">
+                        <div class="col-4 ms-4 ps-4 modal-label">
+                            Attracted:
+                        </div>
+                        <div class="col">
+                            <select id="editAttracted" name="attracted"></select>
+                        </div>
+                    </div>
+                    <div class="row pb-2">
+                        <div class="col-4 ms-4 ps-4 modal-label">
+                            Qualifier:
+                        </div>
+                        <div class="col">
+                            <select id="editQualifier" name="qualifier"></select>
+                        </div>
+                    </div>
+                    <div class="row pb-2">
+                        <div class="col-4 ms-4 ps-4 modal-label">
+                            Cat. Abundance:
+                        </div>
+                        <div class="col">
+                            <select id="editCatAbundance" name="cat_abundance"></select>
+                        </div>
+                    </div>
+                    <div class="row pb-2">
+                        <div class="col-4 ms-4 ps-4 modal-label">
+                            Reason:
+                        </div>
+                        <div class="col">
+                            <select id="editReason" name="reason"></select>
+                        </div>
+                    </div>
+                    <div class="row pb-2">
+                        <div class="col-4 ms-4 ps-4 modal-label">
+                            Tentative ID:
+                        </div>
+                        <div class="col">
+                            <input type="text" id="editTentativeId" name="tentative_id" class="modal-text">
+                        </div>
+                    </div>
+                    <div class="row pb-2">
+                        <div class="col-4 ms-4 ps-4 modal-label">
+                            ID Remarks:
+                        </div>
+                        <div class="col">
+                            <input type="text" id="editIdRemarks" name="id_remarks" class="modal-text">
+                        </div>
+                    </div>
+                    <div class="row pb-2">
+                        <div class="col-4 ms-4 ps-4 modal-label">
+                            Identified By:
+                        </div>
+                        <div class="col">
+                            <input type="text" id="editIdentifiedBy" name="identified_by" class="modal-text">
+                        </div>
+                    </div>
+                    <div class="row pb-2">
+                        <div class="col-4 ms-4 ps-4 modal-label">
+                            Notes:
+                        </div>
+                        <div class="col">
+                            <input type="text" id="editNotes" name="notes" class="modal-text">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Cancel</button>
+                    <input type="hidden" id="editLocalizationIds" name="localization_ids">
+                    <input type="submit" id="editModalSubmitButton" class="btn btn-success modal-button" value="Save Changes">
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

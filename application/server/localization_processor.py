@@ -36,10 +36,6 @@ class LocalizationProcessor:
     on the image review pages.
     """
 
-    # TODO
-    #  add ability to edit all clips in a deployment (FOV, substrate, location, etc)
-    #  add external image review (download to server?)
-
     def __init__(self, project_id: int, section_id: int, api: tator.api, deployment_list: list):
         self.project_id = project_id
         self.section_id = section_id
