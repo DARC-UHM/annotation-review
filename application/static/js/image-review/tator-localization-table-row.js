@@ -1,4 +1,5 @@
 export const tatorLocalizationRow = (localization, externalComment) => {
+    console.log(localization);
     return (`
         <tr>
             <td class="ps-5">
@@ -183,23 +184,15 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                     <div id="${localization.observation_uuid}_image" class="position-relative" style="width: 580px;">
                         <img src="${localization.frame_url || localization.image_url}" style="width: 580px;" alt="${localization.scientific_name}"/>
                         <div id="${localization.observation_uuid}_overlay">
-                        ${localization.points ?
-                            `${localization.type === 49
-                                ? localization.points.map((point) => {
-                                    return `<span class="position-absolute tator-dot" style="top: ${point[1] * 100}%; left: ${point[0] * 100}%;"></span>`;
-                                }).join('')
-                                : localization.points.map((point, index) => {
-                                    if (index < 1) {
-                                        return `<span
+                        ${localization.all_localizations.map((loco, index) => {
+                            if (loco.type === 48) {
+                                return `<span
                                             class="position-absolute tator-box"
-                                            style="top: ${point[1] * 100}%; left: ${point[0] * 100}%; width: ${localization.dimensions[0] * 100}%; height: ${localization.dimensions[1] * 100}%;"
-                                        ></span>`
-                                    } else {
-                                        return `<span class="position-absolute tator-dot" style="top: ${point[1] * 100}%; left: ${point[0] * 100}%;"></span>`;
-                                    }
-                                }).join('')
-                            }` : ''
-                        }
+                                            style="top: ${loco.points[1] * 100}%; left: ${loco.points[0] * 100}%; width: ${loco.dimensions[0] * 100}%; height: ${loco.dimensions[1] * 100}%;"
+                                        ></span>`;
+                            }
+                            return `<span class="position-absolute tator-dot" style="top: ${loco.points[1] * 100}%; left: ${loco.points[0] * 100}%;"></span>`;
+                        }).join('')}
                         </div>
                     </div>
                 </a>

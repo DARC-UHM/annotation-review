@@ -101,9 +101,12 @@ class LocalizationProcessor:
                                 break
             formatted_localizations.append({
                 'id': localization['id'],
-                'type': localization['type'],
-                'points': [round(localization['x'], 5), round(localization['y'], 5)],
-                'dimensions': [localization['width'], localization['height']] if localization['type'] == 48 else None,
+                'all_localizations': {
+                    'id': localization['id'],
+                    'type': localization['type'],
+                    'points': [round(localization['x'], 5), round(localization['y'], 5)],
+                    'dimensions': [localization['width'], localization['height']] if localization['type'] == 48 else None,
+                },
                 'video_sequence_name': deployment_media_dict[localization['media']],
                 'scientific_name': scientific_name,
                 'count': 0 if localization['type'] == 48 else 1,
@@ -137,14 +140,12 @@ class LocalizationProcessor:
 
         localization_df = pd.DataFrame(formatted_localizations)
 
-        def collect_points(points):
-            return [point for point in points]
+        def collect_localizations(items):
+            return [item for item in items]
 
         localization_df = localization_df.groupby(['media_id', 'frame', 'scientific_name']).agg({
                 'id': 'first',
-                'type': 'first',
-                'points': collect_points,
-                'dimensions': 'first',
+                'all_localizations': collect_localizations,
                 'count': 'sum',
                 'attracted': 'first',
                 'categorical_abundance': 'first',
@@ -195,13 +196,11 @@ class LocalizationProcessor:
         for index, row in localization_df.iterrows():
             self.distilled_records.append({
                 'observation_uuid': row['id'],
-                'type': row['type'],
+                'all_localizations': row['all_localizations'],
                 'media_id': row['media_id'],
                 'frame': row['frame'],
                 'frame_url': row['frame_url'],
                 'annotator': row['annotator'],
-                'points': row['points'],
-                'dimensions': row['dimensions'],
                 'scientific_name': row['scientific_name'],
                 'video_sequence_name': row['video_sequence_name'],
                 'count': row['count'],
