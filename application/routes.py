@@ -22,18 +22,29 @@ def favicon():
 
 @app.route('/')
 def index():
-    if 'reviewers' not in session.keys():
+    unread_comments = 0
+    total_comments = 0
+    active_reviewers = []
+    try:
         # get list of reviewers from external review db
-        try:
-            with requests.get(
-                    f'{app.config.get("DARC_REVIEW_URL")}/reviewer/all',
-                    headers=app.config.get('DARC_REVIEW_HEADERS'),
-            ) as req:
-                session['reviewers'] = req.json()
-        except requests.exceptions.ConnectionError:
-            print('\nERROR: unable to connect to external review server\n')
-            flash('Unable to connect to external review server', 'danger')
-            session['reviewers'] = []
+        with requests.get(
+                f'{app.config.get("DARC_REVIEW_URL")}/reviewer/all',
+                headers=app.config.get('DARC_REVIEW_HEADERS'),
+        ) as req:
+            session['reviewers'] = req.json()
+        # get stats from external review db
+        with requests.get(
+                f'{app.config.get("DARC_REVIEW_URL")}/stats',
+                headers=app.config.get('DARC_REVIEW_HEADERS'),
+        ) as r:
+            res = r.json()
+            unread_comments = res['unread_comments']
+            total_comments = res['total_comments']
+            active_reviewers = res['active_reviewers']
+    except (JSONDecodeError, KeyError, requests.exceptions.ConnectionError):
+        flash('Unable to connect to external review server', 'danger')
+        print('\nERROR: unable to connect to external review server\n')
+        session['reviewers'] = []
     try:
         # get list of sequences from vars
         with requests.get(f'{app.config.get("HURLSTOR_URL")}:8084/vam/v1/videosequences/names') as req:
@@ -46,28 +57,6 @@ def index():
         flash('Unable to connect to VARS', 'danger')
         session['vars_video_sequences'] = []
         session['vars_concepts'] = []
-    unread_comments = 0
-    total_comments = 0
-    active_reviewers = []
-    try:
-        with requests.get(
-            f'{app.config.get("DARC_REVIEW_URL")}/stats',
-            headers=app.config.get('DARC_REVIEW_HEADERS'),
-        ) as r:
-            try:
-                res = r.json()
-                unread_comments = res['unread_comments']
-                total_comments = res['total_comments']
-                active_reviewers = res['active_reviewers']
-            except JSONDecodeError:
-                flash('Unable to connect to external review server', 'danger')
-                print('Unable to fetch stats from external review server')
-            except KeyError:
-                flash('Unable to connect to external review server', 'danger')
-                print('Unable to fetch stats from external review server')
-    except requests.exceptions.ConnectionError:
-        flash('Unable to connect to external review server', 'danger')
-        print('Unable to fetch stats from external review server')
     return render_template(
         'index.html',
         sequences=session['vars_video_sequences'],

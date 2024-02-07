@@ -1,9 +1,8 @@
 import os
 import webbrowser
-import atexit
 
 from dotenv import load_dotenv
-from flask import Flask, session
+from flask import Flask
 from flask_session import Session
 from threading import Timer
 
@@ -14,14 +13,7 @@ def open_browser():
     print('\n\033[1;32;48mApplication running. Press CTRL + C to stop.\033[1;37;0m\n')
 
 
-def clear_temp_session_vals():
-    session.pop('reviewers', None)
-    session.pop('vars_video_sequences', None)
-    session.pop('vars_concepts', None)
-
-
 load_dotenv()
-atexit.register(clear_temp_session_vals)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY')
