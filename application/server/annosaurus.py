@@ -103,16 +103,18 @@ class Annosaurus(JWTAuthentication):
                           updated_annotation: Dict,
                           client_secret: str = None,
                           jwt: str = None) -> int:
-        """ Returns status: -1 = failed, 0 = no changes made, 1 = success """
+        """
+        Update an annotation with the given UUID. Returns a server status code.
+        """
         possible_association_updates = ['identity-certainty', 'identity-reference', 'upon', 'comment', 'guide-photo']
         update_str = f'UUID: {observation_uuid}\n'
         jwt = self.authorize(client_secret, jwt)
-        ret_status = 0
+        ret_status = 304
 
         with requests.get(f'{self.base_url}/observations/{observation_uuid}') as r:
             if r.status_code != 200:
                 print(f'{update_str}Unable to find annotation on server')
-                return -1
+                return 500
             old_annotation = r.json()
 
             # check for concept name change
@@ -124,8 +126,8 @@ class Annosaurus(JWTAuthentication):
                 headers = self._auth_header(jwt)
                 if requests.put(url, data=new_name, headers=headers).status_code != 200:
                     print(f'{update_str}Unable to update concept name')
-                    return -1
-                ret_status = 1
+                    return 500
+                ret_status = 200
                 update_str += f'Updated concept name\n'
 
             # get list of old association link_names that we can change
@@ -148,8 +150,8 @@ class Annosaurus(JWTAuthentication):
                         # delete the association
                         if self.delete_association(uuid=old_association["uuid"], client_secret=client_secret) != 204:
                             print(f'{update_str}Unable to remove association "{link_name}"')
-                            return -1
-                        ret_status = 1
+                            return 500
+                        ret_status = 200
                         update_str += f'Deleted association "{link_name}"\n'
                     else:
                         # check if value actually changed
@@ -165,8 +167,8 @@ class Annosaurus(JWTAuthentication):
                                 )
                                 if status != 200:
                                     print(f'{update_str}Unable to update association "{link_name}"')
-                                    return -1
-                                ret_status = 1
+                                    return 500
+                                ret_status = 200
                                 update_str += f'Updated association "{link_name}"\n'
                         else:
                             # others use 'link_value'
@@ -180,8 +182,8 @@ class Annosaurus(JWTAuthentication):
                                 )
                                 if status != 200:
                                     print(f'{update_str}Unable to update association "{link_name}"')
-                                    return -1
-                                ret_status = 1
+                                    return 500
+                                ret_status = 200
                                 update_str += f'Updated association "{link_name}"\n'
                 else:
                     # create new association
@@ -201,8 +203,8 @@ class Annosaurus(JWTAuthentication):
                     )
                     if status != 200:
                         print(f'{update_str}Unable to add association "{link_name}"')
-                        return -1
-                    ret_status = 1
+                        return 500
+                    ret_status = 200
                     update_str += f'Added association "{link_name}"\n'
 
         print(update_str if update_str else 'No changes made')
@@ -219,7 +221,7 @@ class Annosaurus(JWTAuthentication):
         with requests.get(f'{self.base_url}/observations/{observation_uuid}') as r:
             if r.status_code != 200:
                 print(f'{update_str}Unable to find annotation on server')
-                return -1
+                return
 
             old_association = \
                 next((item for item in r.json()['associations'] if item['link_name'] == 'comment'), None)
@@ -248,7 +250,7 @@ class Annosaurus(JWTAuthentication):
                 )
                 if status != 200:
                     print(f'{update_str}Unable to update comment')
-                    return -1
+                    return
                 else:
                     update_str += 'Updated comment'
             else:
@@ -265,9 +267,9 @@ class Annosaurus(JWTAuthentication):
                 )
                 if status != 200:
                     print(f'{update_str}Unable to update comment')
-                    return -1
+                    return
                 else:
                     update_str += 'Updated comment'
 
         print(update_str if update_str else 'No changes made')
-        return None
+        return

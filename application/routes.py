@@ -209,6 +209,37 @@ def tator_frame(media_id, frame):
     return '', 500
 
 
+# update tator localization
+@app.patch('/tator/localization')
+def update_tator_localization():
+    localization_id_types = json.loads(request.values.get('localization_id_types'))
+    attributes = {
+        'Scientific Name': request.values.get('scientific_name'),
+        'Qualifier': request.values.get('qualifier'),
+        'Reason': request.values.get('reason'),
+        'Tentative ID': request.values.get('tentative_id'),
+        'IdentificationRemarks': request.values.get('identification_remarks'),
+        'Identified By': request.values.get('identified_by'),
+        'Notes': request.values.get('notes'),
+        'Attracted': request.values.get('attracted'),
+    }
+    try:
+        for localization in localization_id_types:
+            this_attributes = attributes.copy()
+            if localization['type'] == 49:  # point annotation, add cat abundance
+                this_attributes['Categorical Abundance'] = request.values.get('categorical_abundance') if request.values.get('categorical_abundance') else '--'
+            api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
+            api.update_localization(
+                id=localization['id'],
+                localization_update=tator.models.LocalizationUpdate(
+                    attributes=this_attributes,
+                )
+            )
+    except tator.openapi.tator_openapi.exceptions.ApiException:
+        return {}, 500
+    return {}, 200
+
+
 # view VARS annotations with images in a specified dive (or dives)
 @app.get('/vars/image-review')
 def view_images():
@@ -601,12 +632,7 @@ def update_annotation():
         updated_annotation=updated_annotation,
         client_secret=app.config.get('ANNOSAURUS_CLIENT_SECRET')
     )
-    if status == 1:
-        return {}, 204
-    elif status == 0:
-        return {}, 304
-    else:
-        return {}, 500
+    return {}, status
 
 
 # creates a new association for a VARS annotation

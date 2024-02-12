@@ -486,65 +486,62 @@ function deleteFromExternalReview() {
 window.deleteFromExternalReview = deleteFromExternalReview;
 
 // vars
-function updateAnnotation() {
+async function updateAnnotation() {
     event.preventDefault();
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
     $('#editVarsAnnotationModal').modal('hide');
     const formData = new FormData($('#updateAnnotationForm')[0]);
-    fetch('/vars/annotation', {
+    const res = await fetch('/vars/annotation', {
         method: 'PATCH',
         body: formData,
-    })
-        .then((result) => {
-            if (result.status === 204) {
-                const index = annotations.findIndex((anno) => anno.observation_uuid === formData.get('observation_uuid'));
-                for (const pair of formData.entries()){
-                    annotations[index][pair[0].replace('-', '_')] = pair[1];
-                }
-                updateFlashMessages('Annotation successfully updated', 'success');
-                updateHash();
-            } else if (result.status === 304) {
-                updateFlashMessages('No changes made', 'secondary');
-            } else {
-                updateFlashMessages('Failed to update annotation - please try again', 'danger');
-            }
-            $('#load-overlay').addClass('loader-bg-hidden');
-            $('#load-overlay').removeClass('loader-bg');
-        })
-        .catch((err) => console.log(err));
+    });
+    if (res.status === 200) {
+        const index = annotations.findIndex((anno) => anno.observation_uuid === formData.get('observation_uuid'));
+        for (const pair of formData.entries()){
+            annotations[index][pair[0].replace('-', '_')] = pair[1];
+        }
+        updateFlashMessages('Annotation successfully updated', 'success');
+        updateHash();
+    } else if (res.status === 304) {
+        updateFlashMessages('No changes made', 'secondary');
+    } else {
+        updateFlashMessages('Failed to update annotation - please try again', 'danger');
+    }
+    $('#load-overlay').addClass('loader-bg-hidden');
+    $('#load-overlay').removeClass('loader-bg');
 }
 
 window.updateAnnotation = updateAnnotation;
 
 // tator
-function updateLocalization() {
+async function updateLocalization() {
     event.preventDefault();
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
     $('#editTatorLocalizationModal').modal('hide');
     const formData = new FormData($('#updateLocalizationForm')[0]);
-    fetch('/tator/localization', {
+    const res = await fetch('/tator/localization', {
         method: 'PATCH',
         body: formData,
-    })
-        .then((result) => {
-            if (result.status === 204) {
-                const index = annotations.findIndex((anno) => anno.observation_uuid === formData.get('observation_uuid'));
-                for (const pair of formData.entries()){
-                    annotations[index][pair[0].replace('-', '_')] = pair[1];
-                }
-                updateFlashMessages('Annotation successfully updated', 'success');
-                updateHash();
-            } else if (result.status === 304) {
-                updateFlashMessages('No changes made', 'secondary');
-            } else {
-                updateFlashMessages('Failed to update annotation - please try again', 'danger');
-            }
-            $('#load-overlay').addClass('loader-bg-hidden');
-            $('#load-overlay').removeClass('loader-bg');
-        })
-        .catch((err) => console.log(err));
+    });
+    if (res.status === 200) {
+        const index = annotations.findIndex((anno) => anno.observation_uuid.toString() === formData.get('observation_uuid'));
+        console.log(parseInt(formData.get('observation_uuid')))
+        console.log(index);
+        for (const pair of formData.entries()){
+            annotations[index][pair[0]] = pair[1];
+        }
+        console.log( annotations[index])
+        updateFlashMessages('Annotation successfully updated', 'success');
+        updateHash();
+    } else if (res.status === 304) {
+        updateFlashMessages('No changes made', 'secondary');
+    } else {
+        updateFlashMessages('Failed to update annotation - please try again', 'danger');
+    }
+    $('#load-overlay').addClass('loader-bg-hidden');
+    $('#load-overlay').removeClass('loader-bg');
 }
 
 window.updateLocalization = updateLocalization;
@@ -680,18 +677,20 @@ $(document).ready(function () {
     $('#editTatorLocalizationModal').on('show.bs.modal', function (e) {
         const localization = $(e.relatedTarget).data('anno');
         const scientificNameField = $(this).find('#editScientificName');
-        console.log(localization);
 
         scientificNameField.val(localization.scientific_name);
         $(this).find('#editAttracted').val(localization.attracted);
         $(this).find('#editQualifier').val(localization.qualifier);
-        $(this).find('#editCatAbundance').val(localization.comment);
+        $(this).find('#editCatAbundance').val(localization.categorical_abundance || '--');
         $(this).find('#editReason').val(localization.reason);
         $(this).find('#editTentativeId').val(localization.tentative_id);
         $(this).find('#editIdRemarks').val(localization.identification_remarks);
         $(this).find('#editIdentifiedBy').val(localization.identified_by);
         $(this).find('#editNotes').val(localization.notes);
-        $(this).find('#editLocalizationIds').val(localization.all_localizations.map((loc) => loc.id));
+        $(this).find('#editLocalizationIdType').val(JSON.stringify(localization.all_localizations.map((loc) => {
+            return { id: loc.id, type: loc.type };
+        })));
+        $(this).find('#baseUuid').val(localization.observation_uuid);
 
         scientificNameField.on('input', () => validateName(scientificNameField.val(), $('#editTatorLocaModalSubmitButton')[0]));
         scientificNameField.on('change', () => validateName(scientificNameField.val(), $('#editTatorLocaModalSubmitButton')[0]));

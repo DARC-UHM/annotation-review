@@ -43,7 +43,7 @@
                             Cat. Abundance:
                         </div>
                         <div class="col">
-                            <select id="editCatAbundance" name="cat_abundance">
+                            <select id="editCatAbundance" name="categorical_abundance">
                                 <option>--</option>
                                 <option>20-49</option>
                                 <option>50-99</option>
@@ -60,7 +60,7 @@
                             <select id="editReason" name="reason">
                                 <option>--</option>
                                 <option>To be re-examined</option>
-                                <option>Non-target taxa</option>
+                                <option>Non-target taxon</option>
                             </select>
                         </div>
                     </div>
@@ -77,7 +77,7 @@
                             ID Remarks:
                         </div>
                         <div class="col">
-                            <input type="text" id="editIdRemarks" name="id_remarks" class="modal-text">
+                            <input type="text" id="editIdRemarks" name="identification_remarks" class="modal-text">
                         </div>
                     </div>
                     <div class="row pb-2">
@@ -99,7 +99,8 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Cancel</button>
-                    <input type="hidden" id="editLocalizationIds" name="localization_ids">
+                    <input type="hidden" id="editLocalizationIdType" name="localization_id_types">
+                    <input type="hidden" id="baseUuid" name="observation_uuid">
                     <input type="submit" id="editTatorLocaModalSubmitButton" class="btn btn-success modal-button" value="Save Changes">
                 </div>
             </div>

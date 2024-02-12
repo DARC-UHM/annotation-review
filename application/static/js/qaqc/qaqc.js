@@ -484,7 +484,7 @@ async function updateConceptName(uuid) {
         method: 'PATCH',
         body: formData,
     });
-    if (res.status === 204) {
+    if (res.status === 200) {
         updateFlashMessages('Successfully updated concept name', 'success');
         annotations[annoIndex].concept = $('#editConceptName').val();
         $('#qaqcUpdateConceptButton').attr('disabled', true);
