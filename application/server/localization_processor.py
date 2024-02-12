@@ -76,6 +76,9 @@ class LocalizationProcessor:
             phylogeny = {}
 
         for localization in localizations:
+            if localization['type'] not in [48, 49]:
+                print('Mystery localization skipped')
+                continue
             scientific_name = localization['attributes']['Scientific Name']
             if scientific_name not in phylogeny.keys():
                 req = requests.get(f'https://www.marinespecies.org/rest/AphiaIDByName/{scientific_name}?marine_only=true')

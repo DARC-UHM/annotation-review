@@ -13,6 +13,8 @@ from application.server.localization_processor import LocalizationProcessor
 from application.server.annosaurus import *
 
 # TODO add location information to localizations
+# TODO add depth to records
+# TODO add bulk editor (lower priority)
 
 
 @app.route('/favicon.ico')
@@ -146,10 +148,16 @@ def load_media(project_id, section_id):
         if req.status_code != 200:
             return {}, req.status_code
         for media in req.json():
-            if media['name'][:11] not in deployment_list.keys():
-                deployment_list[media['name'][:11]] = [media['id']]
+            media_name = media['name'].split('_')
+            # stupid solution until we decide on an actual naming convention
+            if len(media_name) == 3:  # format DOEX0087_NIU-dscm-02_c009.mp4
+                media_name = media_name[1]
+            else:  # format HAW_dscm_01_c010_202304250123Z_0983m.mp4
+                media_name = '_'.join(media_name[0:3])
+            if media_name not in deployment_list.keys():
+                deployment_list[media_name] = [media['id']]
             else:
-                deployment_list[media['name'][:11]].append(media['id'])
+                deployment_list[media_name].append(media['id'])
         session[f'{project_id}_{section_id}'] = deployment_list
         return sorted(deployment_list.keys()), 200
 
@@ -411,11 +419,11 @@ def add_external_review():
             )
         else:  # Tator localization, update Tator notes
             api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
-            current_notes = api.get_localization(id=request.values.get('observation_uuid')).attributes.get('Notes', '').split('; ')
+            current_notes = api.get_localization(id=request.values.get('observation_uuid')).attributes.get('Notes', '').split('|')
             current_notes = [note for note in current_notes if 'send to' not in note.lower()]  # get rid of 'send to expert' notes
             current_notes = [note for note in current_notes if 'added for review' not in note.lower()]  # get rid of old 'added for review' notes
-            current_notes = '; '.join(current_notes)
-            new_notes = f'{current_notes + "; " if current_notes else ""}Added for review: {", ".join(json.loads(request.values.get("reviewers")))}'
+            current_notes = '|'.join(current_notes)
+            new_notes = f'{current_notes + "|" if current_notes else ""}Added for review: {", ".join(json.loads(request.values.get("reviewers")))}'
             api.update_localization(
                 id=request.values.get('observation_uuid'),
                 localization_update=tator.models.LocalizationUpdate(
@@ -476,13 +484,13 @@ def delete_external_review():
     if req.status_code == 200:
         if request.values.get('tator'):  # tator localization
             api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
-            current_notes = api.get_localization(id=request.values.get('uuid')).attributes.get('Notes', '').split('; ')
+            current_notes = api.get_localization(id=request.values.get('uuid')).attributes.get('Notes', '').split('|')
             current_notes = [note for note in current_notes if 'send to' not in note.lower()]  # get rid of 'send to expert' notes
             current_notes = [note for note in current_notes if 'added for review' not in note.lower()]  # get rid of old 'added for review' notes
             api.update_localization(
                 id=request.values.get('uuid'),
                 localization_update=tator.models.LocalizationUpdate(
-                    attributes={'Notes': '; '.join(current_notes)},
+                    attributes={'Notes': '|'.join(current_notes)},
                 )
             )
         else:  # VARS annotation
