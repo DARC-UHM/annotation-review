@@ -13,14 +13,17 @@
                         </div>
                         <div class="col">
                             <input type="text" id="editScientificName" name="scientific_name" class="modal-text">
-                        </div>
+                       </div>
                     </div>
                     <div class="row pb-2">
                         <div class="col-4 ms-4 ps-4 modal-label">
                             Attracted:
                         </div>
                         <div class="col">
-                            <select id="editAttracted" name="attracted"></select>
+                            <select id="editAttracted" name="attracted">
+                                <option>Not Attracted</option>
+                                <option>Attracted</option>
+                            </select>
                         </div>
                     </div>
                     <div class="row pb-2">
@@ -28,7 +31,11 @@
                             Qualifier:
                         </div>
                         <div class="col">
-                            <select id="editQualifier" name="qualifier"></select>
+                            <select id="editQualifier" name="qualifier">
+                                <option>--</option>
+                                <option>indet.</option>
+                                <option>stet.</option>
+                            </select>
                         </div>
                     </div>
                     <div class="row pb-2">
@@ -36,7 +43,13 @@
                             Cat. Abundance:
                         </div>
                         <div class="col">
-                            <select id="editCatAbundance" name="cat_abundance"></select>
+                            <select id="editCatAbundance" name="cat_abundance">
+                                <option>--</option>
+                                <option>20-49</option>
+                                <option>50-99</option>
+                                <option>100-999</option>
+                                <option>1000+</option>
+                            </select>
                         </div>
                     </div>
                     <div class="row pb-2">
@@ -44,7 +57,11 @@
                             Reason:
                         </div>
                         <div class="col">
-                            <select id="editReason" name="reason"></select>
+                            <select id="editReason" name="reason">
+                                <option>--</option>
+                                <option>To be re-examined</option>
+                                <option>Non-target taxa</option>
+                            </select>
                         </div>
                     </div>
                     <div class="row pb-2">
@@ -83,7 +100,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Cancel</button>
                     <input type="hidden" id="editLocalizationIds" name="localization_ids">
-                    <input type="submit" id="editModalSubmitButton" class="btn btn-success modal-button" value="Save Changes">
+                    <input type="submit" id="editTatorLocaModalSubmitButton" class="btn btn-success modal-button" value="Save Changes">
                 </div>
             </div>
         </form>

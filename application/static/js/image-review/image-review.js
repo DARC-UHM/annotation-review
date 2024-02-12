@@ -115,12 +115,12 @@ const handlePageButtonsStatus = () => {
     }
 };
 
-function validateName(name) {
+function validateName(name, button) {
     let disabled = false;
     if (name && !allConcepts.includes(name)) {
         disabled = true;
     }
-    $('#editModalSubmitButton')[0].disabled = disabled;
+    button.disabled = disabled;
 }
 
 // remove filter from hash
@@ -485,6 +485,7 @@ function deleteFromExternalReview() {
 
 window.deleteFromExternalReview = deleteFromExternalReview;
 
+// vars
 function updateAnnotation() {
     event.preventDefault();
     $('#load-overlay').removeClass('loader-bg-hidden');
@@ -516,6 +517,38 @@ function updateAnnotation() {
 
 window.updateAnnotation = updateAnnotation;
 
+// tator
+function updateLocalization() {
+    event.preventDefault();
+    $('#load-overlay').removeClass('loader-bg-hidden');
+    $('#load-overlay').addClass('loader-bg');
+    $('#editTatorLocalizationModal').modal('hide');
+    const formData = new FormData($('#updateLocalizationForm')[0]);
+    fetch('/tator/localization', {
+        method: 'PATCH',
+        body: formData,
+    })
+        .then((result) => {
+            if (result.status === 204) {
+                const index = annotations.findIndex((anno) => anno.observation_uuid === formData.get('observation_uuid'));
+                for (const pair of formData.entries()){
+                    annotations[index][pair[0].replace('-', '_')] = pair[1];
+                }
+                updateFlashMessages('Annotation successfully updated', 'success');
+                updateHash();
+            } else if (result.status === 304) {
+                updateFlashMessages('No changes made', 'secondary');
+            } else {
+                updateFlashMessages('Failed to update annotation - please try again', 'danger');
+            }
+            $('#load-overlay').addClass('loader-bg-hidden');
+            $('#load-overlay').removeClass('loader-bg');
+        })
+        .catch((err) => console.log(err));
+}
+
+window.updateLocalization = updateLocalization;
+
 function saveScrollPosition(page) {
     const url = new URL(window.location.href);
     const index = url.hash.indexOf('pg=');
@@ -531,6 +564,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
     autocomplete($('#editConceptName'), allConcepts);
     autocomplete($('#editUpon'), allConcepts);
+    autocomplete($('#editScientificName'), allConcepts);
 
     if (sessionStorage.getItem(`scrollPos${queryAndHash}`)) {
         window.scrollTo({
@@ -628,10 +662,10 @@ $(document).ready(function () {
         $(this).find('#editComments').val(annotation.comment);
         $(this).find('#editObservationUuid').val(annotation.observation_uuid);
 
-        conceptNameField.on('input', () => validateName(conceptNameField.val()));
-        conceptNameField.on('change', () => validateName(conceptNameField.val()));
-        uponField.on('input', () => validateName(uponField.val()));
-        uponField.on('change', () => validateName(uponField.val()));
+        conceptNameField.on('input', () => validateName(conceptNameField.val(), $('#editVarsAnnoModalSubmitButton')[0]));
+        conceptNameField.on('change', () => validateName(conceptNameField.val(), $('#editVarsAnnoModalSubmitButton')[0]));
+        uponField.on('input', () => validateName(uponField.val(), $('#editVarsAnnoModalSubmitButton')[0]));
+        uponField.on('change', () => validateName(uponField.val(), $('#editVarsAnnoModalSubmitButton')[0]));
 
         document.getElementById("editGuidePhoto").options.length = 0; // clear options
         const guidePhotoSelect = $(this).find('#editGuidePhoto');
@@ -641,6 +675,26 @@ $(document).ready(function () {
                 .prop('selected', annotation.guide_photo === val || val === '' && !annotation.guide_photo);
             opt.appendTo(guidePhotoSelect);
         }
+    });
+
+    $('#editTatorLocalizationModal').on('show.bs.modal', function (e) {
+        const localization = $(e.relatedTarget).data('anno');
+        const scientificNameField = $(this).find('#editScientificName');
+        console.log(localization);
+
+        scientificNameField.val(localization.scientific_name);
+        $(this).find('#editAttracted').val(localization.attracted);
+        $(this).find('#editQualifier').val(localization.qualifier);
+        $(this).find('#editCatAbundance').val(localization.comment);
+        $(this).find('#editReason').val(localization.reason);
+        $(this).find('#editTentativeId').val(localization.tentative_id);
+        $(this).find('#editIdRemarks').val(localization.identification_remarks);
+        $(this).find('#editIdentifiedBy').val(localization.identified_by);
+        $(this).find('#editNotes').val(localization.notes);
+        $(this).find('#editLocalizationIds').val(localization.all_localizations.map((loc) => loc.id));
+
+        scientificNameField.on('input', () => validateName(scientificNameField.val(), $('#editTatorLocaModalSubmitButton')[0]));
+        scientificNameField.on('change', () => validateName(scientificNameField.val(), $('#editTatorLocaModalSubmitButton')[0]));
     });
 
     $('#externalReviewModal').on('show.bs.modal', (e) => {
