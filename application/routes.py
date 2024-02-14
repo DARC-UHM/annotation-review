@@ -200,6 +200,16 @@ def tator_image_review(project_id, section_id):
     return render_template('image-review/image-review.html', data=data)
 
 
+# view all Tator annotations (localizations) in a specified project & section
+@app.get('/tator/qaqc-checklist/<project_id>/<section_id>')
+def tator_qaqc_checklist(project_id, section_id):
+    data = {
+        'title': 'Temp',  # todo
+        'localization_count': 20,  # todo
+    }
+    return render_template('qaqc/tator-qaqc-checklist.html', data=data)
+
+
 # view tator video frame (not cropped)
 @app.get('/tator/frame/<media_id>/<frame>')
 def tator_frame(media_id, frame):
@@ -287,7 +297,7 @@ def vars_qaqc_checklist():
     for sequence in sequences:
         with requests.get(f'{app.config.get("HURLSTOR_URL")}:8086/query/dive/{sequence.replace(" ", "%20")}') as r:
             annotation_count += len(r.json()['annotations'])
-    return render_template('qaqc/qaqc-checklist.html', annotation_count=annotation_count)
+    return render_template('qaqc/vars-qaqc-checklist.html', annotation_count=annotation_count)
 
 
 # individual qaqc checks

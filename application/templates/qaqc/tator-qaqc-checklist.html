@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}DARC Tator QA/QC{% endblock title %}
+{% block content %}
+    {% include 'components/loading-fish.html' %}
+    <div id="fireworks" class="pyro" style="display: none;">
+        <div class="before"></div>
+        <div class="after"></div>
+    </div>
+    {% include 'components/back-to-home-button.html' %}
+    <div class="text-center my-3 mx-5">
+        {% include 'components/flash-container.html' %}
+        <div class="col mt-4 m-auto" style="max-width: 800px;">
+            <div class="row m-auto">
+                <div class="col-9 text-start">
+                    <h3 class="m-0 p-0 pb-2" style="font-weight: 600;">{{ data.title }}</h3>
+                    <div id="deploymentList"></div>
+                </div>
+
+            </div>
+        </div>
+        <div id="404" style="display: none;" class="my-5">
+            <h3>No records found for given dive<br></h3>
+        </div>
+        <div class="m-auto" style="max-width: 800px;">
+            <div>
+                <table class="w-100">
+                    <thead>
+                        <tr>
+                            <th class="text-start" style="font-weight: 600; padding-left: 10px;">Tator QA/QC Checklist</th>
+                            <th class="text-end pb-2 px-2" style="font-weight: 400;">
+                                <span class="col-3 text-end mt-auto small">
+                                <span>Total Annotations:&nbsp;&nbsp<span id="annotationCount" style="font-weight: 600;"></span></span><br>
+                                <span>Checks Complete: &nbsp<span style="font-weight: 600;"><span id="tasksComplete">0</span> / <span>10</span></span></span>
+                                </span>
+                            </th>
+                        </tr>
+                    </thead>
+                </table>
+                <table id="checklistTable" class="table text-start">
+                    <tbody>
+                        <tr>
+                            <td><a id="namesAcceptedAnchor" class="aquaLink">All scientific names and tentative IDs are accepted in WoRMS</a></td>
+                            <td id="namesAcceptedCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a id="qualifiersAnchor" class="aquaLink">All taxa classified higher than species level have qualifiers</a></td>
+                            <td id="qualifiersCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a id="stetReasonAnchor" class="aquaLink">All records with 'stet' have a 'reason'</a></td>
+                            <td id="stetReasonCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a id="tentativeIdAnchor" class="aquaLink">Review all records with a tentative ID</a></td>
+                            <td id="tentativeIdCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a id="attractedAnchor" class="aquaLink">All attracted/not attracted match expected taxa list</a></td>
+                            <td id="attractedCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a id="allBoxDotAnchor" class="aquaLink">All taxa have at least one box and one dot</a></td>
+                            <td id="allBoxDotCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a id="boxDotOrderAnchor" class="aquaLink">All boxes occur after or at the same time of the first dot</a></td>
+                            <td id="boxDotOrderCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a id="notesRemarksAnchor" class="aquaLink">Review all notes and remarks</a></td>
+                            <td id="notesRemarksCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a id="uniqueTaxaAnchor" class="aquaLink">Review all unique taxa</a></td>
+                            <td id="uniqueTaxaCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
+                            <td><a id="mediaAttributesAnchor" class="aquaLink">Review media attributes (FOV, quality, substrate)</a></td>
+                            <td id="mediaAttributesCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <a href="#">View/Download Summary Table</a>
+            </div>
+        </div>
+    </div>
+    <link rel="stylesheet" href="/static/css/fireworks.css" />
+    <script src="/static/modules/jquery/jquery.min.js"></script>
+    <script src="/static/modules/bootstrap/bootstrap.bundle.js"></script>
+    <script>
+        const annotationCount = {{ data.localization_count }};
+    </script>
+    <script type="module" src="/static/js/qaqc/tator-qaqc-checklist.js"></script>
+{% endblock content %}

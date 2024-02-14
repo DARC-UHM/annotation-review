@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}DARC QA/QC{% endblock title %}
+{% block title %}DARC VARS QA/QC{% endblock title %}
 {% block content %}
     {% include 'components/loading-fish.html' %}
     <div id="fireworks" class="pyro" style="display: none;">
@@ -26,7 +26,7 @@
                 <table class="w-100">
                     <thead>
                         <tr>
-                            <th class="text-start" style="font-weight: 600; padding-left: 10px;">QA/QC Checklist</th>
+                            <th class="text-start" style="font-weight: 600; padding-left: 10px;">VARS QA/QC Checklist</th>
                             <th class="text-end pb-2 px-2" style="font-weight: 400;">
                                 <span class="col-3 text-end mt-auto small">
                                 <span>Total Annotations:&nbsp;&nbsp<span id="annotationCount" style="font-weight: 600;"></span></span><br>
@@ -129,5 +129,5 @@
     <script>
         const annotationCount = {{ annotation_count }};
     </script>
-    <script type="module" src="/static/js/qaqc/qaqc-checklist.js"></script>
+    <script type="module" src="/static/js/qaqc/vars-qaqc-checklist.js"></script>
 {% endblock content %}
