@@ -138,7 +138,11 @@ function updateHash() {
         // get occurrence remarks
         annotation.associations.forEach((ass) => {
             if (ass.link_name === 'occurrence-remark') {
-                occurrenceRemarks = ass.link_value;
+                if (occurrenceRemarks === 'N/A') {
+                    occurrenceRemarks = ass.link_value;
+                } else {
+                    occurrenceRemarks += `; ${ass.link_value}`;
+                }
             }
         });
         let videoUrl = annotation.video_url;
@@ -147,7 +151,7 @@ function updateHash() {
         }
         $('#annotationTable').find('tbody').append(`
         <tr>
-            <td class="ps-5 py-3">
+            <td class="ps-5 py-3" style="width: 40%">
                 <div style="font-weight: 500; font-size: 18px;">${annotation.concept}</div>
                 <div class="small">${annotation.recorded_timestamp}<br>${annotation.video_sequence_name}<br>${annotation.annotator}</div>
                 <div class="small">Remarks: ${occurrenceRemarks}</div>
@@ -159,8 +163,8 @@ function updateHash() {
                     class="editButton small">Edit annotation
                 </button>
             </td>
-            <td class="small"><div id="problemsDiv${index}"></div></td>
-            <td class="text-center small">
+            <td class="small"><div id="problemsDiv${index}" style="width: 40%"></div></td>
+            <td class="text-center small" style="width: 20%">
                 <div class="mb-2">
                     ${annotation.image_url
                         ? `<a href="${annotation.image_url}" target="_blank"><img src="${annotation.image_url}" style="width: 200px;"/></a><br>` 
