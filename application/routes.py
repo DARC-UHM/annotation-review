@@ -381,10 +381,17 @@ def vars_qaqc_checklist():
     sequences = request.args.getlist('sequence')
     annotation_count = 0
     individual_count = 0
+    identity_references = set()
     for sequence in sequences:
         with requests.get(f'{app.config.get("HURLSTOR_URL")}:8086/query/dive/{sequence.replace(" ", "%20")}') as r:
             annotation_count += len(r.json()['annotations'])
             for annotation in r.json()['annotations']:
+                id_ref = get_association(annotation, 'identity-reference')
+                if id_ref:
+                    if id_ref['link_value'] in identity_references:
+                        continue
+                    else:
+                        identity_references.add(id_ref['link_value'])
                 cat_abundance = get_association(annotation, 'categorical-abundance')
                 if cat_abundance:
                     match cat_abundance['link_value']:
