@@ -794,7 +794,6 @@ def video():
     return render_template('video.html', data=data), 200
 
 
-@app.errorhandler(Exception)
 def server_error(e):
     error = f'{type(e).__name__}: {e}'
     print('\nApplication error 😔')

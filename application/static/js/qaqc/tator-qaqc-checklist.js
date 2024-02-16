@@ -77,6 +77,8 @@ function showLoader() {
 
 document.addEventListener('DOMContentLoaded',  (event) => {
     const url = new URL(window.location.href);
+    const projectId = url.href.split('/').slice(-2)[0];
+    const sectionId = url.href.split('/').slice(-1)[0].split('?')[0];
     const deployments = [];
 
     for (const pair of url.searchParams.entries()) { // the only search params we expect here are deployments
@@ -112,7 +114,7 @@ document.addEventListener('DOMContentLoaded',  (event) => {
         }
     };
 
-    $('#namesAcceptedAnchor').attr('href', `/tator/qaqc/names-accepted?deployment=${deployments.join('&sequence=')}`);
+    $('#namesAcceptedAnchor').attr('href', `/tator/qaqc/${projectId}/${sectionId}/names-accepted?deployment=${deployments.join('&deployment=')}`);
     $('#namesAcceptedAnchor').on('click', () => showLoader());
 });
 

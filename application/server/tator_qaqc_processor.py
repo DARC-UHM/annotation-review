@@ -26,6 +26,9 @@ class TatorQaqcProcessor:
         self.api = api
         self.deployments = deployment_list
         print(session['tator_token'])
+        self.deployment_media_dict = {}
+        self.records_of_interest = []
+        self.final_records = []
         self.localizations = self.fetch_localizations()
 
     def fetch_localizations(self):
@@ -34,6 +37,8 @@ class TatorQaqcProcessor:
         media_ids = []
         localizations = []
         for deployment in self.deployments:
+            for media_id in session[f'{self.project_id}_{self.section_id}'][deployment]:
+                self.deployment_media_dict[media_id] = deployment
             media_ids += session[f'{self.project_id}_{self.section_id}'][deployment]
         # REST is much faster than Python API for large queries
         # adding too many media ids results in a query that is too long, so we have to break it up
@@ -50,7 +55,7 @@ class TatorQaqcProcessor:
         return localizations
 
     def process_records(self):
-        if not self.localizations:
+        if not self.records_of_interest:
             return
 
         print('Processing localizations...', end='')
@@ -63,7 +68,7 @@ class TatorQaqcProcessor:
         except FileNotFoundError:
             phylogeny = {}
 
-        for localization in localizations:
+        for localization in self.records_of_interest:
             if localization['type'] not in [48, 49]:
                 print('Mystery localization skipped')
                 continue
@@ -89,62 +94,45 @@ class TatorQaqcProcessor:
                                 if req.status_code == 200:
                                     phylogeny[scientific_name] = flatten_taxa_tree(req.json(), {})
                                 break
+                    else:
+                        print(f'{TERM_RED}No accepted record found for {scientific_name}{TERM_NORMAL}')
             formatted_localizations.append({
                 'id': localization['id'],
                 'all_localizations': {
                     'id': localization['id'],
                     'type': localization['type'],
                     'points': [round(localization['x'], 5), round(localization['y'], 5)],
-                    'dimensions': [localization['width'], localization['height']] if localization[
-                                                                                         'type'] == 48 else None,
+                    'dimensions': [localization['width'], localization['height']] if localization['type'] == 48 else None,
                 },
-                'video_sequence_name': deployment_media_dict[localization['media']],
+                'video_sequence_name': self.deployment_media_dict[localization['media']],
                 'scientific_name': scientific_name,
                 'count': 0 if localization['type'] == 48 else 1,
-                'attracted': localization['attributes']['Attracted'] if 'Attracted' in localization[
-                    'attributes'].keys() else None,
-                'categorical_abundance': localization['attributes'][
-                    'Categorical Abundance'] if 'Categorical Abundance' in localization['attributes'].keys() else None,
-                'identification_remarks': localization['attributes'][
-                    'IdentificationRemarks'] if 'IdentificationRemarks' in localization['attributes'].keys() else None,
-                'identified_by': localization['attributes']['Identified By'] if 'Identified By' in localization[
-                    'attributes'].keys() else None,
+                'attracted': localization['attributes']['Attracted'] if 'Attracted' in localization['attributes'].keys() else None,
+                'categorical_abundance': localization['attributes']['Categorical Abundance'] if 'Categorical Abundance' in localization['attributes'].keys() else None,
+                'identification_remarks': localization['attributes']['IdentificationRemarks'] if 'IdentificationRemarks' in localization['attributes'].keys() else None,
+                'identified_by': localization['attributes']['Identified By'] if 'Identified By' in localization['attributes'].keys() else None,
                 'notes': localization['attributes']['Notes'] if 'Notes' in localization['attributes'].keys() else None,
-                'qualifier': localization['attributes']['Qualifier'] if 'Qualifier' in localization[
-                    'attributes'].keys() else None,
-                'reason': localization['attributes']['Reason'] if 'Reason' in localization[
-                    'attributes'].keys() else None,
-                'tentative_id': localization['attributes']['Tentative ID'] if 'Tentative ID' in localization[
-                    'attributes'].keys() else None,
-                'annotator': KNOWN_ANNOTATORS[localization['created_by']] if localization[
+                'qualifier': localization['attributes']['Qualifier'] if 'Qualifier' in localization['attributes'].keys() else None,
+                'reason': localization['attributes']['Reason'] if 'Reason' in localization['attributes'].keys() else None,
+                'tentative_id': localization['attributes']['Tentative ID'] if 'Tentative ID' in localization['attributes'].keys() else None,
+                'annotator': KNOWN_ANNOTATORS[localization['created_by']] if localization['created_by'] in KNOWN_ANNOTATORS.keys() else f'Unknown Annotator (#{localization["created_by"]})',
                 'frame': localization['frame'],
                 'frame_url': f'/tator/frame/{localization["media"]}/{localization["frame"]}',
                 'media_id': localization['media'],
-                'phylum': phylogeny[scientific_name]['phylum'] if 'phylum' in phylogeny[
-                    scientific_name].keys() else None,
-                'subphylum': phylogeny[scientific_name]['subphylum'] if 'subphylum' in phylogeny[
-                    scientific_name].keys() else None,
-                'superclass': phylogeny[scientific_name]['superclass'] if 'superclass' in phylogeny[
-                    scientific_name].keys() else None,
+                'phylum': phylogeny[scientific_name]['phylum'] if 'phylum' in phylogeny[scientific_name].keys() else None,
+                'subphylum': phylogeny[scientific_name]['subphylum'] if 'subphylum' in phylogeny[scientific_name].keys() else None,
+                'superclass': phylogeny[scientific_name]['superclass'] if 'superclass' in phylogeny[scientific_name].keys() else None,
                 'class': phylogeny[scientific_name]['class'] if 'class' in phylogeny[scientific_name].keys() else None,
-                'subclass': phylogeny[scientific_name]['subclass'] if 'subclass' in phylogeny[
-                    scientific_name].keys() else None,
-                'superorder': phylogeny[scientific_name]['superorder'] if 'superorder' in phylogeny[
-                    scientific_name].keys() else None,
+                'subclass': phylogeny[scientific_name]['subclass'] if 'subclass' in phylogeny[scientific_name].keys() else None,
+                'superorder': phylogeny[scientific_name]['superorder'] if 'superorder' in phylogeny[scientific_name].keys() else None,
                 'order': phylogeny[scientific_name]['order'] if 'order' in phylogeny[scientific_name].keys() else None,
-                'suborder': phylogeny[scientific_name]['suborder'] if 'suborder' in phylogeny[
-                    scientific_name].keys() else None,
-                'infraorder': phylogeny[scientific_name]['infraorder'] if 'infraorder' in phylogeny[
-                    scientific_name].keys() else None,
-                'superfamily': phylogeny[scientific_name]['superfamily'] if 'superfamily' in phylogeny[
-                    scientific_name].keys() else None,
-                'family': phylogeny[scientific_name]['family'] if 'family' in phylogeny[
-                    scientific_name].keys() else None,
-                'subfamily': phylogeny[scientific_name]['subfamily'] if 'subfamily' in phylogeny[
-                    scientific_name].keys() else None,
+                'suborder': phylogeny[scientific_name]['suborder'] if 'suborder' in phylogeny[scientific_name].keys() else None,
+                'infraorder': phylogeny[scientific_name]['infraorder'] if 'infraorder' in phylogeny[scientific_name].keys() else None,
+                'superfamily': phylogeny[scientific_name]['superfamily'] if 'superfamily' in phylogeny[scientific_name].keys() else None,
+                'family': phylogeny[scientific_name]['family'] if 'family' in phylogeny[scientific_name].keys() else None,
+                'subfamily': phylogeny[scientific_name]['subfamily'] if 'subfamily' in phylogeny[scientific_name].keys() else None,
                 'genus': phylogeny[scientific_name]['genus'] if 'genus' in phylogeny[scientific_name].keys() else None,
-                'species': phylogeny[scientific_name]['species'] if 'species' in phylogeny[
-                    scientific_name].keys() else None,
+                'species': phylogeny[scientific_name]['species'] if 'species' in phylogeny[scientific_name].keys() else None,
             })
 
         localization_df = pd.DataFrame(formatted_localizations)
@@ -203,7 +191,7 @@ class TatorQaqcProcessor:
         ])
 
         for index, row in localization_df.iterrows():
-            self.distilled_records.append({
+            self.final_records.append({
                 'observation_uuid': row['id'],
                 'all_localizations': row['all_localizations'],
                 'media_id': row['media_id'],
@@ -241,21 +229,12 @@ class TatorQaqcProcessor:
 
     def check_names_accepted(self):
         """
-        Finds annotations that have more than one of the same association besides s2
+        Finds records with a scientific name or tentative ID that is not accepted in WoRMS
         """
+        with open(os.path.join('cache', 'phylogeny.json'), 'r') as f:
+            phylogeny = json.load(f)
         for localization in self.localizations:
-            for annotation in self.fetch_annotations(name):
-                # get list of associations
-                association_set = set()
-                duplicate_associations = False
-                for association in annotation['associations']:
-                    name = association['link_name']
-                    if name not in association_set:
-                        if name != 's2':
-                            association_set.add(name)
-                    else:
-                        duplicate_associations = True
-                        break
-                if duplicate_associations:
-                    self.working_records.append(annotation)
+            if localization['attributes']['scientific_name'] not in phylogeny.keys()\
+                    or localization['attributes']['Tentative ID'] not in phylogeny.keys():
+                self.records_of_interest.append(localization)
         self.process_records()
