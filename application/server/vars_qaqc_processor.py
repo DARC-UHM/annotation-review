@@ -11,7 +11,7 @@ TERM_RED = '\033[1;31;48m'
 TERM_NORMAL = '\033[1;37;0m'
 
 
-class QaqcProcessor:
+class VarsQaqcProcessor:
     """
     Fetches annotation information from the VARS db on HURLSTOR given a list of sequences. Filters and formats the
     annotations for the various QA/QC checks.

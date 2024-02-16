@@ -112,11 +112,8 @@ document.addEventListener('DOMContentLoaded',  (event) => {
         }
     };
 
-    /*
-    TODO:
-    $('#namesAcceptedAnchor').attr('href', `/vars/qaqc/multiple-associations?sequence=${deployments.join('&sequence=')}`);
-    $('#multipleAssociationAnchor').on('click', () => showLoader());
-     */
+    $('#namesAcceptedAnchor').attr('href', `/tator/qaqc/names-accepted?deployment=${deployments.join('&sequence=')}`);
+    $('#namesAcceptedAnchor').on('click', () => showLoader());
 });
 
 // get rid of loading screen if back button is pressed (mozilla)
