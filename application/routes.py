@@ -6,6 +6,7 @@ from flask import render_template, request, redirect, flash, session, Response
 from json import JSONDecodeError
 
 from application import app
+from application.server.functions import get_association
 from application.server.image_processor import ImageProcessor
 from application.server.comment_processor import CommentProcessor
 from application.server.qaqc_processor import QaqcProcessor
@@ -284,10 +285,29 @@ def view_images():
 def vars_qaqc_checklist():
     sequences = request.args.getlist('sequence')
     annotation_count = 0
+    individual_count = 0
     for sequence in sequences:
         with requests.get(f'{app.config.get("HURLSTOR_URL")}:8086/query/dive/{sequence.replace(" ", "%20")}') as r:
             annotation_count += len(r.json()['annotations'])
-    return render_template('qaqc/qaqc-checklist.html', annotation_count=annotation_count)
+            for annotation in r.json()['annotations']:
+                cat_abundance = get_association(annotation, 'categorical-abundance')
+                if cat_abundance:
+                    match cat_abundance['link_value']:
+                        case '11-20':
+                            individual_count += 15
+                        case '21-50':
+                            individual_count += 35
+                        case '51-100':
+                            individual_count += 75
+                        case '\u003e100':
+                            individual_count += 100
+                    continue
+                pop_quantity = get_association(annotation, 'population-quantity')
+                if pop_quantity:
+                    individual_count += int(pop_quantity['link_value'])
+                    continue
+                individual_count += 1
+    return render_template('qaqc/qaqc-checklist.html', annotation_count=annotation_count, individual_count=individual_count)
 
 
 # individual qaqc checks

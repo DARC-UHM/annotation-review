@@ -69,6 +69,7 @@ document.addEventListener('DOMContentLoaded',  (event) => {
     $('#sequenceList').html(sequences.map((seq) => seq.split(' ').slice(-1)).join(', '));
 
     $('#annotationCount').html(annotationCount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+    $('#individualCount').html(individualCount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
     $('#quickCheckTotalRecords').html(annotationCount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
 
     if (!annotationCount) {

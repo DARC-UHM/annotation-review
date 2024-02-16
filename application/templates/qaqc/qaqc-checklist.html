@@ -10,10 +10,16 @@
     <div class="text-center my-3 mx-5">
         {% include 'components/flash-container.html' %}
         <div class="col mt-4 m-auto" style="max-width: 800px;">
-            <div class="row m-auto">
+            <div class="row m-auto mb-3">
                 <div class="col-9 text-start">
-                    <h3 id="vesselName" class="m-0 p-0 pb-2" style="font-weight: 600;"></h3>
-                    <div id="sequenceList"></div>
+                    <h3 id="vesselName" class="m-0 p-0" style="font-weight: 600;"></h3>
+                    <div id="sequenceList" class="mb-2"></div>
+                    <div style="font-weight: 600;">QA/QC Checklist</div>
+                </div>
+                <div class="col text-end mt-auto small">
+                    <span>Total Annotations:&nbsp;&nbsp<span id="annotationCount" style="font-weight: 600;"></span></span><br>
+                    <span>Total Individuals:&nbsp;&nbsp<span id="individualCount" style="font-weight: 600;"></span></span><br>
+                    <span>Checks Complete: &nbsp<span style="font-weight: 600;"><span id="tasksComplete">0</span> / <span>14</span></span></span>
                 </div>
 
             </div>
@@ -23,21 +29,8 @@
         </div>
         <div class="m-auto" style="max-width: 800px;">
             <div>
-                <table class="w-100">
-                    <thead>
-                        <tr>
-                            <th class="text-start" style="font-weight: 600; padding-left: 10px;">QA/QC Checklist</th>
-                            <th class="text-end pb-2 px-2" style="font-weight: 400;">
-                                <span class="col-3 text-end mt-auto small">
-                                <span>Total Annotations:&nbsp;&nbsp<span id="annotationCount" style="font-weight: 600;"></span></span><br>
-                                <span>Checks Complete: &nbsp<span style="font-weight: 600;"><span id="tasksComplete">0</span> / <span>14</span></span></span>
-                                </span>
-                            </th>
-                        </tr>
-                    </thead>
-                </table>
                 <table id="checklistTable" class="table text-start">
-                    <tbody>
+                    <tbody style="border-top: solid 2px var(--darc-border);">
                         <tr>
                             <td><a id="primarySubstrateAnchor" class="aquaLink">No records other than "none" missing primary substrate</a></td>
                             <td id="primarySubstrateCheckbox" class="qaqcCheckbox"></td>
@@ -128,6 +121,7 @@
     <script src="/static/modules/bootstrap/bootstrap.bundle.js"></script>
     <script>
         const annotationCount = {{ annotation_count }};
+        const individualCount = {{ individual_count }};
     </script>
     <script type="module" src="/static/js/qaqc/qaqc-checklist.js"></script>
 {% endblock content %}

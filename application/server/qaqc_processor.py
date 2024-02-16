@@ -576,11 +576,14 @@ class QaqcProcessor:
                 f'Host not found in previous records'
 
     def find_unique_fields(self):
-        def load_dict(field_name, unique_dict):
+        def load_dict(field_name, unique_dict, individual_count):
             if field_name not in unique_dict.keys():
-                unique_dict[field_name] = 1
+                unique_dict[field_name] = {}
+                unique_dict[field_name]['records'] = 1
+                unique_dict[field_name]['individuals'] = individual_count
             else:
-                unique_dict[field_name] += 1
+                unique_dict[field_name]['records'] += 1
+                unique_dict[field_name]['individuals'] += individual_count
 
         unique_concept_names = {}
         unique_concept_upons = {}
@@ -604,6 +607,7 @@ class QaqcProcessor:
                 habitat_comment = None
                 id_certainty = None
                 occurrence_remark = None
+                individual_count = 1
 
                 for association in annotation['associations']:
                     match association['link_name']:
@@ -625,20 +629,33 @@ class QaqcProcessor:
                             id_certainty = association['link_value']
                         case 'occurrence-remark':
                             occurrence_remark = association['link_value']
+                        case 'population-quantity':
+                            individual_count = int(association['link_value'])
+                        case 'categorical-abundance':
+                            match association['link_value']:
+                                case '11-20':
+                                    individual_count = 15
+                                case '21-50':
+                                    individual_count = 35
+                                case '51-100':
+                                    individual_count = 75
+                                case '\u003e100':
+                                    individual_count = 100
+
                 if substrates is not None:
                     substrates.sort()
                     substrates = ', '.join(substrates)
 
-                load_dict(annotation['concept'], unique_concept_names)
-                load_dict(f'{annotation["concept"]}:{upon}', unique_concept_upons)
-                load_dict(substrates, unique_substrate_combinations)
-                load_dict(comment, unique_comments)
-                load_dict(condition_comment, unique_condition_comments)
-                load_dict(megahabitat, unique_megahabitats)
-                load_dict(habitat, unique_habitats)
-                load_dict(habitat_comment, unique_habitat_comments)
-                load_dict(id_certainty, unique_id_certainty)
-                load_dict(occurrence_remark, unique_occurrence_remarks)
+                load_dict(annotation['concept'], unique_concept_names, individual_count)
+                load_dict(f'{annotation["concept"]}:{upon}', unique_concept_upons, individual_count)
+                load_dict(substrates, unique_substrate_combinations, individual_count)
+                load_dict(comment, unique_comments, individual_count)
+                load_dict(condition_comment, unique_condition_comments, individual_count)
+                load_dict(megahabitat, unique_megahabitats, individual_count)
+                load_dict(habitat, unique_habitats, individual_count)
+                load_dict(habitat_comment, unique_habitat_comments, individual_count)
+                load_dict(id_certainty, unique_id_certainty, individual_count)
+                load_dict(occurrence_remark, unique_occurrence_remarks, individual_count)
 
         self.final_records.append({'concept-names': unique_concept_names})
         self.final_records.append({'concept-upon-combinations': unique_concept_upons})
