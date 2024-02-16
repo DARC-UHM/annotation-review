@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 
 import requests
 import pandas as pd
@@ -24,6 +25,7 @@ class QaqcProcessor:
 
     def fetch_annotations(self, name):
         print(f'Fetching annotations for sequence {name} from VARS...', end='')
+        sys.stdout.flush()
 
         with requests.get(f'http://hurlstor.soest.hawaii.edu:8086/query/dive/{name.replace(" ", "%20")}') as r:
             response = r.json()
@@ -40,6 +42,8 @@ class QaqcProcessor:
         return response['annotations']
 
     def process_records(self):
+        if not self.working_records:
+            return
         formatted_annos = []
 
         try:
@@ -144,7 +148,7 @@ class QaqcProcessor:
             'genus',
             'species',
             'concept',
-            'recorded_timestamp'
+            'recorded_timestamp',
         ])
 
         for index, row in annotation_df.iterrows():
@@ -168,7 +172,7 @@ class QaqcProcessor:
                 'video_url': row['video_url'],
                 'recorded_timestamp': parse_datetime(row['recorded_timestamp']).strftime('%d %b %y %H:%M:%S UTC'),
                 'video_sequence_name': row['video_sequence_name'],
-                'associations': row['associations']
+                'associations': row['associations'],
             })
 
         try:
