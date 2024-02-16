@@ -1,4 +1,6 @@
 import base64
+import sys
+
 import tator
 
 from io import BytesIO
@@ -204,9 +206,35 @@ def tator_image_review(project_id, section_id):
 # view all Tator annotations (localizations) in a specified project & section
 @app.get('/tator/qaqc-checklist/<project_id>/<section_id>')
 def tator_qaqc_checklist(project_id, section_id):
+    if 'tator_token' not in session.keys():
+        return redirect('/')
+    try:
+        api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
+        section_name = api.get_section(id=section_id).name
+    except tator.openapi.tator_openapi.exceptions.ApiException:
+        return redirect('/')
+    media_ids = []
+    localizations = []
+    individual_count = 0
+    for deployment in request.args.getlist('deployment'):
+        media_ids += session[f'{project_id}_{section_id}'][deployment]
+    # REST is much faster than Python API for large queries
+    # adding too many media ids results in a query that is too long, so we have to break it up
+    for i in range(0, len(media_ids), 300):
+        chunk = media_ids[i:i + 300]
+        req = requests.get(
+            f'https://cloud.tator.io/rest/Localizations/{project_id}?media_id={",".join(map(str, chunk))}',
+            headers={
+                'Content-Type': 'application/json',
+                'Authorization': f'Token {session["tator_token"]}',
+            })
+        localizations += req.json()
+    for localization in localizations:
+        individual_count += 1 if localization['type'] == 49 else 0
     data = {
-        'title': 'Temp',  # todo
-        'localization_count': 20,  # todo
+        'title': section_name,
+        'localization_count': len(localizations),
+        'individual_count': individual_count,
     }
     return render_template('qaqc/tator-qaqc-checklist.html', data=data)
 
@@ -317,7 +345,7 @@ def vars_qaqc_checklist():
                     individual_count += int(pop_quantity['link_value'])
                     continue
                 individual_count += 1
-    return render_template('qaqc/qaqc-checklist.html', annotation_count=annotation_count, individual_count=individual_count)
+    return render_template('qaqc/vars-qaqc-checklist.html', annotation_count=annotation_count, individual_count=individual_count)
 
 
 # individual qaqc checks

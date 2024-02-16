@@ -85,10 +85,10 @@ document.addEventListener('DOMContentLoaded',  (event) => {
 
     $('#deploymentList').html(deployments.map((seq) => seq.split(' ').slice(-1)).join(', '));
 
-    $('#annotationCount').html(annotationCount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-    $('#quickCheckTotalRecords').html(annotationCount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+    $('#localizationCount').html(localizationCount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+    $('#individualCount').html(individualCount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
 
-    if (!annotationCount) {
+    if (!localizationCount) {
         $('#404').show();
     } else {
         $('#404').hide();
@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded',  (event) => {
 
     /*
     TODO:
-    $('#multipleAssociationAnchor').attr('href', `/vars/qaqc/multiple-associations?sequence=${deployments.join('&sequence=')}`);
+    $('#namesAcceptedAnchor').attr('href', `/vars/qaqc/multiple-associations?sequence=${deployments.join('&sequence=')}`);
     $('#multipleAssociationAnchor').on('click', () => showLoader());
      */
 });
