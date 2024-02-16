@@ -1,5 +1,7 @@
 const sequences = [];
 
+const formattedNumber = (number) => number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
 function returnToCheckList() {
     const url = window.location.href;
     window.location.href = `/vars/qaqc-checklist${url.substring(url.indexOf('?'))}`;
@@ -28,22 +30,45 @@ function updateHash() {
     $('#annotationTable').append('<tbody class="text-start"></tbody>');
 
     if (fieldToCheck === 'concept-upon-combinations') {
-        $('#annotationTable').append('<thead class="text-start"><tr><th>Concept</th><th>Upon</th><th>Number of records</th></tr></thead>');
-        for (const combo of Object.keys(listToDisplay)) {
-            $('#annotationTable').find('tbody').append(`<tr><td>${combo.split(':')[0]}</td><td>${combo.split(':')[1].replace('None', '-')}</td><td>${listToDisplay[combo]}</td></tr>`);
-        }
-    } else {
-        for (const name of Object.keys(listToDisplay)) {
-            $('#annotationTable').find('tbody').append(`<tr><td>${name.replace('None', '-')}</td><td>${listToDisplay[name]}</td></tr>`);
-        }
         $('#annotationTable').append(`
             <thead class="text-start">
                 <tr>
-                    <th style="text-transform: capitalize;">${fieldToCheck.replace('-', ' ')}</th>
-                    <th>Number of records</th>
+                    <th>Concept</th>
+                    <th>Upon</th>
+                    <th>Records</th>
+                    <th>Individuals</th>
                 </tr>
             </thead>
         `);
+        for (const combo of Object.keys(listToDisplay)) {
+            $('#annotationTable').find('tbody').append(`
+                <tr>
+                    <td>${combo.split(':')[0]}</td>
+                    <td>${combo.split(':')[1].replace('None', '-')}</td>
+                    <td>${formattedNumber(listToDisplay[combo].records)}</td>
+                    <td>${formattedNumber(listToDisplay[combo].individuals)}</td>
+                </tr>
+            `);
+        }
+    } else {
+        $('#annotationTable').append(`
+            <thead class="text-start">
+                <tr>
+                    <th style="text-transform: capitalize; width: 60%;">${fieldToCheck.replace('-', ' ')}</th>
+                    <th style="width: 20%;">Records</th>
+                    <th style="width: 20%;">Individuals</th>
+                </tr>
+            </thead>
+        `);
+        for (const name of Object.keys(listToDisplay)) {
+            $('#annotationTable').find('tbody').append(`
+                <tr>
+                    <td>${name.replace('None', '-')}</td>
+                    <td>${formattedNumber(listToDisplay[name].records)}</td>
+                    <td>${formattedNumber(listToDisplay[name].individuals)}</td>
+                </tr>
+            `);
+        }
     }
 }
 

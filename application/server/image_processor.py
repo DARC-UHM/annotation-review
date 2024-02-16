@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 
 import requests
 import pandas as pd
@@ -26,6 +27,7 @@ class ImageProcessor:
 
     def load_images(self, name: str):
         print(f'Fetching annotations for sequence {name} from VARS...', end='')
+        sys.stdout.flush()
         image_records = []
         videos = []
 
@@ -33,6 +35,7 @@ class ImageProcessor:
             response = r.json()
             print('fetched!')
         print('Processing annotations...', end='')
+        sys.stdout.flush()
         # get list of video links and start timestamps
         for video in response['media']:
             if 'urn:imagecollection:org' not in video['uri']:

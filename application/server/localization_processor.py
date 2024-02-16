@@ -1,5 +1,7 @@
 import os
 import json
+import sys
+
 import pandas as pd
 import requests
 import tator
@@ -47,6 +49,7 @@ class LocalizationProcessor:
 
     def load_localizations(self):
         print('Fetching localizations...', end='')
+        sys.stdout.flush()
         media_ids = []
         deployment_media_dict = {}
         localizations = []
@@ -67,6 +70,7 @@ class LocalizationProcessor:
             localizations += req.json()
         print('fetched!')
         print('Processing localizations...', end='')
+        sys.stdout.flush()
 
         formatted_localizations = []
         try:
