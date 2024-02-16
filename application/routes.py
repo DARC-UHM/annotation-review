@@ -11,6 +11,7 @@ from application import app
 from application.server.functions import get_association
 from application.server.image_processor import ImageProcessor
 from application.server.comment_processor import CommentProcessor
+from application.server.tator_qaqc_processor import TatorQaqcProcessor
 from application.server.vars_qaqc_processor import VarsQaqcProcessor
 from application.server.localization_processor import LocalizationProcessor
 from application.server.annosaurus import *
@@ -207,11 +208,13 @@ def tator_image_review(project_id, section_id):
 @app.get('/tator/qaqc-checklist/<project_id>/<section_id>')
 def tator_qaqc_checklist(project_id, section_id):
     if 'tator_token' not in session.keys():
+        flash('Please log in to Tator', 'info')
         return redirect('/')
     try:
         api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
         section_name = api.get_section(id=section_id).name
     except tator.openapi.tator_openapi.exceptions.ApiException:
+        flash('Please log in to Tator', 'info')
         return redirect('/')
     media_ids = []
     localizations = []
@@ -241,59 +244,31 @@ def tator_qaqc_checklist(project_id, section_id):
 
 # individual qaqc checks (Tator)
 @app.get('/tator/qaqc/<project_id>/<section_id>/<check>')
-def tator_qaqc(check):
-    deployment_list = deployment in request.args.getlist('deployment')
-    qaqc_annos = VarsQaqcProcessor(sequences)
+def tator_qaqc(project_id, section_id, check):
+    if 'tator_token' not in session.keys():
+        flash('Please log in to Tator', 'info')
+        return redirect('/')
+    try:
+        api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
+    except tator.openapi.tator_openapi.exceptions.ApiException:
+        flash('Please log in to Tator', 'info')
+        return redirect('/')
+    qaqc_annos = TatorQaqcProcessor(
+        project_id=project_id,
+        section_id=section_id,
+        api=api,
+        deployment_list=request.args.getlist('deployment'),
+    )
     data = {
         'concepts': session['vars_concepts'],
         'title': check.replace('-', ' ').title(),
     }
     match check:
-        case 'multiple-associations':
-            qaqc_annos.find_duplicate_associations()
-            data['page_title'] = 'Records with multiples of the same association other than s2'
-        case 'missing-primary-substrate':
-            qaqc_annos.find_missing_s1()
-            data['page_title'] = 'Records missing primary substrate'
-        case 'identical-s1-&-s2':
-            qaqc_annos.find_identical_s1_s2()
-            data['page_title'] = 'Records with identical primary and secondary substrates'
-        case 'duplicate-s2':
-            qaqc_annos.find_duplicate_s2()
-            data['page_title'] = 'Records with with duplicate secondary substrates'
-        case 'missing-upon-substrate':
-            qaqc_annos.find_missing_upon_substrate()
-            data['page_title'] = 'Records missing a substrate that it is recorded "upon"'
-        case 'mismatched-substrates':
-            qaqc_annos.find_mismatched_substrates()
-            data['page_title'] = 'Records occurring at the same timestamp with mismatched substrates'
-        case 'missing-upon':
-            qaqc_annos.find_missing_upon()
-            data['page_title'] = 'Records other than "none" missing "upon"'
-        case 'missing-ancillary-data':
-            qaqc_annos.find_missing_ancillary_data()
-            data['page_title'] = 'Records missing ancillary data'
-        case 'id-ref-concept-name':
-            qaqc_annos.find_id_refs_different_concept_name()
-            data['page_title'] = 'Records with the same ID reference that have different concept names'
-        case 'id-ref-associations':
-            qaqc_annos.find_id_refs_conflicting_associations()
-            data['page_title'] = 'Records with the same ID reference that have conflicting associations'
-        case 'suspicious-hosts':
-            qaqc_annos.find_suspicious_hosts()
-            data['page_title'] = 'Records with suspicious hosts'
-        case 'expected-associations':
-            qaqc_annos.find_missing_expected_association()
-            data['page_title'] = 'Records expected to be associated with an organism but "upon" is inanimate'
-        case 'host-associate-time-diff':
-            qaqc_annos.find_long_host_associate_time_diff()
-            data['page_title'] = 'Records where "upon" occurred more than one minute ago or cannot be found'
-        case 'unique-fields':
-            qaqc_annos.find_unique_fields()
-            data['unique_list'] = qaqc_annos.final_records
-            return render_template('qaqc/qaqc-unique.html', data=data)
+        case 'names-accepted':
+            qaqc_annos.check_names_accepted()
+            data['page_title'] = 'All scientific names and tentative IDs are accepted in WoRMS'
     data['annotations'] = qaqc_annos.final_records
-    return render_template('qaqc/qaqc.html', data=data)
+    return render_template('qaqc/tator-qaqc.html', data=data)
 
 
 # view tator video frame (not cropped)
@@ -466,7 +441,7 @@ def vars_qaqc(check):
             data['unique_list'] = qaqc_annos.final_records
             return render_template('qaqc/qaqc-unique.html', data=data)
     data['annotations'] = qaqc_annos.final_records
-    return render_template('qaqc/qaqc.html', data=data)
+    return render_template('qaqc/vars-qaqc.html', data=data)
 
 
 @app.get('/vars/qaqc/quick/<check>')

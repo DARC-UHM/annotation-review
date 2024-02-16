@@ -59,3 +59,16 @@ def format_annotator(annotator: str) -> str:
         return 'Harold Carlson'
     else:
         return re.sub('([a-zA-Z]+)([A-Z])', r'\1 \2', annotator)
+
+
+def flatten_taxa_tree(tree: Dict, flat: Dict):
+    """
+    Recursive function taking a taxonomy tree returned from WoRMS API and flattening it into a single dictionary.
+
+    :param Dict tree: The nested taxon tree from WoRMS.
+    :param Dict flat: The newly created flat taxon tree.
+    """
+    flat[tree['rank'].lower()] = tree['scientificname']
+    if tree['child'] is not None:
+        flatten_taxa_tree(tree['child'], flat)
+    return flat

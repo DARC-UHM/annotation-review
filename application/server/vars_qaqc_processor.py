@@ -491,7 +491,7 @@ class VarsQaqcProcessor:
             ...
 
         If you want the new addition to be highlighted in the table on the webpage, add the name to the ranksToHighlight
-        list in qaqc.js, at ~line 340
+        list in vars-qaqc.js, at ~line 340
         """
         classes = ['Ophiuroidea']
         orders = ['Comatulida']

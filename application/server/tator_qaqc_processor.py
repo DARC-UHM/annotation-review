@@ -7,6 +7,7 @@ import pandas as pd
 import tator
 from flask import session
 
+from .constants import KNOWN_ANNOTATORS
 from .functions import *
 
 TERM_RED = '\033[1;31;48m'
@@ -24,7 +25,6 @@ class TatorQaqcProcessor:
         self.section_id = section_id
         self.api = api
         self.deployments = deployment_list
-        self.section_name = self.api.get_section(self.section_id).name
         print(session['tator_token'])
         self.localizations = self.fetch_localizations()
 
@@ -117,7 +117,6 @@ class TatorQaqcProcessor:
                 'tentative_id': localization['attributes']['Tentative ID'] if 'Tentative ID' in localization[
                     'attributes'].keys() else None,
                 'annotator': KNOWN_ANNOTATORS[localization['created_by']] if localization[
-                                                                                 'created_by'] in KNOWN_ANNOTATORS.keys() else f'Unknown Annotator (#{localization["created_by"]})',
                 'frame': localization['frame'],
                 'frame_url': f'/tator/frame/{localization["media"]}/{localization["frame"]}',
                 'media_id': localization['media'],
@@ -244,7 +243,7 @@ class TatorQaqcProcessor:
         """
         Finds annotations that have more than one of the same association besides s2
         """
-        for name in self.sequence_names:
+        for localization in self.localizations:
             for annotation in self.fetch_annotations(name):
                 # get list of associations
                 association_set = set()
