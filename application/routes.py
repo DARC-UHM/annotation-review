@@ -274,11 +274,14 @@ def tator_qaqc(project_id, section_id, check):
         'concepts': session['vars_concepts'],
         'title': check.replace('-', ' ').title(),
         'comments': comments,
+        'reviewers': session['reviewers'],
     }
     match check:
         case 'names-accepted':
             qaqc_annos.check_names_accepted()
             data['page_title'] = 'All scientific names and tentative IDs are accepted in WoRMS'
+        case _:
+            return render_template('not-found.html', err=''), 404
     data['annotations'] = qaqc_annos.final_records
     return render_template('qaqc/tator-qaqc.html', data=data)
 
@@ -591,7 +594,7 @@ def delete_external_review():
         headers=app.config.get('DARC_REVIEW_HEADERS'),
     )
     if req.status_code == 200:
-        if request.values.get('tator'):  # tator localization
+        if request.values.get('tator') and request.values.get('tator') == 'true':  # tator localization
             api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
             current_notes = api.get_localization(id=request.values.get('uuid')).attributes.get('Notes', '').split('|')
             current_notes = [note for note in current_notes if 'send to' not in note.lower()]  # get rid of 'send to expert' notes

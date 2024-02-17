@@ -4,7 +4,11 @@ let annotationsToDisplay = annotations;
 
 function returnToCheckList() {
     const url = window.location.href;
-    window.location.href = `/tator/qaqc-checklist${url.substring(url.indexOf('?'))}`;
+    const projectId = url.split('/')[url.split('/').length - 3];
+    const sectionId = url.split('/')[url.split('/').length - 2];
+    console.log(projectId)
+    console.log(sectionId)
+    window.location.href = `/tator/qaqc-checklist/${projectId}/${sectionId}${url.substring(url.indexOf('?'))}`;
 }
 
 window.returnToCheckList = returnToCheckList;

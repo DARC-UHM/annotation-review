@@ -69,7 +69,8 @@ class TatorQaqcProcessor:
 
         for localization in self.records_of_interest:
             if localization['type'] not in [48, 49]:
-                print('mystery localization skipped...')
+                print('mystery localization skipped...', end='')
+                sys.stdout.flush()
                 continue
             scientific_name = localization['attributes']['Scientific Name']
             if scientific_name not in phylogeny.keys():
@@ -237,18 +238,34 @@ class TatorQaqcProcessor:
         """
         Finds records with a scientific name or tentative ID that is not accepted in WoRMS
         """
+        checked = {}
         with open(os.path.join('cache', 'phylogeny.json'), 'r') as f:
             phylogeny = json.load(f)
         for localization in self.localizations:
             scientific_name = localization['attributes']['Scientific Name']
             tentative_id = localization['attributes']['Tentative ID']
-            if scientific_name not in phylogeny.keys():
+            if scientific_name not in checked.keys():
+                if scientific_name in phylogeny.keys():
+                    checked[scientific_name] = True
+                else:
+                    localization['problems'] = 'Scientific Name'
+                    self.records_of_interest.append(localization)
+                    checked[scientific_name] = False
+            elif not checked[scientific_name]:
                 localization['problems'] = 'Scientific Name'
                 self.records_of_interest.append(localization)
-                continue
-            if tentative_id not in phylogeny.keys():
-                    req = requests.get(f'https://www.marinespecies.org/rest/AphiaIDByName/{tentative_id}?marine_only=true')
-                    if req.status_code == 204:
-                        localization['problems'] = 'Tentative ID'
-                        self.records_of_interest.append(localization)
+            if tentative_id:
+                if tentative_id not in checked.keys():
+                    if tentative_id not in phylogeny.keys():
+                        req = requests.get(f'https://www.marinespecies.org/rest/AphiaIDByName/{tentative_id}?marine_only=true')
+                        if req.status_code == 204:
+                            localization['problems'] = 'Tentative ID'
+                            self.records_of_interest.append(localization)
+                            checked[tentative_id] = False
+                        else:
+                            checked[tentative_id] = True
+                elif not checked[tentative_id]:
+                    localization['problems'] = 'Tentative ID'
+                    self.records_of_interest.append(localization)
+                    continue
         self.process_records()
