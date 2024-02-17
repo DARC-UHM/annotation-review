@@ -2,7 +2,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
     return (`
         <tr>
             <td class="ps-5">
-                <div class="row">
+                <div class="row" style="${localization.problems?.includes('Scientific Name') ? 'color: yellow;' : ''}">
                     <div class="col-4">
                         Scientific Name:
                     </div>
@@ -26,7 +26,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                         ${localization.count || '-'}<br>
                     </div>
                 </div>
-                <div class="row">
+                <div class="row" style="${localization.problems?.includes('Scientific Name') ? 'color: yellow;' : ''}">
                     <div class="col-4">
                         Attracted:
                     </div>
@@ -34,7 +34,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                         ${localization.attracted || '-'}<br>
                     </div>
                 </div>
-                <div class="row">
+                <div class="row" style="${localization.problems?.includes('Scientific Name') ? 'color: yellow;' : ''}">
                     <div class="col-4">
                         Qualifier:
                     </div>
@@ -50,7 +50,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                         ${localization.categorical_abundance || '-'}<br>
                     </div>
                 </div>
-                <div class="row">
+                <div class="row" style="${localization.problems?.includes('Scientific Name') ? 'color: yellow;' : ''}">
                     <div class="col-4">
                         Reason:
                     </div>
@@ -58,7 +58,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                         ${localization.reason || '-'}<br>
                     </div>
                 </div>
-                <div class="row">
+                <div class="row" style="${localization.problems?.includes('Tentative ID') ? 'color: yellow;' : ''}">
                     <div class="col-4">
                         Tentative ID:
                     </div>
@@ -66,7 +66,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                         ${localization.tentative_id || '-'}<br>
                     </div>
                 </div>
-                <div class="row">
+                <div class="row" style="${localization.problems?.includes('ID Remarks') ? 'color: yellow;' : ''}">
                     <div class="col-4">
                         ID Remarks:
                     </div>
@@ -82,7 +82,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                         ${localization.identified_by || '-'}<br>
                     </div>
                 </div>
-                <div class="row">
+                <div class="row" style="${localization.problems?.includes('Scientific Name') ? 'color: yellow;' : ''}">
                     <div class="col-4">
                         Notes:
                     </div>

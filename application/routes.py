@@ -253,6 +253,17 @@ def tator_qaqc(project_id, section_id, check):
     except tator.openapi.tator_openapi.exceptions.ApiException:
         flash('Please log in to Tator', 'info')
         return redirect('/')
+    # get comments from external review db
+    comments = {}
+    try:
+        for deployment in request.args.getlist('deployment'):
+            with requests.get(
+                f'{app.config.get("DARC_REVIEW_URL")}/comment/sequence/{deployment}',
+                headers=app.config.get('DARC_REVIEW_HEADERS'),
+            ) as r:
+                comments = comments | r.json()  # merge dicts
+    except requests.exceptions.ConnectionError:
+        print('\nERROR: unable to connect to external review server\n')
     qaqc_annos = TatorQaqcProcessor(
         project_id=project_id,
         section_id=section_id,
@@ -262,6 +273,7 @@ def tator_qaqc(project_id, section_id, check):
     data = {
         'concepts': session['vars_concepts'],
         'title': check.replace('-', ' ').title(),
+        'comments': comments,
     }
     match check:
         case 'names-accepted':

@@ -73,6 +73,9 @@
                 </div>
             </div>
         </div>
+        {% include 'components/modals/edit-tator-localization.html' %}
+        {% include 'components/modals/add-to-external-review.html' %}
+        {% include 'components/modals/delete-from-external-review.html' %}
     </div>
     <script src="/static/modules/jquery/jquery.min.js"></script>
     <script src="/static/modules/bootstrap/bootstrap.bundle.js"></script>
@@ -83,7 +86,8 @@
         const False = false;
         const allConcepts = {{ data.concepts|safe }};
         const annotations = {{ data.annotations|safe }};
+        const comments = {{ data.comments|safe }};
         const title = '{{ data.title }}';
     </script>
-    <script type="module" src="/static/js/qaqc/qaqc.js"></script>
+    <script type="module" src="/static/js/qaqc/tator-qaqc.js"></script>
 {% endblock content %}

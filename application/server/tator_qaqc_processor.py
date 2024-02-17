@@ -25,7 +25,6 @@ class TatorQaqcProcessor:
         self.section_id = section_id
         self.api = api
         self.deployments = deployment_list
-        print(session['tator_token'])
         self.deployment_media_dict = {}
         self.records_of_interest = []
         self.final_records = []
@@ -70,7 +69,7 @@ class TatorQaqcProcessor:
 
         for localization in self.records_of_interest:
             if localization['type'] not in [48, 49]:
-                print('Mystery localization skipped')
+                print('mystery localization skipped...')
                 continue
             scientific_name = localization['attributes']['Scientific Name']
             if scientific_name not in phylogeny.keys():
@@ -133,7 +132,12 @@ class TatorQaqcProcessor:
                 'subfamily': phylogeny[scientific_name]['subfamily'] if 'subfamily' in phylogeny[scientific_name].keys() else None,
                 'genus': phylogeny[scientific_name]['genus'] if 'genus' in phylogeny[scientific_name].keys() else None,
                 'species': phylogeny[scientific_name]['species'] if 'species' in phylogeny[scientific_name].keys() else None,
+                'problems': localization['problems'] if 'problems' in localization.keys() else None,
             })
+
+        if not formatted_localizations:
+            print('no records to process!')
+            return
 
         localization_df = pd.DataFrame(formatted_localizations)
 
@@ -169,6 +173,7 @@ class TatorQaqcProcessor:
             'subfamily': 'first',
             'genus': 'first',
             'species': 'first',
+            'problems': 'first',
         }).reset_index()
 
         localization_df = localization_df.sort_values(by=[
@@ -215,6 +220,7 @@ class TatorQaqcProcessor:
                 'family': row['family'],
                 'genus': row['genus'],
                 'species': row['species'],
+                'problems': row['problems'],
             })
 
         try:
@@ -234,7 +240,15 @@ class TatorQaqcProcessor:
         with open(os.path.join('cache', 'phylogeny.json'), 'r') as f:
             phylogeny = json.load(f)
         for localization in self.localizations:
-            if localization['attributes']['scientific_name'] not in phylogeny.keys()\
-                    or localization['attributes']['Tentative ID'] not in phylogeny.keys():
+            scientific_name = localization['attributes']['Scientific Name']
+            tentative_id = localization['attributes']['Tentative ID']
+            if scientific_name not in phylogeny.keys():
+                localization['problems'] = 'Scientific Name'
                 self.records_of_interest.append(localization)
+                continue
+            if tentative_id not in phylogeny.keys():
+                    req = requests.get(f'https://www.marinespecies.org/rest/AphiaIDByName/{tentative_id}?marine_only=true')
+                    if req.status_code == 204:
+                        localization['problems'] = 'Tentative ID'
+                        self.records_of_interest.append(localization)
         self.process_records()
