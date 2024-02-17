@@ -1,19 +1,6 @@
-import { updateFlashMessages } from '../util/updateFlashMessages.js';
-import { autocomplete } from '../util/autocomplete.js';
 import { tatorLocalizationRow } from '../image-review/tator-localization-table-row.js';
-import {
-    deleteFromExternalReview,
-    markCommentRead,
-    updateExternalReviewers,
-    removeReviewer,
-    addReviewer,
-    updateReviewerName,
-} from '../image-review/external-review-functions.js';
 
 let annotationsToDisplay = annotations;
-let currentAnnotation;
-let reviewerIndex = 0;
-let totalReviewers = 0;
 
 function returnToCheckList() {
     const url = window.location.href;
@@ -86,13 +73,6 @@ function updateHash() {
     });
 }
 
-window.updateExternalReviewers = updateExternalReviewers;
-window.markCommentRead = markCommentRead;
-window.removeReviewer = removeReviewer;
-window.addReviewer = addReviewer;
-window.updateReviewerName = updateReviewerName;
-window.deleteFromExternalReview = deleteFromExternalReview;
-
 document.addEventListener('DOMContentLoaded', function(event) {
     const url = new URL(window.location.href);
     const deployments = [];
@@ -134,48 +114,6 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
         scientificNameField.on('input', () => validateName(scientificNameField.val(), $('#editTatorLocaModalSubmitButton')[0]));
         scientificNameField.on('change', () => validateName(scientificNameField.val(), $('#editTatorLocaModalSubmitButton')[0]));
-    });
-
-    $('#externalReviewModal').on('show.bs.modal', (e) => {
-        currentAnnotation = $(e.relatedTarget).data('anno');
-        $('#externalModalSubmitButton').prop('disabled', true);
-        addReviewer(null);
-        let tatorOverlay = null;
-        if (currentAnnotation.type) {
-            tatorOverlay = JSON.stringify({
-                type: currentAnnotation.type,
-                points: currentAnnotation.points,
-                count: currentAnnotation.count,
-                dimensions: currentAnnotation.dimensions,
-            });
-        }
-        $('#externalObservationUuid').val(currentAnnotation.observation_uuid);
-        $('#externalSequence').val(currentAnnotation.video_sequence_name);
-        $('#externalScientificName').val(currentAnnotation.scientific_name);
-        $('#externalTatorOverlay').val(tatorOverlay);
-        $('#externalTimestamp').val(currentAnnotation.recorded_timestamp);
-        $('#externalImageUrl').val(currentAnnotation.image_url || currentAnnotation.frame_url);
-        $('#externalVideoUrl').val(currentAnnotation.video_url);
-        $('#externalAnnotator').val(currentAnnotation.annotator);
-        $('#externalLat').val(currentAnnotation.lat);
-        $('#externalLong').val(currentAnnotation.long);
-        $('#externalDepth').val(currentAnnotation.depth);
-        $('#externalTemperature').val(currentAnnotation.temperature);
-        $('#externalOxygen').val(currentAnnotation.oxygen_ml_l);
-    });
-
-    $('#externalReviewModal').on('hide.bs.modal', () => {
-        currentAnnotation = null;
-        totalReviewers = 0;
-        reviewerIndex = 0;
-
-        // clear the reviewer list from the modal
-        $('#reviewerList').empty();
-    })
-
-    $('#deleteReviewModal').on('show.bs.modal', function (e) {
-        $('#externalDeleteTator').val($(e.relatedTarget).data('anno').scientific_name != null);
-        $('#externalDeleteUuid').val($(e.relatedTarget).data('anno').observation_uuid);
     });
 });
 
