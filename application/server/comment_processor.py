@@ -32,8 +32,10 @@ class CommentProcessor:
 
         # add formatted comments to list
         for comment in self.comments:
-            tator_overlay = None
-            if 'scientific_name' not in self.comments[comment].keys() or self.comments[comment]['scientific_name'] is None:  # vars annotation
+            print(self.comments[comment])
+            if 'scientific_name' not in self.comments[comment].keys()\
+                    or self.comments[comment]['scientific_name'] is None\
+                    or self.comments[comment]['scientific_name'] == '':  # vars annotation
                 annotation = requests.get(f'{os.environ.get("ANNOSAURUS_URL")}/annotations/{comment}').json()
                 concept_name = annotation['concept']
             else:  # tator localization
@@ -44,9 +46,8 @@ class CommentProcessor:
                         'Content-Type': 'application/json',
                         'Authorization': f'Token {session["tator_token"]}',
                     }
-                ).json()
-                tator_overlay = json.loads(self.comments[comment]['tator_overlay'] if 'tator_overlay' in self.comments[comment].keys() and self.comments[comment]['tator_overlay'] else '{}')
-
+                )
+                annotation = annotation.json()
             if concept_name not in phylogeny.keys():
                 # get the phylogeny from VARS kb
                 with requests.get(f'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/{concept_name}') \
@@ -55,6 +56,7 @@ class CommentProcessor:
                         # this get us to phylum
                         try:
                             vars_tree = vars_tax_res.json()['children'][0]['children'][0]['children'][0]['children'][0]['children'][0]
+                            phylogeny[concept_name] = {}
                         except KeyError:
                             print(f'\n{TERM_RED}VARS phylogeny for {annotation["concept"]} not in expected format{TERM_NORMAL}')
                             vars_tree = {}
@@ -70,7 +72,8 @@ class CommentProcessor:
             comment_dict = {
                 'observation_uuid': comment,
                 'concept': concept_name,
-                'scientific_name': self.comments[comment]['scientific_name'] if 'scientific_name' in self.comments[comment].keys() else None,
+                'scientific_name': self.comments[comment]['scientific_name'] if 'scientific_name' in self.comments[comment].keys() and self.comments[comment]['scientific_name'] else None,
+                'all_localizations': json.loads(self.comments[comment]['all_localizations']) if 'all_localizations' in self.comments[comment].keys() and self.comments[comment]['all_localizations'] else None,
                 'attracted': annotation['attributes']['Attracted'] if 'attributes' in annotation.keys() and 'Attracted' in annotation['attributes'].keys() else None,
                 'categorical_abundance': annotation['attributes']['Categorical Abundance'] if 'attributes' in annotation.keys() and 'Categorical Abundance' in annotation['attributes'].keys() else None,
                 'identification_remarks': annotation['attributes']['IdentificationRemarks'] if 'attributes' in annotation.keys() and 'IdentificationRemarks' in annotation['attributes'].keys() else None,
@@ -79,10 +82,6 @@ class CommentProcessor:
                 'qualifier': annotation['attributes']['Qualifier'] if 'attributes' in annotation.keys() and 'Qualifier' in annotation['attributes'].keys() else None,
                 'reason': annotation['attributes']['Reason'] if 'attributes' in annotation.keys() and 'Reason' in annotation['attributes'].keys() else None,
                 'tentative_id': annotation['attributes']['Tentative ID'] if 'attributes' in annotation.keys() and 'Tentative ID' in annotation['attributes'].keys() else None,
-                'count': tator_overlay['count'] if tator_overlay and 'count' in tator_overlay.keys() else None,
-                'type': tator_overlay['type'] if tator_overlay and 'type' in tator_overlay.keys() else None,
-                'points': tator_overlay['points'] if tator_overlay and 'points' in tator_overlay.keys() else None,
-                'dimensions': tator_overlay['dimensions'] if tator_overlay and 'dimensions' in tator_overlay.keys() else None,
                 'identity_certainty': get_association(annotation, 'identity-certainty')['link_value'] if get_association(annotation, 'identity-certainty') else None,
                 'identity_reference': get_association(annotation, 'identity-reference')['link_value'] if get_association(annotation, 'identity-reference') else None,
                 'guide-photo': get_association(annotation, 'guide-photo')['to_concept'] if get_association(annotation, 'guide-photo') else None,
@@ -121,6 +120,7 @@ class CommentProcessor:
             'observation_uuid',
             'concept',
             'scientific_name',
+            'all_localizations',
             'attracted',
             'categorical_abundance',
             'identification_remarks',
@@ -129,10 +129,6 @@ class CommentProcessor:
             'qualifier',
             'reason',
             'tentative_id',
-            'count',
-            'type',
-            'points',
-            'dimensions',
             'identity_certainty',
             'identity_reference',
             'guide_photo',
@@ -179,8 +175,8 @@ class CommentProcessor:
             'genus',
             'species',
             'concept',
-            'identity-reference',
-            'identity-certainty',
+            'identity_reference',
+            'identity_certainty',
             'recorded_timestamp'
         ])
 
@@ -189,6 +185,7 @@ class CommentProcessor:
                 'observation_uuid': row['observation_uuid'],
                 'concept': row['concept'],
                 'scientific_name': row['scientific_name'],
+                'all_localizations': row['all_localizations'],
                 'attracted': row['attracted'],
                 'categorical_abundance': row['categorical_abundance'],
                 'identification_remarks': row['identification_remarks'],
@@ -197,10 +194,6 @@ class CommentProcessor:
                 'qualifier': row['qualifier'],
                 'reason': row['reason'],
                 'tentative_id': row['tentative_id'],
-                'count': row['count'],
-                'type': row['type'],
-                'points': row['points'],
-                'dimensions': row['dimensions'],
                 'annotator': row['annotator'],
                 'depth': row['depth'],
                 'lat': row['lat'],
@@ -215,7 +208,7 @@ class CommentProcessor:
                 'species': row['species'],
                 'identity_certainty': row['identity_certainty'],
                 'identity_reference': row['identity_reference'],
-                'guide_photo': row['guide-photo'],
+                'guide_photo': row['guide_photo'],
                 'comment': row['comment'],
                 'image_url': row['image_url'],
                 'video_url': row['video_url'],

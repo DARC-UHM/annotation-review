@@ -64,6 +64,7 @@ class AnnotationProcessor:
                             # this get us to phylum
                             try:
                                 vars_tree = vars_tax_res.json()['children'][0]['children'][0]['children'][0]['children'][0]['children'][0]
+                                phylogeny[concept_name] = {}
                             except KeyError:
                                 print(f'\n{TERM_RED}VARS phylogeny for {annotation["concept"]} not in expected format{TERM_NORMAL}')
                                 vars_tree = {}

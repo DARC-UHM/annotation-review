@@ -545,19 +545,19 @@ def add_external_review():
         return {}, status_code
     data = {
         'uuid': request.values.get('observation_uuid'),
-        'scientific_name': request.values.get('scientific_name'),
-        'tator_overlay': request.values.get('tator_overlay'),
+        'scientific_name': request.values.get('scientific_name') if request.values.get('scientific_name') else None,
+        'all_localizations': request.values.get('all_localizations') if request.values.get('all_localizations') else None,
         'sequence': request.values.get('sequence'),
-        'timestamp': request.values.get('timestamp'),
+        'timestamp': request.values.get('timestamp') if request.values.get('timestamp') else None,
         'image_url': request.values.get('image_url'),
         'reviewers': request.values.get('reviewers'),
-        'video_url': request.values.get('video_url'),
+        'video_url': request.values.get('video_url') if request.values.get('video_url') else None,
         'annotator': request.values.get('annotator'),
-        'depth': request.values.get('depth'),
-        'lat': request.values.get('lat'),
-        'long': request.values.get('long'),
-        'temperature': request.values.get('temperature'),
-        'oxygen_ml_l': request.values.get('oxygen_ml_l'),
+        'depth': request.values.get('depth') if request.values.get('depth') else None,
+        'lat': request.values.get('lat') if request.values.get('lat') else None,
+        'long': request.values.get('long') if request.values.get('long') else None,
+        'temperature': request.values.get('temperature') if request.values.get('temperature') else None,
+        'oxygen_ml_l': request.values.get('oxygen_ml_l') if request.values.get('oxygen_ml_l') else None,
     }
     image_binary = None
     if request.values.get('scientific_name'):  # tator localization
@@ -593,6 +593,7 @@ def delete_external_review():
         f'{app.config.get("DARC_REVIEW_URL")}/comment/{request.values.get("uuid")}',
         headers=app.config.get('DARC_REVIEW_HEADERS'),
     )
+    print(request.values.get('tator'))
     if req.status_code == 200:
         if request.values.get('tator') and request.values.get('tator') == 'true':  # tator localization
             api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])

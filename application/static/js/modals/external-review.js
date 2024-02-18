@@ -174,19 +174,10 @@ $(document).ready(() => {
         currentAnnotation = $(e.relatedTarget).data('anno');
         $('#externalModalSubmitButton').prop('disabled', true);
         addReviewer(null);
-        let tatorOverlay = null;
-        if (currentAnnotation.type) {
-            tatorOverlay = JSON.stringify({
-                type: currentAnnotation.type,
-                points: currentAnnotation.points,
-                count: currentAnnotation.count,
-                dimensions: currentAnnotation.dimensions,
-            });
-        }
         $('#externalObservationUuid').val(currentAnnotation.observation_uuid);
         $('#externalSequence').val(currentAnnotation.video_sequence_name);
         $('#externalScientificName').val(currentAnnotation.scientific_name);
-        $('#externalTatorOverlay').val(tatorOverlay);
+        $('#externalTatorOverlay').val(JSON.stringify(currentAnnotation.all_localizations));
         $('#externalTimestamp').val(currentAnnotation.recorded_timestamp);
         $('#externalImageUrl').val(currentAnnotation.image_url || currentAnnotation.frame_url);
         $('#externalVideoUrl').val(currentAnnotation.video_url);
@@ -206,7 +197,8 @@ $(document).ready(() => {
     })
 
     $('#deleteReviewModal').on('show.bs.modal', function (e) {
-        $('#externalDeleteTator').val($(e.relatedTarget).data('anno').scientific_name != null);
-        $('#externalDeleteUuid').val($(e.relatedTarget).data('anno').observation_uuid);
+        const anno = $(e.relatedTarget).data('anno');
+        $('#externalDeleteTator').val(anno.scientific_name != null && anno.scientific_name !== '');
+        $('#externalDeleteUuid').val(anno.observation_uuid);
     });
 });
