@@ -26,7 +26,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                         ${localization.count || '-'}<br>
                     </div>
                 </div>
-                <div class="row" style="${localization.problems?.includes('Scientific Name') ? 'color: yellow;' : ''}">
+                <div class="row" style="${localization.problems?.includes('Attracted') ? 'color: yellow;' : ''}">
                     <div class="col-4">
                         Attracted:
                     </div>
@@ -34,7 +34,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                         ${localization.attracted || '-'}<br>
                     </div>
                 </div>
-                <div class="row" style="${localization.problems?.includes('Scientific Name') ? 'color: yellow;' : ''}">
+                <div class="row" style="${localization.problems?.includes('Qualifier') ? 'color: yellow;' : ''}">
                     <div class="col-4">
                         Qualifier:
                     </div>
@@ -50,7 +50,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                         ${localization.categorical_abundance || '-'}<br>
                     </div>
                 </div>
-                <div class="row" style="${localization.problems?.includes('Scientific Name') ? 'color: yellow;' : ''}">
+                <div class="row" style="${localization.problems?.includes('Reason') ? 'color: yellow;' : ''}">
                     <div class="col-4">
                         Reason:
                     </div>
@@ -82,7 +82,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                         ${localization.identified_by || '-'}<br>
                     </div>
                 </div>
-                <div class="row" style="${localization.problems?.includes('Scientific Name') ? 'color: yellow;' : ''}">
+                <div class="row" style="${localization.problems?.includes('Notes') ? 'color: yellow;' : ''}">
                     <div class="col-4">
                         Notes:
                     </div>
@@ -187,7 +187,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                     </div>
                 </div>
             </td>
-            <td class="text-center">
+            <td class="text-center" style="width: 50%;">
                 <a href="${localization.frame_url || localization.image_url}" target="_blank">
                     <div id="${localization.observation_uuid}_image" class="position-relative" style="width: 580px;">
                         <img src="${localization.frame_url || localization.image_url}" style="width: 580px;" alt="${localization.scientific_name}"/>

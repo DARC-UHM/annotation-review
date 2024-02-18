@@ -61,7 +61,7 @@ function updateHash() {
     }
 
     $('#annotationCount').html(annotationsToDisplay.length);
-    $('#annotationTable').empty();
+    $('#annotationTable tbody').remove();
     $('#annotationTable').append('<tbody class="text-start"></tbody>');
 
     annotationsToDisplay.forEach((annotation) => {

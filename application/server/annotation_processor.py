@@ -11,7 +11,7 @@ TERM_RED = '\033[1;31;48m'
 TERM_NORMAL = '\033[1;37;0m'
 
 
-class ImageProcessor:
+class AnnotationProcessor:
     """
     Fetches annotation information from the VARS db on HURLSTOR given a list of sequences. Cleans, formats, and sorts
     the annotation data for display on the image review pages.
@@ -58,7 +58,6 @@ class ImageProcessor:
                 image_records.append(annotation)
                 if concept_name not in phylogeny.keys():
                     # get the phylogeny from VARS kb
-                    phylogeny[concept_name] = {}
                     with requests.get(f'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/{concept_name}') \
                             as vars_tax_res:
                         if vars_tax_res.status_code == 200:
@@ -104,12 +103,12 @@ class ImageProcessor:
             time_diff = timestamp - video_url[0]
             video_url = f'{video_url[1]}#t={int(time_diff.total_seconds()) - 5}'
 
-            formatted_images.append({
+            annotation_dict = {
                 'observation_uuid': record['observation_uuid'],
                 'concept': concept_name,
-                'identity-certainty': get_association(record, 'identity-certainty')['link_value'] if get_association(record, 'identity-certainty') else None,
-                'identity-reference': get_association(record, 'identity-reference')['link_value'] if get_association(record, 'identity-reference') else None,
-                'guide-photo': get_association(record, 'guide-photo')['to_concept'] if get_association(record, 'guide-photo') else None,
+                'identity_certainty': get_association(record, 'identity-certainty')['link_value'] if get_association(record, 'identity-certainty') else None,
+                'identity_reference': get_association(record, 'identity-reference')['link_value'] if get_association(record, 'identity-reference') else None,
+                'guide_photo': get_association(record, 'guide-photo')['to_concept'] if get_association(record, 'guide-photo') else None,
                 'comment': get_association(record, 'comment')['link_value'] if get_association(record, 'comment') else None,
                 'image_url': image_url,
                 'video_url': video_url,
@@ -122,24 +121,47 @@ class ImageProcessor:
                 'long': round(record['ancillary_data']['longitude'], 3) if 'ancillary_data' in record.keys() and 'longitude' in record['ancillary_data'].keys() else None,
                 'temperature': round(record['ancillary_data']['temperature_celsius'], 2) if 'ancillary_data' in record.keys() and 'temperature_celsius' in record['ancillary_data'].keys() else None,
                 'oxygen_ml_l': round(record['ancillary_data']['oxygen_ml_l'], 3) if 'ancillary_data' in record.keys() and 'oxygen_ml_l' in record['ancillary_data'].keys() else None,
-                'phylum': phylogeny[concept_name]['phylum'] if 'phylum' in phylogeny[concept_name].keys() else None,
-                'subphylum': phylogeny[concept_name]['subphylum'] if 'subphylum' in phylogeny[concept_name].keys() else None,
-                'superclass': phylogeny[concept_name]['superclass'] if 'superclass' in phylogeny[concept_name].keys() else None,
-                'class': phylogeny[concept_name]['class'] if 'class' in phylogeny[concept_name].keys() else None,
-                'subclass': phylogeny[concept_name]['subclass'] if 'subclass' in phylogeny[concept_name].keys() else None,
-                'superorder': phylogeny[concept_name]['superorder'] if 'superorder' in phylogeny[concept_name].keys() else None,
-                'order': phylogeny[concept_name]['order'] if 'order' in phylogeny[concept_name].keys() else None,
-                'suborder': phylogeny[concept_name]['suborder'] if 'suborder' in phylogeny[concept_name].keys() else None,
-                'infraorder': phylogeny[concept_name]['infraorder'] if 'infraorder' in phylogeny[concept_name].keys() else None,
-                'superfamily': phylogeny[concept_name]['superfamily'] if 'superfamily' in phylogeny[concept_name].keys() else None,
-                'family': phylogeny[concept_name]['family'] if 'family' in phylogeny[concept_name].keys() else None,
-                'subfamily': phylogeny[concept_name]['subfamily'] if 'subfamily' in phylogeny[concept_name].keys() else None,
-                'genus': phylogeny[concept_name]['genus'] if 'genus' in phylogeny[concept_name].keys() else None,
-                'species': phylogeny[concept_name]['species'] if 'species' in phylogeny[concept_name].keys() else None,
-            })
+            }
+
+            if concept_name in phylogeny.keys():
+                for key in phylogeny[concept_name].keys():
+                    annotation_dict[key] = phylogeny[concept_name][key]
+            formatted_images.append(annotation_dict)
 
         # add to dataframe for quick sorting
-        annotation_df = pd.DataFrame(formatted_images)
+        annotation_df = pd.DataFrame(formatted_images, columns=[
+            'observation_uuid',
+            'concept',
+            'identity_certainty',
+            'identity_reference',
+            'guide_photo',
+            'comment',
+            'image_url',
+            'video_url',
+            'upon',
+            'recorded_timestamp',
+            'video_sequence_name',
+            'annotator',
+            'depth',
+            'lat',
+            'long',
+            'temperature',
+            'oxygen_ml_l',
+            'phylum',
+            'subphylum',
+            'superclass',
+            'class',
+            'subclass',
+            'superorder',
+            'order',
+            'suborder',
+            'infraorder',
+            'superfamily',
+            'family',
+            'subfamily',
+            'genus',
+            'species'
+        ])
 
         annotation_df = annotation_df.sort_values(by=[
             'phylum',
@@ -157,8 +179,8 @@ class ImageProcessor:
             'genus',
             'species',
             'concept',
-            'identity-reference',
-            'identity-certainty',
+            'identity_reference',
+            'identity_certainty',
             'recorded_timestamp'
         ])
 
@@ -178,9 +200,9 @@ class ImageProcessor:
                 'family': row['family'],
                 'genus': row['genus'],
                 'species': row['species'],
-                'identity_certainty': row['identity-certainty'],
-                'identity_reference': row['identity-reference'],
-                'guide_photo': row['guide-photo'],
+                'identity_certainty': row['identity_certainty'],
+                'identity_reference': row['identity_reference'],
+                'guide_photo': row['guide_photo'],
                 'comment': row['comment'],
                 'image_url': row['image_url'],
                 'video_url': row['video_url'],

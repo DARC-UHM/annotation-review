@@ -61,6 +61,8 @@ class TatorQaqcProcessor:
         sys.stdout.flush()
 
         formatted_localizations = []
+        no_match_records = set()
+
         try:
             with open(os.path.join('cache', 'phylogeny.json'), 'r') as f:
                 phylogeny = json.load(f)
@@ -73,10 +75,9 @@ class TatorQaqcProcessor:
                 sys.stdout.flush()
                 continue
             scientific_name = localization['attributes']['Scientific Name']
-            if scientific_name not in phylogeny.keys():
+            if scientific_name not in phylogeny.keys() and scientific_name not in no_match_records:
                 req = requests.get(
                     f'https://www.marinespecies.org/rest/AphiaIDByName/{scientific_name}?marine_only=true')
-                phylogeny[scientific_name] = {}
                 if req.status_code == 200 and req.json() != -999:  # -999 means more than one matching record
                     aphia_id = req.json()
                     req = requests.get(f'https://www.marinespecies.org/rest/AphiaClassificationByAphiaID/{aphia_id}')
@@ -95,8 +96,9 @@ class TatorQaqcProcessor:
                                     phylogeny[scientific_name] = flatten_taxa_tree(req.json(), {})
                                 break
                     else:
-                        print(f'{TERM_RED}No accepted record found for {scientific_name}{TERM_NORMAL}')
-            formatted_localizations.append({
+                        no_match_records.add(scientific_name)
+                        print(f'{TERM_RED}No accepted record found for concept name "{scientific_name}"{TERM_NORMAL}')
+            localization_dict = {
                 'id': localization['id'],
                 'all_localizations': {
                     'id': localization['id'],
@@ -119,28 +121,51 @@ class TatorQaqcProcessor:
                 'frame': localization['frame'],
                 'frame_url': f'/tator/frame/{localization["media"]}/{localization["frame"]}',
                 'media_id': localization['media'],
-                'phylum': phylogeny[scientific_name]['phylum'] if 'phylum' in phylogeny[scientific_name].keys() else None,
-                'subphylum': phylogeny[scientific_name]['subphylum'] if 'subphylum' in phylogeny[scientific_name].keys() else None,
-                'superclass': phylogeny[scientific_name]['superclass'] if 'superclass' in phylogeny[scientific_name].keys() else None,
-                'class': phylogeny[scientific_name]['class'] if 'class' in phylogeny[scientific_name].keys() else None,
-                'subclass': phylogeny[scientific_name]['subclass'] if 'subclass' in phylogeny[scientific_name].keys() else None,
-                'superorder': phylogeny[scientific_name]['superorder'] if 'superorder' in phylogeny[scientific_name].keys() else None,
-                'order': phylogeny[scientific_name]['order'] if 'order' in phylogeny[scientific_name].keys() else None,
-                'suborder': phylogeny[scientific_name]['suborder'] if 'suborder' in phylogeny[scientific_name].keys() else None,
-                'infraorder': phylogeny[scientific_name]['infraorder'] if 'infraorder' in phylogeny[scientific_name].keys() else None,
-                'superfamily': phylogeny[scientific_name]['superfamily'] if 'superfamily' in phylogeny[scientific_name].keys() else None,
-                'family': phylogeny[scientific_name]['family'] if 'family' in phylogeny[scientific_name].keys() else None,
-                'subfamily': phylogeny[scientific_name]['subfamily'] if 'subfamily' in phylogeny[scientific_name].keys() else None,
-                'genus': phylogeny[scientific_name]['genus'] if 'genus' in phylogeny[scientific_name].keys() else None,
-                'species': phylogeny[scientific_name]['species'] if 'species' in phylogeny[scientific_name].keys() else None,
                 'problems': localization['problems'] if 'problems' in localization.keys() else None,
-            })
+            }
+            if scientific_name in phylogeny.keys():
+                for key in phylogeny[scientific_name].keys():
+                    localization_dict[key] = phylogeny[scientific_name][key]
+            formatted_localizations.append(localization_dict)
 
         if not formatted_localizations:
             print('no records to process!')
             return
 
-        localization_df = pd.DataFrame(formatted_localizations)
+        localization_df = pd.DataFrame(formatted_localizations, columns=[
+            'id',
+            'all_localizations',
+            'video_sequence_name',
+            'scientific_name',
+            'count',
+            'attracted',
+            'categorical_abundance',
+            'identification_remarks',
+            'identified_by',
+            'notes',
+            'qualifier',
+            'reason',
+            'tentative_id',
+            'annotator',
+            'frame',
+            'frame_url',
+            'media_id',
+            'problems',
+            'phylum',
+            'subphylum',
+            'superclass',
+            'class',
+            'subclass',
+            'superorder',
+            'order',
+            'suborder',
+            'infraorder',
+            'superfamily',
+            'family',
+            'subfamily',
+            'genus',
+            'species',
+        ])
 
         def collect_localizations(items):
             return [item for item in items]
@@ -238,10 +263,17 @@ class TatorQaqcProcessor:
         """
         Finds records with a scientific name or tentative ID that is not accepted in WoRMS
         """
+        print('Checking for accepted names...', end='')
+        sys.stdout.flush()
         checked = {}
         with open(os.path.join('cache', 'phylogeny.json'), 'r') as f:
             phylogeny = json.load(f)
         for localization in self.localizations:
+            if localization['type'] not in [48, 49]:
+                print('mystery localization skipped...', end='')
+                sys.stdout.flush()
+                continue
+            flag_record = False
             scientific_name = localization['attributes']['Scientific Name']
             tentative_id = localization['attributes']['Tentative ID']
             if scientific_name not in checked.keys():
@@ -249,23 +281,25 @@ class TatorQaqcProcessor:
                     checked[scientific_name] = True
                 else:
                     localization['problems'] = 'Scientific Name'
-                    self.records_of_interest.append(localization)
                     checked[scientific_name] = False
+                    flag_record = True
             elif not checked[scientific_name]:
                 localization['problems'] = 'Scientific Name'
-                self.records_of_interest.append(localization)
+                flag_record = True
             if tentative_id:
                 if tentative_id not in checked.keys():
                     if tentative_id not in phylogeny.keys():
                         req = requests.get(f'https://www.marinespecies.org/rest/AphiaIDByName/{tentative_id}?marine_only=true')
                         if req.status_code == 204:
-                            localization['problems'] = 'Tentative ID'
+                            localization['problems'] = 'Tentative ID' if 'problems' not in localization.keys() else 'Scientific Name, Tentative ID'
                             self.records_of_interest.append(localization)
                             checked[tentative_id] = False
                         else:
                             checked[tentative_id] = True
                 elif not checked[tentative_id]:
-                    localization['problems'] = 'Tentative ID'
-                    self.records_of_interest.append(localization)
-                    continue
+                    localization['problems'] = 'Tentative ID' if 'problems' not in localization.keys() else 'Scientific Name, Tentative ID'
+                    flag_record = True
+            if flag_record:
+                self.records_of_interest.append(localization)
+        print(f'found {len(self.records_of_interest)} localizations with unaccepted names!')
         self.process_records()

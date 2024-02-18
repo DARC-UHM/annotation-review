@@ -49,7 +49,6 @@ class CommentProcessor:
 
             if concept_name not in phylogeny.keys():
                 # get the phylogeny from VARS kb
-                phylogeny[concept_name] = {}
                 with requests.get(f'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/{concept_name}') \
                         as vars_tax_res:
                     if vars_tax_res.status_code == 200:
@@ -68,7 +67,7 @@ class CommentProcessor:
                     else:
                         print(f'\n{TERM_RED}Unable to find record for {annotation["concept"]}{TERM_NORMAL}')
 
-            formatted_comments.append({
+            comment_dict = {
                 'observation_uuid': comment,
                 'concept': concept_name,
                 'scientific_name': self.comments[comment]['scientific_name'] if 'scientific_name' in self.comments[comment].keys() else None,
@@ -84,8 +83,8 @@ class CommentProcessor:
                 'type': tator_overlay['type'] if tator_overlay and 'type' in tator_overlay.keys() else None,
                 'points': tator_overlay['points'] if tator_overlay and 'points' in tator_overlay.keys() else None,
                 'dimensions': tator_overlay['dimensions'] if tator_overlay and 'dimensions' in tator_overlay.keys() else None,
-                'identity-certainty': get_association(annotation, 'identity-certainty')['link_value'] if get_association(annotation, 'identity-certainty') else None,
-                'identity-reference': get_association(annotation, 'identity-reference')['link_value'] if get_association(annotation, 'identity-reference') else None,
+                'identity_certainty': get_association(annotation, 'identity-certainty')['link_value'] if get_association(annotation, 'identity-certainty') else None,
+                'identity_reference': get_association(annotation, 'identity-reference')['link_value'] if get_association(annotation, 'identity-reference') else None,
                 'guide-photo': get_association(annotation, 'guide-photo')['to_concept'] if get_association(annotation, 'guide-photo') else None,
                 'comment': get_association(annotation, 'comment')['link_value'] if get_association(annotation, 'comment') else None,
                 'image_url': self.comments[comment]['image_url'],
@@ -99,24 +98,71 @@ class CommentProcessor:
                 'long': self.comments[comment]['long'] if 'long' in self.comments[comment].keys() else None,
                 'temperature': self.comments[comment]['temperature'] if 'temperature' in self.comments[comment].keys() else None,
                 'oxygen_ml_l': self.comments[comment]['oxygen_ml_l'] if 'oxygen_ml_l' in self.comments[comment].keys() else None,
-                'phylum': phylogeny[concept_name]['phylum'] if 'phylum' in phylogeny[concept_name].keys() else None,
-                'subphylum': phylogeny[concept_name]['subphylum'] if 'subphylum' in phylogeny[concept_name].keys() else None,
-                'superclass': phylogeny[concept_name]['superclass'] if 'superclass' in phylogeny[concept_name].keys() else None,
-                'class': phylogeny[concept_name]['class'] if 'class' in phylogeny[concept_name].keys() else None,
-                'subclass': phylogeny[concept_name]['subclass'] if 'subclass' in phylogeny[concept_name].keys() else None,
-                'superorder': phylogeny[concept_name]['superorder'] if 'superorder' in phylogeny[concept_name].keys() else None,
-                'order': phylogeny[concept_name]['order'] if 'order' in phylogeny[concept_name].keys() else None,
-                'suborder': phylogeny[concept_name]['suborder'] if 'suborder' in phylogeny[concept_name].keys() else None,
-                'infraorder': phylogeny[concept_name]['infraorder'] if 'infraorder' in phylogeny[concept_name].keys() else None,
-                'superfamily': phylogeny[concept_name]['superfamily'] if 'superfamily' in phylogeny[concept_name].keys() else None,
-                'family': phylogeny[concept_name]['family'] if 'family' in phylogeny[concept_name].keys() else None,
-                'subfamily': phylogeny[concept_name]['subfamily'] if 'subfamily' in phylogeny[concept_name].keys() else None,
-                'genus': phylogeny[concept_name]['genus'] if 'genus' in phylogeny[concept_name].keys() else None,
-                'species': phylogeny[concept_name]['species'] if 'species' in phylogeny[concept_name].keys() else None,
-            })
+            }
+            if concept_name in phylogeny.keys():
+                comment_dict['phylum'] = phylogeny[concept_name]['phylum'] if 'phylum' in phylogeny[concept_name].keys() else None
+                comment_dict['subphylum'] = phylogeny[concept_name]['subphylum'] if 'subphylum' in phylogeny[concept_name].keys() else None
+                comment_dict['superclass'] = phylogeny[concept_name]['superclass'] if 'superclass' in phylogeny[concept_name].keys() else None
+                comment_dict['class'] = phylogeny[concept_name]['class'] if 'class' in phylogeny[concept_name].keys() else None
+                comment_dict['subclass'] = phylogeny[concept_name]['subclass'] if 'subclass' in phylogeny[concept_name].keys() else None
+                comment_dict['superorder'] = phylogeny[concept_name]['superorder'] if 'superorder' in phylogeny[concept_name].keys() else None
+                comment_dict['order'] = phylogeny[concept_name]['order'] if 'order' in phylogeny[concept_name].keys() else None
+                comment_dict['suborder'] = phylogeny[concept_name]['suborder'] if 'suborder' in phylogeny[concept_name].keys() else None
+                comment_dict['infraorder'] = phylogeny[concept_name]['infraorder'] if 'infraorder' in phylogeny[concept_name].keys() else None
+                comment_dict['superfamily'] = phylogeny[concept_name]['superfamily'] if 'superfamily' in phylogeny[concept_name].keys() else None
+                comment_dict['family'] = phylogeny[concept_name]['family'] if 'family' in phylogeny[concept_name].keys() else None
+                comment_dict['subfamily'] = phylogeny[concept_name]['subfamily'] if 'subfamily' in phylogeny[concept_name].keys() else None
+                comment_dict['genus'] = phylogeny[concept_name]['genus'] if 'genus' in phylogeny[concept_name].keys() else None
+                comment_dict['species'] = phylogeny[concept_name]['species'] if 'species' in phylogeny[concept_name].keys() else None
+            formatted_comments.append(comment_dict)
 
         # add to dataframe for sorting
-        annotation_df = pd.DataFrame(formatted_comments)
+        annotation_df = pd.DataFrame(formatted_comments, columns=[
+            'observation_uuid',
+            'concept',
+            'scientific_name',
+            'attracted',
+            'categorical_abundance',
+            'identification_remarks',
+            'identified_by',
+            'notes',
+            'qualifier',
+            'reason',
+            'tentative_id',
+            'count',
+            'type',
+            'points',
+            'dimensions',
+            'identity_certainty',
+            'identity_reference',
+            'guide_photo',
+            'comment',
+            'image_url',
+            'video_url',
+            'upon',
+            'recorded_timestamp',
+            'video_sequence_name',
+            'annotator',
+            'depth',
+            'lat',
+            'long',
+            'temperature',
+            'oxygen_ml_l',
+            'phylum',
+            'subphylum',
+            'superclass',
+            'class',
+            'subclass',
+            'superorder',
+            'order',
+            'suborder',
+            'infraorder',
+            'superfamily',
+            'family',
+            'subfamily',
+            'genus',
+            'species'
+        ])
         annotation_df = annotation_df.sort_values(by=[
             'phylum',
             'subphylum',
@@ -167,8 +213,8 @@ class CommentProcessor:
                 'family': row['family'],
                 'genus': row['genus'],
                 'species': row['species'],
-                'identity_certainty': row['identity-certainty'],
-                'identity_reference': row['identity-reference'],
+                'identity_certainty': row['identity_certainty'],
+                'identity_reference': row['identity_reference'],
                 'guide_photo': row['guide-photo'],
                 'comment': row['comment'],
                 'image_url': row['image_url'],

@@ -9,7 +9,7 @@ from json import JSONDecodeError
 
 from application import app
 from application.server.functions import get_association
-from application.server.image_processor import ImageProcessor
+from application.server.annotation_processor import AnnotationProcessor
 from application.server.comment_processor import CommentProcessor
 from application.server.tator_qaqc_processor import TatorQaqcProcessor
 from application.server.vars_qaqc_processor import VarsQaqcProcessor
@@ -352,7 +352,7 @@ def view_images():
     except requests.exceptions.ConnectionError:
         print('\nERROR: unable to connect to external review server\n')
     # get images in sequence
-    image_loader = ImageProcessor(sequences)
+    image_loader = AnnotationProcessor(sequences)
     if len(image_loader.distilled_records) < 1:
         return render_template('not-found.html', err='pics'), 404
     data = {

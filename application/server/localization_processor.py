@@ -65,7 +65,6 @@ class LocalizationProcessor:
             scientific_name = localization['attributes']['Scientific Name']
             if scientific_name not in phylogeny.keys():
                 req = requests.get(f'https://www.marinespecies.org/rest/AphiaIDByName/{scientific_name}?marine_only=true')
-                phylogeny[scientific_name] = {}
                 if req.status_code == 200 and req.json() != -999:  # -999 means more than one matching record
                     aphia_id = req.json()
                     req = requests.get(f'https://www.marinespecies.org/rest/AphiaClassificationByAphiaID/{aphia_id}')
@@ -81,7 +80,7 @@ class LocalizationProcessor:
                                 if req.status_code == 200:
                                     phylogeny[scientific_name] = flatten_taxa_tree(req.json(), {})
                                 break
-            formatted_localizations.append({
+            localization_dict = {
                 'id': localization['id'],
                 'all_localizations': {
                     'id': localization['id'],
@@ -104,23 +103,45 @@ class LocalizationProcessor:
                 'frame': localization['frame'],
                 'frame_url': f'/tator/frame/{localization["media"]}/{localization["frame"]}',
                 'media_id': localization['media'],
-                'phylum': phylogeny[scientific_name]['phylum'] if 'phylum' in phylogeny[scientific_name].keys() else None,
-                'subphylum': phylogeny[scientific_name]['subphylum'] if 'subphylum' in phylogeny[scientific_name].keys() else None,
-                'superclass': phylogeny[scientific_name]['superclass'] if 'superclass' in phylogeny[scientific_name].keys() else None,
-                'class': phylogeny[scientific_name]['class'] if 'class' in phylogeny[scientific_name].keys() else None,
-                'subclass': phylogeny[scientific_name]['subclass'] if 'subclass' in phylogeny[scientific_name].keys() else None,
-                'superorder': phylogeny[scientific_name]['superorder'] if 'superorder' in phylogeny[scientific_name].keys() else None,
-                'order': phylogeny[scientific_name]['order'] if 'order' in phylogeny[scientific_name].keys() else None,
-                'suborder': phylogeny[scientific_name]['suborder'] if 'suborder' in phylogeny[scientific_name].keys() else None,
-                'infraorder': phylogeny[scientific_name]['infraorder'] if 'infraorder' in phylogeny[scientific_name].keys() else None,
-                'superfamily': phylogeny[scientific_name]['superfamily'] if 'superfamily' in phylogeny[scientific_name].keys() else None,
-                'family': phylogeny[scientific_name]['family'] if 'family' in phylogeny[scientific_name].keys() else None,
-                'subfamily': phylogeny[scientific_name]['subfamily'] if 'subfamily' in phylogeny[scientific_name].keys() else None,
-                'genus': phylogeny[scientific_name]['genus'] if 'genus' in phylogeny[scientific_name].keys() else None,
-                'species': phylogeny[scientific_name]['species'] if 'species' in phylogeny[scientific_name].keys() else None,
-            })
+            }
+            if scientific_name in phylogeny.keys():
+                for key in phylogeny[scientific_name].keys():
+                    localization_dict[key] = phylogeny[scientific_name][key]
+            formatted_localizations.append(localization_dict)
 
-        localization_df = pd.DataFrame(formatted_localizations)
+        localization_df = pd.DataFrame(formatted_localizations, columns=[
+            'id',
+            'all_localizations',
+            'video_sequence_name',
+            'scientific_name',
+            'count',
+            'attracted',
+            'categorical_abundance',
+            'identification_remarks',
+            'identified_by',
+            'notes',
+            'qualifier',
+            'reason',
+            'tentative_id',
+            'annotator',
+            'frame',
+            'frame_url',
+            'media_id',
+            'phylum',
+            'subphylum',
+            'superclass',
+            'class',
+            'subclass',
+            'superorder',
+            'order',
+            'suborder',
+            'infraorder',
+            'superfamily',
+            'family',
+            'subfamily',
+            'genus',
+            'species',
+        ])
 
         def collect_localizations(items):
             return [item for item in items]
