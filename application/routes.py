@@ -593,7 +593,6 @@ def delete_external_review():
         f'{app.config.get("DARC_REVIEW_URL")}/comment/{request.values.get("uuid")}',
         headers=app.config.get('DARC_REVIEW_HEADERS'),
     )
-    print(request.values.get('tator'))
     if req.status_code == 200:
         if request.values.get('tator') and request.values.get('tator') == 'true':  # tator localization
             api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
