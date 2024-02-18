@@ -263,6 +263,7 @@ class TatorQaqcProcessor:
         """
         Finds records with a scientific name or tentative ID that is not accepted in WoRMS
         """
+        # TODO right now erroneously adds records that are not in the phylogeny cache to the records of interest
         print('Checking for accepted names...', end='')
         sys.stdout.flush()
         checked = {}

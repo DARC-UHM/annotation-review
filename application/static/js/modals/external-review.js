@@ -2,6 +2,8 @@ import { updateFlashMessages } from '../util/updateFlashMessages.js';
 import { reviewerList } from '../util/reviewer-list.js';
 import { updateHash } from '../image-review/image-review.js';
 
+// TODO figure out a better way to handle hash update stuff/updating list - right now it just calls the function from image-review.js which messes up some of the other stuff
+
 let reviewerIndex = 0;
 let totalReviewers = 0;
 let currentAnnotation;

@@ -32,7 +32,6 @@ class CommentProcessor:
 
         # add formatted comments to list
         for comment in self.comments:
-            print(self.comments[comment])
             if 'scientific_name' not in self.comments[comment].keys()\
                     or self.comments[comment]['scientific_name'] is None\
                     or self.comments[comment]['scientific_name'] == '':  # vars annotation
