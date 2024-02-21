@@ -38,7 +38,7 @@ TATOR CHECKS:
  */
 const checkboxStatus = {
     namesAcceptedCheckbox: 0,
-    qualifiersCheckbox: 0,
+    missingQualifierCheckbox: 0,
     stetReasonCheckbox: 0,
     tentativeIdCheckbox: 0,
     attractedCheckbox: 0,
@@ -116,6 +116,8 @@ document.addEventListener('DOMContentLoaded',  (event) => {
 
     $('#namesAcceptedAnchor').attr('href', `/tator/qaqc/${projectId}/${sectionId}/names-accepted?deployment=${deployments.join('&deployment=')}`);
     $('#namesAcceptedAnchor').on('click', () => showLoader());
+    $('#missingQualifierAnchor').attr('href', `/tator/qaqc/${projectId}/${sectionId}/missing-qualifier?deployment=${deployments.join('&deployment=')}`);
+    $('#missingQualifierAnchor').on('click', () => showLoader());
 });
 
 // get rid of loading screen if back button is pressed (mozilla)

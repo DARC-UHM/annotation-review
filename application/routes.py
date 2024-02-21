@@ -1,6 +1,4 @@
 import base64
-import sys
-
 import tator
 
 from io import BytesIO
@@ -18,7 +16,8 @@ from application.server.annosaurus import *
 
 # TODO add location information to localizations
 # TODO add depth to records
-# TODO relook localization processor, annotation processor, and vars qaqc processor to make sure they are saving phylogeny at the right place
+# TODO relook localization processor, annotation processor, and vars qaqc processor to make sure they are saving
+#      phylogeny at the right place
 # TODO add bulk editor (lower priority)
 
 
@@ -281,6 +280,9 @@ def tator_qaqc(project_id, section_id, check):
         case 'names-accepted':
             qaqc_annos.check_names_accepted()
             data['page_title'] = 'All scientific names and tentative IDs are accepted in WoRMS'
+        case 'missing-qualifier':
+            qaqc_annos.check_missing_qualifier()
+            data['page_title'] = 'Records missing qualifier'
         case _:
             return render_template('not-found.html', err=''), 404
     data['annotations'] = qaqc_annos.final_records

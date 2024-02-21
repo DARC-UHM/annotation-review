@@ -80,6 +80,34 @@
                 </div>
             </div>
         </div>
+        <div class="container">
+            <div class="pagination-container">
+                <button class="pagination-button" id="prev-button" title="Previous page" aria-label="Previous page">
+                    &lt;
+                </button>
+                <div id="pagination-numbers">
+                </div>
+                <button class="pagination-button" id="next-button" title="Next page" aria-label="Next page">
+                    &gt;
+                </button>
+            </div>
+        </div>
+        <div class="text-center mt-auto py-3 small row m-auto" style="max-width: 1200px;">
+            <div class="col"></div>
+            <div class="col">
+                Page:&nbsp;&nbsp;<span id="currentPageNumBottom" style="font-weight: 600;"></span>/<span id="totalPageNumBottom" style="font-weight: 600;"></span><br>
+                Total Images:&nbsp;&nbsp;<span id="annotationCountBottom" style="font-weight: 600;"></span><br>
+            </div>
+            <div class="col text-end">
+                <select id="paginationSelect">
+                    <option>25</option>
+                    <option>50</option>
+                    <option>75</option>
+                    <option>100</option>
+                </select>
+                images per page
+            </div>
+        </div>
         {% include 'components/modals/edit-tator-localization.html' %}
         {% include 'components/modals/add-to-external-review.html' %}
         {% include 'components/modals/delete-from-external-review.html' %}
@@ -97,6 +125,7 @@
         const reviewers = {{ data.reviewers|safe }};
         const title = '{{ data.title }}';
     </script>
+    <script type="module" src="/static/js/image-review/image-review.js"></script>
     <script type="module" src="/static/js/qaqc/tator-qaqc.js"></script>
     <script type="module" src="/static/js/modals/external-review.js"></script>
 {% endblock content %}
