@@ -47,8 +47,8 @@ class LocalizationProcessor:
                     'Authorization': f'Token {session["tator_token"]}',
                 })
             localizations += req.json()
-        print('fetched!')
-        print('Processing localizations...', end='')
+        print(f'fetched {len(localizations)} localizations!')
+        print('Processing localizations...')
         sys.stdout.flush()
 
         formatted_localizations = []
@@ -60,7 +60,7 @@ class LocalizationProcessor:
 
         for localization in localizations:
             if localization['type'] not in [48, 49]:
-                print('mystery localization skipped...')
+                print('Mystery localization skipped')
                 continue
             scientific_name = localization['attributes']['Scientific Name']
             if scientific_name not in phylogeny.keys():
@@ -231,4 +231,4 @@ class LocalizationProcessor:
             with open(os.path.join('cache', 'phylogeny.json'), 'w') as f:
                 json.dump(phylogeny, f, indent=2)
 
-        print('processed!')
+        print('Processed!')

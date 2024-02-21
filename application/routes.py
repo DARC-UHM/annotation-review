@@ -18,6 +18,7 @@ from application.server.annosaurus import *
 
 # TODO add location information to localizations
 # TODO add depth to records
+# TODO relook localization processor, annotation processor, and vars qaqc processor to make sure they are saving phylogeny at the right place
 # TODO add bulk editor (lower priority)
 
 

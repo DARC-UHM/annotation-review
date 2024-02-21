@@ -19,7 +19,6 @@ class TatorQaqcProcessor:
     Fetches annotation information from the Tator given a project id, section id, and list of deployments.
     Filters and formats the annotations for the various QA/QC checks.
     """
-
     def __init__(self, project_id: int, section_id: int, api: tator.api, deployment_list: list):
         self.project_id = project_id
         self.section_id = section_id
@@ -28,7 +27,24 @@ class TatorQaqcProcessor:
         self.deployment_media_dict = {}
         self.records_of_interest = []
         self.final_records = []
+        self.phylogeny = self.load_phylogeny()
         self.localizations = self.fetch_localizations()
+
+    def load_phylogeny(self):
+        try:
+            with open(os.path.join('cache', 'phylogeny.json'), 'r') as f:
+                return json.load(f)
+        except FileNotFoundError:
+            return {}
+
+    def save_phylogeny(self):
+        try:
+            with open(os.path.join('cache', 'phylogeny.json'), 'w') as f:
+                json.dump(self.phylogeny, f, indent=2)
+        except FileNotFoundError:
+            os.makedirs('cache')
+            with open(os.path.join('cache', 'phylogeny.json'), 'w') as f:
+                json.dump(self.phylogeny, f, indent=2)
 
     def fetch_localizations(self):
         print('Fetching localizations...', end='')
@@ -50,24 +66,43 @@ class TatorQaqcProcessor:
                     'Authorization': f'Token {session["tator_token"]}',
                 })
             localizations += req.json()
-        print('fetched!')
+        print(f'fetched {len(localizations)} localizations!')
         return localizations
+
+    def fetch_worms_phylogeny(self, scientific_name: str) -> bool:
+        """
+        Fetches the phylogeny of a given scientific name from WoRMS. Returns True if successful, False otherwise.
+        """
+        print(f'Fetching phylogeny for "{scientific_name}"')
+        req = requests.get(f'https://www.marinespecies.org/rest/AphiaIDByName/{scientific_name}?marine_only=true')
+        if req.status_code == 200 and req.json() != -999:  # -999 means more than one matching record
+            aphia_id = req.json()
+            req = requests.get(f'https://www.marinespecies.org/rest/AphiaClassificationByAphiaID/{aphia_id}')
+            if req.status_code == 200:
+                self.phylogeny[scientific_name] = flatten_taxa_tree(req.json(), {})
+        else:
+            req = requests.get(f'https://www.marinespecies.org/rest/AphiaRecordsByName/{scientific_name}?like=false&marine_only=true&offset=1')
+            if req.status_code == 200 and len(req.json()) > 0:
+                # just take the first accepted record
+                for record in req.json():
+                    if record['status'] == 'accepted':
+                        req = requests.get(f'https://www.marinespecies.org/rest/AphiaClassificationByAphiaID/{record["AphiaID"]}')
+                        if req.status_code == 200:
+                            self.phylogeny[scientific_name] = flatten_taxa_tree(req.json(), {})
+                        break
+            else:
+                print(f'{TERM_RED}No accepted record found for concept name "{scientific_name}"{TERM_NORMAL}')
+                return False
+        return True
 
     def process_records(self):
         if not self.records_of_interest:
             return
-
         print('Processing localizations...', end='')
         sys.stdout.flush()
 
         formatted_localizations = []
         no_match_records = set()
-
-        try:
-            with open(os.path.join('cache', 'phylogeny.json'), 'r') as f:
-                phylogeny = json.load(f)
-        except FileNotFoundError:
-            phylogeny = {}
 
         for localization in self.records_of_interest:
             if localization['type'] not in [48, 49]:
@@ -75,29 +110,9 @@ class TatorQaqcProcessor:
                 sys.stdout.flush()
                 continue
             scientific_name = localization['attributes']['Scientific Name']
-            if scientific_name not in phylogeny.keys() and scientific_name not in no_match_records:
-                req = requests.get(
-                    f'https://www.marinespecies.org/rest/AphiaIDByName/{scientific_name}?marine_only=true')
-                if req.status_code == 200 and req.json() != -999:  # -999 means more than one matching record
-                    aphia_id = req.json()
-                    req = requests.get(f'https://www.marinespecies.org/rest/AphiaClassificationByAphiaID/{aphia_id}')
-                    if req.status_code == 200:
-                        phylogeny[scientific_name] = flatten_taxa_tree(req.json(), {})
-                else:
-                    req = requests.get(
-                        f'https://www.marinespecies.org/rest/AphiaRecordsByName/{scientific_name}?like=false&marine_only=true&offset=1')
-                    if req.status_code == 200 and len(req.json()) > 0:
-                        # just take the first accepted record
-                        for record in req.json():
-                            if record['status'] == 'accepted':
-                                req = requests.get(
-                                    f'https://www.marinespecies.org/rest/AphiaClassificationByAphiaID/{record["AphiaID"]}')
-                                if req.status_code == 200:
-                                    phylogeny[scientific_name] = flatten_taxa_tree(req.json(), {})
-                                break
-                    else:
-                        no_match_records.add(scientific_name)
-                        print(f'{TERM_RED}No accepted record found for concept name "{scientific_name}"{TERM_NORMAL}')
+            if scientific_name not in self.phylogeny.keys() and scientific_name not in no_match_records:
+                if not self.fetch_worms_phylogeny(scientific_name):
+                    no_match_records.add(scientific_name)
             localization_dict = {
                 'id': localization['id'],
                 'all_localizations': {
@@ -123,10 +138,12 @@ class TatorQaqcProcessor:
                 'media_id': localization['media'],
                 'problems': localization['problems'] if 'problems' in localization.keys() else None,
             }
-            if scientific_name in phylogeny.keys():
-                for key in phylogeny[scientific_name].keys():
-                    localization_dict[key] = phylogeny[scientific_name][key]
+            if scientific_name in self.phylogeny.keys():
+                for key in self.phylogeny[scientific_name].keys():
+                    localization_dict[key] = self.phylogeny[scientific_name][key]
             formatted_localizations.append(localization_dict)
+
+        self.save_phylogeny()
 
         if not formatted_localizations:
             print('no records to process!')
@@ -249,58 +266,52 @@ class TatorQaqcProcessor:
                 'problems': row['problems'],
             })
 
-        try:
-            with open(os.path.join('cache', 'phylogeny.json'), 'w') as f:
-                json.dump(phylogeny, f, indent=2)
-        except FileNotFoundError:
-            os.makedirs('cache')
-            with open(os.path.join('cache', 'phylogeny.json'), 'w') as f:
-                json.dump(phylogeny, f, indent=2)
-
         print('processed!')
 
     def check_names_accepted(self):
         """
         Finds records with a scientific name or tentative ID that is not accepted in WoRMS
         """
-        # TODO right now erroneously adds records that are not in the phylogeny cache to the records of interest
-        print('Checking for accepted names...', end='')
+        print('Checking for accepted names...')
         sys.stdout.flush()
         checked = {}
-        with open(os.path.join('cache', 'phylogeny.json'), 'r') as f:
-            phylogeny = json.load(f)
         for localization in self.localizations:
             if localization['type'] not in [48, 49]:
-                print('mystery localization skipped...', end='')
+                print('Mystery localization skipped')
                 sys.stdout.flush()
                 continue
             flag_record = False
             scientific_name = localization['attributes']['Scientific Name']
             tentative_id = localization['attributes']['Tentative ID']
             if scientific_name not in checked.keys():
-                if scientific_name in phylogeny.keys():
+                if scientific_name in self.phylogeny.keys():
                     checked[scientific_name] = True
                 else:
-                    localization['problems'] = 'Scientific Name'
-                    checked[scientific_name] = False
-                    flag_record = True
+                    if self.fetch_worms_phylogeny(scientific_name):
+                        checked[scientific_name] = True
+                    else:
+                        localization['problems'] = 'Scientific Name'
+                        checked[scientific_name] = False
+                        flag_record = True
             elif not checked[scientific_name]:
                 localization['problems'] = 'Scientific Name'
                 flag_record = True
             if tentative_id:
                 if tentative_id not in checked.keys():
-                    if tentative_id not in phylogeny.keys():
-                        req = requests.get(f'https://www.marinespecies.org/rest/AphiaIDByName/{tentative_id}?marine_only=true')
-                        if req.status_code == 204:
-                            localization['problems'] = 'Tentative ID' if 'problems' not in localization.keys() else 'Scientific Name, Tentative ID'
-                            self.records_of_interest.append(localization)
-                            checked[tentative_id] = False
-                        else:
+                    if tentative_id in self.phylogeny.keys():
+                        checked[tentative_id] = True
+                    else:
+                        if self.fetch_worms_phylogeny(tentative_id):
                             checked[tentative_id] = True
+                        else:
+                            localization['problems'] = 'Tentative ID'
+                            checked[tentative_id] = False
+                            flag_record = True
                 elif not checked[tentative_id]:
                     localization['problems'] = 'Tentative ID' if 'problems' not in localization.keys() else 'Scientific Name, Tentative ID'
                     flag_record = True
             if flag_record:
                 self.records_of_interest.append(localization)
-        print(f'found {len(self.records_of_interest)} localizations with unaccepted names!')
+        print(f'Found {len(self.records_of_interest)} localizations with unaccepted names!')
+        self.save_phylogeny()
         self.process_records()
