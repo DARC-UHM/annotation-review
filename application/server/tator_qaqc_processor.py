@@ -95,14 +95,15 @@ class TatorQaqcProcessor:
                 return False
         return True
 
-    def process_records(self):
+    def process_records(self, no_match_records: set = None):
         if not self.records_of_interest:
             return
         print('Processing localizations...', end='')
         sys.stdout.flush()
 
         formatted_localizations = []
-        no_match_records = set()
+        if not no_match_records:
+            no_match_records = set()
 
         for localization in self.records_of_interest:
             if localization['type'] not in [48, 49]:
@@ -311,7 +312,23 @@ class TatorQaqcProcessor:
                     localization['problems'] = 'Tentative ID' if 'problems' not in localization.keys() else 'Scientific Name, Tentative ID'
                     flag_record = True
             if flag_record:
+                if scientific_name == '':  # so we know this is a tator localization later
+                    localization['attributes']['Scientific Name'] = '.'
                 self.records_of_interest.append(localization)
         print(f'Found {len(self.records_of_interest)} localizations with unaccepted names!')
         self.save_phylogeny()
+        self.process_records(no_match_records={key for key in checked.keys() if not checked[key]})
+
+    def check_missing_qualifier(self):
+        """
+        Finds records that are classified higher than species but don't have a qualifier set (usually '--'). This check
+        need to call process_records first to populate phylogeny.
+        """
+        self.records_of_interest = self.localizations
         self.process_records()
+        actual_final_records = []
+        for record in self.final_records:
+            if not record['species'] and record['qualifier'] == '--' or not record['qualifier']:
+                record['problems'] = 'Scientific Name, Qualifier'
+                actual_final_records.append(record)
+        self.final_records = actual_final_records

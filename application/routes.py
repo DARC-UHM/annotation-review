@@ -279,10 +279,10 @@ def tator_qaqc(project_id, section_id, check):
     match check:
         case 'names-accepted':
             qaqc_annos.check_names_accepted()
-            data['page_title'] = 'All scientific names and tentative IDs are accepted in WoRMS'
+            data['page_title'] = 'Scientific names/tentative IDs not accepted in WoRMS'
         case 'missing-qualifier':
             qaqc_annos.check_missing_qualifier()
-            data['page_title'] = 'Records missing qualifier'
+            data['page_title'] = 'Records classified higher than species missing qualifier'
         case _:
             return render_template('not-found.html', err=''), 404
     data['annotations'] = qaqc_annos.final_records

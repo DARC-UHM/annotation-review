@@ -18,6 +18,7 @@ TATOR CHECKS:
 - attracted/not attracted taxa match expected (need to automatically flag taxa that are flagged as either)
 - all taxa have at least one box and one dot
 - all boxes occur at the same time of or after the first dot
+- cat abundance 1-19 should only be allowed for certain taxa todo <
 - review all records with a tentative id (show id remarks/id'd by for this check)
 - review all notes and remarks (no commas, review all vertical bars)
 - review unique taxa
