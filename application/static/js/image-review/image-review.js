@@ -64,7 +64,7 @@ const setCurrentPage = (pageNum) => {
 
     annotationsToDisplay.forEach((annotation, index) => {
         if (index >= prevRange && index < currRange) {
-            if (annotation.scientific_name) { // this is a tator localization
+            if (Object.keys(annotation).includes('scientific_name')) { // this is a tator localization
                 $('#annotationTable').find('tbody').append(tatorLocalizationRow(annotation, comments[annotation.observation_uuid]));
                 $(`#${annotation.observation_uuid}_overlay`).css('opacity', '0.5');
                 $(`#${annotation.observation_uuid}_image`).hover((e) => {

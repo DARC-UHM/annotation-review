@@ -107,8 +107,6 @@ class TatorQaqcProcessor:
 
         for localization in self.records_of_interest:
             if localization['type'] not in [48, 49]:
-                print('mystery localization skipped...', end='')
-                sys.stdout.flush()
                 continue
             scientific_name = localization['attributes']['Scientific Name']
             if scientific_name not in self.phylogeny.keys() and scientific_name not in no_match_records:
@@ -278,8 +276,6 @@ class TatorQaqcProcessor:
         checked = {}
         for localization in self.localizations:
             if localization['type'] not in [48, 49]:
-                print('Mystery localization skipped')
-                sys.stdout.flush()
                 continue
             flag_record = False
             scientific_name = localization['attributes']['Scientific Name']
@@ -332,3 +328,18 @@ class TatorQaqcProcessor:
                 record['problems'] = 'Scientific Name, Qualifier'
                 actual_final_records.append(record)
         self.final_records = actual_final_records
+
+    def check_stet_reason(self):
+        """
+        Finds records that have a qualifier of 'stet' but no reason set.
+        """
+        for localization in self.localizations:
+            if localization['type'] not in [48, 49]:
+                continue
+            if localization['attributes']['Qualifier'] == 'stet.':
+                print(localization['attributes'])
+            if localization['attributes']['Qualifier'] == 'stet.' and (
+                    localization['attributes']['Reason'] == '--' or not localization['attributes']['Reason']):
+                localization['problems'] = 'Qualifier, Reason'
+                self.records_of_interest.append(localization)
+        self.process_records()

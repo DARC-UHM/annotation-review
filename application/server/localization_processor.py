@@ -32,10 +32,12 @@ class LocalizationProcessor:
         media_ids = []
         deployment_media_dict = {}
         localizations = []
+
         for deployment in self.deployments:
             for media_id in session[f'{self.project_id}_{self.section_id}'][deployment]:
                 deployment_media_dict[media_id] = deployment
             media_ids += session[f'{self.project_id}_{self.section_id}'][deployment]
+
         # REST is much faster than Python API for large queries
         # adding too many media ids results in a query that is too long, so we have to break it up
         for i in range(0, len(media_ids), 300):
@@ -59,8 +61,7 @@ class LocalizationProcessor:
             phylogeny = {}
 
         for localization in localizations:
-            if localization['type'] not in [48, 49]:
-                print('Mystery localization skipped')
+            if localization['type'] not in [48, 49]:  # we only care about boxes and dots
                 continue
             scientific_name = localization['attributes']['Scientific Name']
             if scientific_name not in phylogeny.keys():

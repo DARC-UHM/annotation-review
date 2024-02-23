@@ -11,15 +11,13 @@ const checkboxComplete = `<svg xmlns="http://www.w3.org/2000/svg" width="18" hei
                           </svg>`;
 
 /*
-TATOR CHECKS:
-- all scientific names and tentative ids are accepted in worms
-- all taxa classified higher than species have qualifiers
-- all records with 'stet' have a 'reason'
+TATOR CHECKS TODO:
 - attracted/not attracted taxa match expected (need to automatically flag taxa that are flagged as either)
 - all taxa have at least one box and one dot
 - all boxes occur at the same time of or after the first dot
-- cat abundance 1-19 should only be allowed for certain taxa todo <
+- cat abundance 1-19 should only be allowed for certain taxa todo add <
 - review all records with a tentative id (show id remarks/id'd by for this check)
+  - all tentative ids should be in the same phylogenetic group as the scientific name
 - review all notes and remarks (no commas, review all vertical bars)
 - review unique taxa
   - show the time that was first observed in a deployment (first dot)
@@ -119,6 +117,8 @@ document.addEventListener('DOMContentLoaded',  (event) => {
     $('#namesAcceptedAnchor').on('click', () => showLoader());
     $('#missingQualifierAnchor').attr('href', `/tator/qaqc/${projectId}/${sectionId}/missing-qualifier?deployment=${deployments.join('&deployment=')}`);
     $('#missingQualifierAnchor').on('click', () => showLoader());
+    $('#stetReasonAnchor').attr('href', `/tator/qaqc/${projectId}/${sectionId}/stet-missing-reason?deployment=${deployments.join('&deployment=')}`);
+    $('#stetReasonAnchor').on('click', () => showLoader());
 });
 
 // get rid of loading screen if back button is pressed (mozilla)

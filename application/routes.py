@@ -14,10 +14,8 @@ from application.server.vars_qaqc_processor import VarsQaqcProcessor
 from application.server.localization_processor import LocalizationProcessor
 from application.server.annosaurus import *
 
-# TODO add location information to localizations
-# TODO add depth to records
-# TODO relook localization processor, annotation processor, and vars qaqc processor to make sure they are saving
-#      phylogeny at the right place
+# TODO add location information to localizations once they are updated in Tator
+# TODO add method of syncing location data from file
 # TODO add bulk editor (lower priority)
 
 
@@ -283,6 +281,9 @@ def tator_qaqc(project_id, section_id, check):
         case 'missing-qualifier':
             qaqc_annos.check_missing_qualifier()
             data['page_title'] = 'Records classified higher than species missing qualifier'
+        case 'stet-missing-reason':
+            qaqc_annos.check_stet_reason()
+            data['page_title'] = 'Records with a qualifier of \'stet\' missing \'Reason\''
         case _:
             return render_template('not-found.html', err=''), 404
     data['annotations'] = qaqc_annos.final_records
