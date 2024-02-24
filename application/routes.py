@@ -284,6 +284,10 @@ def tator_qaqc(project_id, section_id, check):
         case 'stet-missing-reason':
             qaqc_annos.check_stet_reason()
             data['page_title'] = 'Records with a qualifier of \'stet\' missing \'Reason\''
+        case 'attracted-not-attracted':
+            attracted_dict = requests.get(f'{app.config.get("DARC_REVIEW_URL")}/attracted').json()
+            qaqc_annos.check_attracted_not_attracted(attracted_dict)
+            data['page_title'] = 'Attracted/not attracted match expected taxa list (also flags records with taxa that can be either)'
         case _:
             return render_template('not-found.html', err=''), 404
     data['annotations'] = qaqc_annos.final_records

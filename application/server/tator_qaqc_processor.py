@@ -336,10 +336,26 @@ class TatorQaqcProcessor:
         for localization in self.localizations:
             if localization['type'] not in [48, 49]:
                 continue
-            if localization['attributes']['Qualifier'] == 'stet.':
-                print(localization['attributes'])
             if localization['attributes']['Qualifier'] == 'stet.' and (
                     localization['attributes']['Reason'] == '--' or not localization['attributes']['Reason']):
                 localization['problems'] = 'Qualifier, Reason'
+                self.records_of_interest.append(localization)
+        self.process_records()
+
+    def check_attracted_not_attracted(self, attracted_dict: dict):
+        """
+        Finds all records that are marked as "attracted" but are saved as "not attracted" in the attracted_dict, and
+        vice versa. Also flags all records with taxa that are marked as "attracted/not attracted" in the attracted_dict.
+        """
+        for localization in self.localizations:
+            scientific_name = localization['attributes']['Scientific Name']
+            if scientific_name not in attracted_dict.keys() or attracted_dict[scientific_name] == 2:
+                localization['problems'] = 'Scientific Name, Attracted'
+                self.records_of_interest.append(localization)
+            elif localization['attributes']['Attracted'] == 'Attracted' and attracted_dict[scientific_name] == 0:
+                localization['problems'] = 'Scientific Name, Attracted'
+                self.records_of_interest.append(localization)
+            elif localization['attributes']['Attracted'] == 'Not Attracted' and attracted_dict[scientific_name] == 1:
+                localization['problems'] = 'Scientific Name, Attracted'
                 self.records_of_interest.append(localization)
         self.process_records()

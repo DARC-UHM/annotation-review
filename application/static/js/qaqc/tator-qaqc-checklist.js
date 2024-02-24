@@ -12,7 +12,6 @@ const checkboxComplete = `<svg xmlns="http://www.w3.org/2000/svg" width="18" hei
 
 /*
 TATOR CHECKS TODO:
-- attracted/not attracted taxa match expected (need to automatically flag taxa that are flagged as either)
 - all taxa have at least one box and one dot
 - all boxes occur at the same time of or after the first dot
 - cat abundance 1-19 should only be allowed for certain taxa todo add <
@@ -119,6 +118,8 @@ document.addEventListener('DOMContentLoaded',  (event) => {
     $('#missingQualifierAnchor').on('click', () => showLoader());
     $('#stetReasonAnchor').attr('href', `/tator/qaqc/${projectId}/${sectionId}/stet-missing-reason?deployment=${deployments.join('&deployment=')}`);
     $('#stetReasonAnchor').on('click', () => showLoader());
+    $('#attractedAnchor').attr('href', `/tator/qaqc/${projectId}/${sectionId}/attracted-not-attracted?deployment=${deployments.join('&deployment=')}`);
+    $('#attractedAnchor').on('click', () => showLoader());
 });
 
 // get rid of loading screen if back button is pressed (mozilla)
