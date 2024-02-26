@@ -300,6 +300,11 @@ def tator_qaqc(project_id, section_id, check):
             data['page_title'] = 'All unique taxa'
             data['unique_taxa'] = qaqc_annos.final_records
             return render_template('qaqc/tator/qaqc-unique-taxa.html', data=data)
+        case 'media-attributes':
+            qaqc_annos.get_media_attributes()
+            data['page_title'] = 'Media attributes'
+            data['media_attributes'] = qaqc_annos.final_records
+            return render_template('qaqc/tator/qaqc-media-attributes.html', data=data)
         case _:
             return render_template('not-found.html', err=''), 404
     data['annotations'] = qaqc_annos.final_records

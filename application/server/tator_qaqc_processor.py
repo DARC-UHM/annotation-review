@@ -451,3 +451,10 @@ class TatorQaqcProcessor:
                     ):
                         unique_taxa[scientific_name]['first_dot'] = f'{record["media_id"]}:{record["frame"]}'
         self.final_records = unique_taxa
+
+    def get_media_attributes(self):
+        """
+        Gets the attributes of all media for the given deployments.
+        """
+        # TODO
+        pass
