@@ -359,3 +359,15 @@ class TatorQaqcProcessor:
                 localization['problems'] = 'Scientific Name, Attracted'
                 self.records_of_interest.append(localization)
         self.process_records()
+
+    def get_all_tentative_ids(self):
+        """
+        Returns every record with a tentative ID.
+        """
+        for localization in self.localizations:
+            if localization['type'] not in [48, 49]:
+                continue
+            if localization['attributes']['Tentative ID'] and localization['attributes']['Tentative ID'] not in ['--', '']:
+                localization['problems'] = 'Tentative ID'
+                self.records_of_interest.append(localization)
+        self.process_records()
