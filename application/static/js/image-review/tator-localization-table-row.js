@@ -1,4 +1,5 @@
 export const tatorLocalizationRow = (localization, externalComment) => {
+    console.log(localization)
     return (`
         <tr>
             <td class="ps-5">
@@ -82,12 +83,14 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                         ${localization.identified_by || '-'}<br>
                     </div>
                 </div>
-                <div class="row" style="${localization.problems?.includes('Notes') ? 'color: yellow;' : ''}">
+                <div class="row" style="${localization.problems?.includes('Notes') && 'color: yellow;'}">
                     <div class="col-4">
                         Notes:
                     </div>
                     <div class="col values">
-                        ${localization.notes || '-'}<br>
+                        ${localization.notes || '-'}
+                        ${localization.notes?.includes(',') && '<div style="color: red;">^ REMOVE COMMAS ^</div>'}
+                        <br>
                     </div>
                 </div>
                 <div class="row">

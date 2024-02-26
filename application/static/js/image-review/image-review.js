@@ -230,8 +230,8 @@ export function updateHash() {
                         <option>Genus</option>
                         <option>Species</option>
                         <option>Certainty</option>
-                        <option>Comment (VARS)</option>
-                        <option>Notes (Tator)</option>
+                        <option value="comment">Comment (VARS)</option>
+                        <option value="notes">Notes (Tator)</option>
                         <option>Annotator</option>
                     </select>
                     <span class="position-absolute dropdown-chev">
@@ -279,8 +279,11 @@ export function updateHash() {
     if (filter['certainty']) {
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['identity_certainty']?.toLowerCase().includes(filter['certainty'].toLowerCase().replaceAll('%20', ' ')));
     }
-    if (filter['comment']) {
+    if (filter['comment']) { // VARS
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['comment']?.toLowerCase().includes(filter['comment'].toLowerCase().replaceAll('%20', ' ')));
+    }
+    if (filter['notes']) { // Tator
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['notes']?.toLowerCase().includes(filter['notes'].toLowerCase().replaceAll('%20', ' ')));
     }
     if (filter['annotator']) {
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['annotator']?.toLowerCase().includes(filter['annotator'].toLowerCase().replaceAll('%20', ' ')));
