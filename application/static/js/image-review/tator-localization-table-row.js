@@ -64,7 +64,8 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                         Tentative ID:
                     </div>
                     <div class="col values">
-                        ${localization.tentative_id || '-'}<br>
+                        ${localization.tentative_id || '-'}
+                        ${localization.problems?.includes('Tentative ID phylogeny no match') ? '<div style="color: red;">^ Does not match phylogeny of scientific name</div>' : '<br>'}
                     </div>
                 </div>
                 <div class="row" style="${localization.problems?.includes('ID Remarks') ? 'color: yellow;' : ''}">
@@ -83,13 +84,13 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                         ${localization.identified_by || '-'}<br>
                     </div>
                 </div>
-                <div class="row" style="${localization.problems?.includes('Notes') && 'color: yellow;'}">
+                <div class="row" style="${localization.problems?.includes('Notes') ? 'color: yellow;' : ''}">
                     <div class="col-4">
                         Notes:
                     </div>
                     <div class="col values">
                         ${localization.notes || '-'}
-                        ${localization.notes?.includes(',') && '<div style="color: red;">^ REMOVE COMMAS ^</div>'}
+                        ${localization.notes?.includes(',') ? '<div style="color: red;">^ REMOVE COMMAS ^</div>' : ''}
                         <br>
                     </div>
                 </div>

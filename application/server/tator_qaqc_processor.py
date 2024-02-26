@@ -362,7 +362,8 @@ class TatorQaqcProcessor:
 
     def get_all_tentative_ids(self):
         """
-        Returns every record with a tentative ID.
+        Returns every record with a tentative ID. Also checks whether or not the tentative ID is in the same
+        phylogenetic group as the scientific name.
         """
         for localization in self.localizations:
             if localization['type'] not in [48, 49]:
@@ -371,7 +372,18 @@ class TatorQaqcProcessor:
             if tentative_id and tentative_id not in ['--', '-', '']:
                 localization['problems'] = 'Tentative ID'
                 self.records_of_interest.append(localization)
-        self.process_records()
+        self.process_records()  # process first to make sure phylogeny is populated
+        for localization in self.final_records:
+            phylogeny_match = False
+            if localization['tentative_id'] not in self.phylogeny.keys():
+                localization['problems'] += ' phylogeny no match'
+                continue
+            for value in self.phylogeny[localization['scientific_name']].values():
+                if value in self.phylogeny[localization['tentative_id']].values():
+                    phylogeny_match = True
+                    break
+            if not phylogeny_match:
+                localization['problems'] += ' phylogeny no match'
 
     def get_all_notes_and_remarks(self):
         """

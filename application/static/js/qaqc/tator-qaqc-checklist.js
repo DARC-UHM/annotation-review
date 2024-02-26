@@ -13,9 +13,6 @@ const checkboxComplete = `<svg xmlns="http://www.w3.org/2000/svg" width="18" hei
 /*
 TATOR CHECKS TODO:
 - cat abundance 1-19 should only be allowed for certain taxa todo add <
-- review all records with a tentative id (show id remarks/id'd by for this check)
-  - all tentative ids should be in the same phylogenetic group as the scientific name
-- review all notes and remarks (no commas, review all vertical bars)
 - review unique taxa
   - show the time that was first observed in a deployment (first dot)
     - get the time of arrival on bottom
@@ -40,8 +37,6 @@ const checkboxStatus = {
     stetReasonCheckbox: 0,
     tentativeIdCheckbox: 0,
     attractedCheckbox: 0,
-    allBoxDotCheckbox: 0,
-    boxDotOrderCheckbox: 0,
     notesRemarksCheckbox: 0,
     uniqueTaxaCheckbox: 0,
     mediaAttributesCheckbox: 0,
