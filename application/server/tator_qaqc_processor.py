@@ -245,7 +245,7 @@ class TatorQaqcProcessor:
                 'frame': row['frame'],
                 'frame_url': row['frame_url'],
                 'annotator': row['annotator'],
-                'scientific_name': row['scientific_name'],
+                'scientific_name': row['scientific_name'] if row['scientific_name'] != '' else '--',
                 'video_sequence_name': row['video_sequence_name'],
                 'count': row['count'],
                 'attracted': row['attracted'],
@@ -308,8 +308,6 @@ class TatorQaqcProcessor:
                     localization['problems'] = 'Tentative ID' if 'problems' not in localization.keys() else 'Scientific Name, Tentative ID'
                     flag_record = True
             if flag_record:
-                if scientific_name == '':  # so we know this is a tator localization later
-                    localization['attributes']['Scientific Name'] = '.'
                 self.records_of_interest.append(localization)
         print(f'Found {len(self.records_of_interest)} localizations with unaccepted names!')
         self.save_phylogeny()
@@ -362,7 +360,7 @@ class TatorQaqcProcessor:
 
     def get_all_tentative_ids(self):
         """
-        Returns every record with a tentative ID. Also checks whether or not the tentative ID is in the same
+        Finds every record with a tentative ID. Also checks whether or not the tentative ID is in the same
         phylogenetic group as the scientific name.
         """
         for localization in self.localizations:
@@ -387,7 +385,7 @@ class TatorQaqcProcessor:
 
     def get_all_notes_and_remarks(self):
         """
-        Returns every record with a note or remark.
+        Finds every record with a note or remark.
         """
         for localization in self.localizations:
             if localization['type'] not in [48, 49]:
@@ -409,6 +407,31 @@ class TatorQaqcProcessor:
 
     def get_unique_taxa(self):
         """
-        Returns every unique scientific name.
+        Finds every unique scientific name and TOFA, max N, and box/dot info.
         """
-        pass
+        for localization in self.localizations:
+            if localization['type'] not in [48, 49]:
+                continue
+            self.records_of_interest.append(localization)
+        self.process_records()
+        unique_taxa = {}
+        for record in self.final_records:
+            scientific_name = record['scientific_name']
+            if scientific_name not in unique_taxa.keys():
+                unique_taxa[scientific_name] = {
+                    'tofa': None,  # todo once we figure out the timestamp stuff
+                    'max_n': record['count'],
+                    'box_count': 0,
+                    'dot_count': 0,
+                    'first_box': None,
+                    'first_dot': None,
+                }
+            else:  # check for new max N
+                if record['count'] > unique_taxa[scientific_name]['max_n']:
+                    unique_taxa[scientific_name]['max_n'] = record['count']
+            for localization in record['all_localizations']:  # increment box/dot counts
+                if localization['type'] == 48:
+                    unique_taxa[scientific_name]['box_count'] += 1
+                elif localization['type'] == 49:
+                    unique_taxa[scientific_name]['dot_count'] += 1
+        self.final_records = unique_taxa

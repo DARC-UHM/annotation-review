@@ -183,7 +183,7 @@ class CommentProcessor:
             self.distilled_records.append({
                 'observation_uuid': row['observation_uuid'],
                 'concept': row['concept'],
-                'scientific_name': row['scientific_name'],
+                'scientific_name': row['scientific_name'] if row['scientific_name'] != '' else '--',
                 'all_localizations': row['all_localizations'],
                 'attracted': row['attracted'],
                 'categorical_abundance': row['categorical_abundance'],

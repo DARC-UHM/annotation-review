@@ -19,11 +19,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     $('#deploymentList').html(`${deployments.join(', ')}<br>`);
-    $('#uniqueTaxaCount').html(uniqueTaxa.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+    $('#uniqueTaxaCount').html(Object.keys(uniqueTaxa).length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+    console.log(uniqueTaxa);
 
-    $('#annotationTable').append(`
-        <tbody></tbody>
-    `);
+    for (const taxa of Object.keys(uniqueTaxa)) {
+        $('#annotationTable').find('tbody').append(`
+            <tr class="text-start">
+                <td>${taxa}</td>
+                <td>${uniqueTaxa[taxa].tofa}</td>
+                <td>${uniqueTaxa[taxa].max_n}</td>
+                <td style="${uniqueTaxa[taxa].box_count === 0 ? 'color: yellow; font-weight: bold;' : ''}">${uniqueTaxa[taxa].box_count}</td>
+                <td style="${uniqueTaxa[taxa].dot_count === 0 ? 'color: yellow; font-weight: bold;' : ''}">${uniqueTaxa[taxa].dot_count}</td>
+                <td>${uniqueTaxa[taxa].first_dot}</td>
+                <td>${uniqueTaxa[taxa].first_box}</td>
+            </tr>
+        `);
+    }
 });
 
 window.onhashchange = () => {

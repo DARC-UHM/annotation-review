@@ -1,5 +1,3 @@
-import { updateFlashMessages } from './util/updateFlashMessages.js';
-
 function checkEmpty(str1, str2) {
     $('#editReviewerSubmitButton')[0].disabled = !(str1.length > 0 && str2.length > 0);
 }

@@ -26,12 +26,13 @@
                         <th scope="col">Scientific Name</th>
                         <th scope="col">TOFA</th>
                         <th scope="col">Max N</th>
-                        <th scope="col">Boxes</th>
-                        <th scope="col">Dots</th>
+                        <th scope="col">Num Boxes</th>
+                        <th scope="col">Num Dots</th>
                         <th scope="col">First Box</th>
                         <th scope="col">First Dot</th>
                     </tr>
                 </thead>
+                <tbody></tbody>
             </table>
         </div>
     </div>
@@ -42,7 +43,7 @@
         const nan = null;
         const True = true;
         const False = false;
-        const uniqueTaxa = {{ data.unique_list|safe }};
+        const uniqueTaxa = {{ data.unique_taxa|safe }};
     </script>
     <script type="module" src="/static/js/qaqc/tator/qaqc-unique-taxa.js"></script>
 {% endblock content %}

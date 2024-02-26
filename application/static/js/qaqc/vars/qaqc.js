@@ -1,5 +1,5 @@
-import { updateFlashMessages } from '../util/updateFlashMessages.js';
-import { autocomplete } from '../util/autocomplete.js';
+import { updateFlashMessages } from '../../util/updateFlashMessages.js';
+import { autocomplete } from '../../util/autocomplete.js';
 
 const sequences = [];
 const toConcepts = ['s1', 's2', 'upon', 'size', 'guide-photo', 'habitat', 'megahabitat', 'sampled-by'];
@@ -151,7 +151,7 @@ function updateHash() {
         }
         $('#annotationTable').find('tbody').append(`
         <tr>
-            <td class="ps-5 py-3" style="width: 40%">
+            <td class="ps-5 py-3" style="width: 20%">
                 <div style="font-weight: 500; font-size: 18px;">${annotation.concept}</div>
                 <div class="small">${annotation.recorded_timestamp}<br>${annotation.video_sequence_name}<br>${annotation.annotator}</div>
                 <div class="small">Remarks: ${occurrenceRemarks}</div>
@@ -163,7 +163,7 @@ function updateHash() {
                     class="editButton small">Edit annotation
                 </button>
             </td>
-            <td class="small"><div id="problemsDiv${index}" style="width: 40%"></div></td>
+            <td class="small" style="width: 40%"><div id="problemsDiv${index}"></div></td>
             <td class="text-center small" style="width: 20%">
                 <div class="mb-2">
                     ${annotation.image_url

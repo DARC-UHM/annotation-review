@@ -95,6 +95,7 @@ def check_tator_token():
         return {}, 400
     try:
         api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
+        print(session['tator_token'])
         return {'username': api.whoami().username}, 200
     except tator.openapi.tator_openapi.exceptions.ApiException:
         return {}, 400
@@ -297,7 +298,7 @@ def tator_qaqc(project_id, section_id, check):
         case 'unique-taxa':
             qaqc_annos.get_unique_taxa()
             data['page_title'] = 'All unique taxa'
-            data['unique_list'] = qaqc_annos.final_records
+            data['unique_taxa'] = qaqc_annos.final_records
             return render_template('qaqc/tator/qaqc-unique-taxa.html', data=data)
         case _:
             return render_template('not-found.html', err=''), 404
