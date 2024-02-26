@@ -119,6 +119,8 @@ document.addEventListener('DOMContentLoaded',  (event) => {
     $('#tentativeIdAnchor').on('click', () => showLoader());
     $('#notesRemarksAnchor').attr('href', `/tator/qaqc/${projectId}/${sectionId}/notes-and-remarks?deployment=${deployments.join('&deployment=')}`);
     $('#notesRemarksAnchor').on('click', () => showLoader());
+    $('#uniqueTaxaAnchor').attr('href', `/tator/qaqc/${projectId}/${sectionId}/unique-taxa?deployment=${deployments.join('&deployment=')}`);
+    $('#uniqueTaxaAnchor').on('click', () => showLoader());
 });
 
 // get rid of loading screen if back button is pressed (mozilla)

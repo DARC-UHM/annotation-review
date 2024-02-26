@@ -237,7 +237,7 @@ def tator_qaqc_checklist(project_id, section_id):
         'localization_count': len(localizations),
         'individual_count': individual_count,
     }
-    return render_template('qaqc/tator-qaqc-checklist.html', data=data)
+    return render_template('qaqc/tator/qaqc-checklist.html', data=data)
 
 
 # individual qaqc checks (Tator)
@@ -294,10 +294,15 @@ def tator_qaqc(project_id, section_id, check):
         case 'notes-and-remarks':
             qaqc_annos.get_all_notes_and_remarks()
             data['page_title'] = 'Records with notes and/or remarks'
+        case 'unique-taxa':
+            qaqc_annos.get_unique_taxa()
+            data['page_title'] = 'All unique taxa'
+            data['unique_list'] = qaqc_annos.final_records
+            return render_template('qaqc/tator/qaqc-unique-taxa.html', data=data)
         case _:
             return render_template('not-found.html', err=''), 404
     data['annotations'] = qaqc_annos.final_records
-    return render_template('qaqc/tator-qaqc.html', data=data)
+    return render_template('qaqc/tator/qaqc.html', data=data)
 
 
 # view tator video frame (not cropped)
@@ -413,7 +418,7 @@ def vars_qaqc_checklist():
                     individual_count += int(pop_quantity['link_value'])
                     continue
                 individual_count += 1
-    return render_template('qaqc/vars-qaqc-checklist.html', annotation_count=annotation_count, individual_count=individual_count)
+    return render_template('qaqc/vars/qaqc-checklist.html', annotation_count=annotation_count, individual_count=individual_count)
 
 
 # individual qaqc checks (VARS)
@@ -468,9 +473,9 @@ def vars_qaqc(check):
         case 'unique-fields':
             qaqc_annos.find_unique_fields()
             data['unique_list'] = qaqc_annos.final_records
-            return render_template('qaqc/qaqc-unique.html', data=data)
+            return render_template('qaqc/vars/qaqc-unique.html', data=data)
     data['annotations'] = qaqc_annos.final_records
-    return render_template('qaqc/vars-qaqc.html', data=data)
+    return render_template('qaqc/vars/qaqc.html', data=data)
 
 
 @app.get('/vars/qaqc/quick/<check>')

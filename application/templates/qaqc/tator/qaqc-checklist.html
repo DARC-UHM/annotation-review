@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}DARC Tator QA/QC{% endblock title %}
+{% block title %}DARC QA/QC{% endblock title %}
 {% block content %}
     {% include 'components/loading-fish.html' %}
     <div id="fireworks" class="pyro" style="display: none;">
@@ -55,14 +55,14 @@
                             <td id="notesRemarksCheckbox" class="qaqcCheckbox"></td>
                         </tr>
                         <tr>
+                            <td><a id="uniqueTaxaAnchor" class="aquaLink">Review all unique taxa (TOFA, max N, box/dot checks)</a></td>
+                            <td id="uniqueTaxaCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
                             <td style="column-span: 2; text-align: center;">
                                 <b>======== WORK IN PROGRESS ========</b>
                                 <div class="small">Checks below this line have not been implemented yet</div>
                             </td>
-                        </tr>
-                        <tr>
-                            <td><a id="uniqueTaxaAnchor" class="aquaLink">Review all unique taxa</a></td>
-                            <td id="uniqueTaxaCheckbox" class="qaqcCheckbox"></td>
                         </tr>
                         <tr>
                             <td><a id="mediaAttributesAnchor" class="aquaLink">Review media attributes (FOV, quality, substrate)</a></td>
@@ -81,5 +81,5 @@
         const localizationCount = {{ data.localization_count }};
         const individualCount = {{ data.individual_count }};
     </script>
-    <script type="module" src="/static/js/qaqc/tator-qaqc-checklist.js"></script>
+    <script type="module" src="/static/js/qaqc/tator/qaqc-checklist.js"></script>
 {% endblock content %}

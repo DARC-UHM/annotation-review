@@ -406,3 +406,9 @@ class TatorQaqcProcessor:
                 localization['problems'] = 'ID Remarks'
                 self.records_of_interest.append(localization)
         self.process_records()
+
+    def get_unique_taxa(self):
+        """
+        Returns every unique scientific name.
+        """
+        pass
