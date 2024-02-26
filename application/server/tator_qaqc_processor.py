@@ -367,7 +367,30 @@ class TatorQaqcProcessor:
         for localization in self.localizations:
             if localization['type'] not in [48, 49]:
                 continue
-            if localization['attributes']['Tentative ID'] and localization['attributes']['Tentative ID'] not in ['--', '']:
+            tentative_id = localization['attributes']['Tentative ID']
+            if tentative_id and tentative_id not in ['--', '-', '']:
                 localization['problems'] = 'Tentative ID'
+                self.records_of_interest.append(localization)
+        self.process_records()
+
+    def get_all_notes_and_remarks(self):
+        """
+        Returns every record with a note or remark.
+        """
+        for localization in self.localizations:
+            if localization['type'] not in [48, 49]:
+                continue
+            notes = localization['attributes']['Notes']
+            id_remarks = localization['attributes']['IdentificationRemarks']
+            has_note = notes and notes not in ['--', '-', '']
+            has_remark = id_remarks and id_remarks not in ['--', '-', '']
+            if has_note and has_remark:
+                localization['problems'] = 'Notes, ID Remarks'
+                self.records_of_interest.append(localization)
+            elif has_note:
+                localization['problems'] = 'Notes'
+                self.records_of_interest.append(localization)
+            elif has_remark:
+                localization['problems'] = 'ID Remarks'
                 self.records_of_interest.append(localization)
         self.process_records()

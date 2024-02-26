@@ -290,7 +290,10 @@ def tator_qaqc(project_id, section_id, check):
             data['page_title'] = 'Attracted/not attracted match expected taxa list (also flags records with taxa that can be either)'
         case 'all-tentative-ids':
             qaqc_annos.get_all_tentative_ids()
-            data['page_title'] = 'All records with a tentative ID'
+            data['page_title'] = 'Records with a tentative ID'
+        case 'notes-and-remarks':
+            qaqc_annos.get_all_notes_and_remarks()
+            data['page_title'] = 'Records with notes and/or remarks'
         case _:
             return render_template('not-found.html', err=''), 404
     data['annotations'] = qaqc_annos.final_records
