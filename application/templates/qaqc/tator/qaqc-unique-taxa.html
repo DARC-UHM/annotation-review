@@ -9,7 +9,10 @@
             <div class="row m-auto">
                 <div class="col-9 text-start">
                     <h4 class="m-0 p-0 pb-2" style="font-weight: 600;">Unique Taxa</h4>
-                    <div><span id="vesselName"></span> <span id="deploymentList"></span></div>
+                    <div><span id="deploymentList"></span></div>
+                    <div class="small mt-2">
+                        Highlights taxa that have a box occur before the first dot or do not have both a box and a dot
+                    </div>
                 </div>
                 <div class="col text-end mt-auto small">
                     <span>Unique Taxa:&nbsp;&nbsp<span id="uniqueTaxaCount" style="font-weight: 600;"></span></span><br>
@@ -24,12 +27,11 @@
                 <thead class="text-start">
                     <tr>
                         <th scope="col">Scientific Name</th>
-                        <th scope="col">TOFA</th>
                         <th scope="col">Max N</th>
-                        <th scope="col">Num Boxes</th>
-                        <th scope="col">Num Dots</th>
+                        <th scope="col">First Dot (TOFA)</th>
                         <th scope="col">First Box</th>
-                        <th scope="col">First Dot</th>
+                        <th scope="col">Num Dots</th>
+                        <th scope="col">Num Boxes</th>
                     </tr>
                 </thead>
                 <tbody></tbody>

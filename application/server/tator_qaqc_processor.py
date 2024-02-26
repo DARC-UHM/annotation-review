@@ -418,20 +418,36 @@ class TatorQaqcProcessor:
         for record in self.final_records:
             scientific_name = record['scientific_name']
             if scientific_name not in unique_taxa.keys():
+                # add new unique taxa to dict
                 unique_taxa[scientific_name] = {
-                    'tofa': None,  # todo once we figure out the timestamp stuff
                     'max_n': record['count'],
                     'box_count': 0,
                     'dot_count': 0,
-                    'first_box': None,
+                    'first_box': None,  # todo change once we figure out timestamp stuff
                     'first_dot': None,
                 }
-            else:  # check for new max N
+            else:
+                # check for new max N
                 if record['count'] > unique_taxa[scientific_name]['max_n']:
                     unique_taxa[scientific_name]['max_n'] = record['count']
-            for localization in record['all_localizations']:  # increment box/dot counts
+            for localization in record['all_localizations']:
+                # increment box/dot counts, set first box/dot and TOFA
                 if localization['type'] == 48:
                     unique_taxa[scientific_name]['box_count'] += 1
+                    first_box = unique_taxa[scientific_name]['first_box']
+                    if (
+                        not first_box
+                        or int(first_box.split(':')[0]) > record['media_id']
+                        or int(first_box.split(':')[0]) == record['media_id'] and int(first_box.split(':')[1]) > record['frame']
+                    ):
+                        unique_taxa[scientific_name]['first_box'] = f'{record["media_id"]}:{record["frame"]}'
                 elif localization['type'] == 49:
                     unique_taxa[scientific_name]['dot_count'] += 1
+                    first_dot = unique_taxa[scientific_name]['first_dot']
+                    if (
+                        not first_dot
+                        or int(first_dot.split(':')[0]) > record['media_id']
+                        or int(first_dot.split(':')[0]) == record['media_id'] and int(first_dot.split(':')[1]) > record['frame']
+                    ):
+                        unique_taxa[scientific_name]['first_dot'] = f'{record["media_id"]}:{record["frame"]}'
         self.final_records = unique_taxa

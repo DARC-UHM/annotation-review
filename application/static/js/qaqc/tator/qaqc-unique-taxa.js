@@ -20,18 +20,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     $('#deploymentList').html(`${deployments.join(', ')}<br>`);
     $('#uniqueTaxaCount').html(Object.keys(uniqueTaxa).length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-    console.log(uniqueTaxa);
 
-    for (const taxa of Object.keys(uniqueTaxa)) {
+    for (const taxa of Object.keys(uniqueTaxa).sort()) {
+        const firstBox = uniqueTaxa[taxa].first_box;
+        const firstDot = uniqueTaxa[taxa].first_dot;
+        let boxBeforeDot = false;
+
+        if (firstBox.split(':')[0] < firstDot.split(':')[0]) {
+            boxBeforeDot = true;
+        } else if (firstBox.split(':')[0] === firstDot.split(':')[0] && parseInt(firstBox.split(':')[1]) < parseInt(firstDot.split(':')[1]) - 1) {
+            boxBeforeDot = true;
+        }
+
         $('#annotationTable').find('tbody').append(`
             <tr class="text-start">
                 <td>${taxa}</td>
-                <td>${uniqueTaxa[taxa].tofa}</td>
                 <td>${uniqueTaxa[taxa].max_n}</td>
-                <td style="${uniqueTaxa[taxa].box_count === 0 ? 'color: yellow; font-weight: bold;' : ''}">${uniqueTaxa[taxa].box_count}</td>
+                <td style="${boxBeforeDot ? 'color: yellow; font-weight: bold;' : ''}">${uniqueTaxa[taxa].first_dot}</td>
+                <td style="${boxBeforeDot ? 'color: yellow; font-weight: bold;' : ''}">${uniqueTaxa[taxa].first_box}</td>
                 <td style="${uniqueTaxa[taxa].dot_count === 0 ? 'color: yellow; font-weight: bold;' : ''}">${uniqueTaxa[taxa].dot_count}</td>
-                <td>${uniqueTaxa[taxa].first_dot}</td>
-                <td>${uniqueTaxa[taxa].first_box}</td>
+                <td style="${uniqueTaxa[taxa].box_count === 0 ? 'color: yellow; font-weight: bold;' : ''}">${uniqueTaxa[taxa].box_count}</td>
             </tr>
         `);
     }

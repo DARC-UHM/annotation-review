@@ -13,13 +13,6 @@ const checkboxComplete = `<svg xmlns="http://www.w3.org/2000/svg" width="18" hei
 /*
 TATOR CHECKS TODO:
 - cat abundance 1-19 should only be allowed for certain taxa todo add <
-- review unique taxa
-  - show the time that was first observed in a deployment (first dot)
-    - get the time of arrival on bottom
-    - find the difference between time of arrival on bottom and the first time of arrival for each taxa
-  - max N in a deployment for each taxa
-  - all taxa have at least one box and one dot
-  - all boxes occur at the same time of or after the first dot
 - review media attributes (FOV, quality, substrate)
   - FOV column: FOV should be the same for all videos in a deployment (highest FOV)
     - would be nice to have an option to change FOV for all clips in deployment
