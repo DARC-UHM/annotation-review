@@ -12,15 +12,15 @@ const checkboxComplete = `<svg xmlns="http://www.w3.org/2000/svg" width="18" hei
 
 /*
 TATOR CHECKS TODO:
-- cat abundance 1-19 should only be allowed for certain taxa todo add <
-- review media attributes (FOV, quality, substrate)
-    - would be nice to have an option to change FOV for all clips in deployment todo
+ - cat abundance 1-19 should only be allowed for certain taxa todo
+ - would be nice to have an option to change FOV for all clips in deployment todo
 - summary
   - annotator
   - include utc time
   - identified by
   - option to download as csv (similar to dscrtp)
  */
+
 const checkboxStatus = {
     namesAcceptedCheckbox: 0,
     missingQualifierCheckbox: 0,
@@ -113,6 +113,8 @@ document.addEventListener('DOMContentLoaded',  (event) => {
     $('#uniqueTaxaAnchor').on('click', () => showLoader());
     $('#mediaAttributesAnchor').attr('href', `/tator/qaqc/${projectId}/${sectionId}/media-attributes?deployment=${deployments.join('&deployment=')}`);
     $('#mediaAttributesAnchor').on('click', () => showLoader());
+    $('#summaryAnchor').attr('href', `/tator/qaqc/${projectId}/${sectionId}/summary?deployment=${deployments.join('&deployment=')}`);
+    $('#summaryAnchor').on('click', () => showLoader());
 });
 
 // get rid of loading screen if back button is pressed (mozilla)
