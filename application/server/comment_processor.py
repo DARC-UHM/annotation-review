@@ -71,16 +71,16 @@ class CommentProcessor:
             comment_dict = {
                 'observation_uuid': comment,
                 'concept': concept_name,
-                'scientific_name': self.comments[comment]['scientific_name'] if 'scientific_name' in self.comments[comment].keys() and self.comments[comment]['scientific_name'] else None,
-                'all_localizations': json.loads(self.comments[comment]['all_localizations']) if 'all_localizations' in self.comments[comment].keys() and self.comments[comment]['all_localizations'] else None,
-                'attracted': annotation['attributes']['Attracted'] if 'attributes' in annotation.keys() and 'Attracted' in annotation['attributes'].keys() else None,
-                'categorical_abundance': annotation['attributes']['Categorical Abundance'] if 'attributes' in annotation.keys() and 'Categorical Abundance' in annotation['attributes'].keys() else None,
-                'identification_remarks': annotation['attributes']['IdentificationRemarks'] if 'attributes' in annotation.keys() and 'IdentificationRemarks' in annotation['attributes'].keys() else None,
-                'identified_by': annotation['attributes']['Identified By'] if 'attributes' in annotation.keys() and 'Identified By' in annotation['attributes'].keys() else None,
-                'notes': annotation['attributes']['Notes'] if 'attributes' in annotation.keys() and 'Notes' in annotation['attributes'].keys() else None,
-                'qualifier': annotation['attributes']['Qualifier'] if 'attributes' in annotation.keys() and 'Qualifier' in annotation['attributes'].keys() else None,
-                'reason': annotation['attributes']['Reason'] if 'attributes' in annotation.keys() and 'Reason' in annotation['attributes'].keys() else None,
-                'tentative_id': annotation['attributes']['Tentative ID'] if 'attributes' in annotation.keys() and 'Tentative ID' in annotation['attributes'].keys() else None,
+                'scientific_name': self.comments[comment].get('scientific_name'),
+                'all_localizations': json.loads(self.comments[comment].get('all_localizations')),
+                'attracted': annotation['attributes'].get('Attracted') if annotation.get('attributes') else None,
+                'categorical_abundance': annotation['attributes'].get('Categorical Abundance') if annotation.get('attributes') else None,
+                'identification_remarks': annotation['attributes'].get('IdentificationRemarks') if annotation.get('attributes') else None,
+                'identified_by': annotation['attributes'].get('Identified By') if annotation.get('attributes') else None,
+                'notes': annotation['attributes'].get('Notes') if annotation.get('attributes') else None,
+                'qualifier': annotation['attributes'].get('Qualifier') if annotation.get('attributes') else None,
+                'reason': annotation['attributes'].get('Reason') if annotation.get('attributes') else None,
+                'tentative_id': annotation['attributes'].get('Tentative ID') if annotation.get('attributes') else None,
                 'identity_certainty': get_association(annotation, 'identity-certainty')['link_value'] if get_association(annotation, 'identity-certainty') else None,
                 'identity_reference': get_association(annotation, 'identity-reference')['link_value'] if get_association(annotation, 'identity-reference') else None,
                 'guide-photo': get_association(annotation, 'guide-photo')['to_concept'] if get_association(annotation, 'guide-photo') else None,
@@ -92,26 +92,14 @@ class CommentProcessor:
                 'video_sequence_name': self.comments[comment]['sequence'],
                 'annotator': format_annotator(annotation['observer']) if 'observer' in annotation.keys() else self.comments[comment]['annotator'],
                 'depth': self.comments[comment]['depth'],
-                'lat': self.comments[comment]['lat'] if 'lat' in self.comments[comment].keys() else None,
-                'long': self.comments[comment]['long'] if 'long' in self.comments[comment].keys() else None,
-                'temperature': self.comments[comment]['temperature'] if 'temperature' in self.comments[comment].keys() else None,
-                'oxygen_ml_l': self.comments[comment]['oxygen_ml_l'] if 'oxygen_ml_l' in self.comments[comment].keys() else None,
+                'lat': self.comments[comment].get('lat'),
+                'long': self.comments[comment].get('long'),
+                'temperature': self.comments[comment].get('temperature'),
+                'oxygen_ml_l': self.comments[comment].get('oxygen_ml_l'),
             }
             if concept_name in phylogeny.keys():
-                comment_dict['phylum'] = phylogeny[concept_name]['phylum'] if 'phylum' in phylogeny[concept_name].keys() else None
-                comment_dict['subphylum'] = phylogeny[concept_name]['subphylum'] if 'subphylum' in phylogeny[concept_name].keys() else None
-                comment_dict['superclass'] = phylogeny[concept_name]['superclass'] if 'superclass' in phylogeny[concept_name].keys() else None
-                comment_dict['class'] = phylogeny[concept_name]['class'] if 'class' in phylogeny[concept_name].keys() else None
-                comment_dict['subclass'] = phylogeny[concept_name]['subclass'] if 'subclass' in phylogeny[concept_name].keys() else None
-                comment_dict['superorder'] = phylogeny[concept_name]['superorder'] if 'superorder' in phylogeny[concept_name].keys() else None
-                comment_dict['order'] = phylogeny[concept_name]['order'] if 'order' in phylogeny[concept_name].keys() else None
-                comment_dict['suborder'] = phylogeny[concept_name]['suborder'] if 'suborder' in phylogeny[concept_name].keys() else None
-                comment_dict['infraorder'] = phylogeny[concept_name]['infraorder'] if 'infraorder' in phylogeny[concept_name].keys() else None
-                comment_dict['superfamily'] = phylogeny[concept_name]['superfamily'] if 'superfamily' in phylogeny[concept_name].keys() else None
-                comment_dict['family'] = phylogeny[concept_name]['family'] if 'family' in phylogeny[concept_name].keys() else None
-                comment_dict['subfamily'] = phylogeny[concept_name]['subfamily'] if 'subfamily' in phylogeny[concept_name].keys() else None
-                comment_dict['genus'] = phylogeny[concept_name]['genus'] if 'genus' in phylogeny[concept_name].keys() else None
-                comment_dict['species'] = phylogeny[concept_name]['species'] if 'species' in phylogeny[concept_name].keys() else None
+                for key in phylogeny[concept_name].keys():
+                    comment_dict[key] = phylogeny[concept_name][key]
             formatted_comments.append(comment_dict)
 
         # add to dataframe for sorting
