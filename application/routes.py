@@ -232,7 +232,18 @@ def tator_qaqc_checklist(project_id, section_id):
             })
         localizations += req.json()
     for localization in localizations:
-        individual_count += 1 if localization['type'] == 49 else 0
+        if localization['type'] == 49:
+            individual_count += 1
+            if localization['attributes']['Categorical Abundance'] != '--':
+                match localization['attributes']['Categorical Abundance']:
+                    case '20-49':
+                        individual_count += 35
+                    case '50-99':
+                        individual_count += 75
+                    case '100-999':
+                        individual_count += 500
+                    case '1000+':
+                        individual_count += 1000
     data = {
         'title': section_name,
         'localization_count': len(localizations),
