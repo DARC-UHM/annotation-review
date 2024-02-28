@@ -71,6 +71,7 @@ class LocalizationProcessor:
                     req = requests.get(f'https://www.marinespecies.org/rest/AphiaClassificationByAphiaID/{aphia_id}')
                     if req.status_code == 200:
                         phylogeny[scientific_name] = flatten_taxa_tree(req.json(), {})
+                        phylogeny[scientific_name]['aphia_id'] = aphia_id
                 else:
                     req = requests.get(f'https://www.marinespecies.org/rest/AphiaRecordsByName/{scientific_name}?like=false&marine_only=true&offset=1')
                     if req.status_code == 200 and len(req.json()) > 0:
@@ -80,6 +81,7 @@ class LocalizationProcessor:
                                 req = requests.get(f'https://www.marinespecies.org/rest/AphiaClassificationByAphiaID/{record["AphiaID"]}')
                                 if req.status_code == 200:
                                     phylogeny[scientific_name] = flatten_taxa_tree(req.json(), {})
+                                    phylogeny[scientific_name]['aphia_id'] = record['AphiaID']
                                 break
             localization_dict = {
                 'id': localization['id'],
@@ -141,7 +143,9 @@ class LocalizationProcessor:
             'family',
             'subfamily',
             'genus',
+            'subgenus',
             'species',
+            'subspecies',
         ])
 
         def collect_localizations(items):
@@ -175,7 +179,9 @@ class LocalizationProcessor:
                 'family': 'first',
                 'subfamily': 'first',
                 'genus': 'first',
+                'subgenus': 'first',
                 'species': 'first',
+                'subspecies': 'first',
         }).reset_index()
 
         localization_df = localization_df.sort_values(by=[
@@ -221,7 +227,9 @@ class LocalizationProcessor:
                 'order': row['order'],
                 'family': row['family'],
                 'genus': row['genus'],
+                'subgenus': row['subgenus'],
                 'species': row['species'],
+                'subspecies': row['subspecies'],
             })
 
         try:

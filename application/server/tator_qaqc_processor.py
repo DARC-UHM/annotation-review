@@ -80,6 +80,7 @@ class TatorQaqcProcessor:
             req = requests.get(f'https://www.marinespecies.org/rest/AphiaClassificationByAphiaID/{aphia_id}')
             if req.status_code == 200:
                 self.phylogeny[scientific_name] = flatten_taxa_tree(req.json(), {})
+                self.phylogeny[scientific_name]['aphia_id'] = aphia_id
         else:
             req = requests.get(f'https://www.marinespecies.org/rest/AphiaRecordsByName/{scientific_name}?like=false&marine_only=true&offset=1')
             if req.status_code == 200 and len(req.json()) > 0:
@@ -89,6 +90,7 @@ class TatorQaqcProcessor:
                         req = requests.get(f'https://www.marinespecies.org/rest/AphiaClassificationByAphiaID/{record["AphiaID"]}')
                         if req.status_code == 200:
                             self.phylogeny[scientific_name] = flatten_taxa_tree(req.json(), {})
+                            self.phylogeny[scientific_name]['aphia_id'] = record['AphiaID']
                         break
             else:
                 print(f'{TERM_RED}No accepted record found for concept name "{scientific_name}"{TERM_NORMAL}')
@@ -180,7 +182,10 @@ class TatorQaqcProcessor:
             'family',
             'subfamily',
             'genus',
+            'subgenus',
             'species',
+            'subspecies',
+            'aphia_id',
         ])
 
         def collect_localizations(items):
@@ -214,8 +219,11 @@ class TatorQaqcProcessor:
             'family': 'first',
             'subfamily': 'first',
             'genus': 'first',
+            'subgenus': 'first',
             'species': 'first',
+            'subspecies': 'first',
             'problems': 'first',
+            'aphia_id': 'first',
         }).reset_index()
 
         localization_df = localization_df.sort_values(by=[
@@ -257,12 +265,23 @@ class TatorQaqcProcessor:
                 'reason': row['reason'],
                 'tentative_id': row['tentative_id'],
                 'phylum': row['phylum'],
+                'subphylum': row['subphylum'],
+                'superclass': row['superclass'],
                 'class': row['class'],
+                'subclass': row['subclass'],
+                'superorder': row['superorder'],
                 'order': row['order'],
+                'suborder': row['suborder'],
+                'infraorder': row['infraorder'],
+                'superfamily': row['superfamily'],
                 'family': row['family'],
+                'subfamily': row['subfamily'],
                 'genus': row['genus'],
+                'subgenus': row['subgenus'],
                 'species': row['species'],
+                'subspecies': row['subspecies'],
                 'problems': row['problems'],
+                'aphia_id': row['aphia_id'],
             })
 
         print('processed!')
@@ -456,4 +475,5 @@ class TatorQaqcProcessor:
         """
         Returns a summary of the final records.
         """
-        pass
+        self.records_of_interest = self.localizations
+        self.process_records()

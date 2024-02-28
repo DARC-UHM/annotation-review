@@ -89,6 +89,52 @@ document.addEventListener('DOMContentLoaded', () => {
         $('#totalCount').html(totalMedia.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
     } else {
         // summary table
+        $('#annotationTable').css('overflow-x', 'auto');
+        $('#annotationTable').find('thead').html(`
+            <tr class="small text-start">
+                <th scope="col">Scientific Name</th>
+                <th scope="col">Taxon Rank</th>
+                <th scope="col">AphiaID</th>
+                <th scope="col">Phylum</th>
+                <th scope="col">Class</th>
+                <th scope="col">Subclass</th>
+                <th scope="col">Order</th>
+                <th scope="col">Suborder</th>
+                <th scope="col">Family</th>
+                <th scope="col">Subfamily</th>
+                <th scope="col">Genus</th>
+                <th scope="col">Subgenus</th>
+                <th scope="col">Species</th>
+                <th scope="col">Subspecies</th>
+            </tr>
+        `);
+        for (const annotation of annotations) {
+            for (const rank of ['subspecies', 'species', 'subgenus', 'genus', 'subfamily', 'family', 'suborder', 'order', 'subclass', 'class', 'phylum']) {
+                if (annotation[rank]) {
+                    annotation.rank = rank.replace(/_/g, ' ');
+                    annotation.rank = annotation.rank.charAt(0).toUpperCase() + annotation.rank.slice(1);
+                    break;
+                }
+            }
+            $('#annotationTable').find('tbody').append(`
+                <tr class="small text-start">
+                    <td>${annotation.scientific_name}</td>
+                    <td>${annotation.rank}</td>
+                    <td>${annotation.aphia_id || '-'}</td>
+                    <td>${annotation.phylum || '-'}</td>
+                    <td>${annotation.class || '-'}</td>
+                    <td>${annotation.subclass || '-'}</td>
+                    <td>${annotation.order || '-'}</td>
+                    <td>${annotation.suborder || '-'}</td>
+                    <td>${annotation.family || '-'}</td>
+                    <td>${annotation.subfamily || '-'}</td>
+                    <td>${annotation.genus || '-'}</td>
+                    <td>${annotation.subgenus || '-'}</td>
+                    <td>${annotation.species || '-'}</td>
+                    <td>${annotation.subspecies || '-'}</td>
+                </tr>
+            `);
+        }
     }
 });
 
