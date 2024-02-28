@@ -12,20 +12,22 @@
                     <div><span id="deploymentList"></span></div>
                 </div>
                 <div class="col text-end mt-auto small">
-                    <span>Unique Taxa:&nbsp;&nbsp<span id="uniqueTaxaCount" style="font-weight: 600;"></span></span><br>
+                    <span>Total Media:&nbsp;&nbsp<span id="totalMediaCount" style="font-weight: 600;"></span></span><br>
                 </div>
             </div>
         </div>
         <div id="404" style="display: none;" class="my-5">
-            <h3>No records found<br></h3>
+            <h3>No media found<br></h3>
         </div>
         <div class="col d-flex justify-content-center mt-3">
             <table id="annotationTable" class="table table-striped">
                 <thead class="text-start">
                     <tr>
-                        <th scope="col">TODO</th>
-                        <th scope="col">Max N</th>
-                        <th scope="col">First Dot (TOFA)</th>
+                        <th scope="col">Media Name</th>
+                        <th scope="col">FOV</th>
+                        <th scope="col">Substrate</th>
+                        <th scope="col">Quality</th>
+                        <th scope="col">Quality Notes</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -39,7 +41,7 @@
         const nan = null;
         const True = true;
         const False = false;
-        const uniqueTaxa = {{ data.unique_taxa|safe }};
+        const mediaAttributes = {{ data.media_attributes|safe }};
     </script>
-    <script type="module" src="/static/js/qaqc/tator/qaqc-unique-taxa.js"></script>
+    <script type="module" src="/static/js/qaqc/tator/qaqc-media-attributes.js"></script>
 {% endblock content %}

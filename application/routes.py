@@ -263,18 +263,36 @@ def tator_qaqc(project_id, section_id, check):
                 comments = comments | r.json()  # merge dicts
     except requests.exceptions.ConnectionError:
         print('\nERROR: unable to connect to external review server\n')
-    qaqc_annos = TatorQaqcProcessor(
-        project_id=project_id,
-        section_id=section_id,
-        api=api,
-        deployment_list=request.args.getlist('deployment'),
-    )
     data = {
         'concepts': session['vars_concepts'],
         'title': check.replace('-', ' ').title(),
         'comments': comments,
         'reviewers': session['reviewers'],
     }
+    if check == 'media-attributes':
+        # the one case where we don't want to initialize a TatorQaqcProcessor (no need to fetch localizations)
+        media_attributes = {}
+        for deployment in request.args.getlist('deployment'):
+            media_attributes[deployment] = []
+            req = requests.get(  # REST API is much faster than Python API for large queries
+                f'https://cloud.tator.io/rest/Medias/{project_id}?section={section_id}&attribute_contains=%24name%3A%3A{deployment}',
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Token {session["tator_token"]}',
+                })
+            if req.status_code != 200:
+                raise tator.openapi.tator_openapi.exceptions.ApiException
+            for media in req.json():
+                media_attributes[deployment].append(media)
+        data['page_title'] = 'Media attributes'
+        data['media_attributes'] = media_attributes
+        return render_template('qaqc/tator/qaqc-media-attributes.html', data=data)
+    qaqc_annos = TatorQaqcProcessor(
+        project_id=project_id,
+        section_id=section_id,
+        api=api,
+        deployment_list=request.args.getlist('deployment'),
+    )
     match check:
         case 'names-accepted':
             qaqc_annos.check_names_accepted()
@@ -300,11 +318,6 @@ def tator_qaqc(project_id, section_id, check):
             data['page_title'] = 'All unique taxa'
             data['unique_taxa'] = qaqc_annos.final_records
             return render_template('qaqc/tator/qaqc-unique-taxa.html', data=data)
-        case 'media-attributes':
-            qaqc_annos.get_media_attributes()
-            data['page_title'] = 'Media attributes'
-            data['media_attributes'] = qaqc_annos.final_records
-            return render_template('qaqc/tator/qaqc-media-attributes.html', data=data)
         case _:
             return render_template('not-found.html', err=''), 404
     data['annotations'] = qaqc_annos.final_records

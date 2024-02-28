@@ -14,10 +14,7 @@ const checkboxComplete = `<svg xmlns="http://www.w3.org/2000/svg" width="18" hei
 TATOR CHECKS TODO:
 - cat abundance 1-19 should only be allowed for certain taxa todo add <
 - review media attributes (FOV, quality, substrate)
-  - FOV column: FOV should be the same for all videos in a deployment (highest FOV)
-    - would be nice to have an option to change FOV for all clips in deployment
-  - quality column that includes all qualities for each clip and clip comments (Quality Notes)
-  - substrate column
+    - would be nice to have an option to change FOV for all clips in deployment todo
 - summary
   - annotator
   - include utc time
@@ -114,8 +111,8 @@ document.addEventListener('DOMContentLoaded',  (event) => {
     $('#notesRemarksAnchor').on('click', () => showLoader());
     $('#uniqueTaxaAnchor').attr('href', `/tator/qaqc/${projectId}/${sectionId}/unique-taxa?deployment=${deployments.join('&deployment=')}`);
     $('#uniqueTaxaAnchor').on('click', () => showLoader());
-    // $('#mediaAttributesAnchor').attr('href', `/tator/qaqc/${projectId}/${sectionId}/media-attributes?deployment=${deployments.join('&deployment=')}`);
-    // $('#mediaAttributesAnchor').on('click', () => showLoader());
+    $('#mediaAttributesAnchor').attr('href', `/tator/qaqc/${projectId}/${sectionId}/media-attributes?deployment=${deployments.join('&deployment=')}`);
+    $('#mediaAttributesAnchor').on('click', () => showLoader());
 });
 
 // get rid of loading screen if back button is pressed (mozilla)
