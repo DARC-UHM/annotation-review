@@ -72,7 +72,7 @@ class CommentProcessor:
                 'observation_uuid': comment,
                 'concept': concept_name,
                 'scientific_name': self.comments[comment].get('scientific_name'),
-                'all_localizations': json.loads(self.comments[comment].get('all_localizations')),
+                'all_localizations': json.loads(self.comments[comment].get('all_localizations')) if self.comments[comment].get('all_localizations') else None,
                 'attracted': annotation['attributes'].get('Attracted') if annotation.get('attributes') else None,
                 'categorical_abundance': annotation['attributes'].get('Categorical Abundance') if annotation.get('attributes') else None,
                 'identification_remarks': annotation['attributes'].get('IdentificationRemarks') if annotation.get('attributes') else None,
