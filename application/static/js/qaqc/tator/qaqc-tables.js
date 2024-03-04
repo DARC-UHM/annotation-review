@@ -89,6 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
         $('#totalCount').html(totalMedia.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
     } else {
         // summary table
+        $('#headerContainer').css('max-width', '100%');
         $('#annotationTable').find('thead').html(`
             <tr class="small text-start sticky-top" style="background: #1c2128;">
                 <th scope="col" style="position: sticky; left: 0; background: #1c2128; z-index: 1;">ScientificName</th>
