@@ -89,11 +89,10 @@ document.addEventListener('DOMContentLoaded', () => {
         $('#totalCount').html(totalMedia.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
     } else {
         // summary table
-        $('#annotationTable').css('overflow-x', 'auto');
         $('#annotationTable').find('thead').html(`
-            <tr class="small text-start">
-                <th scope="col">Scientific Name</th>
-                <th scope="col">Taxon Rank</th>
+            <tr class="small text-start sticky-top" style="background: #1c2128;">
+                <th scope="col" style="position: sticky; left: 0; background: #1c2128; z-index: 1;">ScientificName</th>
+                <th scope="col">TaxonRank</th>
                 <th scope="col">AphiaID</th>
                 <th scope="col">Phylum</th>
                 <th scope="col">Class</th>
@@ -106,8 +105,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 <th scope="col">Subgenus</th>
                 <th scope="col">Species</th>
                 <th scope="col">Subspecies</th>
+                <th scope="col">ObservationTimestamp</th>
+                <th scope="col">IdentificationRemarks</th>
+                <th scope="col">IdentifiedBy</th>
+                <th scope="col">IdentificationQualifier</th>
+                <th scope="col">Reason</th>
+                <th scope="col">Notes</th>
+                <th scope="col">Attracted</th>
+                <th scope="col">Latitude</th>
+                <th scope="col">Longitude</th>
+                <th scope="col">DepthInMeters</th>
+                <th scope="col">IndividualCount</th>
+                <th scope="col">CategoricalAbundance</th>
             </tr>
         `);
+        let dark = true;
         for (const annotation of annotations) {
             for (const rank of ['subspecies', 'species', 'subgenus', 'genus', 'subfamily', 'family', 'suborder', 'order', 'subclass', 'class', 'phylum']) {
                 if (annotation[rank]) {
@@ -118,8 +130,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             $('#annotationTable').find('tbody').append(`
                 <tr class="small text-start">
-                    <td>${annotation.scientific_name}</td>
-                    <td>${annotation.rank}</td>
+                    <td style="position: sticky; left: 0; background: ${dark ? '#212730' : 'var(--darc-bg)'}; z-index: 5;">${annotation.scientific_name}</td>
+                    <td style="z-index: 0;">${annotation.rank}</td>
                     <td>${annotation.aphia_id || '-'}</td>
                     <td>${annotation.phylum || '-'}</td>
                     <td>${annotation.class || '-'}</td>
@@ -132,8 +144,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td>${annotation.subgenus || '-'}</td>
                     <td>${annotation.species || '-'}</td>
                     <td>${annotation.subspecies || '-'}</td>
+                    <td>${annotation.timestamp || '-'}</td>
+                    <td>${annotation.identification_remarks || '-'}</td>
+                    <td>${annotation.identified_by || annotation.annotator}</td>
+                    <td>${annotation.qualifier}</td>
+                    <td>${annotation.reason}</td>
+                    <td>${annotation.notes}</td>
+                    <td>${annotation.attracted}</td>
+                    <td>${annotation.lat || '-'}</td>
+                    <td>${annotation.long || '-'}</td>
+                    <td>${annotation.depth || '-'}</td>
+                    <td>${annotation.count || '-'}</td>
+                    <td>${annotation.categorical_abundance || '-'}</td>
                 </tr>
             `);
+            dark = !dark;
         }
     }
 });
