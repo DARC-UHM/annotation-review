@@ -449,7 +449,7 @@ def vars_qaqc_checklist():
                             individual_count += 100
                     continue
                 pop_quantity = get_association(annotation, 'population-quantity')
-                if pop_quantity:
+                if pop_quantity and pop_quantity['link_value'] != '':
                     individual_count += int(pop_quantity['link_value'])
                     continue
                 individual_count += 1
