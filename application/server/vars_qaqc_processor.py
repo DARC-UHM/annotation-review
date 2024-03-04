@@ -647,7 +647,8 @@ class VarsQaqcProcessor:
                         case 'occurrence-remark':
                             occurrence_remark = association['link_value']
                         case 'population-quantity':
-                            individual_count = int(association['link_value'])
+                            if association['link_value'] != '':
+                                individual_count = int(association['link_value'])
                         case 'categorical-abundance':
                             match association['link_value']:
                                 case '11-20':
