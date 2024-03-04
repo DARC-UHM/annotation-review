@@ -21,6 +21,7 @@ const checkboxStatus = {
     missingAncillaryCheckbox: 0,
     refIdConceptNameCheckbox: 0,
     refIdAssociationsCheckbox: 0,
+    blankAssociationsCheckbox: 0,
     suspiciousHostCheckbox: 0,
     expectedAssociationCheckbox: 0,
     timeDiffHostUponCheckbox: 0,
@@ -114,6 +115,8 @@ document.addEventListener('DOMContentLoaded',  (event) => {
     $('#refIdConceptNameAnchor').on('click', () => showLoader());
     $('#refIdAssociationsAnchor').attr('href', `/vars/qaqc/id-ref-associations?sequence=${sequences.join('&sequence=')}#sort=ID Reference`);
     $('#refIdAssociationsAnchor').on('click', () => showLoader());
+    $('#blankAssociationsAnchor').attr('href', `/vars/qaqc/blank-associations?sequence=${sequences.join('&sequence=')}`);
+    $('#blankAssociationsAnchor').on('click', () => showLoader());
     $('#suspiciousHostAnchor').attr('href', `/vars/qaqc/suspicious-hosts?sequence=${sequences.join('&sequence=')}`);
     $('#suspiciousHostAnchor').on('click', () => showLoader());
     $('#expectedAssociationAnchor').attr('href', `/vars/qaqc/expected-associations?sequence=${sequences.join('&sequence=')}`);

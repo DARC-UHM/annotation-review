@@ -466,6 +466,17 @@ class VarsQaqcProcessor:
                         self.working_records.append(annotation)
         self.process_records()
 
+    def find_blank_associations(self):
+        """
+        Finds all records that have associations with a link value of ""
+        """
+        for name in self.sequence_names:
+            for annotation in self.fetch_annotations(name):
+                for association in annotation['associations']:
+                    if association['link_value'] == "":
+                        self.working_records.append(annotation)
+        self.process_records()
+
     def find_suspicious_hosts(self):
         """
         Finds annotations that have an upon that is the same concept as itself

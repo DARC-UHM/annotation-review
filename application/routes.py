@@ -496,6 +496,9 @@ def vars_qaqc(check):
         case 'id-ref-associations':
             qaqc_annos.find_id_refs_conflicting_associations()
             data['page_title'] = 'Records with the same ID reference that have conflicting associations'
+        case 'blank-associations':
+            qaqc_annos.find_blank_associations()
+            data['page_title'] = 'Records with blank association link values'
         case 'suspicious-hosts':
             qaqc_annos.find_suspicious_hosts()
             data['page_title'] = 'Records with suspicious hosts'

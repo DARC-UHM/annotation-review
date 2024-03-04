@@ -309,6 +309,19 @@ function updateHash() {
                 }
                 break;
             }
+            case 'Blank Associations': {
+                $(`#problemsDiv${index}`).append(`
+                    <table id="associationTable${index}" class="w-100 associationTable">
+                        <thead><tr><th>Link Name</th><th>Link Value</th></tr></thead>
+                    </table>
+                `);
+                for (const association of annotation.associations) {
+                    if (association.link_value === '') {
+                        $(`#associationTable${index}`).append(`<tr><td>${association.link_name}</td><td>${association.link_value}</td></tr>`);
+                    }
+                }
+                break;
+            }
             case 'Suspicious Hosts': {
                 $(`#problemsDiv${index}`).append(`
                     <table id="associationTable${index}" class="w-100 associationTable">
