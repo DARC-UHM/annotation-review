@@ -399,6 +399,11 @@ select:active {
     color: var(--darc-text);
 }
 
+.table-header-hover:hover {
+    transition: all 0.1s;
+    filter: brightness(110%);
+}
+
 .sequenceName {
     padding: 3px 8px;
     width: 250px;

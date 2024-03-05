@@ -1,5 +1,13 @@
 const deployments = [];
 
+const caretDownFill = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-down-fill ms-1 pt-1" viewBox="0 0 16 16">
+    <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+</svg>`;
+
+const caretUpFill = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-up-fill ms-1 pt-1" viewBox="0 0 16 16">
+    <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z"/>
+</svg>`;
+
 function returnToCheckList() {
     const url = window.location.href;
     const projectId = url.split('/')[url.split('/').length - 3];
@@ -9,19 +17,18 @@ function returnToCheckList() {
 
 window.returnToCheckList = returnToCheckList;
 
-document.addEventListener('DOMContentLoaded', () => {
+function setSort(sort) {
     const url = new URL(window.location.href);
+    url.hash = `sort=${sort}`;
+    window.location.href = url;
+}
 
-    for (const pair of url.searchParams.entries()) {
-        if (pair[0].includes('deployment')) {
-            const param = pair[1].split(' ');
-            deployments.push(param.pop());
-        }
-    }
-    $('#deploymentList').html(`${deployments.join(', ')}<br>`);
+window.setSort = setSort;
 
+function updateHash() {
+    $('#annotationTable').find('tbody').html('');
     if (Object.keys(uniqueTaxa).length) {
-        console.log(Object.keys(uniqueTaxa).length);
+        // unique taxa table
         $('#countLabel').html('Unique Taxa:&nbsp;&nbsp');
         $('#totalCount').html(Object.keys(uniqueTaxa).length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
         $('#subheader').html('Highlights taxa that have a box occur before the first dot or do not have both a box and a dot');
@@ -60,6 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `);
         }
     } else if (Object.keys(mediaAttributes).length) {
+        // media table
         let totalMedia = 0;
         $('#annotationTable').find('thead').html(`
             <tr>
@@ -89,13 +97,40 @@ document.addEventListener('DOMContentLoaded', () => {
         $('#totalCount').html(totalMedia.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
     } else {
         // summary table
+        const url = new URL(window.location.href);
+        const hash = url.hash.slice(1);
+        const sort = hash.split('=')[1] || 'timestamp';
+        let dark = true;
+
         $('#headerContainer').css('max-width', '100%');
+        $('#tableContainer').removeClass('d-flex');
+        $('#backButtonText').removeClass('d-xxl-inline');
         $('#annotationTable').find('thead').html(`
-            <tr class="small text-start sticky-top" style="background: #1c2128;">
-                <th scope="col" style="position: sticky; left: 0; background: #1c2128; z-index: 1;">ScientificName</th>
-                <th scope="col">TaxonRank</th>
+            <tr class="small text-start sticky-top" style="background: #1c2128; cursor: pointer;">
+                <th
+                  scope="col"
+                  style="position: sticky; left: 0; background: #1c2128; z-index: 1;"
+                  onclick="setSort('scientific_name')"
+                  class="table-header-hover"
+                >
+                    <div class="d-flex">
+                        ScientificName
+                        ${sort === 'scientific_name' ? caretUpFill : ''}
+                    </div>
+                </th>
+                <th scope="col" onclick="setSort('rank')" class="table-header-hover">
+                    <div class="d-flex">
+                        TaxonRank
+                        ${sort === 'rank' ? caretUpFill : ''}
+                    </div>
+                </th>
                 <th scope="col">AphiaID</th>
-                <th scope="col">Phylum</th>
+                <th scope="col" onclick="setSort('phylum')" class="table-header-hover">
+                    <div class="d-flex">
+                        Phylum
+                        ${sort === 'phylum' ? caretUpFill : ''}
+                    </div>
+                </th>
                 <th scope="col">Class</th>
                 <th scope="col">Subclass</th>
                 <th scope="col">Order</th>
@@ -120,8 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <th scope="col">CategoricalAbundance</th>
             </tr>
         `);
-        let dark = true;
-        for (const annotation of annotations) {
+        for (const annotation of annotations.sort((a, b) => a[sort]?.localeCompare(b[sort]))) {
             for (const rank of ['subspecies', 'species', 'subgenus', 'genus', 'subfamily', 'family', 'suborder', 'order', 'subclass', 'class', 'phylum']) {
                 if (annotation[rank]) {
                     annotation.rank = rank.replace(/_/g, ' ');
@@ -162,6 +196,20 @@ document.addEventListener('DOMContentLoaded', () => {
             dark = !dark;
         }
     }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const url = new URL(window.location.href);
+
+    for (const pair of url.searchParams.entries()) {
+        if (pair[0].includes('deployment')) {
+            const param = pair[1].split(' ');
+            deployments.push(param.pop());
+        }
+    }
+    $('#deploymentList').html(`${deployments.join(', ')}<br>`);
+
+    updateHash();
 });
 
 window.onhashchange = () => {
