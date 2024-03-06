@@ -19,7 +19,11 @@ window.returnToCheckList = returnToCheckList;
 
 function setSort(sort) {
     const url = new URL(window.location.href);
-    url.hash = `sort=${sort}`;
+    if (url.hash === `#sort=${sort}`) {
+        url.hash = `sort=${sort}-desc`;
+    } else {
+        url.hash = `sort=${sort}`;
+    }
     window.location.href = url;
 }
 
@@ -99,8 +103,28 @@ function updateHash() {
         // summary table
         const url = new URL(window.location.href);
         const hash = url.hash.slice(1);
-        const sort = hash.split('=')[1] || 'timestamp';
+        let sortKey = hash.split('=')[1] || 'timestamp';
         let dark = true;
+        let sortedAnnotations;
+
+        if (sortKey.includes('-desc')) {
+            const tempSortKey = sortKey.split('-')[0];
+            let filtered = annotations.filter((anno) => anno[tempSortKey]);
+            if (sortKey.includes('count')) {
+                filtered.sort((a, b) => b[tempSortKey] > a[tempSortKey]);
+            } else {
+                filtered.sort((a, b) => b[tempSortKey]?.localeCompare(a[tempSortKey]));
+            }
+            sortedAnnotations = filtered.concat(annotations.filter((anno) => !anno[tempSortKey]));
+        } else {
+            let filtered = annotations.filter((anno) => anno[sortKey]);
+            if (sortKey.includes('count')) {
+                filtered.sort((a, b) => b[sortKey] < a[sortKey]);
+            } else {
+                filtered.sort((a, b) => b[sortKey]?.localeCompare(a[sortKey]));
+            }
+            sortedAnnotations = filtered.concat(annotations.filter((anno) => !anno[sortKey]));
+        }
 
         $('#headerContainer').css('max-width', '100%');
         $('#tableContainer').removeClass('d-flex');
@@ -115,47 +139,144 @@ function updateHash() {
                 >
                     <div class="d-flex">
                         ScientificName
-                        ${sort === 'scientific_name' ? caretUpFill : ''}
+                        ${sortKey=== 'scientific_name' ? caretUpFill : sortKey=== 'scientific_name-desc' ? caretDownFill : ''}
                     </div>
                 </th>
                 <th scope="col" onclick="setSort('rank')" class="table-header-hover">
                     <div class="d-flex">
                         TaxonRank
-                        ${sort === 'rank' ? caretUpFill : ''}
+                        ${sortKey=== 'rank' ? caretUpFill : sortKey=== 'rank-desc' ? caretDownFill : ''}
                     </div>
                 </th>
-                <th scope="col">AphiaID</th>
+                <th scope="col" style="cursor: default;">AphiaID</th>
                 <th scope="col" onclick="setSort('phylum')" class="table-header-hover">
                     <div class="d-flex">
                         Phylum
-                        ${sort === 'phylum' ? caretUpFill : ''}
+                        ${sortKey=== 'phylum' ? caretUpFill : sortKey=== 'phylum-desc' ? caretDownFill : ''}
                     </div>
                 </th>
-                <th scope="col">Class</th>
-                <th scope="col">Subclass</th>
-                <th scope="col">Order</th>
-                <th scope="col">Suborder</th>
-                <th scope="col">Family</th>
-                <th scope="col">Subfamily</th>
-                <th scope="col">Genus</th>
-                <th scope="col">Subgenus</th>
-                <th scope="col">Species</th>
-                <th scope="col">Subspecies</th>
-                <th scope="col">ObservationTimestamp</th>
-                <th scope="col">IdentificationRemarks</th>
-                <th scope="col">IdentifiedBy</th>
-                <th scope="col">IdentificationQualifier</th>
-                <th scope="col">Reason</th>
-                <th scope="col">Notes</th>
-                <th scope="col">Attracted</th>
-                <th scope="col">Latitude</th>
-                <th scope="col">Longitude</th>
-                <th scope="col">DepthInMeters</th>
-                <th scope="col">IndividualCount</th>
-                <th scope="col">CategoricalAbundance</th>
+                <th scope="col" onclick="setSort('class')" class="table-header-hover">
+                    <div class="d-flex">
+                        Class
+                        ${sortKey=== 'class' ? caretUpFill : sortKey=== 'class-desc' ? caretDownFill : ''}
+                    </div>
+                </th>
+                <th scope="col" onclick="setSort('subclass')" class="table-header-hover">
+                    <div class="d-flex">
+                        Subclass
+                        ${sortKey=== 'subclass' ? caretUpFill : sortKey=== 'subclass-desc' ? caretDownFill : ''}
+                    </div>
+                </th>
+                <th scope="col" onclick="setSort('order')" class="table-header-hover">
+                    <div class="d-flex">
+                        Order
+                        ${sortKey=== 'order' ? caretUpFill : sortKey=== 'order-desc' ? caretDownFill : ''}
+                    </div>
+                </th>
+                <th scope="col" onclick="setSort('suborder')" class="table-header-hover">
+                    <div class="d-flex">
+                        Suborder
+                        ${sortKey=== 'suborder' ? caretUpFill : sortKey=== 'suborder-desc' ? caretDownFill : ''}
+                    </div>
+                </th>
+                <th scope="col" onclick="setSort('family')" class="table-header-hover">
+                    <div class="d-flex">
+                        Family
+                        ${sortKey=== 'family' ? caretUpFill : sortKey=== 'family-desc' ? caretDownFill : ''}
+                    </div>
+                </th>
+                <th scope="col" onclick="setSort('subfamily')" class="table-header-hover">
+                    <div class="d-flex">
+                        Subfamily
+                        ${sortKey=== 'subfamily' ? caretUpFill : sortKey=== 'subfamily-desc' ? caretDownFill : ''}
+                    </div>
+                </th>
+                <th scope="col" onclick="setSort('genus')" class="table-header-hover">
+                    <div class="d-flex">
+                        Genus
+                        ${sortKey=== 'genus' ? caretUpFill : sortKey=== 'genus-desc' ? caretDownFill : ''}
+                    </div>
+                </th>
+                <th scope="col" onclick="setSort('subgenus')" class="table-header-hover">
+                    <div class="d-flex">
+                        Subgenus
+                        ${sortKey=== 'subgenus' ? caretUpFill : sortKey=== 'subgenus-desc' ? caretDownFill : ''}
+                    </div>
+                </th>
+                <th scope="col" onclick="setSort('species')" class="table-header-hover">
+                    <div class="d-flex">
+                        Species
+                        ${sortKey=== 'species' ? caretUpFill : sortKey=== 'species-desc' ? caretDownFill : ''}
+                    </div>
+                </th>
+                <th scope="col" onclick="setSort('subspecies')" class="table-header-hover">
+                    <div class="d-flex">
+                        Subspecies
+                        ${sortKey=== 'subspecies' ? caretUpFill : sortKey=== 'subspecies-desc' ? caretDownFill : ''}
+                    </div>
+                </th>
+                
+                <th scope="col">ObservationTimestamp</th> <!-- todo  <<<< -->
+                
+                <th scope="col" onclick="setSort('identification_remarks')" class="table-header-hover">
+                    <div class="d-flex">
+                        IdentificationRemarks
+                        ${sortKey=== 'identification_remarks' ? caretUpFill : sortKey=== 'identification_remarks-desc' ? caretDownFill : ''}
+                    </div>
+                </th>
+                <th scope="col" onclick="setSort('annotator')" class="table-header-hover">
+                    <div class="d-flex">
+                        IdentifiedBy
+                        ${sortKey=== 'annotator' ? caretUpFill : sortKey=== 'annotator-desc' ? caretDownFill : ''}
+                    </div>
+                </th>
+                <th scope="col" onclick="setSort('qualifier')" class="table-header-hover">
+                    <div class="d-flex">
+                        IdentificationQualifier
+                        ${sortKey=== 'qualifier' ? caretUpFill : sortKey=== 'qualifier-desc' ? caretDownFill : ''}
+                    </div>
+                </th>
+                <th scope="col" onclick="setSort('reason')" class="table-header-hover">
+                    <div class="d-flex">
+                        Reason
+                        ${sortKey=== 'reason' ? caretUpFill : sortKey=== 'reason-desc' ? caretDownFill : ''}
+                    </div>
+                </th>
+                <th scope="col" onclick="setSort('notes')" class="table-header-hover">
+                    <div class="d-flex">
+                        Notes
+                        ${sortKey=== 'notes' ? caretUpFill : sortKey=== 'notes-desc' ? caretDownFill : ''}
+                    </div>
+                </th>
+                <th scope="col" onclick="setSort('attracted')" class="table-header-hover">
+                    <div class="d-flex">
+                        Attracted
+                        ${sortKey=== 'attracted' ? caretUpFill : sortKey=== 'attracted-desc' ? caretDownFill : ''}
+                    </div>
+                </th>
+                <th scope="col" style="cursor: default;">Latitude</th>
+                <th scope="col" style="cursor: default;">Longitude</th>
+                <th scope="col" onclick="setSort('depth')" class="table-header-hover">
+                    <div class="d-flex">
+                        DepthInMeters
+                        ${sortKey=== 'depth' ? caretUpFill : sortKey=== 'depth-desc' ? caretDownFill : ''}
+                    </div>
+                </th>
+                <th scope="col" onclick="setSort('count')" class="table-header-hover">
+                    <div class="d-flex">
+                        IndividualCount
+                        ${sortKey=== 'count' ? caretUpFill : sortKey=== 'count-desc' ? caretDownFill : ''}
+                    </div>
+                </th>
+                <th scope="col" onclick="setSort('categorical_abundance')" class="table-header-hover">
+                    <div class="d-flex">
+                        CategoricalAbundance
+                        ${sortKey=== 'categorical_abundance' ? caretUpFill : sortKey=== 'categorical_abundance-desc' ? caretDownFill : ''}
+                    </div>
+                </th>
             </tr>
         `);
-        for (const annotation of annotations.sort((a, b) => a[sort]?.localeCompare(b[sort]))) {
+        for (const annotation of sortedAnnotations) {
             for (const rank of ['subspecies', 'species', 'subgenus', 'genus', 'subfamily', 'family', 'suborder', 'order', 'subclass', 'class', 'phylum']) {
                 if (annotation[rank]) {
                     annotation.rank = rank.replace(/_/g, ' ');
