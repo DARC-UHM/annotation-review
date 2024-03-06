@@ -33,6 +33,7 @@ function updateHash() {
     $('#annotationTable').find('tbody').html('');
     if (Object.keys(uniqueTaxa).length) {
         // unique taxa table
+        $('#downloadCsvButton').hide();
         $('#countLabel').html('Unique Taxa:&nbsp;&nbsp');
         $('#totalCount').html(Object.keys(uniqueTaxa).length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
         $('#subheader').html('Highlights taxa that have a box occur before the first dot or do not have both a box and a dot');
@@ -73,6 +74,7 @@ function updateHash() {
     } else if (Object.keys(mediaAttributes).length) {
         // media table
         let totalMedia = 0;
+        $('#downloadCsvButton').hide();
         $('#annotationTable').find('thead').html(`
             <tr>
                 <th scope="col">Media Name</th>
@@ -129,6 +131,7 @@ function updateHash() {
         $('#headerContainer').css('max-width', '100%');
         $('#tableContainer').removeClass('d-flex');
         $('#backButtonText').removeClass('d-xxl-inline');
+        $('#downloadCsvButton').show();
         $('#annotationTable').find('thead').html(`
             <tr class="small text-start sticky-top" style="background: #1c2128; cursor: pointer;">
                 <th
@@ -277,6 +280,7 @@ function updateHash() {
             </tr>
         `);
         for (const annotation of sortedAnnotations) {
+            console.log(annotation);
             for (const rank of ['subspecies', 'species', 'subgenus', 'genus', 'subfamily', 'family', 'suborder', 'order', 'subclass', 'class', 'phylum']) {
                 if (annotation[rank]) {
                     annotation.rank = rank.replace(/_/g, ' ');
@@ -319,6 +323,79 @@ function updateHash() {
     }
 }
 
+function downloadCsv() {
+    const headers = [
+        'ScientificName',
+        'TaxonRank',
+        'AphiaID',
+        'Phylum',
+        'Class',
+        'Subclass',
+        'Order',
+        'Suborder',
+        'Family',
+        'Subfamily',
+        'Genus',
+        'Subgenus',
+        'Species',
+        'Subspecies',
+        'ObservationTimestamp',
+        'IdentificationRemarks',
+        'IdentifiedBy',
+        'IdentificationQualifier',
+        'Reason',
+        'Notes',
+        'Attracted',
+        'Latitude',
+        'Longitude',
+        'DepthInMeters',
+        'IndividualCount',
+        'CategoricalAbundance',
+    ];
+    const rows = annotations.map((annotation) => [
+        annotation.scientific_name,
+        annotation.rank,
+        annotation.aphia_id,
+        annotation.phylum,
+        annotation.class,
+        annotation.subclass,
+        annotation.order,
+        annotation.suborder,
+        annotation.family,
+        annotation.subfamily,
+        annotation.genus,
+        annotation.subgenus,
+        annotation.species,
+        annotation.subspecies,
+        annotation.timestamp,
+        annotation.identification_remarks,
+        annotation.identified_by || annotation.annotator,
+        annotation.qualifier,
+        annotation.reason,
+        annotation.notes,
+        annotation.attracted,
+        annotation.lat,
+        annotation.long,
+        annotation.depth,
+        annotation.count,
+        annotation.categorical_abundance,
+    ]);
+
+    let csvContent = 'data:text/csv;charset=utf-8,';
+    csvContent += headers.join(',') + '\n';
+    rows.forEach((rowArray) => {
+        const row = rowArray.join(',');
+        csvContent += row + '\n';
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `${deployments.join('|')}.csv`);
+    document.body.appendChild(link);
+    link.click();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const url = new URL(window.location.href);
 
@@ -329,6 +406,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     $('#deploymentList').html(`${deployments.join(', ')}<br>`);
+
+    $('#downloadCsvButton').on('click', () => {
+        downloadCsv();
+    });
 
     updateHash();
 });
