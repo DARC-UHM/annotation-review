@@ -73,7 +73,9 @@ async function updateExternalReviewers() {
     event.preventDefault();
     const reviewers = [];
     for (const item of document.getElementsByClassName('reviewerName')) {
-        reviewers.push(item.innerHTML);
+        if (item.innerHTML !== 'Select') {
+            reviewers.push(item.innerHTML);
+        }
     }
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
