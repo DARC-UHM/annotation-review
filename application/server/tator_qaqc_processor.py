@@ -97,7 +97,7 @@ class TatorQaqcProcessor:
                 return False
         return True
 
-    def process_records(self, no_match_records: set = None):
+    def process_records(self, no_match_records: set = None, get_timestamp: bool = False):
         if not self.records_of_interest:
             return
         print('Processing localizations...', end='')
@@ -139,6 +139,20 @@ class TatorQaqcProcessor:
                 'media_id': localization['media'],
                 'problems': localization['problems'] if 'problems' in localization.keys() else None,
             }
+            if get_timestamp:
+                if 'media_timestamps' not in session.keys():
+                    session['media_timestamps'] = {}
+                if localization['media'] not in session['media_timestamps'].keys():
+                    print('Fetching start timestamp for media', localization['media'])
+                    req = requests.get(
+                        f'https://cloud.tator.io/rest/Media/{localization["media"]}',
+                        headers={
+                            'Content-Type': 'application/json',
+                            'Authorization': f'Token {session["tator_token"]}',
+                        })
+                    session['media_timestamps'][localization['media']] = req.json()['attributes']['Start Time']
+                video_start_timestamp = datetime.fromisoformat(session['media_timestamps'][localization['media']])
+                localization_dict['timestamp'] = (video_start_timestamp + timedelta(seconds=localization['frame'] / 30)).strftime('%Y-%m-%d %H:%M:%SZ')
             if scientific_name in self.phylogeny.keys():
                 for key in self.phylogeny[scientific_name].keys():
                     localization_dict[key] = self.phylogeny[scientific_name][key]
@@ -152,6 +166,7 @@ class TatorQaqcProcessor:
 
         localization_df = pd.DataFrame(formatted_localizations, columns=[
             'id',
+            'timestamp',
             'all_localizations',
             'video_sequence_name',
             'scientific_name',
@@ -193,6 +208,7 @@ class TatorQaqcProcessor:
 
         localization_df = localization_df.groupby(['media_id', 'frame', 'scientific_name']).agg({
             'id': 'first',
+            'timestamp': 'first',
             'all_localizations': collect_localizations,
             'count': 'sum',
             'attracted': 'first',
@@ -248,6 +264,7 @@ class TatorQaqcProcessor:
         for index, row in localization_df.iterrows():
             self.final_records.append({
                 'observation_uuid': row['id'],
+                'timestamp': row['timestamp'],
                 'all_localizations': row['all_localizations'],
                 'media_id': row['media_id'],
                 'frame': row['frame'],
@@ -476,4 +493,4 @@ class TatorQaqcProcessor:
         Returns a summary of the final records.
         """
         self.records_of_interest = self.localizations
-        self.process_records()
+        self.process_records(get_timestamp=True)
