@@ -150,9 +150,11 @@ class TatorQaqcProcessor:
                             'Content-Type': 'application/json',
                             'Authorization': f'Token {session["tator_token"]}',
                         })
-                    session['media_timestamps'][localization['media']] = req.json()['attributes']['Start Time']
-                video_start_timestamp = datetime.fromisoformat(session['media_timestamps'][localization['media']])
-                localization_dict['timestamp'] = (video_start_timestamp + timedelta(seconds=localization['frame'] / 30)).strftime('%Y-%m-%d %H:%M:%SZ')
+                    if 'Start Time' in req.json()['attributes'].keys():
+                        session['media_timestamps'][localization['media']] = req.json()['attributes']['Start Time']
+                if localization['media'] in session['media_timestamps'].keys():  # still might not be after above
+                    video_start_timestamp = datetime.fromisoformat(session['media_timestamps'][localization['media']])
+                    localization_dict['timestamp'] = (video_start_timestamp + timedelta(seconds=localization['frame'] / 30)).strftime('%Y-%m-%d %H:%M:%SZ')
             if scientific_name in self.phylogeny.keys():
                 for key in self.phylogeny[scientific_name].keys():
                     localization_dict[key] = self.phylogeny[scientific_name][key]
