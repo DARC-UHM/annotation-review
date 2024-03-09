@@ -52,12 +52,8 @@ function updateHash() {
             const firstDot = uniqueTaxa[taxa].first_dot;
             let boxBeforeDot = false;
 
-            if (firstBox && firstDot) {
-                if (firstBox.split(':')[0] < firstDot.split(':')[0]) {
-                    boxBeforeDot = true;
-                } else if (firstBox.split(':')[0] === firstDot.split(':')[0] && parseInt(firstBox.split(':')[1]) < parseInt(firstDot.split(':')[1]) - 1) {
-                    boxBeforeDot = true;
-                }
+            if (firstBox && firstDot && firstBox < firstDot) {
+                boxBeforeDot = true;
             }
 
             $('#annotationTable').find('tbody').append(`

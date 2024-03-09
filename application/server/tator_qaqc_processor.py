@@ -46,6 +46,28 @@ class TatorQaqcProcessor:
             with open(os.path.join('cache', 'phylogeny.json'), 'w') as f:
                 json.dump(self.phylogeny, f, indent=2)
 
+    def fetch_start_times(self):
+        for deployment in self.deployments:
+            print(f'Fetching media start times for deployment "{deployment}"...', end='')
+            sys.stdout.flush()
+            if 'media_timestamps' not in session.keys():
+                session['media_timestamps'] = {}
+            req = requests.get(
+                f'https://cloud.tator.io/rest/Medias/{self.project_id}?section={self.section_id}&attribute_contains=%24name%3A%3A{deployment}',
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Token {session["tator_token"]}',
+                }
+            )
+            for media in req.json():
+                if media['id'] not in session['media_timestamps'].keys():
+                    if 'Start Time' in media['attributes'].keys():
+                        session['media_timestamps'][media['id']] = media['attributes']['Start Time']
+                        session.modified = True
+                    else:
+                        print(f'{TERM_RED}Warning:{TERM_NORMAL} No start time found for media {media["id"]}')
+            print('fetched!')
+
     def fetch_localizations(self):
         print('Fetching localizations...', end='')
         sys.stdout.flush()
@@ -140,19 +162,7 @@ class TatorQaqcProcessor:
                 'problems': localization['problems'] if 'problems' in localization.keys() else None,
             }
             if get_timestamp:
-                if 'media_timestamps' not in session.keys():
-                    session['media_timestamps'] = {}
-                if localization['media'] not in session['media_timestamps'].keys():
-                    print('Fetching start timestamp for media', localization['media'])
-                    req = requests.get(
-                        f'https://cloud.tator.io/rest/Media/{localization["media"]}',
-                        headers={
-                            'Content-Type': 'application/json',
-                            'Authorization': f'Token {session["tator_token"]}',
-                        })
-                    if 'Start Time' in req.json()['attributes'].keys():
-                        session['media_timestamps'][localization['media']] = req.json()['attributes']['Start Time']
-                if localization['media'] in session['media_timestamps'].keys():  # still might not be after above
+                if localization['media'] in session['media_timestamps'].keys():
                     video_start_timestamp = datetime.fromisoformat(session['media_timestamps'][localization['media']])
                     localization_dict['timestamp'] = (video_start_timestamp + timedelta(seconds=localization['frame'] / 30)).strftime('%Y-%m-%d %H:%M:%SZ')
             if scientific_name in self.phylogeny.keys():
@@ -447,11 +457,12 @@ class TatorQaqcProcessor:
         """
         Finds every unique scientific name and TOFA, max N, and box/dot info.
         """
+        self.fetch_start_times()
         for localization in self.localizations:
             if localization['type'] not in [48, 49]:
                 continue
             self.records_of_interest.append(localization)
-        self.process_records()
+        self.process_records(get_timestamp=True)
         unique_taxa = {}
         for record in self.final_records:
             scientific_name = record['scientific_name']
@@ -461,8 +472,8 @@ class TatorQaqcProcessor:
                     'max_n': record['count'],
                     'box_count': 0,
                     'dot_count': 0,
-                    'first_box': None,  # todo change once we figure out timestamp stuff
-                    'first_dot': None,
+                    'first_box': '',
+                    'first_dot': '',
                 }
             else:
                 # check for new max N
@@ -473,26 +484,19 @@ class TatorQaqcProcessor:
                 if localization['type'] == 48:
                     unique_taxa[scientific_name]['box_count'] += 1
                     first_box = unique_taxa[scientific_name]['first_box']
-                    if (
-                        not first_box
-                        or int(first_box.split(':')[0]) > record['media_id']
-                        or int(first_box.split(':')[0]) == record['media_id'] and int(first_box.split(':')[1]) > record['frame']
-                    ):
-                        unique_taxa[scientific_name]['first_box'] = f'{record["media_id"]}:{record["frame"]}'
+                    if not first_box or datetime.fromisoformat(record['timestamp']) < datetime.fromisoformat(first_box):
+                        unique_taxa[scientific_name]['first_box'] = record['timestamp']
                 elif localization['type'] == 49:
                     unique_taxa[scientific_name]['dot_count'] += 1
                     first_dot = unique_taxa[scientific_name]['first_dot']
-                    if (
-                        not first_dot
-                        or int(first_dot.split(':')[0]) > record['media_id']
-                        or int(first_dot.split(':')[0]) == record['media_id'] and int(first_dot.split(':')[1]) > record['frame']
-                    ):
-                        unique_taxa[scientific_name]['first_dot'] = f'{record["media_id"]}:{record["frame"]}'
+                    if not first_dot or datetime.fromisoformat(record['timestamp']) < datetime.fromisoformat(first_dot):
+                        unique_taxa[scientific_name]['first_dot'] = record['timestamp']
         self.final_records = unique_taxa
 
     def get_summary(self):
         """
         Returns a summary of the final records.
         """
+        self.fetch_start_times()
         self.records_of_interest = self.localizations
         self.process_records(get_timestamp=True)
