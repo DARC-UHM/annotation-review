@@ -21,6 +21,7 @@ import dotenv
 def process_folder(folder_path):
     # Create a Dropbox client instance
     dbx = dropbox.Dropbox(os.getenv('DROPBOX_ACCESS_TOKEN'))
+    xml_file_count = 0
     try:
         # Get the folder metadata
         folder_metadata = dbx.files_list_folder(folder_path)
@@ -37,18 +38,21 @@ def process_folder(folder_path):
                 root = ET.fromstring(xml_content)
                 creation_date = root.find('.//{urn:schemas-professionalDisc:nonRealTimeMeta:ver.2.00}CreationDate').attrib['value']
                 media_list[path.split('/')[-1][:-4]]['creation_date'] = creation_date
+                xml_file_count += 1
 
             # If the entry is a folder, recursively process its contents
             elif isinstance(entry, dropbox.files.FolderMetadata):
-                process_folder(path)
+                xml_file_count += process_folder(path)
+
+        return xml_file_count
 
     except dropbox.exceptions.ApiError as e:
         print(f'Error: {e}')
 
 
-def get_tator_media_ids(project_id, section_id, tator_token):
+def get_tator_media_ids(project_id, section_id, deployment_name, tator_token):
     req = requests.get(
-        f'https://cloud.tator.io/rest/Medias/{project_id}?section={section_id}',
+        f'https://cloud.tator.io/rest/Medias/{project_id}?section={section_id}&attribute_contains=%24name%3A%3A{deployment_name}',
         headers={
             'Content-Type': 'application/json',
             'Authorization': f'Token {tator_token}',
@@ -60,7 +64,7 @@ def get_tator_media_ids(project_id, section_id, tator_token):
             media_list[f'{media_name[1]}_{media_name[2]}'] = {'id': media['id']}
         else:  # format HAW_dscm_01_c010_202304250123Z_0983m.mp4
             media_list[f'{media_name[0]}_{media_name[1]}_{media_name[2]}_{media_name[3]}'] = {'id': media['id']}
-    print('Retrieved media ids from Tator')
+    print(f'Retrieved {len(req.json())} media ids from Tator')
 
 
 def set_video_start_time(media_id, start_time, tator_token):
@@ -95,9 +99,13 @@ media_list = {}
 get_tator_media_ids(
     project_id=PROJECT_ID,
     section_id=SECTION_ID,
+    deployment_name=DEPLOYMENT_NAME,
     tator_token=TATOR_TOKEN,
 )
-process_folder(folder_path=f'{os.getenv("DROPBOX_FOLDER_PATH")}/{DEPLOYMENT_NAME}')
+total_xml_files = process_folder(folder_path=f'{os.getenv("DROPBOX_FOLDER_PATH")}/{DEPLOYMENT_NAME}')
+print(f'Found {total_xml_files} video metadata files')
+
+total_media_updated = 0
 for media in media_list.values():
     if 'creation_date' in media.keys():
         set_video_start_time(
@@ -105,5 +113,8 @@ for media in media_list.values():
             start_time=media['creation_date'],
             tator_token=TATOR_TOKEN,
         )
+        total_media_updated += 1
+    else:
+        print(f'Error: No creation date found for {media}')
 
-print(f'{DEPLOYMENT_NAME} complete!')
+print(f'{DEPLOYMENT_NAME} complete! Updated {total_media_updated} media files.')
