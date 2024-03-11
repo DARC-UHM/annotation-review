@@ -281,7 +281,7 @@ class VarsQaqcProcessor:
                 missing_upon = False
                 for association in annotation['associations']:
                     if association['link_name'] == 'upon':
-                        if association['to_concept'][0].isupper() or association['to_concept'].startswith('dead'):
+                        if association['to_concept'] and association['to_concept'][0].isupper() or association['to_concept'].startswith('dead'):
                             # 'upon' is an organism, don't need it to be in s1/s2
                             pass
                         else:
@@ -308,7 +308,7 @@ class VarsQaqcProcessor:
             sorted_annotations = sorted(self.fetch_annotations(name), key=lambda d: d['recorded_timestamp'])
             # loop through all annotations, add ones with same timestamp to dict
             i = 0
-            while i < len(sorted_annotations) - 1:
+            while i < len(sorted_annotations) - 2:
                 base_timestamp = sorted_annotations[i]['recorded_timestamp'][:19]
                 if sorted_annotations[i + 1]['recorded_timestamp'][:19] == base_timestamp:
                     indices_to_skip = 0
@@ -555,7 +555,7 @@ class VarsQaqcProcessor:
             for i in range(len(sorted_annotations)):
                 associate_record = sorted_annotations[i]
                 upon = get_association(sorted_annotations[i], 'upon')
-                if upon and upon['to_concept'][0].isupper():
+                if upon and upon['to_concept'] and upon['to_concept'][0].isupper():
                     # the associate's 'upon' is an organism
                     host_concept_name = upon['to_concept']
                     observation_time = extract_recorded_datetime(associate_record)
