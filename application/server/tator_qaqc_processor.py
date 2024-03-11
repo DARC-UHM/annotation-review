@@ -484,12 +484,12 @@ class TatorQaqcProcessor:
                 if localization['type'] == 48:
                     unique_taxa[scientific_name]['box_count'] += 1
                     first_box = unique_taxa[scientific_name]['first_box']
-                    if not first_box or datetime.fromisoformat(record['timestamp']) < datetime.fromisoformat(first_box):
+                    if not first_box or datetime.strptime(record['timestamp'], '%Y-%m-%d %H:%M:%SZ') < datetime.strptime(first_box, '%Y-%m-%d %H:%M:%SZ'):
                         unique_taxa[scientific_name]['first_box'] = record['timestamp']
                 elif localization['type'] == 49:
                     unique_taxa[scientific_name]['dot_count'] += 1
                     first_dot = unique_taxa[scientific_name]['first_dot']
-                    if not first_dot or datetime.fromisoformat(record['timestamp']) < datetime.fromisoformat(first_dot):
+                    if not first_dot or datetime.strptime(record['timestamp'], '%Y-%m-%d %H:%M:%SZ') < datetime.strptime(first_dot, '%Y-%m-%d %H:%M:%SZ'):
                         unique_taxa[scientific_name]['first_dot'] = record['timestamp']
         self.final_records = unique_taxa
 

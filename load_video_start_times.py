@@ -51,6 +51,9 @@ def process_folder(folder_path):
 
 
 def get_tator_media_ids(project_id, section_id, deployment_name, tator_token):
+    if not tator_token:
+        print('Error: Tator token not found')
+        sys.exit()
     req = requests.get(
         f'https://cloud.tator.io/rest/Medias/{project_id}?section={section_id}&attribute_contains=%24name%3A%3A{deployment_name}',
         headers={
