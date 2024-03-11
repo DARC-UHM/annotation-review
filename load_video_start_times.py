@@ -64,7 +64,7 @@ def get_tator_media_ids(project_id, section_id, deployment_name, tator_token):
         media_name = media['name'].split('_')
         # until we decide on an actual naming convention...
         if len(media_name) == 3:  # format DOEX0087_NIU-dscm-02_c009.mp4
-            media_list[f'{media_name[1]}_{media_name[2]}'] = {'id': media['id']}
+            media_list[f'{media_name[1]}_{media_name[2]}'[:-4]] = {'id': media['id']}
         else:  # format HAW_dscm_01_c010_202304250123Z_0983m.mp4
             media_list[f'{media_name[0]}_{media_name[1]}_{media_name[2]}_{media_name[3]}'] = {'id': media['id']}
     print(f'Retrieved {len(req.json())} media ids from Tator')
