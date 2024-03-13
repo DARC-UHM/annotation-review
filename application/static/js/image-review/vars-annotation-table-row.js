@@ -1,8 +1,6 @@
 export const varsAnnotationTableRow = (annotation, externalComment) => {
     let videoUrl = annotation.video_url;
-    if (videoUrl.includes('.mov')) {
-        videoUrl = `/video?link=${videoUrl.split('#t=')[0]}&time=${videoUrl.split('#t=')[1]}`;
-    }
+    videoUrl = `/video?link=${videoUrl.split('#t=')[0]}&time=${videoUrl.split('#t=')[1]}`;
     return (`
         <tr>
             <td class="ps-5">

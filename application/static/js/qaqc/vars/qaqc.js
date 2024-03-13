@@ -146,9 +146,7 @@ function updateHash() {
             }
         });
         let videoUrl = annotation.video_url;
-        if (videoUrl.includes('.mov')) {
-            videoUrl = `/video?link=${videoUrl.split('#t=')[0]}&time=${videoUrl.split('#t=')[1]}`;
-        }
+        videoUrl = `/video?link=${videoUrl.split('#t=')[0]}&time=${videoUrl.split('#t=')[1]}`;
         $('#annotationTable').find('tbody').append(`
         <tr>
             <td class="ps-5 py-3" style="width: 20%">
