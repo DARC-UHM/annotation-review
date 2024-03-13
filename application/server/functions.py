@@ -1,6 +1,6 @@
 import re
 from datetime import datetime, timedelta
-from typing import Dict
+from typing import Dict, Optional
 
 
 def parse_datetime(timestamp: str) -> datetime:
@@ -13,6 +13,23 @@ def parse_datetime(timestamp: str) -> datetime:
     if '.' in timestamp:
         return datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S.%fZ')
     return datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%SZ')
+
+
+def extract_recorded_datetime(json_object: Dict) -> Optional[datetime]:
+    """
+    Returns a datetime object of the recorded timestamp given a JSON annotation record.
+
+    :param Dict json_object: An annotation record.
+    :return datetime: A datetime object of the timestamp from the json object.
+    """
+    if not json_object:
+        return None
+    if '.' in json_object['recorded_timestamp']:
+        timestamp = datetime.strptime(json_object['recorded_timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
+        if timestamp.microsecond >= 500000:
+            return timestamp.replace(microsecond=0) + timedelta(seconds=1)
+        return timestamp.replace(microsecond=0)
+    return datetime.strptime(json_object['recorded_timestamp'], '%Y-%m-%dT%H:%M:%SZ')
 
 
 def get_association(annotation: Dict, link_name: str) -> dict:
@@ -29,23 +46,6 @@ def get_association(annotation: Dict, link_name: str) -> dict:
         if association['link_name'] == link_name:
             return association
     return {}
-
-
-def extract_recorded_datetime(json_object: Dict) -> datetime:
-    """
-    Returns a datetime object of the recorded timestamp given a JSON annotation record.
-
-    :param Dict json_object: An annotation record.
-    :return datetime: A datetime object of the timestamp from the json object.
-    """
-    if not json_object:
-        return None
-    if '.' in json_object['recorded_timestamp']:
-        timestamp = datetime.strptime(json_object['recorded_timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
-        if timestamp.microsecond >= 500000:
-            return timestamp.replace(microsecond=0) + timedelta(seconds=1)
-        return timestamp.replace(microsecond=0)
-    return datetime.strptime(json_object['recorded_timestamp'], '%Y-%m-%dT%H:%M:%SZ')
 
 
 def format_annotator(annotator: str) -> str:
