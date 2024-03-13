@@ -18,18 +18,29 @@ class AnnotationProcessor:
     """
 
     def __init__(self, sequence_names: list):
+        self.sequence_names = sequence_names
+        self.phylogeny = {}
+        self.video_start_times = []
+        self.image_records = []
         self.distilled_records = []
         temp_name = sequence_names[0].split()
         temp_name.pop()
         self.vessel_name = ' '.join(temp_name)
-        for name in sequence_names:
-            self.load_images(name)
 
-    def load_images(self, name: str):
+    def process_sequences(self):
+        for name in self.sequence_names:
+            self.fetch_images(name)
+
+    def load_phylogeny(self):
+        try:
+            with open(os.path.join('cache', 'phylogeny.json'), 'r') as f:
+                self.phylogeny = json.load(f)
+        except FileNotFoundError:
+            self.phylogeny = {'Animalia': {}}
+
+    def fetch_images(self, name: str):
         print(f'Fetching annotations for sequence {name} from VARS...', end='')
         sys.stdout.flush()
-        image_records = []
-        videos = []
 
         with requests.get(f'http://hurlstor.soest.hawaii.edu:8086/query/dive/{name.replace(" ", "%20")}') as r:
             response = r.json()
@@ -37,45 +48,48 @@ class AnnotationProcessor:
         print('Processing annotations...', end='')
         sys.stdout.flush()
         # get list of video links and start timestamps
+
+
+        # TODO stopped here, continue breaking this up
+
+
+
         for video in response['media']:
             if 'urn:imagecollection:org' not in video['uri']:
-                videos.append([parse_datetime(video['start_timestamp']),
+                self.video_start_times.append([parse_datetime(video['start_timestamp']),
                                video['uri'].replace('http://hurlstor.soest.hawaii.edu/videoarchive',
                                                     'https://hurlvideo.soest.hawaii.edu')])
 
         video_sequence_name = response['media'][0]['video_sequence_name']
 
-        try:
-            with open(os.path.join('cache', 'phylogeny.json'), 'r') as f:
-                phylogeny = json.load(f)
-        except FileNotFoundError:
-            phylogeny = {'Animalia': {}}
-
-        # Get all of the annotations that have images
+        # get all of the annotations that have images
         for annotation in response['annotations']:
             concept_name = annotation['concept']
             if annotation['image_references'] and concept_name[0].isupper():
-                image_records.append(annotation)
-                if concept_name not in phylogeny.keys():
-                    # get the phylogeny from VARS kb
-                    with requests.get(f'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/{concept_name}') \
-                            as vars_tax_res:
-                        if vars_tax_res.status_code == 200:
-                            # this get us to phylum
-                            try:
-                                vars_tree = vars_tax_res.json()['children'][0]['children'][0]['children'][0]['children'][0]['children'][0]
-                                phylogeny[concept_name] = {}
-                            except KeyError:
-                                print(f'\n{TERM_RED}VARS phylogeny for {annotation["concept"]} not in expected format{TERM_NORMAL}')
-                                vars_tree = {}
-                            while 'children' in vars_tree.keys():
-                                if 'rank' in vars_tree.keys():  # sometimes it's not
-                                    phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
-                                vars_tree = vars_tree['children'][0]
-                            if 'rank' in vars_tree.keys():
+                self.image_records.append(annotation)
+
+    def get_phylogeny(self):
+        for image_record in self.image_records:
+            if concept_name not in phylogeny.keys():
+                # get the phylogeny from VARS kb
+                with requests.get(f'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/{concept_name}') \
+                        as vars_tax_res:
+                    if vars_tax_res.status_code == 200:
+                        # this get us to phylum
+                        try:
+                            vars_tree = vars_tax_res.json()['children'][0]['children'][0]['children'][0]['children'][0]['children'][0]
+                            phylogeny[concept_name] = {}
+                        except KeyError:
+                            print(f'\n{TERM_RED}VARS phylogeny for {annotation["concept"]} not in expected format{TERM_NORMAL}')
+                            vars_tree = {}
+                        while 'children' in vars_tree.keys():
+                            if 'rank' in vars_tree.keys():  # sometimes it's not
                                 phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
-                        else:
-                            print(f'\n{TERM_RED}Unable to find record for {annotation["concept"]}{TERM_NORMAL}')
+                            vars_tree = vars_tree['children'][0]
+                        if 'rank' in vars_tree.keys():
+                            phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
+                    else:
+                        print(f'\n{TERM_RED}Unable to find record for {annotation["concept"]}{TERM_NORMAL}')
 
         formatted_images = []
 

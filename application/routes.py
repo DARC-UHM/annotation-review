@@ -407,6 +407,7 @@ def view_images():
         print('\nERROR: unable to connect to external review server\n')
     # get images in sequence
     image_loader = AnnotationProcessor(sequences)
+    image_loader.process_sequences()
     if len(image_loader.distilled_records) < 1:
         return render_template('not-found.html', err='pics'), 404
     data = {

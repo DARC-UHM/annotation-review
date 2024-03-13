@@ -26,6 +26,24 @@ annotations = [
                 'mime_type': 'text/plain'
             }
         ],
+        'image_references': [
+            {
+              'uuid': '165ea9f2-6e4f-4215-d06e-36801741e01e',
+              'description': 'compressed image',
+              'url': 'http://hurlstor.soest.hawaii.edu/imagearchive/Hercules/images/1381920/20220418T202402.015Z--542830a8-ec69-4ee5-a57d-9de66a412dba.jpg',
+              'format': 'image/jpg',
+              'width_pixels': 1920,
+              'height_pixels': 1080
+            },
+            {
+              'uuid': '78084244-266d-434e-de6b-b27e1741e01e',
+              'description': 'uncompressed image',
+              'url': 'http://hurlstor.soest.hawaii.edu/imagearchive/Hercules/images/1381920/20220418T202402.015Z--542830a8-ec69-4ee5-a57d-9de66a412dba.png',
+              'format': 'image/png',
+              'width_pixels': 1920,
+              'height_pixels': 1080
+            }
+        ],
         'ancillary_data': {
             'altitude': 1.899999976158142,
             'depth_meters': 668.458984375,
@@ -99,7 +117,15 @@ annotations = [
                 'mime_type': 'text/plain'
             },
         ],
-        'image_references': [],
+        'image_references': [
+            {
+              'uuid': '1ab3f4b1-f448-4a62-5660-41a52152dc1e',
+              'description': 'imported image',
+              'url': 'https://hurlimage.soest.hawaii.edu/SupplementalPhotos/Hphotos/NA138photos/H1920/cam1_20220419064757.png',
+              'width_pixels': 0,
+              'height_pixels': 0
+            }
+        ],
         'ancillary_data': {
             'altitude': 1.899999976158142,
             'depth_meters': 668.458984375,
