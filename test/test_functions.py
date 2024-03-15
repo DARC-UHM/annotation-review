@@ -1,7 +1,7 @@
 import pytest
 
 from application.server.functions import *
-from test.data.annotations import annotations
+from test.data.vars_responses import ex_23060001
 from test.data.worms_responses import clownfish_tree
 
 
@@ -19,22 +19,22 @@ class TestFunctions:
             parse_datetime('fail')
 
     def test_extract_recorded_datetime_no_micro(self):
-        date_time = extract_recorded_datetime(annotations[0])
-        assert date_time == datetime(2014, 9, 5, 20, 6, 26)
+        date_time = extract_recorded_datetime(ex_23060001['annotations'][0])
+        assert date_time == datetime(2023, 8, 24, 18, 36, 14)
 
     def test_extract_recorded_datetime_round_up(self):
-        date_time = extract_recorded_datetime(annotations[1])
-        assert date_time == datetime(2014, 9, 5, 14, 37, 58)
+        date_time = extract_recorded_datetime(ex_23060001['annotations'][1])
+        assert date_time == datetime(2023, 8, 24, 21, 28, 26)
 
     def test_extract_recorded_datetime_round_down(self):
-        date_time = extract_recorded_datetime(annotations[2])
+        date_time = extract_recorded_datetime(ex_23060001['annotations'][2])
         assert date_time == datetime(2014, 9, 20, 14, 13, 23)
 
     def test_extract_recorded_datetime_fail(self):
         assert extract_recorded_datetime({}) is None
 
     def test_get_association(self):
-        test_obj = get_association(annotations[0], 'upon')
+        test_obj = get_association(ex_23060001['annotations'][0], 'upon')
         assert test_obj == {
             "uuid": "c4eaa100-4bee-46a9-0f65-6525fb69d41e",
             "link_name": "upon",
@@ -44,11 +44,11 @@ class TestFunctions:
         }
 
     def test_get_association_none(self):
-        test_obj = get_association(annotations[0], 'test')
+        test_obj = get_association(ex_23060001['annotations'][0], 'test')
         assert test_obj == {}
 
     def test_format_annotator_normal(self):
-        assert format_annotator(annotations[0]['observer']) == 'Nikki Cunanan'
+        assert format_annotator(ex_23060001['annotations'][0]['observer']) == 'Nikki Cunanan'
 
     def test_format_annotator_harold(self):
         assert format_annotator('hcarlson') == 'Harold Carlson'

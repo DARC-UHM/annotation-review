@@ -20,7 +20,6 @@ class AnnotationProcessor:
     def __init__(self, sequence_names: list):
         self.sequence_names = sequence_names
         self.phylogeny = {}
-        self.video_start_times = []
         self.image_records = []
         self.distilled_records = []
         temp_name = sequence_names[0].split()
@@ -28,8 +27,15 @@ class AnnotationProcessor:
         self.vessel_name = ' '.join(temp_name)
 
     def process_sequences(self):
+        self.load_phylogeny()
+        sequence_videos = []
         for name in self.sequence_names:
-            self.fetch_images(name)
+            print(f'Fetching annotations for sequence {name} from VARS...', end='')
+            sys.stdout.flush()
+            self.fetch_media(name, sequence_videos)
+            print('fetched!')
+            print('Processing annotations...', end='')
+            sys.stdout.flush()
 
     def load_phylogeny(self):
         try:
@@ -38,85 +44,91 @@ class AnnotationProcessor:
         except FileNotFoundError:
             self.phylogeny = {'Animalia': {}}
 
-    def fetch_images(self, name: str):
-        print(f'Fetching annotations for sequence {name} from VARS...', end='')
-        sys.stdout.flush()
+    def fetch_media(self, sequence_name: str, sequence_videos: list):
+        """
+        Fetches all annotations that have images and all video uris/start times from VARS.
+        """
+        response = requests.get(f'http://hurlstor.soest.hawaii.edu:8086/query/dive/{sequence_name.replace(" ", "%20")}').json()
 
-        with requests.get(f'http://hurlstor.soest.hawaii.edu:8086/query/dive/{name.replace(" ", "%20")}') as r:
-            response = r.json()
-            print('fetched!')
-        print('Processing annotations...', end='')
-        sys.stdout.flush()
         # get list of video links and start timestamps
-
-
-        # TODO stopped here, continue breaking this up
-
-
-
         for video in response['media']:
             if 'urn:imagecollection:org' not in video['uri']:
-                self.video_start_times.append([parse_datetime(video['start_timestamp']),
-                               video['uri'].replace('http://hurlstor.soest.hawaii.edu/videoarchive',
-                                                    'https://hurlvideo.soest.hawaii.edu')])
-
-        video_sequence_name = response['media'][0]['video_sequence_name']
-
-        # get all of the annotations that have images
+                video_uri = video['uri'].replace('http://hurlstor.soest.hawaii.edu/videoarchive','https://hurlvideo.soest.hawaii.edu')
+                sequence_videos.append({
+                    'start_timestamp': parse_datetime(video['start_timestamp']),
+                    'uri': video_uri,
+                    'sequence_name': video['video_sequence_name'],
+                })
+        # get all annotations that have images
         for annotation in response['annotations']:
             concept_name = annotation['concept']
             if annotation['image_references'] and concept_name[0].isupper():
                 self.image_records.append(annotation)
 
-    def get_phylogeny(self):
-        for image_record in self.image_records:
-            if concept_name not in phylogeny.keys():
-                # get the phylogeny from VARS kb
-                with requests.get(f'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/{concept_name}') \
-                        as vars_tax_res:
-                    if vars_tax_res.status_code == 200:
-                        # this get us to phylum
-                        try:
-                            vars_tree = vars_tax_res.json()['children'][0]['children'][0]['children'][0]['children'][0]['children'][0]
-                            phylogeny[concept_name] = {}
-                        except KeyError:
-                            print(f'\n{TERM_RED}VARS phylogeny for {annotation["concept"]} not in expected format{TERM_NORMAL}')
-                            vars_tree = {}
-                        while 'children' in vars_tree.keys():
-                            if 'rank' in vars_tree.keys():  # sometimes it's not
-                                phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
-                            vars_tree = vars_tree['children'][0]
-                        if 'rank' in vars_tree.keys():
-                            phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
-                    else:
-                        print(f'\n{TERM_RED}Unable to find record for {annotation["concept"]}{TERM_NORMAL}')
+    def fetch_vars_phylogeny(self, concept_name: str):
+        """
+        Fetches phylogeny for given concept from the VARS knowledge base.
+        """
+        vars_tax_res = requests.get(f'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/{concept_name}')
+        if vars_tax_res.status_code == 200:
+            # this get us to phylum
+            try:
+                vars_tree = vars_tax_res.json()['children'][0]['children'][0]['children'][0]['children'][0]['children'][0]
+                self.phylogeny[concept_name] = {}
+            except KeyError:
+                print(f'\n{TERM_RED}VARS phylogeny for {concept_name} not in expected format{TERM_NORMAL}')
+                vars_tree = {}
+            while 'children' in vars_tree.keys():
+                if 'rank' in vars_tree.keys():  # sometimes it's not
+                    self.phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
+                vars_tree = vars_tree['children'][0]
+            if 'rank' in vars_tree.keys():
+                self.phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
+        else:
+            print(f'\n{TERM_RED}Unable to find record for {concept_name}{TERM_NORMAL}')
 
+    def get_image_url(self, annotation: dict) -> str:
+        """
+        Gets the correct image url from the given annotation record. Preferentially selects a png image if available
+        (higher quality).
+        """
+        image_url = annotation['image_references'][0]['url']
+        for i in range(1, len(annotation['image_references'])):
+            if '.png' in annotation['image_references'][i]['url']:
+                image_url = annotation['image_references'][i]['url']
+                break
+        return image_url.replace('http://hurlstor.soest.hawaii.edu/imagearchive', 'https://hurlimage.soest.hawaii.edu')
+
+    def get_video_url(self, annotation: dict, sequence_videos: list) -> Optional[str]:
+        """
+        Gets the video url for the given annotation record. Selects the video from the list of sequence videos that
+        contains the annotation and adds offset to the video url.
+        """
+        if 'recorded_timestamp' not in annotation.keys():
+            return None
+        timestamp = parse_datetime(annotation['recorded_timestamp'])
+        matching_video = sequence_videos[0]
+        for video in sequence_videos:
+            if video['start_timestamp'] > timestamp:
+                break
+            matching_video = video
+        time_diff = timestamp - matching_video['start_timestamp']
+        return f'{matching_video["uri"]}#t={int(time_diff.total_seconds())}'
+
+    def process_images(self, sequence_videos: list):
+        """
+        TODO
+        add the records to a list, convert hyphens to underlines and remove excess data
+        """
         formatted_images = []
 
-        # add the records to a list, convert hyphens to underlines and remove excess data
-        for record in image_records:
-            concept_name = record['concept']
+        for image_record in self.image_records:
+            concept_name = image_record['concept']
+            if concept_name not in self.phylogeny.keys():
+                self.fetch_vars_phylogeny(concept_name)
 
-            # get image url
-            image_url = record['image_references'][0]['url']
-            for i in range(1, len(record['image_references'])):
-                if '.png' in record['image_references'][i]['url']:
-                    image_url = record['image_references'][i]['url']
-                    break
-            image_url = image_url.replace('http://hurlstor.soest.hawaii.edu/imagearchive',
-                                          'https://hurlimage.soest.hawaii.edu')
-
-            # get video reference url
-            if 'recorded_timestamp' not in record.keys():
-                break
-            timestamp = parse_datetime(record['recorded_timestamp'])
-            video_url = videos[0]
-            for video in videos:
-                if video[0] > timestamp:
-                    break
-                video_url = video
-            time_diff = timestamp - video_url[0]
-            video_url = f'{video_url[1]}#t={int(time_diff.total_seconds()) - 5}'
+            image_url = self.get_image_url(image_record)
+            video_url = self.get_video_url(image_record, sequence_videos)
 
             annotation_dict = {
                 'observation_uuid': record['observation_uuid'],
