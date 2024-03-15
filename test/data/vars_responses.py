@@ -3,7 +3,7 @@ ex_23060001 = {
         # annotations[0]
         {
             'observation_uuid': '0059f860-4799-485f-c06c-5830e5ddd31e',
-            'concept': 'Chaceon quinquedens',
+            'concept': 'Pomacentridae',
             'observer': 'NikkiCunanan',
             'observation_timestamp': '2023-08-24T18:36:14.245Z',
             'video_reference_uuid': 'cd74c489-6336-4b97-89a6-f151872f282b',
@@ -49,6 +49,7 @@ ex_23060001 = {
                 'altitude': 1.899999976158142,
                 'depth_meters': 668.458984375,
                 'latitude': 38.793148973388,
+                'longitude': -72.992393976812,
                 'oxygen_ml_l': 7.3196001052856445,
                 'salinity': 35.864898681640625,
                 'temperature_celsius': 5.125999927520752,
@@ -58,7 +59,7 @@ ex_23060001 = {
         # annotations[1]
         {
             'observation_uuid': '0d9133d7-1d49-47d5-4b6d-6e4fb25dd41e',
-            'concept': 'Paralepididae',
+            'concept': 'Pomacentridae',
             'observer': 'MeaganPutts',
             'observation_timestamp': '2022-10-07T00:58:25.675Z',
             'video_reference_uuid': '9cb8f6cd-9720-4f51-aaac-4d7da1dec55a',

@@ -34,8 +34,11 @@ class AnnotationProcessor:
             sys.stdout.flush()
             self.fetch_media(name, sequence_videos)
             print('fetched!')
-            print('Processing annotations...', end='')
-            sys.stdout.flush()
+        print('Processing annotations...', end='')
+        sys.stdout.flush()
+        self.sort_records(self.process_images(sequence_videos))
+        print('done!')
+        self.save_phylogeny()
 
     def load_phylogeny(self):
         try:
@@ -43,6 +46,15 @@ class AnnotationProcessor:
                 self.phylogeny = json.load(f)
         except FileNotFoundError:
             self.phylogeny = {'Animalia': {}}
+
+    def save_phylogeny(self):
+        try:
+            with open(os.path.join('cache', 'phylogeny.json'), 'w') as f:
+                json.dump(self.phylogeny, f, indent=2)
+        except FileNotFoundError:
+            os.makedirs('cache')
+        with open(os.path.join('cache', 'phylogeny.json'), 'w') as f:
+            json.dump(self.phylogeny, f, indent=2)
 
     def fetch_media(self, sequence_name: str, sequence_videos: list):
         """
@@ -99,13 +111,13 @@ class AnnotationProcessor:
                 break
         return image_url.replace('http://hurlstor.soest.hawaii.edu/imagearchive', 'https://hurlimage.soest.hawaii.edu')
 
-    def get_video_url(self, annotation: dict, sequence_videos: list) -> Optional[str]:
+    def get_video_url(self, annotation: dict, sequence_videos: list) -> dict:
         """
-        Gets the video url for the given annotation record. Selects the video from the list of sequence videos that
-        contains the annotation and adds offset to the video url.
+        Gets the video url and sequence name for the given annotation record. Selects the video from the list of
+        sequence videos that contains the annotation and adds offset to the video url.
         """
         if 'recorded_timestamp' not in annotation.keys():
-            return None
+            return {}
         timestamp = parse_datetime(annotation['recorded_timestamp'])
         matching_video = sequence_videos[0]
         for video in sequence_videos:
@@ -113,22 +125,19 @@ class AnnotationProcessor:
                 break
             matching_video = video
         time_diff = timestamp - matching_video['start_timestamp']
-        return f'{matching_video["uri"]}#t={int(time_diff.total_seconds())}'
+        matching_video['uri'] = f'{matching_video["uri"]}#t={int(time_diff.total_seconds())}'
+        return matching_video
 
     def process_images(self, sequence_videos: list):
         """
-        TODO
-        add the records to a list, convert hyphens to underlines and remove excess data
+        Cleans and formats the image records into a list of dicts.
         """
         formatted_images = []
 
-        for image_record in self.image_records:
-            concept_name = image_record['concept']
+        for record in self.image_records:
+            concept_name = record['concept']
             if concept_name not in self.phylogeny.keys():
                 self.fetch_vars_phylogeny(concept_name)
-
-            image_url = self.get_image_url(image_record)
-            video_url = self.get_video_url(image_record, sequence_videos)
 
             annotation_dict = {
                 'observation_uuid': record['observation_uuid'],
@@ -137,11 +146,11 @@ class AnnotationProcessor:
                 'identity_reference': get_association(record, 'identity-reference')['link_value'] if get_association(record, 'identity-reference') else None,
                 'guide_photo': get_association(record, 'guide-photo')['to_concept'] if get_association(record, 'guide-photo') else None,
                 'comment': get_association(record, 'comment')['link_value'] if get_association(record, 'comment') else None,
-                'image_url': image_url,
-                'video_url': video_url,
+                'image_url': self.get_image_url(record),
+                'video_url': self.get_video_url(record, sequence_videos).get('uri'),
                 'upon': get_association(record, 'upon')['to_concept'] if get_association(record, 'upon') else None,
                 'recorded_timestamp': record['recorded_timestamp'],
-                'video_sequence_name': video_sequence_name,
+                'video_sequence_name': self.get_video_url(record, sequence_videos).get('sequence_name'),
                 'annotator': format_annotator(record['observer']),
                 'depth': int(record['ancillary_data']['depth_meters']) if 'ancillary_data' in record.keys() and 'depth_meters' in record['ancillary_data'].keys() else None,
                 'lat': round(record['ancillary_data']['latitude'], 3) if 'ancillary_data' in record.keys() and 'latitude' in record['ancillary_data'].keys() else None,
@@ -150,12 +159,18 @@ class AnnotationProcessor:
                 'oxygen_ml_l': round(record['ancillary_data']['oxygen_ml_l'], 3) if 'ancillary_data' in record.keys() and 'oxygen_ml_l' in record['ancillary_data'].keys() else None,
             }
 
-            if concept_name in phylogeny.keys():
-                for key in phylogeny[concept_name].keys():
-                    annotation_dict[key] = phylogeny[concept_name][key]
+            if concept_name in self.phylogeny.keys():
+                for key in self.phylogeny[concept_name].keys():
+                    annotation_dict[key] = self.phylogeny[concept_name][key]
             formatted_images.append(annotation_dict)
 
-        # add to dataframe for quick sorting
+        return formatted_images
+
+    def sort_records(self, formatted_images: list):
+        """
+        Uses pandas to sort the formatted images by phylogeny and other attributes. Adds the sorted records to the
+        distilled records list.
+        """
         annotation_df = pd.DataFrame(formatted_images, columns=[
             'observation_uuid',
             'concept',
@@ -187,7 +202,7 @@ class AnnotationProcessor:
             'family',
             'subfamily',
             'genus',
-            'species'
+            'species',
         ])
 
         annotation_df = annotation_df.sort_values(by=[
@@ -208,8 +223,10 @@ class AnnotationProcessor:
             'concept',
             'identity_reference',
             'identity_certainty',
-            'recorded_timestamp'
+            'recorded_timestamp',
         ])
+
+        annotation_df = annotation_df.replace({float('nan'): None})
 
         for index, row in annotation_df.iterrows():
             self.distilled_records.append({
@@ -235,15 +252,5 @@ class AnnotationProcessor:
                 'video_url': row['video_url'],
                 'upon': row['upon'],
                 'recorded_timestamp': parse_datetime(row['recorded_timestamp']).strftime('%d %b %y %H:%M:%S UTC'),
-                'video_sequence_name': row['video_sequence_name']
+                'video_sequence_name': row['video_sequence_name'],
             })
-
-        try:
-            with open(os.path.join('cache', 'phylogeny.json'), 'w') as f:
-                json.dump(phylogeny, f, indent=2)
-        except FileNotFoundError:
-            os.makedirs('cache')
-            with open(os.path.join('cache', 'phylogeny.json'), 'w') as f:
-                json.dump(phylogeny, f, indent=2)
-
-        print('processed!')
