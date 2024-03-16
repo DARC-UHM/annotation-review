@@ -65,10 +65,9 @@ class AnnotationProcessor:
         # get list of video links and start timestamps
         for video in response['media']:
             if 'urn:imagecollection:org' not in video['uri']:
-                video_uri = video['uri'].replace('http://hurlstor.soest.hawaii.edu/videoarchive','https://hurlvideo.soest.hawaii.edu')
                 sequence_videos.append({
                     'start_timestamp': parse_datetime(video['start_timestamp']),
-                    'uri': video_uri,
+                    'uri': video['uri'].replace('http://hurlstor.soest.hawaii.edu/videoarchive','https://hurlvideo.soest.hawaii.edu'),
                     'sequence_name': video['video_sequence_name'],
                 })
         # get all annotations that have images
@@ -83,8 +82,8 @@ class AnnotationProcessor:
         """
         vars_tax_res = requests.get(f'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/{concept_name}')
         if vars_tax_res.status_code == 200:
-            # this get us to phylum
             try:
+                # this get us to phylum
                 vars_tree = vars_tax_res.json()['children'][0]['children'][0]['children'][0]['children'][0]['children'][0]
                 self.phylogeny[concept_name] = {}
             except KeyError:
@@ -119,14 +118,16 @@ class AnnotationProcessor:
         if 'recorded_timestamp' not in annotation.keys():
             return {}
         timestamp = parse_datetime(annotation['recorded_timestamp'])
-        matching_video = sequence_videos[0]
+        matching_video = sequence_videos[0]  # init with first video in sequence
         for video in sequence_videos:
             if video['start_timestamp'] > timestamp:
                 break
             matching_video = video
         time_diff = timestamp - matching_video['start_timestamp']
-        matching_video['uri'] = f'{matching_video["uri"]}#t={int(time_diff.total_seconds())}'
-        return matching_video
+        return {
+            'uri': f'{matching_video["uri"]}#t={int(time_diff.total_seconds())}',
+            'sequence_name': matching_video['sequence_name'],
+        }
 
     def process_images(self, sequence_videos: list):
         """
@@ -139,6 +140,8 @@ class AnnotationProcessor:
             if concept_name not in self.phylogeny.keys():
                 self.fetch_vars_phylogeny(concept_name)
 
+            video = self.get_video_url(record, sequence_videos)
+
             annotation_dict = {
                 'observation_uuid': record['observation_uuid'],
                 'concept': concept_name,
@@ -147,10 +150,10 @@ class AnnotationProcessor:
                 'guide_photo': get_association(record, 'guide-photo')['to_concept'] if get_association(record, 'guide-photo') else None,
                 'comment': get_association(record, 'comment')['link_value'] if get_association(record, 'comment') else None,
                 'image_url': self.get_image_url(record),
-                'video_url': self.get_video_url(record, sequence_videos).get('uri'),
+                'video_url': video.get('uri'),
                 'upon': get_association(record, 'upon')['to_concept'] if get_association(record, 'upon') else None,
                 'recorded_timestamp': record['recorded_timestamp'],
-                'video_sequence_name': self.get_video_url(record, sequence_videos).get('sequence_name'),
+                'video_sequence_name': video.get('sequence_name'),
                 'annotator': format_annotator(record['observer']),
                 'depth': int(record['ancillary_data']['depth_meters']) if 'ancillary_data' in record.keys() and 'depth_meters' in record['ancillary_data'].keys() else None,
                 'lat': round(record['ancillary_data']['latitude'], 3) if 'ancillary_data' in record.keys() and 'latitude' in record['ancillary_data'].keys() else None,
