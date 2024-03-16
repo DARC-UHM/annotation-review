@@ -12,8 +12,6 @@ class MockResponse:
 
     def json(self):
         match self.req_url:
-            case 'NO_MATCH':
-                return {}
             case 'http://hurlstor.soest.hawaii.edu:8086/query/dive/Deep%20Discoverer%2023060001':
                 return ex_23060001
             case 'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/Pomacentridae':
