@@ -34,7 +34,7 @@ class TestAnnotationProcessor:
         annotation_processor.load_phylogeny()
         assert len(annotation_processor.phylogeny.keys()) > 0
 
-    @patch('application.server.annotation_processor.requests.get', side_effect=mocked_requests_get)
+    @patch('requests.get', side_effect=mocked_requests_get)
     def test_fetch_media(self, mock_get):
         annotation_processor = AnnotationProcessor(['Deep Discoverer 23060001'])
         sequence_videos = []
@@ -53,7 +53,7 @@ class TestAnnotationProcessor:
         ]
         assert len(annotation_processor.image_records) == 2
 
-    @patch('application.server.annotation_processor.requests.get', side_effect=mocked_requests_get)
+    @patch('requests.get', side_effect=mocked_requests_get)
     def test_fetch_vars_phylogeny(self, mock_get):
         annotation_processor = AnnotationProcessor(['Deep Discoverer 23060001'])
         annotation_processor.fetch_vars_phylogeny('Pomacentridae')
@@ -76,7 +76,7 @@ class TestAnnotationProcessor:
         assert annotation_processor.get_image_url(ex_23060001['annotations'][0]) \
                == 'https://hurlimage.soest.hawaii.edu/Hercules/images/1381920/20220418T202402.015Z--542830a8-ec69-4ee5-a57d-9de66a412dba.png'
 
-    @patch('application.server.annotation_processor.requests.get', side_effect=mocked_requests_get)
+    @patch('requests.get', side_effect=mocked_requests_get)
     def test_get_video_url_first_media(self, mock_get):
         annotation_processor = AnnotationProcessor(['Deep Discoverer 23060001'])
         sequence_videos = []
@@ -84,7 +84,7 @@ class TestAnnotationProcessor:
         assert annotation_processor.get_video_url(ex_23060001['annotations'][0], sequence_videos)['uri'] \
                == 'https://hurlvideo.soest.hawaii.edu/D2/2023/EX2306_01/EX2306_01_20230824T183000Z.m4v#t=374'
 
-    @patch('application.server.annotation_processor.requests.get', side_effect=mocked_requests_get)
+    @patch('requests.get', side_effect=mocked_requests_get)
     def test_get_video_url_second_media(self, mock_get):
         annotation_processor = AnnotationProcessor(['Deep Discoverer 23060001'])
         sequence_videos = []
@@ -92,7 +92,7 @@ class TestAnnotationProcessor:
         assert annotation_processor.get_video_url(ex_23060001['annotations'][1], sequence_videos)['uri'] \
                == 'https://hurlvideo.soest.hawaii.edu/D2/2023/EX2306_01/EX2306_01_20230824T203000Z.m4v#t=3505'
 
-    @patch('application.server.annotation_processor.requests.get', side_effect=mocked_requests_get)
+    @patch('requests.get', side_effect=mocked_requests_get)
     def test_process_images(self, mock_get):
         annotation_processor = AnnotationProcessor(['Deep Discoverer 23060001'])
         sequence_videos = []
@@ -150,7 +150,7 @@ class TestAnnotationProcessor:
             },
         ]
 
-    @patch('application.server.annotation_processor.requests.get', side_effect=mocked_requests_get)
+    @patch('requests.get', side_effect=mocked_requests_get)
     def test_sort_records(self, mock_get):
         annotation_processor = AnnotationProcessor(['Deep Discoverer 23060001'])
         sequence_videos = []
