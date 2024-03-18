@@ -19,40 +19,46 @@ class AuthenticationError(Exception):
 class JWTAuthentication(object):
 
     def __init__(self, base_url: str):
-        if base_url.endswith("/"):
+        if base_url.endswith('/'):
             base_url = base_url[0:-1]
         self.base_url = base_url
 
-    def authorize(self, client_secret: str, jwt: str) -> str:
-        """Fetch a JWT authentication token if needed """
+    def authorize(self, client_secret: str = None, jwt: str = None) -> str:
+        """
+        Fetch a JWT authentication token if needed
+        """
         if jwt:
             pass
         elif client_secret:
             jwt = self.authenticate(client_secret)
         else:
-            raise AuthenticationError("No jwt or client_secret were provided")
+            raise AuthenticationError('No jwt or client_secret were provided')
 
         if not jwt:
             raise AuthenticationError(
-                "Failed to authenticate with your client_secret")
+                'Failed to authenticate with your client_secret')
         return jwt
 
     def authenticate(self, client_secret: str) -> str:
-        """Call the authentication endpoint to retrieve a JWT token as a string"""
-        url = "{}/auth".format(self.base_url)
-        headers = {"Authorization": "APIKEY {}".format(client_secret)}
+        """
+        Call the authentication endpoint to retrieve a JWT token as a string
+        """
+        url = f'{self.base_url}/auth'
+        headers = {'Authorization': f'APIKEY {client_secret}'}
 
         r = requests.post(url, headers=headers)
         try:
             auth_response = r.json()
-            return auth_response["access_token"]
+            return auth_response['access_token']
         except json.decoder.JSONDecodeError:
-            print("-- BAD Authentication: {} returned: \n{}".format(url, r.text))
+            print(f'-- BAD Authentication: {url} returned: \n{r.text}')
             return ''
 
     def _auth_header(self, jwt: str) -> Dict:
-        """Format """
-        return {"Authorization": "Bearer " + jwt}
+        """
+        Format
+        """
+        return {'Authorization': f'Bearer {jwt}'}
 
 
 class Annosaurus(JWTAuthentication):
@@ -70,10 +76,9 @@ class Annosaurus(JWTAuthentication):
                            jwt: str = None) -> int:
 
         if 'link_name' not in association:
-            raise ValueError(
-                "association dict needs at least a 'link_name' key")
+            raise ValueError('association dict missing key "link_name"')
         jwt = self.authorize(client_secret, jwt)
-        url = "{}/associations".format(self.base_url)
+        url = f'{self.base_url}/associations'
         association['observation_uuid'] = observation_uuid
         headers = self._auth_header(jwt)
         return requests.post(url, data=association, headers=headers).status_code
@@ -85,7 +90,7 @@ class Annosaurus(JWTAuthentication):
                            jwt: str = None) -> int:
 
         jwt = self.authorize(client_secret, jwt)
-        url = "{}/associations/{}".format(self.base_url, uuid)
+        url = f'{self.base_url}/associations/{uuid}'
         headers = self._auth_header(jwt)
         return requests.put(url, data=association, headers=headers).status_code
 
@@ -94,7 +99,7 @@ class Annosaurus(JWTAuthentication):
                            client_secret: str = None,
                            jwt: str = None) -> int:
         jwt = self.authorize(client_secret, jwt)
-        url = "{}/associations/{}".format(self.base_url, uuid)
+        url = f'{self.base_url}/associations/{uuid}'
         headers = self._auth_header(jwt)
         return requests.delete(url, headers=headers).status_code
 
@@ -119,9 +124,9 @@ class Annosaurus(JWTAuthentication):
 
             # check for concept name change
             if updated_annotation['concept'] != old_annotation['concept']:
-                url = "{}/annotations/{}".format(self.base_url, observation_uuid)
+                url = f'{self.base_url}/annotations/{observation_uuid}'
                 new_name = {
-                    "concept": updated_annotation['concept']
+                    'concept': updated_annotation['concept']
                 }
                 headers = self._auth_header(jwt)
                 if requests.put(url, data=new_name, headers=headers).status_code != 200:
@@ -148,7 +153,7 @@ class Annosaurus(JWTAuthentication):
                 if link_name in old_link_names:
                     if updated_annotation[link_name] == '':
                         # delete the association
-                        if self.delete_association(uuid=old_association["uuid"], client_secret=client_secret) != 204:
+                        if self.delete_association(uuid=old_association['uuid'], client_secret=client_secret) != 204:
                             print(f'{update_str}Unable to remove association "{link_name}"')
                             return 500
                         ret_status = 200
