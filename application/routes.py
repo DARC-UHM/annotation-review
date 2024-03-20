@@ -541,7 +541,6 @@ def get_external_review():
     except tator.openapi.tator_openapi.exceptions.ApiException:
         flash('Please log in to Tator', 'info')
         return redirect('/')
-    title_details = 'All'
     try:
         # get a list of comments from external review db
         if request.args.get('unread'):
@@ -549,25 +548,30 @@ def get_external_review():
                 f'{app.config.get("DARC_REVIEW_URL")}/comment/unread',
                 headers=app.config.get('DARC_REVIEW_HEADERS'),
             )
-            title_details = 'Unread'
         elif request.args.get('read'):
             req = requests.get(
                 f'{app.config.get("DARC_REVIEW_URL")}/comment/read',
                 headers=app.config.get('DARC_REVIEW_HEADERS'),
             )
-            title_details = 'Read'
         elif request.args.get('reviewer'):
             req = requests.get(
                 f'{app.config.get("DARC_REVIEW_URL")}/comment/reviewer/{request.args.get("reviewer")}',
                 headers=app.config.get('DARC_REVIEW_HEADERS'),
             )
-            title_details = f'{request.args.get("reviewer")}'
         else:
             req = requests.get(
                 f'{app.config.get("DARC_REVIEW_URL")}/comment/all',
                 headers=app.config.get('DARC_REVIEW_HEADERS'),
             )
         comments = req.json()
+        with requests.get(
+                f'{app.config.get("DARC_REVIEW_URL")}/stats',
+                headers=app.config.get('DARC_REVIEW_HEADERS'),
+        ) as r:
+            res = r.json()
+            unread_comments = res['unread_comments']
+            read_comments = res['read_comments']
+            total_comments = res['total_comments']
     except requests.exceptions.ConnectionError:
         _reviewers = []
         print('\nERROR: unable to connect to external review server\n')
@@ -578,10 +582,13 @@ def get_external_review():
         return render_template('not-found.html', err='comments'), 404
     data = {
         'annotations': comment_loader.distilled_records,
-        'title': f'External Review ({title_details})',
+        'title': f'External Review {"(" + request.args.get("reviewer") + ")" if request.args.get("reviewer") else ""}',
         'concepts': session['vars_concepts'],
         'reviewers': session['reviewers'],
-        'comments': comments
+        'comments': comments,
+        'unread_comment_count': unread_comments,
+        'read_comment_count': read_comments,
+        'total_comment_count': total_comments,
     }
     return render_template('image-review/image-review.html', data=data)
 
