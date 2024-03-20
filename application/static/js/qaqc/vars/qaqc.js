@@ -406,7 +406,6 @@ window.onhashchange = () => {
 };
 
 function addAssociationRow(observation_uuid) {
-    // TODO check to see if there are more associations we should add here
     $('#editModalFields').children().last().remove(); // get rid of the add button
 
     // any changes made to this select field should be also be updated in submit handler fn
@@ -415,15 +414,16 @@ function addAssociationRow(observation_uuid) {
             <div class="col-4 ms-4 ps-4">
                 <div class="small mb-1">New Association</div>
                 <select id="newAssociationType" class="mb-1" style="width: 150px;" onchange="updateInputValidation()">
+                    <option>categorical-abundance</option>
+                    <option>comment</option>
+                    <option>identity-certainty</option>
+                    <option>identity-reference</option>
+                    <option>occurrence-remark</option>
+                    <option>population-quantity</option>
                     <option>s1</option>
                     <option>s2</option>
+                    <option>size</option>
                     <option>upon</option>
-                    <option>population-quantity</option>
-                    <option>identity-reference</option>
-                    <option>identity-certainty</option>
-                    <option>comment</option>
-                    <option>occurrence-remark</option>
-                    <option>categorical-abundance</option>
                 </select>
             </div>
             <div class="col-5">

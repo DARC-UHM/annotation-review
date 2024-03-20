@@ -477,7 +477,7 @@ class VarsQaqcProcessor:
         for name in self.sequence_names:
             for annotation in self.fetch_annotations(name):
                 for association in annotation['associations']:
-                    if association['link_value'] == "":
+                    if association['link_value'] == "" and association['to_concept'] == 'self':
                         self.working_records.append(annotation)
         self.process_records()
 
