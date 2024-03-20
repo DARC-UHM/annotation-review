@@ -8,6 +8,7 @@ from flask import session
 from .functions import *
 
 TERM_RED = '\033[1;31;48m'
+TERM_YELLOW = '\033[1;93m'
 TERM_NORMAL = '\033[1;37;0m'
 
 
@@ -23,6 +24,7 @@ class CommentProcessor:
 
     def load_comments(self):
         formatted_comments = []
+        no_match_records = set()
 
         try:
             with open(os.path.join('cache', 'phylogeny.json'), 'r') as f:
@@ -57,7 +59,9 @@ class CommentProcessor:
                             vars_tree = vars_tax_res.json()['children'][0]['children'][0]['children'][0]['children'][0]['children'][0]
                             phylogeny[concept_name] = {}
                         except KeyError:
-                            print(f'\n{TERM_RED}VARS phylogeny for {annotation["concept"]} not in expected format{TERM_NORMAL}')
+                            if concept_name not in no_match_records:
+                                no_match_records.add(concept_name)
+                                print(f'{TERM_YELLOW}WARNING: Could not find phylogeny for concept "{annotation["concept"]}" in VARS knowledge base{TERM_NORMAL}')
                             vars_tree = {}
                         while 'children' in vars_tree.keys():
                             if 'rank' in vars_tree.keys():  # sometimes it's not
