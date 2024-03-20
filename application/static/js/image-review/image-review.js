@@ -421,39 +421,31 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
     if (url.pathname.includes('external-review')) {
         // external review page
-        $('#changeExternalView').on('click', () => {
+        $('#externalAllAnchor').on('click', () => {
             $('#load-overlay').removeClass('loader-bg-hidden');
             $('#load-overlay').addClass('loader-bg');
         });
-        $('#changeExternalView2').on('click', () => {
+        $('#externalUnreadAnchor').on('click', () => {
             $('#load-overlay').removeClass('loader-bg-hidden');
             $('#load-overlay').addClass('loader-bg');
         });
-        if (reviewer) {
-            $('#changeExternalView').html('View All');
-            $('#changeExternalView').attr('href', '/external-review');
-            $('#changeExternalView2').html('View Unread');
-            $('#changeExternalView2').attr('href', '/external-review?unread=true');
-        } else if (unread) {
-            $('#changeExternalView').html('View All');
-            $('#changeExternalView').attr('href', '/external-review');
-            $('#changeExternalView2').html('View Read');
-            $('#changeExternalView2').attr('href', '/external-review?read=true');
+        $('#externalReadAnchor').on('click', () => {
+            $('#load-overlay').removeClass('loader-bg-hidden');
+            $('#load-overlay').addClass('loader-bg');
+        });
+        if (unread) {
+            $('#externalUnreadAnchor').css('color', 'white');
         } else if (read) {
-            $('#changeExternalView').html('View All');
-            $('#changeExternalView').attr('href', '/external-review');
-            $('#changeExternalView2').html('View Unread');
-            $('#changeExternalView2').attr('href', '/external-review?unread=true');
+            $('#externalReadAnchor').css('color', 'white');
+        } else if (reviewer) {
+            $('#externalReviewFilters').hide();
         } else {
-            $('#changeExternalView').html('View Unread');
-            $('#changeExternalView').attr('href', '/external-review?unread=true');
-            $('#changeExternalView2').html('View Read');
-            $('#changeExternalView2').attr('href', '/external-review?read=true');
+            $('#externalAllAnchor').css('color', 'white');
         }
     } else {
         // regular dive page
         $('#syncCTD').hide();
-        $('#changeExternalView').hide();
+        $('#externalReviewFilters').hide();
     }
 
     $('#paginationSelect').on('change', () => {
