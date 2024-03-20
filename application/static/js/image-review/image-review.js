@@ -381,6 +381,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
     const url = new URL(window.location.href);
     const queryAndHash = url.search + url.hash;
     let unread = false;
+    let read = false;
     let reviewer = null;
 
     autocomplete($('#editConceptName'), allConcepts);
@@ -401,6 +402,8 @@ document.addEventListener('DOMContentLoaded', function(event) {
             sequences.push(param.pop());
         } else if (pair[0].includes('unread')) {
             unread = true;
+        } else if (pair[0].includes('read')) {
+            read = true;
         } else if (pair[0].includes('reviewer')) {
             reviewer = pair[1];
         }
@@ -422,17 +425,30 @@ document.addEventListener('DOMContentLoaded', function(event) {
             $('#load-overlay').removeClass('loader-bg-hidden');
             $('#load-overlay').addClass('loader-bg');
         });
+        $('#changeExternalView2').on('click', () => {
+            $('#load-overlay').removeClass('loader-bg-hidden');
+            $('#load-overlay').addClass('loader-bg');
+        });
         if (reviewer) {
-            $('#title').html(`External Review List (${reviewer})`);
-            document.title = `DARC Image Review | External Review List (${reviewer})`;
             $('#changeExternalView').html('View All');
             $('#changeExternalView').attr('href', '/external-review');
+            $('#changeExternalView2').html('View Unread');
+            $('#changeExternalView2').attr('href', '/external-review?unread=true');
         } else if (unread) {
             $('#changeExternalView').html('View All');
             $('#changeExternalView').attr('href', '/external-review');
+            $('#changeExternalView2').html('View Read');
+            $('#changeExternalView2').attr('href', '/external-review?read=true');
+        } else if (read) {
+            $('#changeExternalView').html('View All');
+            $('#changeExternalView').attr('href', '/external-review');
+            $('#changeExternalView2').html('View Unread');
+            $('#changeExternalView2').attr('href', '/external-review?unread=true');
         } else {
             $('#changeExternalView').html('View Unread');
             $('#changeExternalView').attr('href', '/external-review?unread=true');
+            $('#changeExternalView2').html('View Read');
+            $('#changeExternalView2').attr('href', '/external-review?read=true');
         }
     } else {
         // regular dive page
