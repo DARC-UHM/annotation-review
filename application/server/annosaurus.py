@@ -74,7 +74,6 @@ class Annosaurus(JWTAuthentication):
                            association: Dict,
                            client_secret: str = None,
                            jwt: str = None) -> int:
-
         if 'link_name' not in association:
             raise ValueError('association dict missing key "link_name"')
         jwt = self.authorize(client_secret, jwt)
@@ -84,22 +83,21 @@ class Annosaurus(JWTAuthentication):
         return requests.post(url, data=association, headers=headers).status_code
 
     def update_association(self,
-                           uuid: str,
+                           observation_uuid: str,
                            association: Dict,
                            client_secret: str = None,
                            jwt: str = None) -> int:
-
         jwt = self.authorize(client_secret, jwt)
-        url = f'{self.base_url}/associations/{uuid}'
+        url = f'{self.base_url}/associations/{observation_uuid}'
         headers = self._auth_header(jwt)
         return requests.put(url, data=association, headers=headers).status_code
 
     def delete_association(self,
-                           uuid: str,
+                           observation_uuid: str,
                            client_secret: str = None,
                            jwt: str = None) -> int:
         jwt = self.authorize(client_secret, jwt)
-        url = f'{self.base_url}/associations/{uuid}'
+        url = f'{self.base_url}/associations/{observation_uuid}'
         headers = self._auth_header(jwt)
         return requests.delete(url, headers=headers).status_code
 
@@ -115,102 +113,105 @@ class Annosaurus(JWTAuthentication):
         update_str = f'UUID: {observation_uuid}\n'
         jwt = self.authorize(client_secret, jwt)
         ret_status = 304
+        req = requests.get(f'{self.base_url}/observations/{observation_uuid}')
 
-        with requests.get(f'{self.base_url}/observations/{observation_uuid}') as r:
-            if r.status_code != 200:
-                print(f'{update_str}Unable to find annotation on server')
+        if req.status_code != 200:
+            print(f'{update_str}Unable to find annotation on server')
+            return 404
+        old_annotation = req.json()
+
+        # check for concept name change
+        if updated_annotation['concept'] != old_annotation['concept']:
+            update_concept = requests.put(
+                f'{self.base_url}/annotations/{observation_uuid}',
+                data={'concept': updated_annotation['concept']},
+                headers=self._auth_header(jwt)
+            )
+            if update_concept.status_code != 200:
+                print(f'{update_str}Unable to update concept name')
                 return 500
-            old_annotation = r.json()
+            ret_status = 200
+            update_str += f'Updated concept name\n'
 
-            # check for concept name change
-            if updated_annotation['concept'] != old_annotation['concept']:
-                url = f'{self.base_url}/annotations/{observation_uuid}'
-                new_name = {
-                    'concept': updated_annotation['concept']
-                }
-                headers = self._auth_header(jwt)
-                if requests.put(url, data=new_name, headers=headers).status_code != 200:
-                    print(f'{update_str}Unable to update concept name')
-                    return 500
-                ret_status = 200
-                update_str += f'Updated concept name\n'
+        # get list of old association link_names that we can change
+        old_link_names = []
+        for old_association in old_annotation['associations']:
+            if old_association['link_name'] in possible_association_updates:
+                old_link_names.append(old_association['link_name'])
 
-            # get list of old association link_names that we can change
-            old_link_names = []
-            for old_association in old_annotation['associations']:
-                if old_association['link_name'] in possible_association_updates:
-                    old_link_names.append(old_association['link_name'])
+        # get list of new link_names
+        link_names_to_update = []
+        for association in possible_association_updates:
+            if updated_annotation[association] != '' or association in old_link_names:
+                link_names_to_update.append(association)
 
-            # get list of new link_names
-            link_names_to_update = []
-            for association in possible_association_updates:
-                if updated_annotation[association] != '' or association in old_link_names:
-                    link_names_to_update.append(association)
-
-            for link_name in link_names_to_update:
-                old_association = \
-                    next((item for item in old_annotation['associations'] if item['link_name'] == link_name), None)
-                if link_name in old_link_names:
-                    if updated_annotation[link_name] == '':
-                        # delete the association
-                        if self.delete_association(uuid=old_association['uuid'], client_secret=client_secret) != 204:
-                            print(f'{update_str}Unable to remove association "{link_name}"')
-                            return 500
-                        ret_status = 200
-                        update_str += f'Deleted association "{link_name}"\n'
-                    else:
-                        # check if value actually changed
-                        if link_name == 'upon' or link_name == 'guide-photo':
-                            # 'upon' and 'guide-photo' use 'to_concept'
-                            if old_association['to_concept'] != updated_annotation[link_name]:
-                                # update the association
-                                new_association = {'to_concept': updated_annotation[link_name]}
-                                status = self.update_association(
-                                    uuid=old_association['uuid'],
-                                    association=new_association,
-                                    client_secret=client_secret
-                                )
-                                if status != 200:
-                                    print(f'{update_str}Unable to update association "{link_name}"')
-                                    return 500
-                                ret_status = 200
-                                update_str += f'Updated association "{link_name}"\n'
-                        else:
-                            # others use 'link_value'
-                            if old_association['link_value'] != updated_annotation[link_name]:
-                                # update the association
-                                new_association = {'link_value': updated_annotation[link_name]}
-                                status = self.update_association(
-                                    uuid=old_association['uuid'],
-                                    association=new_association,
-                                    client_secret=client_secret
-                                )
-                                if status != 200:
-                                    print(f'{update_str}Unable to update association "{link_name}"')
-                                    return 500
-                                ret_status = 200
-                                update_str += f'Updated association "{link_name}"\n'
-                else:
-                    # create new association
-                    to_concept = \
-                        updated_annotation[link_name] if link_name == 'upon' or link_name == 'guide-photo' else 'self'
-                    link_value = \
-                        'nil' if link_name == 'upon' or link_name == 'guide-photo' else updated_annotation[link_name]
-                    new_association = {
-                        'link_name': link_name,
-                        'to_concept': to_concept,
-                        'link_value': link_value
-                    }
-                    status = self.create_association(
-                        observation_uuid=observation_uuid,
-                        association=new_association,
-                        client_secret=client_secret
-                    )
-                    if status != 200:
-                        print(f'{update_str}Unable to add association "{link_name}"')
+        for link_name in link_names_to_update:
+            old_association = \
+                next((item for item in old_annotation['associations'] if item['link_name'] == link_name), None)
+            if link_name in old_link_names:
+                if updated_annotation[link_name] == '':
+                    # delete the association
+                    if self.delete_association(
+                        observation_uuid=old_association['uuid'],
+                        client_secret=client_secret,
+                    ) != 204:
+                        print(f'{update_str}Unable to remove association "{link_name}"')
                         return 500
                     ret_status = 200
-                    update_str += f'Added association "{link_name}"\n'
+                    update_str += f'Deleted association "{link_name}"\n'
+                else:
+                    # check if value actually changed
+                    if link_name == 'upon' or link_name == 'guide-photo':
+                        # 'upon' and 'guide-photo' use 'to_concept'
+                        if old_association['to_concept'] != updated_annotation[link_name]:
+                            # update the association
+                            new_association = {'to_concept': updated_annotation[link_name]}
+                            status = self.update_association(
+                                observation_uuid=old_association['uuid'],
+                                association=new_association,
+                                client_secret=client_secret,
+                            )
+                            if status != 200:
+                                print(f'{update_str}Unable to update association "{link_name}"')
+                                return 500
+                            ret_status = 200
+                            update_str += f'Updated association "{link_name}"\n'
+                    else:
+                        # others use 'link_value'
+                        if old_association['link_value'] != updated_annotation[link_name]:
+                            # update the association
+                            new_association = {'link_value': updated_annotation[link_name]}
+                            status = self.update_association(
+                                observation_uuid=old_association['uuid'],
+                                association=new_association,
+                                client_secret=client_secret
+                            )
+                            if status != 200:
+                                print(f'{update_str}Unable to update association "{link_name}"')
+                                return 500
+                            ret_status = 200
+                            update_str += f'Updated association "{link_name}"\n'
+            else:
+                # create new association
+                to_concept = \
+                    updated_annotation[link_name] if link_name == 'upon' or link_name == 'guide-photo' else 'self'
+                link_value = \
+                    'nil' if link_name == 'upon' or link_name == 'guide-photo' else updated_annotation[link_name]
+                new_association = {
+                    'link_name': link_name,
+                    'to_concept': to_concept,
+                    'link_value': link_value
+                }
+                status = self.create_association(
+                    observation_uuid=observation_uuid,
+                    association=new_association,
+                    client_secret=client_secret
+                )
+                if status != 200:
+                    print(f'{update_str}Unable to add association "{link_name}"')
+                    return 500
+                ret_status = 200
+                update_str += f'Added association "{link_name}"\n'
 
         print(update_str if update_str else 'No changes made')
         return ret_status
@@ -249,9 +250,9 @@ class Annosaurus(JWTAuthentication):
 
                 new_association = {'link_value': new_comment}
                 status = self.update_association(
-                    uuid=old_association['uuid'],
+                    observation_uuid=old_association['uuid'],
                     association=new_association,
-                    client_secret=client_secret
+                    client_secret=client_secret,
                 )
                 if status != 200:
                     print(f'{update_str}Unable to update comment')
