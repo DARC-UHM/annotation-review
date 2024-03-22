@@ -67,7 +67,7 @@ class Annosaurus(JWTAuthentication):
                            observation_uuid: str,
                            association: Dict,
                            client_secret: str = None,
-                           jwt: str = None) -> int:
+                           jwt: str = None) -> dict:
 
         if 'link_name' not in association:
             raise ValueError(
@@ -76,35 +76,38 @@ class Annosaurus(JWTAuthentication):
         url = "{}/associations".format(self.base_url)
         association['observation_uuid'] = observation_uuid
         headers = self._auth_header(jwt)
-        return requests.post(url, data=association, headers=headers).status_code
+        req = requests.post(url, data=association, headers=headers)
+        return {'status': req.status_code, 'json': req.json()}
 
     def update_association(self,
                            uuid: str,
                            association: Dict,
                            client_secret: str = None,
-                           jwt: str = None) -> int:
+                           jwt: str = None) -> dict:
 
         jwt = self.authorize(client_secret, jwt)
         url = "{}/associations/{}".format(self.base_url, uuid)
         headers = self._auth_header(jwt)
-        return requests.put(url, data=association, headers=headers).status_code
+        req = requests.put(url, data=association, headers=headers)
+        return {'status': req.status_code, 'json': req.json()}
 
     def delete_association(self,
                            uuid: str,
                            client_secret: str = None,
-                           jwt: str = None) -> int:
+                           jwt: str = None) -> dict:
         jwt = self.authorize(client_secret, jwt)
         url = "{}/associations/{}".format(self.base_url, uuid)
         headers = self._auth_header(jwt)
-        return requests.delete(url, headers=headers).status_code
+        req = requests.delete(url, headers=headers)
+        return {'status': req.status_code, 'json': {}}
 
     def update_annotation(self,
                           observation_uuid: str,
                           updated_annotation: Dict,
                           client_secret: str = None,
-                          jwt: str = None) -> int:
+                          jwt: str = None) -> dict:
         """
-        Update an annotation with the given UUID. Returns a server status code.
+        Update an annotation with the given UUID. Returns a Response.
         """
         possible_association_updates = ['identity-certainty', 'identity-reference', 'upon', 'comment', 'guide-photo']
         update_str = f'UUID: {observation_uuid}\n'
@@ -114,7 +117,7 @@ class Annosaurus(JWTAuthentication):
         with requests.get(f'{self.base_url}/observations/{observation_uuid}') as r:
             if r.status_code != 200:
                 print(f'{update_str}Unable to find annotation on server')
-                return 500
+                return {'status': r.status_code, 'json': r.json()}
             old_annotation = r.json()
 
             # check for concept name change
@@ -124,9 +127,10 @@ class Annosaurus(JWTAuthentication):
                     "concept": updated_annotation['concept']
                 }
                 headers = self._auth_header(jwt)
-                if requests.put(url, data=new_name, headers=headers).status_code != 200:
+                req = requests.put(url, data=new_name, headers=headers)
+                if req.status_code != 200:
                     print(f'{update_str}Unable to update concept name')
-                    return 500
+                    return {'status': req.status_code, 'json': req.json()}
                 ret_status = 200
                 update_str += f'Updated concept name\n'
 
@@ -148,9 +152,10 @@ class Annosaurus(JWTAuthentication):
                 if link_name in old_link_names:
                     if updated_annotation[link_name] == '':
                         # delete the association
-                        if self.delete_association(uuid=old_association["uuid"], client_secret=client_secret) != 204:
+                        deleted = self.delete_association(uuid=old_association["uuid"], client_secret=client_secret)
+                        if deleted['status'] != 204:
                             print(f'{update_str}Unable to remove association "{link_name}"')
-                            return 500
+                            return deleted
                         ret_status = 200
                         update_str += f'Deleted association "{link_name}"\n'
                     else:
@@ -160,14 +165,14 @@ class Annosaurus(JWTAuthentication):
                             if old_association['to_concept'] != updated_annotation[link_name]:
                                 # update the association
                                 new_association = {'to_concept': updated_annotation[link_name]}
-                                status = self.update_association(
+                                updated = self.update_association(
                                     uuid=old_association['uuid'],
                                     association=new_association,
                                     client_secret=client_secret
                                 )
-                                if status != 200:
+                                if updated['status'] != 200:
                                     print(f'{update_str}Unable to update association "{link_name}"')
-                                    return 500
+                                    return updated
                                 ret_status = 200
                                 update_str += f'Updated association "{link_name}"\n'
                         else:
@@ -175,14 +180,14 @@ class Annosaurus(JWTAuthentication):
                             if old_association['link_value'] != updated_annotation[link_name]:
                                 # update the association
                                 new_association = {'link_value': updated_annotation[link_name]}
-                                status = self.update_association(
+                                updated = self.update_association(
                                     uuid=old_association['uuid'],
                                     association=new_association,
                                     client_secret=client_secret
                                 )
-                                if status != 200:
+                                if updated['status'] != 200:
                                     print(f'{update_str}Unable to update association "{link_name}"')
-                                    return 500
+                                    return updated
                                 ret_status = 200
                                 update_str += f'Updated association "{link_name}"\n'
                 else:
@@ -196,32 +201,32 @@ class Annosaurus(JWTAuthentication):
                         'to_concept': to_concept,
                         'link_value': link_value
                     }
-                    status = self.create_association(
+                    created = self.create_association(
                         observation_uuid=observation_uuid,
                         association=new_association,
                         client_secret=client_secret
                     )
-                    if status != 200:
+                    if created['status'] != 200:
                         print(f'{update_str}Unable to add association "{link_name}"')
-                        return 500
+                        return created
                     ret_status = 200
                     update_str += f'Added association "{link_name}"\n'
-
         print(update_str if update_str else 'No changes made')
-        return ret_status
+        req = requests.get(f'{self.base_url}/observations/{observation_uuid}')
+        return {'status': ret_status, 'json': req.json()}
 
     def update_annotation_comment(self,
                                   observation_uuid: str,
                                   reviewers: list,
                                   client_secret: str = None,
-                                  jwt: str = None):
+                                  jwt: str = None) -> dict:
         update_str = f'UUID: {observation_uuid}\n'
         jwt = self.authorize(client_secret, jwt)
 
         with requests.get(f'{self.base_url}/observations/{observation_uuid}') as r:
             if r.status_code != 200:
                 print(f'{update_str}Unable to find annotation on server')
-                return
+                return {'status': r.status_code, 'json': r.json()}
 
             old_association = \
                 next((item for item in r.json()['associations'] if item['link_name'] == 'comment'), None)
@@ -243,14 +248,14 @@ class Annosaurus(JWTAuthentication):
                     new_comment = ''
 
                 new_association = {'link_value': new_comment}
-                status = self.update_association(
+                updated = self.update_association(
                     uuid=old_association['uuid'],
                     association=new_association,
                     client_secret=client_secret
                 )
-                if status != 200:
+                if updated['status'] != 200:
                     print(f'{update_str}Unable to update comment')
-                    return
+                    return updated
                 else:
                     update_str += 'Updated comment'
             else:
@@ -260,16 +265,16 @@ class Annosaurus(JWTAuthentication):
                     'link_name': 'comment',
                     'link_value': new_comment
                 }
-                status = self.create_association(
+                created = self.create_association(
                     observation_uuid=observation_uuid,
                     association=new_association,
                     client_secret=client_secret
                 )
-                if status != 200:
+                if created['status'] != 200:
                     print(f'{update_str}Unable to update comment')
-                    return
+                    return created
                 else:
                     update_str += 'Updated comment'
-
         print(update_str if update_str else 'No changes made')
-        return
+        req = requests.get(f'{self.base_url}/observations/{observation_uuid}')
+        return {'status': 200, 'json': req.json()}

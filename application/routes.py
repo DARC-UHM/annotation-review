@@ -822,12 +822,12 @@ def update_annotation():
         'comment': request.values.get('comment').replace('\'', ''),
         'guide-photo': request.values.get('guide-photo'),
     }
-    status = annosaurus.update_annotation(
+    updated_response = annosaurus.update_annotation(
         observation_uuid=request.values.get('observation_uuid'),
         updated_annotation=updated_annotation,
         client_secret=app.config.get('ANNOSAURUS_CLIENT_SECRET')
     )
-    return {}, status
+    return updated_response['json'], updated_response['status']
 
 
 # creates a new association for a VARS annotation
@@ -839,14 +839,14 @@ def create_association():
         'link_value': request.values.get('link_value'),
         'to_concept': request.values.get('to_concept'),
     }
-    status = annosaurus.create_association(
+    created_response = annosaurus.create_association(
         observation_uuid=request.values.get('observation_uuid'),
         association=new_association,
         client_secret=app.config.get('ANNOSAURUS_CLIENT_SECRET')
     )
-    if status == 200:
-        return {}, 201
-    return {}, status
+    if created_response['status'] == 200:
+        created_response['status'] = 201
+    return created_response['json'], created_response['status']
 
 
 # updates a VARS association
@@ -858,19 +858,20 @@ def update_association():
         'link_value': request.values.get('link_value'),
         'to_concept': request.values.get('to_concept'),
     }
-    status = annosaurus.update_association(
+    updated_response = annosaurus.update_association(
         uuid=request.values.get('uuid'),
         association=updated_association,
         client_secret=app.config.get('ANNOSAURUS_CLIENT_SECRET')
     )
-    return {}, status
+    return updated_response['json'], updated_response['status']
 
 
 # deletes a VARS association
 @app.delete('/vars/association/<uuid>')
 def delete_association(uuid):
     annosaurus = Annosaurus(app.config.get('ANNOSAURUS_URL'))
-    return {}, annosaurus.delete_association(uuid=uuid, client_secret=app.config.get('ANNOSAURUS_CLIENT_SECRET'))
+    deleted = annosaurus.delete_association(uuid=uuid, client_secret=app.config.get('ANNOSAURUS_CLIENT_SECRET'))
+    return deleted['json'], deleted['status']
 
 
 @app.errorhandler(404)
