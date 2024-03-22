@@ -37,12 +37,12 @@ class CommentProcessor:
             if 'scientific_name' not in self.comments[comment].keys()\
                     or self.comments[comment]['scientific_name'] is None\
                     or self.comments[comment]['scientific_name'] == '':  # vars annotation
-                annotation = requests.get(f'{os.environ.get("ANNOSAURUS_URL")}/annotations/{comment}').json()
+                annotation = requests.get(url=f'{os.environ.get("ANNOSAURUS_URL")}/annotations/{comment}').json()
                 concept_name = annotation['concept']
             else:  # tator localization
                 concept_name = self.comments[comment]['scientific_name']
                 annotation = requests.get(
-                    f'https://cloud.tator.io/rest/Localization/{comment}',
+                    url=f'https://cloud.tator.io/rest/Localization/{comment}',
                     headers={
                         'Content-Type': 'application/json',
                         'Authorization': f'Token {session["tator_token"]}',
@@ -51,7 +51,7 @@ class CommentProcessor:
                 annotation = annotation.json()
             if concept_name not in phylogeny.keys():
                 # get the phylogeny from VARS kb
-                with requests.get(f'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/{concept_name}') \
+                with requests.get(url=f'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/{concept_name}') \
                         as vars_tax_res:
                     if vars_tax_res.status_code == 200:
                         # this get us to phylum

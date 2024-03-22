@@ -60,7 +60,7 @@ class AnnotationProcessor:
         """
         Fetches all annotations that have images and all video uris/start times from VARS.
         """
-        response = requests.get(f'http://hurlstor.soest.hawaii.edu:8086/query/dive/{sequence_name.replace(" ", "%20")}').json()
+        response = requests.get(url=f'http://hurlstor.soest.hawaii.edu:8086/query/dive/{sequence_name.replace(" ", "%20")}').json()
 
         # get list of video links and start timestamps
         for video in response['media']:
@@ -80,7 +80,7 @@ class AnnotationProcessor:
         """
         Fetches phylogeny for given concept from the VARS knowledge base.
         """
-        vars_tax_res = requests.get(f'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/{concept_name}')
+        vars_tax_res = requests.get(url=f'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/{concept_name}')
         if vars_tax_res.status_code == 200:
             try:
                 # this get us to phylum

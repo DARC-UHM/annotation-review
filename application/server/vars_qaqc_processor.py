@@ -28,7 +28,7 @@ class VarsQaqcProcessor:
         print(f'Fetching annotations for sequence {name} from VARS...', end='')
         sys.stdout.flush()
 
-        with requests.get(f'http://hurlstor.soest.hawaii.edu:8086/query/dive/{name.replace(" ", "%20")}') as r:
+        with requests.get(url=f'http://hurlstor.soest.hawaii.edu:8086/query/dive/{name.replace(" ", "%20")}') as r:
             response = r.json()
             print('fetched!')
 
@@ -58,7 +58,7 @@ class VarsQaqcProcessor:
             concept_name = annotation['concept']
             if concept_name and concept_name not in phylogeny.keys():
                 # get the phylogeny from VARS kb
-                with requests.get(f'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/{concept_name}') \
+                with requests.get(url=f'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/{concept_name}') \
                         as vars_tax_res:
                     if vars_tax_res.status_code == 200:
                         # this get us to phylum

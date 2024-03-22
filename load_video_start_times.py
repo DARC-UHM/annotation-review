@@ -54,20 +54,20 @@ def get_tator_media_ids(project_id, section_id, deployment_name, tator_token):
     if not tator_token:
         print('Error: Tator token not found')
         sys.exit()
-    req = requests.get(
-        f'https://cloud.tator.io/rest/Medias/{project_id}?section={section_id}&attribute_contains=%24name%3A%3A{deployment_name}',
+    res = requests.get(
+        url=f'https://cloud.tator.io/rest/Medias/{project_id}?section={section_id}&attribute_contains=%24name%3A%3A{deployment_name}',
         headers={
             'Content-Type': 'application/json',
             'Authorization': f'Token {tator_token}',
         })
-    for media in req.json():
+    for media in res.json():
         media_name = media['name'].split('_')
         # until we decide on an actual naming convention...
         if len(media_name) == 3:  # format DOEX0087_NIU-dscm-02_c009.mp4
             media_list[f'{media_name[1]}_{media_name[2]}'[:-4]] = {'id': media['id']}
         else:  # format HAW_dscm_01_c010_202304250123Z_0983m.mp4
             media_list[f'{media_name[0]}_{media_name[1]}_{media_name[2]}_{media_name[3]}'] = {'id': media['id']}
-    print(f'Retrieved {len(req.json())} media ids from Tator')
+    print(f'Retrieved {len(res.json())} media ids from Tator')
 
 
 def set_video_start_time(media_id, start_time, tator_token):
@@ -76,14 +76,14 @@ def set_video_start_time(media_id, start_time, tator_token):
             'Start Time': start_time,
         },
     }
-    req = requests.patch(
-        f'https://cloud.tator.io/rest/Media/{media_id}',
+    res = requests.patch(
+        url=f'https://cloud.tator.io/rest/Media/{media_id}',
         headers={
             'Content-Type': 'application/json',
             'Authorization': f'Token {tator_token}',
         },
         json=data)
-    print(req.json())
+    print(res.json())
 
 
 if len(sys.argv) != 4:

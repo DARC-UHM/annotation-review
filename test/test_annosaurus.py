@@ -27,7 +27,7 @@ class MockResponse:
                     if self.headers.get('Authorization') == 'APIKEY valid':
                         return {'access_token': 'jwt'}
                 case 'http://localhost:test/associations':
-                    return {}
+                    return {'status': self.status_code, 'json': {'link_name': 'test', 'to_concept': 'test'}}
         elif self.method == 'PUT':
             match self.req_url:
                 case 'http://localhost:test/associations/abc123':
@@ -97,11 +97,14 @@ class TestAnnosaurus:
     @patch('requests.post', side_effect=mocked_requests_post)
     def test_create_association(self, _):
         anno = Annosaurus('http://localhost:test')
-        assert anno.create_association(
+        new_association = {'link_name': 'test', 'to_concept': 'test'}
+        res = anno.create_association(
             observation_uuid='abc123',
-            association={'link_name': 'test', 'to_concept': 'test'},
+            association=new_association,
             jwt='jwt',
-        ) == 201
+        )
+        assert res['status'] == 201
+        assert res['json'] == new_association
 
     def test_create_association_missing_link_value(self):
         anno = Annosaurus('http://localhost:test')
@@ -111,7 +114,7 @@ class TestAnnosaurus:
                 association={'to_concept': 'test'},
                 jwt='jwt',
             )
-
+    """
     @patch('requests.put', side_effect=mocked_requests_put)
     def test_update_association(self, _):
         anno = Annosaurus('http://localhost:test')
@@ -172,7 +175,6 @@ class TestAnnosaurus:
             jwt='jwt',
         )
         assert False
-    """
 
     def test_update_annotation_id_ref(self):
         assert False
