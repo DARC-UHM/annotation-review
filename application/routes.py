@@ -860,7 +860,7 @@ def update_association():
         'to_concept': request.values.get('to_concept'),
     }
     updated_response = annosaurus.update_association(
-        observation_uuid=request.values.get('uuid'),
+        association_uuid=request.values.get('uuid'),
         association=updated_association,
         client_secret=app.config.get('ANNOSAURUS_CLIENT_SECRET'),
     )
@@ -872,7 +872,7 @@ def update_association():
 def delete_association(uuid):
     annosaurus = Annosaurus(app.config.get('ANNOSAURUS_URL'))
     deleted = annosaurus.delete_association(
-        observation_uuid=uuid,
+        association_uuid=uuid,
         client_secret=app.config.get('ANNOSAURUS_CLIENT_SECRET'),
     )
     return deleted['json'], deleted['status']

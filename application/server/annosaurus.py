@@ -44,15 +44,16 @@ class JWTAuthentication(object):
         Call the authentication endpoint to retrieve a JWT token as a string
         """
 
-        r = requests.post(
-            url=f'{self.base_url}/auth',
+        url = f'{self.base_url}/auth'
+        res = requests.post(
+            url=url,
             headers={'Authorization': f'APIKEY {client_secret}'},
         )
         try:
-            auth_response = r.json()
+            auth_response = res.json()
             return auth_response['access_token']
         except json.decoder.JSONDecodeError:
-            print(f'-- BAD Authentication: {url} returned: \n{r.text}')
+            print(f'-- BAD Authentication: {url} returned: \n{res.text}')
             return ''
 
     def _auth_header(self, jwt: str) -> Dict:
@@ -88,30 +89,44 @@ class Annosaurus(JWTAuthentication):
         return {'status': res.status_code, 'json': res.json()}
 
     def update_association(self,
-                           observation_uuid: str,
+                           association_uuid: str,
                            association: Dict,
                            client_secret: str = None,
                            jwt: str = None) -> dict:
 
         jwt = self.authorize(client_secret, jwt)
         res = requests.put(
-            url=f'{self.base_url}/associations/{observation_uuid}',
+            url=f'{self.base_url}/associations/{association_uuid}',
             data=association,
             headers=self._auth_header(jwt),
         )
         return {'status': res.status_code, 'json': res.json()}
 
     def delete_association(self,
-                           observation_uuid: str,
+                           association_uuid: str,
                            client_secret: str = None,
                            jwt: str = None) -> dict:
 
         jwt = self.authorize(client_secret, jwt)
         res = requests.delete(
-            url=f'{self.base_url}/associations/{observation_uuid}',
+            url=f'{self.base_url}/associations/{association_uuid}',
             headers=self._auth_header(jwt),
         )
         return {'status': res.status_code, 'json': {}}
+
+    def update_concept_name(self,
+                            observation_uuid: str,
+                            concept: str,
+                            client_secret: str = None,
+                            jwt: str = None) -> dict:
+
+        jwt = self.authorize(client_secret, jwt)
+        res = requests.put(
+            url=f'{self.base_url}/annotations/{observation_uuid}',
+            data={'concept': concept},
+            headers=self._auth_header(jwt),
+        )
+        return {'status': res.status_code, 'json': res.json()}
 
     def update_annotation(self,
                           observation_uuid: str,
@@ -126,6 +141,8 @@ class Annosaurus(JWTAuthentication):
         jwt = self.authorize(client_secret, jwt)
         ret_status = 304
         res = requests.get(url=f'{self.base_url}/observations/{observation_uuid}')
+        print('uhhhh')
+        print(res.json())
 
         if res.status_code != 200:
             print(f'{update_str}Unable to find annotation on server')
@@ -134,14 +151,14 @@ class Annosaurus(JWTAuthentication):
 
         # check for concept name change
         if updated_annotation['concept'] != old_annotation['concept']:
-            update_concept = requests.put(
-                url=f'{self.base_url}/annotations/{observation_uuid}',
-                data={'concept': updated_annotation['concept']},
-                headers=self._auth_header(jwt)
+            updated_concept_name = self.update_concept_name(
+                observation_uuid=observation_uuid,
+                concept=updated_annotation['concept'],
+                jwt=jwt,
             )
-            if update_concept.status_code != 200:
+            if updated_concept_name['status'] != 200:
                 print(f'{update_str}Unable to update concept name')
-                return {'status': update_concept.status_code, 'json': update_concept.json()}
+                return updated_concept_name
             ret_status = 200
             update_str += f'Updated concept name\n'
 
@@ -164,8 +181,8 @@ class Annosaurus(JWTAuthentication):
                 if updated_annotation[link_name] == '':
                     # delete the association
                     deleted = self.delete_association(
-                        observation_uuid=old_association["uuid"],
-                        client_secret=client_secret,
+                        association_uuid=old_association["uuid"],
+                        jwt=jwt,
                     )
                     if deleted['status'] != 204:
                         print(f'{update_str}Unable to remove association "{link_name}"')
@@ -180,9 +197,9 @@ class Annosaurus(JWTAuthentication):
                             # update the association
                             new_association = {'to_concept': updated_annotation[link_name]}
                             updated = self.update_association(
-                                observation_uuid=old_association['uuid'],
+                                association_uuid=old_association['uuid'],
                                 association=new_association,
-                                client_secret=client_secret,
+                                jwt=jwt,
                             )
                             if updated['status'] != 200:
                                 print(f'{update_str}Unable to update association "{link_name}"')
@@ -195,9 +212,9 @@ class Annosaurus(JWTAuthentication):
                             # update the association
                             new_association = {'link_value': updated_annotation[link_name]}
                             updated = self.update_association(
-                                observation_uuid=old_association['uuid'],
+                                association_uuid=old_association['uuid'],
                                 association=new_association,
-                                client_secret=client_secret,
+                                jwt=jwt,
                             )
                             if updated['status'] != 200:
                                 print(f'{update_str}Unable to update association "{link_name}"')
@@ -218,7 +235,7 @@ class Annosaurus(JWTAuthentication):
                 created = self.create_association(
                     observation_uuid=observation_uuid,
                     association=new_association,
-                    client_secret=client_secret,
+                    jwt=jwt,
                 )
                 if created['status'] != 200:
                     print(f'{update_str}Unable to add association "{link_name}"')
@@ -264,9 +281,9 @@ class Annosaurus(JWTAuthentication):
 
                 new_association = {'link_value': new_comment}
                 updated = self.update_association(
-                    observation_uuid=old_association['uuid'],
+                    association_uuid=old_association['uuid'],
                     association=new_association,
-                    client_secret=client_secret,
+                    jwt=jwt,
                 )
                 if updated['status'] != 200:
                     print(f'{update_str}Unable to update comment')
@@ -283,7 +300,7 @@ class Annosaurus(JWTAuthentication):
                 created = self.create_association(
                     observation_uuid=observation_uuid,
                     association=new_association,
-                    client_secret=client_secret
+                    jwt=jwt
                 )
                 if created['status'] != 200:
                     print(f'{update_str}Unable to update comment')

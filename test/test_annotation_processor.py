@@ -6,12 +6,12 @@ from test.data.vars_responses import ex_23060001, pomacentridae
 
 
 class MockResponse:
-    def __init__(self, req_url: str):
-        self.req_url = req_url
+    def __init__(self, url: str):
+        self.url = url
         self.status_code = 200
 
     def json(self):
-        match self.req_url:
+        match self.url:
             case 'http://hurlstor.soest.hawaii.edu:8086/query/dive/Deep%20Discoverer%2023060001':
                 return ex_23060001
             case 'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/Pomacentridae':
@@ -20,7 +20,7 @@ class MockResponse:
 
 
 def mocked_requests_get(*args, **kwargs):
-    return MockResponse(args[0])
+    return MockResponse(url=kwargs.get('url'))
 
 
 class TestAnnotationProcessor:
