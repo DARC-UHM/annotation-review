@@ -212,7 +212,7 @@ export function updateHash() {
     for (const key of Object.keys(filter)) {
         $('#filterList').append(`
             <span class="small filter-pill position-relative">
-                ${key[0].toUpperCase()}${key.substring(1)}: ${filter[key].replaceAll('%20', ' ')}
+                <span style="text-transform: capitalize;">${key.replaceAll('_', ' ')}:</span> ${filter[key].replaceAll('%20', ' ')}
                 <button type="button" class="position-absolute filter-x" onclick="removeFilter('${key}', '${filter[key]}')">×</button>
             </span>
         `);
@@ -230,6 +230,7 @@ export function updateHash() {
                         <option>Genus</option>
                         <option>Species</option>
                         <option>Certainty</option>
+                        <option value="video_sequence">Video Sequence</option>
                         <option value="comment">Comment (VARS)</option>
                         <option value="notes">Notes (Tator)</option>
                         <option>Annotator</option>
@@ -278,6 +279,9 @@ export function updateHash() {
     }
     if (filter['certainty']) {
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['identity_certainty']?.toLowerCase().includes(filter['certainty'].toLowerCase().replaceAll('%20', ' ')));
+    }
+    if (filter['video_sequence']) {
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['video_sequence_name']?.toLowerCase().includes(filter['video_sequence'].toLowerCase().replaceAll('%20', ' ')));
     }
     if (filter['comment']) { // VARS
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['comment']?.toLowerCase().includes(filter['comment'].toLowerCase().replaceAll('%20', ' ')));
@@ -457,7 +461,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
         $('#totalPageNumBottom').html(pageCount);
     });
 
-    $('#imageFilterSelect').on('change', () => $('#imageFilterEntry').attr('placeholder', `Enter ${$('#imageFilterSelect').val().toLowerCase()}`));
+    $('#imageFilterSelect').on('change', () => $('#imageFilterEntry').attr('placeholder', `Enter ${$('#imageFilterSelect').val().toLowerCase().replaceAll('_', ' ')}`));
 
     $('#sortSelect').on('change', () => {
         const hashList = window.location.hash.substring(1).split('&');

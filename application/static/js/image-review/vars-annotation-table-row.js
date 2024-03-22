@@ -1,6 +1,13 @@
 export const varsAnnotationTableRow = (annotation, externalComment) => {
     let videoUrl = annotation.video_url;
     videoUrl = `/video?link=${videoUrl.split('#t=')[0]}&time=${videoUrl.split('#t=')[1]}`;
+    let commentExists = false;
+    for (const comment of externalComment.reviewer_comments) {
+        if (comment.comment) {
+            commentExists = true;
+            break;
+        }
+    }
     return (`
         <tr>
             <td class="ps-5">
@@ -94,7 +101,12 @@ export const varsAnnotationTableRow = (annotation, externalComment) => {
                                         <button class="editButton" onclick="markCommentRead('${annotation.observation_uuid}')">
                                             Mark read
                                         </button>
-                                    ` : ''
+                                    ` : commentExists
+                                        ? `
+                                            <button class="editButton" onclick="markCommentUnread('${annotation.observation_uuid}')">
+                                                Mark unread
+                                            </button>
+                                        ` : ''
                                 }
                             </div>
                             <div class="col values">
