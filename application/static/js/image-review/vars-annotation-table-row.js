@@ -2,10 +2,12 @@ export const varsAnnotationTableRow = (annotation, externalComment) => {
     let videoUrl = annotation.video_url;
     videoUrl = `/video?link=${videoUrl.split('#t=')[0]}&time=${videoUrl.split('#t=')[1]}`;
     let commentExists = false;
-    for (const comment of externalComment.reviewer_comments) {
-        if (comment.comment) {
-            commentExists = true;
-            break;
+    if (externalComment) {
+        for (const comment of externalComment.reviewer_comments) {
+            if (comment.comment) {
+                commentExists = true;
+                break;
+            }
         }
     }
     return (`
