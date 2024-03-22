@@ -138,6 +138,34 @@ async function markCommentRead(commentUuid) {
     $('#load-overlay').removeClass('loader-bg');
 }
 
+// Marks an annotation as "unread" in the external review db
+async function markCommentUnread(commentUuid) {
+    event.preventDefault();
+    const url = new URL(window.location.href);
+    $('#load-overlay').removeClass('loader-bg-hidden');
+    $('#load-overlay').addClass('loader-bg');
+    const res = await fetch(`https://hurlstor.soest.hawaii.edu:5000/comment/mark-unread/${commentUuid}`, {
+        method: 'PUT',
+    });
+    if (res.status === 200) {
+        if (url.searchParams.get('read')) {
+            // we're on the read page, remove from list
+            delete comments[commentUuid]; // remove the comment object from comments object
+            // remove the annotation object from the annotations list
+            annotations.splice(annotations.findIndex((anno) => anno.observation_uuid === commentUuid), 1);
+        } else {
+            // we're on the all comments page or a dive page, just mark as read
+            comments[commentUuid].unread = true;
+        }
+        updateHash();
+        updateFlashMessages('Comment marked as unread', 'success');
+    } else {
+        updateFlashMessages('Unable to mark comment as unread - please try again', 'danger');
+    }
+    $('#load-overlay').addClass('loader-bg-hidden');
+    $('#load-overlay').removeClass('loader-bg');
+}
+
 // Deletes an annotation from the external review db
 async function deleteFromExternalReview() {
     event.preventDefault();
@@ -170,6 +198,7 @@ $(document).ready(() => {
     window.updateReviewerName = updateReviewerName;
     window.updateExternalReviewers = updateExternalReviewers;
     window.markCommentRead = markCommentRead;
+    window.markCommentUnread = markCommentUnread;
     window.deleteFromExternalReview = deleteFromExternalReview;
 
     $('#externalReviewModal').on('show.bs.modal', (e) => {
