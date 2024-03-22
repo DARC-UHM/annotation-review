@@ -131,6 +131,11 @@ window.removeFilter = removeFilter;
 function showAddFilter() {
     $('#addFilterRow').show();
     $('#addFilterButton').hide();
+    $('#imageFilterEntry').on('keyup', (e) => {
+        if (e.key === 'Enter') {
+            addFilter();
+        }
+    });
 }
 
 window.showAddFilter = showAddFilter;
