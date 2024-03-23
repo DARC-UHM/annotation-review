@@ -34,13 +34,13 @@ class TestFunctions:
         assert extract_recorded_datetime({}) is None
 
     def test_get_association(self):
-        test_obj = get_association(ex_23060001['annotations'][0], 'upon')
+        test_obj = get_association(ex_23060001['annotations'][1], 'upon')
         assert test_obj == {
-            "uuid": "c4eaa100-4bee-46a9-0f65-6525fb69d41e",
-            "link_name": "upon",
-            "to_concept": "sed",
-            "link_value": "nil",
-            "mime_type": "text/plain"
+            'uuid': 'c4eaa100-upon',
+            'link_name': 'upon',
+            'to_concept': 'sed',
+            'link_value': 'nil',
+            'mime_type': 'text/plain'
         }
 
     def test_get_association_none(self):
