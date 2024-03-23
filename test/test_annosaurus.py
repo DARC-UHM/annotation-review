@@ -22,6 +22,12 @@ class MockResponse:
             match self.url:
                 case 'http://localhost:test/observations/0059f860-4799-485f-c06c-5830e5ddd31e':
                     return ex_23060001['annotations'][0]
+                case 'http://localhost:test/observations/0d9133d7-1d49-47d5-4b6d-6e4fb25dd41e':
+                    return ex_23060001['annotations'][1]
+                case 'http://localhost:test/observations/080118db-baa2-468a-d06a-144249c1d41e':
+                    return ex_23060001['annotations'][2]
+                case 'http://localhost:test/observations/35aa2bb9-d067-419b-9a6e-09cdce8ed41e':
+                    return ex_23060001['annotations'][3]
                 case 'http://localhost:test/observations/invalid':
                     return {}
         elif self.method == 'POST':
@@ -36,17 +42,55 @@ class MockResponse:
                     return data
         elif self.method == 'PUT':
             match self.url:
-                case 'http://localhost:test/associations/abc123':
-                    data = self.data
-                    data['uuid'] = 'abc123'
-                    return self.data
                 case 'http://localhost:test/annotations/0059f860-4799-485f-c06c-5830e5ddd31e':
                     annotation = ex_23060001['annotations'][0].copy()
                     annotation['concept'] = self.data['concept']
                     return annotation
+                case 'http://localhost:test/associations/abc123':
+                    data = self.data
+                    data['uuid'] = 'abc123'
+                    return self.data
+                case 'http://localhost:test/associations/204a46b5-id-certainty':
+                    data = self.data
+                    data['uuid'] = '204a46b5-id-certainty'
+                    return self.data
+                case 'http://localhost:test/associations/204a46b5-id-reference':
+                    data = self.data
+                    data['uuid'] = '204a46b5-id-reference'
+                    return self.data
+                case 'http://localhost:test/associations/c4eaa100-upon':
+                    data = self.data
+                    data['uuid'] = 'c4eaa100-upon'
+                    return self.data
+                case 'http://localhost:test/associations/c4eaa100-comment':
+                    data = self.data
+                    data['uuid'] = 'c4eaa100-comment'
+                    return self.data
+                case 'http://localhost:test/associations/c4eaa100-guide-photo':
+                    data = self.data
+                    data['uuid'] = 'c4eaa100-guide-photo'
+                    return self.data
+                case 'http://localhost:test/associations/faf820ac-93fd-4d5a-486a-87775ec1d41e':
+                    data = self.data
+                    data['uuid'] = 'faf820ac-93fd-4d5a-486a-87775ec1d41e'
+                    return self.data
+                case 'http://localhost:test/associations/297d23d7-5979-46e7-6f66-8f1fcf8ed41e':
+                    data = self.data
+                    data['uuid'] = '297d23d7-5979-46e7-6f66-8f1fcf8ed41e'
+                    return self.data
         elif self.method == 'DELETE':
             match self.url:
                 case 'http://localhost:test/associations/abc123':
+                    return {}
+                case 'http://localhost:test/associations/204a46b5-id-certainty':
+                    return {}
+                case 'http://localhost:test/associations/204a46b5-id-reference':
+                    return {}
+                case 'http://localhost:test/associations/c4eaa100-upon':
+                    return {}
+                case 'http://localhost:test/associations/c4eaa100-comment':
+                    return {}
+                case 'http://localhost:test/associations/c4eaa100-guide-photo':
                     return {}
         raise json.JSONDecodeError('Unable to decode JSON', '', 0)
 
@@ -62,6 +106,7 @@ def mocked_requests_get(*args, **kwargs):
         headers=kwargs.get('headers'),
     )
 
+
 def mocked_requests_get_404(*args, **kwargs):
     return MockResponse(
         url=kwargs.get('url'),
@@ -69,6 +114,7 @@ def mocked_requests_get_404(*args, **kwargs):
         status_code=404,
         headers=kwargs.get('headers'),
     )
+
 
 def mocked_requests_post(*args, **kwargs):
     return MockResponse(
@@ -94,7 +140,7 @@ def mocked_requests_delete(*args, **kwargs):
     return MockResponse(
         url=kwargs.get('url'),
         method='DELETE',
-        status_code=200,
+        status_code=204,
         headers=kwargs.get('headers'),
     )
 
@@ -138,7 +184,6 @@ class TestAnnosaurus:
             association=new_association,
             jwt='jwt',
         )
-        print(created)
         assert created['status'] == 201
         assert created['json'] == {'link_name': 'test', 'to_concept': 'test', 'uuid': 'new_uuid'}
 
@@ -169,7 +214,7 @@ class TestAnnosaurus:
             association_uuid='abc123',
             jwt='jwt',
         )
-        assert deleted['status'] == 200
+        assert deleted['status'] == 204
         assert deleted['json'] == {}
 
     @patch('requests.put', side_effect=mocked_requests_put)
@@ -200,19 +245,24 @@ class TestAnnosaurus:
     def test_update_annotation_no_update(self, _):
         anno = Annosaurus('http://localhost:test')
         updated = anno.update_annotation(
-            observation_uuid='0059f860-4799-485f-c06c-5830e5ddd31e',
+            observation_uuid='0d9133d7-1d49-47d5-4b6d-6e4fb25dd41e',
             updated_annotation={
                 'concept': 'Pomacentridae',
-                'identity-certainty': '',
-                'identity-reference': '',
+                'identity-certainty': 'maybe',
+                'identity-reference': '13',
                 'upon': 'sed',
-                'comment': '',
-                'guide-photo': '',
+                'comment': 'this is a comment',
+                'guide-photo': '1 best',
             },
             jwt='jwt',
         )
         assert updated['status'] == 304
-        assert updated['json'] == ex_23060001['annotations'][0]
+        assert updated['json'] == ex_23060001['annotations'][1]
+
+    """
+    Tests for updating annotation fields just check status codes to make sure requests are successful
+    and whether or not a change was made to the annotation.
+    """
 
     @patch('requests.get', side_effect=mocked_requests_get)
     @patch('requests.put', side_effect=mocked_requests_put)
@@ -224,60 +274,395 @@ class TestAnnosaurus:
                 'concept': 'Magikarp',
                 'identity-certainty': '',
                 'identity-reference': '',
-                'upon': 'sed',
+                'upon': '',
                 'comment': '',
                 'guide-photo': '',
             },
             jwt='jwt',
         )
-        assert updated['status'] == 200  # just checking to make sure it knew to update concept name (no 304)
+        assert updated['status'] == 200
 
-    """
     @patch('requests.get', side_effect=mocked_requests_get)
-    @patch('requests.put', side_effect=mocked_requests_put)
-    def test_update_annotation_id_certainty(self, _, __):
+    @patch('requests.post', side_effect=mocked_requests_post)
+    def test_update_annotation_create_id_certainty(self, _, __):
         anno = Annosaurus('http://localhost:test')
-        anno.update_annotation(
-            observation_uuid='abc123',
+        created = anno.update_annotation(
+            observation_uuid='0059f860-4799-485f-c06c-5830e5ddd31e',
             updated_annotation={
-                'concept': 'Magikarp',
-                'identity-certainty': None,
-                'identity-reference': None,
-                'upon': 'sed',
-                'comment': None,
-                'guide-photo': None,
+                'concept': 'Pomacentridae',
+                'identity-certainty': 'maybe',
+                'identity-reference': '',
+                'upon': '',
+                'comment': '',
+                'guide-photo': '',
             },
             jwt='jwt',
         )
-        assert False
+        assert created['status'] == 201
 
-    def test_update_annotation_id_ref(self):
-        assert False
+    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.put', side_effect=mocked_requests_put)
+    def test_update_annotation_update_id_certainty(self, _, __):
+        anno = Annosaurus('http://localhost:test')
+        updated = anno.update_annotation(
+            observation_uuid='0d9133d7-1d49-47d5-4b6d-6e4fb25dd41e',
+            updated_annotation={
+                'concept': 'Pomacentridae',
+                'identity-certainty': 'probably not',
+                'identity-reference': '13',
+                'upon': 'sed',
+                'comment': 'this is a comment',
+                'guide-photo': '1 best',
+            },
+            jwt='jwt',
+        )
+        assert updated['status'] == 200
 
-    def test_update_annotation_upon(self):
-        assert False
+    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.delete', side_effect=mocked_requests_delete)
+    def test_update_annotation_delete_id_certainty(self, _, __):
+        anno = Annosaurus('http://localhost:test')
+        deleted = anno.update_annotation(
+            observation_uuid='0d9133d7-1d49-47d5-4b6d-6e4fb25dd41e',
+            updated_annotation={
+                'concept': 'Pomacentridae',
+                'identity-certainty': '',
+                'identity-reference': '13',
+                'upon': 'sed',
+                'comment': 'this is a comment',
+                'guide-photo': '1 best',
+            },
+            jwt='jwt',
+        )
+        assert deleted['status'] == 200
 
-    def test_update_annotation_comment(self):
-        assert False
+    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.post', side_effect=mocked_requests_post)
+    def test_update_annotation_create_id_reference(self, _, __):
+        anno = Annosaurus('http://localhost:test')
+        created = anno.update_annotation(
+            observation_uuid='0059f860-4799-485f-c06c-5830e5ddd31e',
+            updated_annotation={
+                'concept': 'Pomacentridae',
+                'identity-certainty': '',
+                'identity-reference': '5',
+                'upon': '',
+                'comment': '',
+                'guide-photo': '',
+            },
+            jwt='jwt',
+        )
+        assert created['status'] == 201
 
-    def test_update_annotation_guide_photo(self):
-        assert False
+    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.put', side_effect=mocked_requests_put)
+    def test_update_annotation_update_id_reference(self, _, __):
+        anno = Annosaurus('http://localhost:test')
+        updated = anno.update_annotation(
+            observation_uuid='0d9133d7-1d49-47d5-4b6d-6e4fb25dd41e',
+            updated_annotation={
+                'concept': 'Pomacentridae',
+                'identity-certainty': 'maybe',
+                'identity-reference': '14',
+                'upon': 'sed',
+                'comment': 'this is a comment',
+                'guide-photo': '1 best',
+            },
+            jwt='jwt',
+        )
+        assert updated['status'] == 200
 
-    def test_update_annotation_multiple(self):
-        assert False
+    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.delete', side_effect=mocked_requests_delete)
+    def test_update_annotation_delete_id_reference(self, _, __):
+        anno = Annosaurus('http://localhost:test')
+        deleted = anno.update_annotation(
+            observation_uuid='0d9133d7-1d49-47d5-4b6d-6e4fb25dd41e',
+            updated_annotation={
+                'concept': 'Pomacentridae',
+                'identity-certainty': 'maybe',
+                'identity-reference': '',
+                'upon': 'sed',
+                'comment': 'this is a comment',
+                'guide-photo': '1 best',
+            },
+            jwt='jwt',
+        )
+        assert deleted['status'] == 200
 
-    def test_update_annotation_comment_invalid(self):
-        assert False
+    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.post', side_effect=mocked_requests_post)
+    def test_update_annotation_create_upon(self, _, __):
+        anno = Annosaurus('http://localhost:test')
+        created = anno.update_annotation(
+            observation_uuid='0059f860-4799-485f-c06c-5830e5ddd31e',
+            updated_annotation={
+                'concept': 'Pomacentridae',
+                'identity-certainty': '',
+                'identity-reference': '',
+                'upon': 'bed',
+                'comment': '',
+                'guide-photo': '',
+            },
+            jwt='jwt',
+        )
+        assert created['status'] == 201
 
-    def test_update_annotation_comment_empty(self):
-        assert False
+    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.put', side_effect=mocked_requests_put)
+    def test_update_annotation_update_upon(self, _, __):
+        anno = Annosaurus('http://localhost:test')
+        updated = anno.update_annotation(
+            observation_uuid='0d9133d7-1d49-47d5-4b6d-6e4fb25dd41e',
+            updated_annotation={
+                'concept': 'Pomacentridae',
+                'identity-certainty': 'maybe',
+                'identity-reference': '13',
+                'upon': 'bed',
+                'comment': 'this is a comment',
+                'guide-photo': '1 best',
+            },
+            jwt='jwt',
+        )
+        assert updated['status'] == 200
 
-    def test_update_annotation_comment_not_empty(self):
-        assert False
+    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.delete', side_effect=mocked_requests_delete)
+    def test_update_annotation_delete_upon(self, _, __):
+        anno = Annosaurus('http://localhost:test')
+        deleted = anno.update_annotation(
+            observation_uuid='0d9133d7-1d49-47d5-4b6d-6e4fb25dd41e',
+            updated_annotation={
+                'concept': 'Pomacentridae',
+                'identity-certainty': 'maybe',
+                'identity-reference': '13',
+                'upon': '',
+                'comment': 'this is a comment',
+                'guide-photo': '1 best',
+            },
+            jwt='jwt',
+        )
+        assert deleted['status'] == 200
 
-    def test_update_annotation_comment_empty_delete(self):
-        assert False
+    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.post', side_effect=mocked_requests_post)
+    def test_update_annotation_create_comment(self, _, __):
+        anno = Annosaurus('http://localhost:test')
+        created = anno.update_annotation(
+            observation_uuid='0059f860-4799-485f-c06c-5830e5ddd31e',
+            updated_annotation={
+                'concept': 'Pomacentridae',
+                'identity-certainty': '',
+                'identity-reference': '',
+                'upon': '',
+                'comment': 'my new comment',
+                'guide-photo': '',
+            },
+            jwt='jwt',
+        )
+        assert created['status'] == 201
 
-    def test_update_annotation_comment_not_empty_delete(self):
-        assert False
-    """
+    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.put', side_effect=mocked_requests_put)
+    def test_update_annotation_update_comment(self, _, __):
+        anno = Annosaurus('http://localhost:test')
+        updated = anno.update_annotation(
+            observation_uuid='0d9133d7-1d49-47d5-4b6d-6e4fb25dd41e',
+            updated_annotation={
+                'concept': 'Pomacentridae',
+                'identity-certainty': 'maybe',
+                'identity-reference': '13',
+                'upon': 'sed',
+                'comment': 'my updated comment',
+                'guide-photo': '1 best',
+            },
+            jwt='jwt',
+        )
+        assert updated['status'] == 200
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.delete', side_effect=mocked_requests_delete)
+    def test_update_annotation_delete_comment(self, _, __):
+        anno = Annosaurus('http://localhost:test')
+        deleted = anno.update_annotation(
+            observation_uuid='0d9133d7-1d49-47d5-4b6d-6e4fb25dd41e',
+            updated_annotation={
+                'concept': 'Pomacentridae',
+                'identity-certainty': 'maybe',
+                'identity-reference': '13',
+                'upon': 'sed',
+                'comment': '',
+                'guide-photo': '1 best',
+            },
+            jwt='jwt',
+        )
+        assert deleted['status'] == 200
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.post', side_effect=mocked_requests_post)
+    def test_update_annotation_create_guide_photo(self, _, __):
+        anno = Annosaurus('http://localhost:test')
+        created = anno.update_annotation(
+            observation_uuid='0059f860-4799-485f-c06c-5830e5ddd31e',
+            updated_annotation={
+                'concept': 'Pomacentridae',
+                'identity-certainty': '',
+                'identity-reference': '',
+                'upon': '',
+                'comment': '',
+                'guide-photo': '1 best',
+            },
+            jwt='jwt',
+        )
+        assert created['status'] == 201
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.put', side_effect=mocked_requests_put)
+    def test_update_annotation_update_guide_photo(self, _, __):
+        anno = Annosaurus('http://localhost:test')
+        updated = anno.update_annotation(
+            observation_uuid='0d9133d7-1d49-47d5-4b6d-6e4fb25dd41e',
+            updated_annotation={
+                'concept': 'Pomacentridae',
+                'identity-certainty': 'maybe',
+                'identity-reference': '13',
+                'upon': 'sed',
+                'comment': 'this is a comment',
+                'guide-photo': '2 good',
+            },
+            jwt='jwt',
+        )
+        assert updated['status'] == 200
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.delete', side_effect=mocked_requests_delete)
+    def test_update_annotation_delete_guide_photo(self, _, __):
+        anno = Annosaurus('http://localhost:test')
+        deleted = anno.update_annotation(
+            observation_uuid='0d9133d7-1d49-47d5-4b6d-6e4fb25dd41e',
+            updated_annotation={
+                'concept': 'Pomacentridae',
+                'identity-certainty': 'maybe',
+                'identity-reference': '13',
+                'upon': 'sed',
+                'comment': 'this is a comment',
+                'guide-photo': '',
+            },
+            jwt='jwt',
+        )
+        assert deleted['status'] == 200
+
+    @patch('requests.get', side_effect=mocked_requests_get_404)
+    def test_update_annotation_comment_404(self, _):
+        anno = Annosaurus('http://localhost:test')
+        updated = anno.update_annotation_comment(
+            observation_uuid='invalid',
+            reviewers=['Test Reviewer'],
+            jwt='jwt',
+        )
+        assert updated['status'] == 404
+        assert updated['json'] == {}
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.post', side_effect=mocked_requests_post)
+    def test_update_annotation_comment_new_one_reviewer(self, _, __):
+        anno = Annosaurus('http://localhost:test')
+        created = anno.update_annotation_comment(
+            observation_uuid='0059f860-4799-485f-c06c-5830e5ddd31e',
+            reviewers=['Test Reviewer'],
+            jwt='jwt',
+        )
+        assert created['status'] == 201
+        assert created['json'] == {
+            'link_name': 'comment',
+            'link_value': 'Added for review: Test Reviewer',
+            'uuid': 'new_uuid'
+        }
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.post', side_effect=mocked_requests_post)
+    def test_update_annotation_comment_new_multiple_reviewers(self, _, __):
+        anno = Annosaurus('http://localhost:test')
+        created = anno.update_annotation_comment(
+            observation_uuid='0059f860-4799-485f-c06c-5830e5ddd31e',
+            reviewers=['Test Reviewer', 'Ronald McDonald'],
+            jwt='jwt',
+        )
+        assert created['status'] == 201
+        assert created['json'] == {
+            'link_name': 'comment',
+            'link_value': 'Added for review: Test Reviewer, Ronald McDonald',
+            'uuid': 'new_uuid'
+        }
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.put', side_effect=mocked_requests_put)
+    def test_update_annotation_comment_update_no_prev_reviewers(self, _, __):
+        anno = Annosaurus('http://localhost:test')
+        updated = anno.update_annotation_comment(
+            observation_uuid='0d9133d7-1d49-47d5-4b6d-6e4fb25dd41e',
+            reviewers=['J. Dolan'],
+            jwt='jwt',
+        )
+        assert updated['status'] == 200
+        assert updated['json'] == {
+            'link_value': 'this is a comment; Added for review: J. Dolan',
+            'uuid': 'c4eaa100-comment'
+        }
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.put', side_effect=mocked_requests_put)
+    def test_update_annotation_comment_update_prev_reviewers_add(self, _, __):
+        anno = Annosaurus('http://localhost:test')
+        updated = anno.update_annotation_comment(
+            observation_uuid='080118db-baa2-468a-d06a-144249c1d41e',
+            reviewers=['J. Dolan', 'Don Draper'],
+            jwt='jwt',
+        )
+        assert updated['status'] == 200
+        assert updated['json'] == {
+            'link_value': 'Added for review: J. Dolan, Don Draper',
+            'uuid': 'faf820ac-93fd-4d5a-486a-87775ec1d41e'
+        }
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.put', side_effect=mocked_requests_put)
+    def test_update_annotation_comment_update_prev_reviewers_replace(self, _, __):
+        anno = Annosaurus('http://localhost:test')
+        updated = anno.update_annotation_comment(
+            observation_uuid='080118db-baa2-468a-d06a-144249c1d41e',
+            reviewers=['J. Dolan'],
+            jwt='jwt',
+        )
+        assert updated['status'] == 200
+        assert updated['json'] == {
+            'link_value': 'Added for review: J. Dolan',
+            'uuid': 'faf820ac-93fd-4d5a-486a-87775ec1d41e'
+        }
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.delete', side_effect=mocked_requests_delete)
+    def test_update_annotation_comment_delete_empty(self, _, __):
+        anno = Annosaurus('http://localhost:test')
+        deleted = anno.update_annotation_comment(
+            observation_uuid='080118db-baa2-468a-d06a-144249c1d41e',
+            reviewers=[],
+            jwt='jwt',
+        )
+        assert deleted['status'] == 204
+        assert deleted['json'] == {}
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.put', side_effect=mocked_requests_put)
+    def test_update_annotation_comment_delete_not_empty(self, _, __):
+        anno = Annosaurus('http://localhost:test')
+        deleted = anno.update_annotation_comment(
+            observation_uuid='35aa2bb9-d067-419b-9a6e-09cdce8ed41e',
+            reviewers=[],
+            jwt='jwt',
+        )
+        assert deleted['status'] == 200
+        assert deleted['json'] == {
+            'link_value': 'This is a weird lookin sponge thing!',
+            'uuid': '297d23d7-5979-46e7-6f66-8f1fcf8ed41e'
+        }

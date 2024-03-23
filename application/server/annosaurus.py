@@ -141,8 +141,6 @@ class Annosaurus(JWTAuthentication):
         jwt = self.authorize(client_secret, jwt)
         ret_status = 304
         res = requests.get(url=f'{self.base_url}/observations/{observation_uuid}')
-        print('uhhhh')
-        print(res.json())
 
         if res.status_code != 200:
             print(f'{update_str}Unable to find annotation on server')
@@ -252,61 +250,67 @@ class Annosaurus(JWTAuthentication):
                                   reviewers: list,
                                   client_secret: str = None,
                                   jwt: str = None) -> dict:
-        update_str = f'UUID: {observation_uuid}\n'
+
         jwt = self.authorize(client_secret, jwt)
+        res = requests.get(url=f'{self.base_url}/observations/{observation_uuid}')
+        if res.status_code != 200:
+            print(f'Unable to find annotation with observation uuid of {observation_uuid}')
+            return {'status': res.status_code, 'json': res.json()}
 
-        with requests.get(url=f'{self.base_url}/observations/{observation_uuid}') as r:
-            if r.status_code != 200:
-                print(f'{update_str}Unable to find annotation on server')
-                return {'status': r.status_code, 'json': r.json()}
+        comment_association = next((item for item in res.json()['associations'] if item['link_name'] == 'comment'), None)
+        if comment_association:
+            # there's already a comment
+            old_comment = comment_association['link_value'].split('; ')
+            old_comment = [cmt for cmt in old_comment if 'send to' not in cmt.lower()]  # get rid of 'send to expert' notes
+            old_comment = [cmt for cmt in old_comment if 'added for review' not in cmt.lower()]  # get rid of old 'added for review' notes
+            old_comment = '; '.join(old_comment)
+            if old_comment:
+                if reviewers:  # add reviewers to the current comment
+                    new_comment = f'{old_comment}; Added for review: {", ".join(reviewers)}'
+                else:  # remove reviewers from the comment
+                    new_comment = old_comment
+            elif reviewers:  # create a new comment with reviewers
+                new_comment = f'Added for review: {", ".join(reviewers)}'
+            else:  # remove the comment
+                new_comment = ''
 
-            old_association = \
-                next((item for item in r.json()['associations'] if item['link_name'] == 'comment'), None)
-
-            if old_association:
-                # there's already a comment
-                old_comment = old_association['link_value'].split('; ')
-                old_comment = [cmt for cmt in old_comment if 'send to' not in cmt.lower()]  # get rid of 'send to expert' notes
-                old_comment = [cmt for cmt in old_comment if 'added for review' not in cmt.lower()]  # get rid of old 'added for review' notes
-                old_comment = '; '.join(old_comment)
-                if old_comment:
-                    if reviewers:  # add reviewers to the current comment
-                        new_comment = f'{old_comment}; Added for review: {", ".join(reviewers)}'
-                    else:  # remove reviewers from the comment
-                        new_comment = old_comment
-                elif reviewers:  # create a new comment with reviewers
-                    new_comment = f'Added for review: {", ".join(reviewers)}'
-                else:  # remove the comment
-                    new_comment = ''
-
-                new_association = {'link_value': new_comment}
+            new_association = {'link_value': new_comment}
+            if new_comment == '':
+                # delete the comment
+                deleted = self.delete_association(
+                    association_uuid=comment_association['uuid'],
+                    jwt=jwt,
+                )
+                if deleted['status'] != 204:
+                    print('Error deleting comment')
+                else:
+                    print('Deleted comment')
+                return deleted
+            else:
                 updated = self.update_association(
-                    association_uuid=old_association['uuid'],
+                    association_uuid=comment_association['uuid'],
                     association=new_association,
                     jwt=jwt,
                 )
                 if updated['status'] != 200:
-                    print(f'{update_str}Unable to update comment')
-                    return updated
+                    print('Error updating comment')
                 else:
-                    update_str += 'Updated comment'
+                    print('Updated comment')
+                return updated
+        else:
+            # make a new comment
+            new_comment = f'Added for review: {", ".join(reviewers)}'
+            comment_association = {
+                'link_name': 'comment',
+                'link_value': new_comment
+            }
+            created = self.create_association(
+                observation_uuid=observation_uuid,
+                association=comment_association,
+                jwt=jwt
+            )
+            if created['status'] != 200:
+                print('Error creating comment')
             else:
-                # make a new comment
-                new_comment = f'Added for review: {", ".join(reviewers)}'
-                new_association = {
-                    'link_name': 'comment',
-                    'link_value': new_comment
-                }
-                created = self.create_association(
-                    observation_uuid=observation_uuid,
-                    association=new_association,
-                    jwt=jwt
-                )
-                if created['status'] != 200:
-                    print(f'{update_str}Unable to update comment')
-                    return created
-                else:
-                    update_str += 'Updated comment'
-        print(update_str if update_str else 'No changes made')
-        res = requests.get(url=f'{self.base_url}/observations/{observation_uuid}')
-        return {'status': 200, 'json': res.json()}
+                print('Created comment')
+            return created

@@ -18,13 +18,6 @@ ex_23060001 = {
                     'to_concept': 'sed',
                     'link_value': 'nil',
                     'mime_type': 'text/plain'
-                },
-                {
-                    'uuid': 'c4eaa100-4bee-46a9-0f65-6525fb69d41e',
-                    'link_name': 'upon',
-                    'to_concept': 'sed',
-                    'link_value': 'nil',
-                    'mime_type': 'text/plain'
                 }
             ],
             'image_references': [
@@ -84,17 +77,44 @@ ex_23060001 = {
                     'mime_type': 'text/plain'
                 },
                 {
-                    'uuid': 'd37d482e-5d56-4267-786b-0dfb525bd41e',
-                    'link_name': 'occurrence-remark',
-                    'to_concept': 'nil',
-                    'link_value': 'in water column on descent',
+                    'uuid': '204a46b5-id-certainty',
+                    'link_name': 'identity-certainty',
+                    'to_concept': 'self',
+                    'link_value': 'maybe',
+                    'mime_type': 'text/plain'
+                },
+                {
+                    'uuid': '204a46b5-id-reference',
+                    'link_name': 'identity-reference',
+                    'to_concept': 'self',
+                    'link_value': '13',
+                    'mime_type': 'text/plain'
+                },
+                {
+                    'uuid': 'c4eaa100-upon',
+                    'link_name': 'upon',
+                    'to_concept': 'sed',
+                    'link_value': 'nil',
+                    'mime_type': 'text/plain'
+                },
+                {
+                    'uuid': 'c4eaa100-comment',
+                    'link_name': 'comment',
+                    'to_concept': 'self',
+                    'link_value': 'this is a comment',
+                    'mime_type': 'text/plain'
+                },                {
+                    'uuid': 'c4eaa100-guide-photo',
+                    'link_name': 'guide-photo',
+                    'to_concept': '1 best',
+                    'link_value': 'nil',
                     'mime_type': 'text/plain'
                 },
                 {
                     'uuid': 'd37d482e-5d56-4267-786b-0dfb525bd41e',
                     'link_name': 'occurrence-remark',
                     'to_concept': 'nil',
-                    'link_value': 'another remark',
+                    'link_value': 'in water column on descent',
                     'mime_type': 'text/plain'
                 },
                 {
@@ -182,9 +202,9 @@ ex_23060001 = {
                 },
                 {
                     'uuid': 'faf820ac-93fd-4d5a-486a-87775ec1d41e',
-                    'link_name': 's2',
-                    'to_concept': 'bed',
-                    'link_value': 'nil',
+                    'link_name': 'comment',
+                    'to_concept': 'self',
+                    'link_value': 'Added for review: Don Draper',
                     'mime_type': 'text/plain'
                 }
             ],
@@ -197,6 +217,53 @@ ex_23060001 = {
                 'salinity': 34.951900482177734,
                 'temperature_celsius': 3.8610000610351562,
                 'uuid': '5b9fd45e-a771-4ae2-4c6c-8cd75f66d71e'
+            }
+        },
+        # annotations[3]
+        {
+            "observation_uuid": "35aa2bb9-d067-419b-9a6e-09cdce8ed41e",
+            "concept": "Demospongiae encrusting",
+            "observer": "MeaganPutts",
+            "observation_timestamp": "2022-10-10T22:43:14.208Z",
+            "video_reference_uuid": "9888ccf0-22d7-40a1-9dc6-70e029c45155",
+            "imaged_moment_uuid": "74c08709-b3ab-43d0-bb6c-0ecdce8ed41e",
+            "elapsed_time_millis": 3995082,
+            "recorded_timestamp": "2014-09-06T13:35:03.082Z",
+            "group": "ROV",
+            "activity": "cruise",
+            "associations": [
+                {
+                    "uuid": "297d23d7-5979-46e7-6f66-8f1fcf8ed41e",
+                    "link_name": "comment",
+                    "to_concept": "self",
+                    "link_value": "Added for review: Jon Snow; This is a weird lookin sponge thing!",
+                    "mime_type": "text/plain"
+                },
+                {
+                    "uuid": "954b0835-ca6d-4180-1d6f-4ee4ce8ed41e",
+                    "link_name": "s2",
+                    "to_concept": "sed",
+                    "link_value": "nil",
+                    "mime_type": "text/plain"
+                },
+                {
+                    "uuid": "cd581243-bdfb-469e-dc6a-b9dbce8ed41e",
+                    "link_name": "s1",
+                    "to_concept": "bed",
+                    "link_value": "nil",
+                    "mime_type": "text/plain"
+                }
+            ],
+            "image_references": [],
+            "ancillary_data": {
+                "altitude": 1.600000023841858,
+                "depth_meters": 639.4940185546875,
+                "latitude": 37.410213069179,
+                "longitude": -74.464855305838,
+                "oxygen_ml_l": 7.184100151062012,
+                "salinity": 35.87260055541992,
+                "temperature_celsius": 5.309000015258789,
+                "uuid": "855dc798-961a-460f-886e-f53bbbb3d41e"
             }
         },
     ],
