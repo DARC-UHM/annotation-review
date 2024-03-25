@@ -324,14 +324,70 @@ export function updateHash() {
 // vars
 async function updateAnnotation() {
     event.preventDefault();
+    const formData = new FormData($('#updateAnnotationForm')[0]);
+    const associations = JSON.parse(formData.get('associations'));
+    const changes = [];
+
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
     $('#editVarsAnnotationModal').modal('hide');
-    const formData = new FormData($('#updateAnnotationForm')[0]);
-    const res = await fetch('/vars/annotation', {
-        method: 'PATCH',
-        body: formData,
-    });
+
+    // check for concept name change
+    if (formData.get('concept') !== formData.get('originalConcept')) {
+        changes.push('concept');
+        const res = await fetch('/vars/annotation-concept', {
+            method: 'PATCH',
+            body: JSON.stringify({
+                observation_uuid: formData.get('observation_uuid'),
+                concept: formData.get('concept'),
+            }),
+        });
+    }
+
+    const associationsToCheck = ['upon', 'guide-photo', 'identity-certainty', 'identity-reference', 'comment'];
+
+    // update current associations
+    for (const association of associations) {
+        if (associationsToCheck.includes(association.link_name)) {
+            associationsToCheck.splice(associationsToCheck.indexOf(association.link_name), 1);
+            if (['identity-certainty', 'identity-reference', 'comment'].includes(association.link_name)) {
+                // link_value fields
+                if (formData.get(association.link_name) !== association.link_value) {
+                    changes.push(association.link_name);
+                    console.log(`updated ${association.link_name}`);
+                }
+            } else if (['upon', 'guide-photo'].includes(association.link_name)) {
+                // to_concept fields
+                if (formData.get(association.link_name) !== association.to_concept) {
+                    changes.push(association.link_name);
+                    console.log(`updated ${association.link_name}`);
+                }
+            }
+        }
+    }
+
+    // add new assocations
+    for (const field of associationsToCheck) {
+        if (formData.get(field)) {
+            changes.push(field);
+            console.log(field);
+        }
+    }
+
+    if (!changes.length) {
+        updateFlashMessages('No changes made', 'info');
+        $('#load-overlay').addClass('loader-bg-hidden');
+        $('#load-overlay').removeClass('loader-bg');
+    } else {
+        updateFlashMessages('Annotation successfully updated', 'success');
+        updateHash();
+    }
+    $('#load-overlay').addClass('loader-bg-hidden');
+    $('#load-overlay').removeClass('loader-bg');
+
+    console.log(changes);
+    return;
+
     if (res.status === 200) {
         const index = annotations.findIndex((anno) => anno.observation_uuid === formData.get('observation_uuid'));
         for (const pair of formData.entries()){
@@ -499,6 +555,8 @@ $(document).ready(()=> {
         $(this).find('#editIdRef').val(annotation.identity_reference);
         $(this).find('#editComments').val(annotation.comment);
         $(this).find('#editObservationUuid').val(annotation.observation_uuid);
+        $(this).find('#editOgConceptName').val(annotation.concept);
+        $(this).find('#editAssociations').val(JSON.stringify(annotation.associations));
 
         conceptNameField.on('input', () => validateName(conceptNameField.val(), $('#editVarsAnnoModalSubmitButton')[0]));
         conceptNameField.on('change', () => validateName(conceptNameField.val(), $('#editVarsAnnoModalSubmitButton')[0]));

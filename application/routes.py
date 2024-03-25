@@ -811,21 +811,16 @@ def delete_reviewer(name):
     return {}, delete_reviewer_res.status_code
 
 
-# updates annotation with new concept name or associations. this is called from the image review page
-@app.patch('/vars/annotation')
+# updates annotation with new concept name
+@app.patch('/vars/annotation-concept')
 def update_annotation():
+    print(request.get_data())
+    print(request.values.get('observation_uuid'))
+    print(request.form)
     annosaurus = Annosaurus(app.config.get('ANNOSAURUS_URL'))
-    updated_annotation = {
-        'concept': request.values.get('concept'),
-        'identity-certainty': request.values.get('identity-certainty').replace('\'', ''),
-        'identity-reference': request.values.get('identity-reference'),
-        'upon': request.values.get('upon').replace('\'', ''),
-        'comment': request.values.get('comment').replace('\'', ''),
-        'guide-photo': request.values.get('guide-photo'),
-    }
-    updated_response = annosaurus.update_annotation(
+    updated_response = annosaurus.update_concept_name(
         observation_uuid=request.values.get('observation_uuid'),
-        updated_annotation=updated_annotation,
+        concept=request.values.get('concept'),
         client_secret=app.config.get('ANNOSAURUS_CLIENT_SECRET')
     )
     return updated_response['json'], updated_response['status']

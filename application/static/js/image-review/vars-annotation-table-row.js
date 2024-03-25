@@ -10,6 +10,14 @@ export const varsAnnotationTableRow = (annotation, externalComment) => {
             }
         }
     }
+    // add associations from annotation.associations to associationsOfInterest
+    for (const association of annotation.associations) {
+        if (['guide-photo', 'upon'].includes(association.link_name)) {
+            annotation[association.link_name] = association.to_concept;
+        } else if (['identity-certainty', 'identity-reference', 'comment'].includes(association.link_name)) {
+            annotation[association.link_name] = association.link_value;
+        }
+    }
     return (`
         <tr>
             <td class="ps-5">
