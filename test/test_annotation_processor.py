@@ -28,6 +28,9 @@ class TestAnnotationProcessor:
         annotation_processor = AnnotationProcessor(['Deep Discoverer 23060001'])
         assert annotation_processor.vessel_name == 'Deep Discoverer'
         assert annotation_processor.sequence_names == ['Deep Discoverer 23060001']
+        assert annotation_processor.phylogeny == {}
+        assert annotation_processor.image_records == []
+        assert annotation_processor.distilled_records == []
 
     def test_load_phylogeny(self):
         annotation_processor = AnnotationProcessor(['Deep Discoverer 23060001'])
