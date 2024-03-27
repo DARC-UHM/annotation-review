@@ -1,4 +1,4 @@
 class TestExternalReview:
-    def test_external_review(self):
+    def test_tests_done(self):
         # todo
         assert False

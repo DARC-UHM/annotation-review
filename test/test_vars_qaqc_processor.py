@@ -54,3 +54,7 @@ class TestVarsQaqcProcessor:
                 'sequence_name': 'Deep Discoverer 23060001',
             },
         ]
+
+
+    def test_tests_done(self):
+        assert False

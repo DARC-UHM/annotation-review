@@ -12,6 +12,9 @@ TERM_YELLOW = '\033[1;93m'
 TERM_NORMAL = '\033[1;37;0m'
 
 
+# TODO extend this class from annotation_processor to avoid code duplication
+
+
 class VarsQaqcProcessor:
     """
     Fetches annotation information from the VARS db on HURLSTOR given a list of sequences. Filters and formats the
