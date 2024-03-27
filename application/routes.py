@@ -811,12 +811,22 @@ def delete_reviewer(name):
     return {}, delete_reviewer_res.status_code
 
 
+# get an updated VARS annotation
+@app.get('/current-annotation/<observation_uuid>')
+def get_current_associations(observation_uuid):
+    print(f'{app.config.get("HURLSTOR_URL")}:8082/anno/v1/annotations/{observation_uuid}')
+    res = requests.get(url=f'{app.config.get("HURLSTOR_URL")}:8082/anno/v1/annotations/{observation_uuid}')
+    print(res)
+    if res.status_code != 200:
+        return {}, res.status_code
+    current_annotation = res.json()
+    print(current_annotation)
+    return current_annotation, 200
+
+
 # updates annotation with new concept name
 @app.patch('/vars/annotation-concept')
 def update_annotation():
-    print(request.get_data())
-    print(request.values.get('observation_uuid'))
-    print(request.form)
     annosaurus = Annosaurus(app.config.get('ANNOSAURUS_URL'))
     updated_response = annosaurus.update_concept_name(
         observation_uuid=request.values.get('observation_uuid'),
