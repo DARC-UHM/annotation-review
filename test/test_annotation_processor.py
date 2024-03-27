@@ -59,7 +59,7 @@ class TestAnnotationProcessor:
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_fetch_vars_phylogeny(self, mock_get):
         annotation_processor = AnnotationProcessor(['Deep Discoverer 23060001'])
-        annotation_processor.fetch_vars_phylogeny('Pomacentridae')
+        annotation_processor.fetch_vars_phylogeny('Pomacentridae', no_match_records=set())
         assert annotation_processor.phylogeny['Pomacentridae'] == {
             'phylum': 'Chordata',
             'subphylum': 'Vertebrata',
@@ -80,11 +80,11 @@ class TestAnnotationProcessor:
                == 'https://hurlimage.soest.hawaii.edu/Hercules/images/1381920/20220418T202402.015Z--542830a8-ec69-4ee5-a57d-9de66a412dba.png'
 
     @patch('requests.get', side_effect=mocked_requests_get)
-    def test_get_video_url_first_media(self, mock_get):
+    def test_get_video_first_media(self, mock_get):
         annotation_processor = AnnotationProcessor(['Deep Discoverer 23060001'])
         sequence_videos = []
         annotation_processor.fetch_media(annotation_processor.sequence_names[0], sequence_videos)
-        assert annotation_processor.get_video_url(ex_23060001['annotations'][0], sequence_videos)['uri'] \
+        assert annotation_processor.get_video(ex_23060001['annotations'][0], sequence_videos)['uri'] \
                == 'https://hurlvideo.soest.hawaii.edu/D2/2023/EX2306_01/EX2306_01_20230824T183000Z.m4v#t=374'
 
     @patch('requests.get', side_effect=mocked_requests_get)
@@ -92,7 +92,7 @@ class TestAnnotationProcessor:
         annotation_processor = AnnotationProcessor(['Deep Discoverer 23060001'])
         sequence_videos = []
         annotation_processor.fetch_media(annotation_processor.sequence_names[0], sequence_videos)
-        assert annotation_processor.get_video_url(ex_23060001['annotations'][1], sequence_videos)['uri'] \
+        assert annotation_processor.get_video(ex_23060001['annotations'][1], sequence_videos)['uri'] \
                == 'https://hurlvideo.soest.hawaii.edu/D2/2023/EX2306_01/EX2306_01_20230824T203000Z.m4v#t=3505'
 
     @patch('requests.get', side_effect=mocked_requests_get)
@@ -104,13 +104,10 @@ class TestAnnotationProcessor:
             {
                 'observation_uuid': '0059f860-4799-485f-c06c-5830e5ddd31e',
                 'concept': 'Pomacentridae',
-                'identity_certainty': None,
+                'associations': ex_23060001['annotations'][0]['associations'],
                 'identity_reference': None,
-                'guide_photo': None,
-                'comment': None,
                 'image_url': 'https://hurlimage.soest.hawaii.edu/Hercules/images/1381920/20220418T202402.015Z--542830a8-ec69-4ee5-a57d-9de66a412dba.png',
                 'video_url': 'https://hurlvideo.soest.hawaii.edu/D2/2023/EX2306_01/EX2306_01_20230824T183000Z.m4v#t=374',
-                'upon': None,
                 'recorded_timestamp': '2023-08-24T18:36:14.245Z',
                 'video_sequence_name': 'Deep Discoverer 23060001',
                 'annotator': 'Nikki Cunanan',
@@ -125,17 +122,15 @@ class TestAnnotationProcessor:
                 'class': 'Actinopterygii',
                 'order': 'Perciformes',
                 'family': 'Pomacentridae',
+                'activity': None,
             },
             {
                 'observation_uuid': '0d9133d7-1d49-47d5-4b6d-6e4fb25dd41e',
                 'concept': 'Pomacentridae',
-                'identity_certainty': 'maybe',
+                'associations': ex_23060001['annotations'][1]['associations'],
                 'identity_reference': '13',
-                'guide_photo': '1 best',
-                'comment': 'this is a comment',
                 'image_url': 'https://hurlimage.soest.hawaii.edu/SupplementalPhotos/Hphotos/NA138photos/H1920/cam1_20220419064757.png',
                 'video_url': 'https://hurlvideo.soest.hawaii.edu/D2/2023/EX2306_01/EX2306_01_20230824T203000Z.m4v#t=3505',
-                'upon': 'sed',
                 'recorded_timestamp': '2023-08-24T21:28:25.675Z',
                 'video_sequence_name': 'Deep Discoverer 23060001',
                 'annotator': 'Meagan Putts',
@@ -150,6 +145,7 @@ class TestAnnotationProcessor:
                 'class': 'Actinopterygii',
                 'order': 'Perciformes',
                 'family': 'Pomacentridae',
+                'activity': 'cruise',
             },
         ]
 
@@ -163,6 +159,8 @@ class TestAnnotationProcessor:
             {
                 'observation_uuid': '0d9133d7-1d49-47d5-4b6d-6e4fb25dd41e',
                 'concept': 'Pomacentridae',
+                'associations': ex_23060001['annotations'][1]['associations'],
+                'identity_reference': '13',
                 'annotator': 'Meagan Putts',
                 'depth': 668,
                 'lat': 38.793,
@@ -175,19 +173,17 @@ class TestAnnotationProcessor:
                 'family': 'Pomacentridae',
                 'genus': None,
                 'species': None,
-                'identity_certainty': 'maybe',
-                'identity_reference': '13',
-                'guide_photo': '1 best',
-                'comment': 'this is a comment',
                 'image_url': 'https://hurlimage.soest.hawaii.edu/SupplementalPhotos/Hphotos/NA138photos/H1920/cam1_20220419064757.png',
                 'video_url': 'https://hurlvideo.soest.hawaii.edu/D2/2023/EX2306_01/EX2306_01_20230824T203000Z.m4v#t=3505',
-                'upon': 'sed',
                 'recorded_timestamp': '24 Aug 23 21:28:25 UTC',
-                'video_sequence_name': 'Deep Discoverer 23060001'
+                'video_sequence_name': 'Deep Discoverer 23060001',
+                'activity': 'cruise',
             },
             {
                 'observation_uuid': '0059f860-4799-485f-c06c-5830e5ddd31e',
                 'concept': 'Pomacentridae',
+                'identity_reference': None,
+                'associations': ex_23060001['annotations'][0]['associations'],
                 'annotator': 'Nikki Cunanan',
                 'depth': 668,
                 'lat': 38.793,
@@ -200,14 +196,10 @@ class TestAnnotationProcessor:
                 'family': 'Pomacentridae',
                 'genus': None,
                 'species': None,
-                'identity_certainty': None,
-                'identity_reference': None,
-                'guide_photo': None,
-                'comment': None,
                 'image_url': 'https://hurlimage.soest.hawaii.edu/Hercules/images/1381920/20220418T202402.015Z--542830a8-ec69-4ee5-a57d-9de66a412dba.png',
                 'video_url': 'https://hurlvideo.soest.hawaii.edu/D2/2023/EX2306_01/EX2306_01_20230824T183000Z.m4v#t=374',
-                'upon': None,
                 'recorded_timestamp': '24 Aug 23 18:36:14 UTC',
-                'video_sequence_name': 'Deep Discoverer 23060001'
-            },
+                'video_sequence_name': 'Deep Discoverer 23060001',
+                'activity': None,
+            }
         ]
