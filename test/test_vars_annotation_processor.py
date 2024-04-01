@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from application.server.annotation_processor import AnnotationProcessor
+from application.server.vars_annotation_processor import VarsAnnotationProcessor
 from application.server.functions import parse_datetime
 from test.data.vars_responses import ex_23060001, pomacentridae
 
@@ -23,23 +23,23 @@ def mocked_requests_get(*args, **kwargs):
     return MockResponse(url=kwargs.get('url'))
 
 
-class TestAnnotationProcessor:
+class TestVarsAnnotationProcessor:
     def test_init(self):
-        annotation_processor = AnnotationProcessor(['Deep Discoverer 23060001'])
+        annotation_processor = VarsAnnotationProcessor(['Deep Discoverer 23060001'])
         assert annotation_processor.vessel_name == 'Deep Discoverer'
         assert annotation_processor.sequence_names == ['Deep Discoverer 23060001']
         assert annotation_processor.phylogeny == {}
-        assert annotation_processor.image_records == []
-        assert annotation_processor.distilled_records == []
+        assert annotation_processor.working_records == []
+        assert annotation_processor.final_records == []
 
     def test_load_phylogeny(self):
-        annotation_processor = AnnotationProcessor(['Deep Discoverer 23060001'])
+        annotation_processor = VarsAnnotationProcessor(['Deep Discoverer 23060001'])
         annotation_processor.load_phylogeny()
         assert len(annotation_processor.phylogeny.keys()) > 0
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_fetch_media(self, mock_get):
-        annotation_processor = AnnotationProcessor(['Deep Discoverer 23060001'])
+        annotation_processor = VarsAnnotationProcessor(['Deep Discoverer 23060001'])
         sequence_videos = []
         annotation_processor.fetch_media(annotation_processor.sequence_names[0], sequence_videos)
         assert sequence_videos == [
@@ -54,11 +54,11 @@ class TestAnnotationProcessor:
                 'sequence_name': 'Deep Discoverer 23060001',
             },
         ]
-        assert len(annotation_processor.image_records) == 2
+        assert len(annotation_processor.working_records) == 2
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_fetch_vars_phylogeny(self, mock_get):
-        annotation_processor = AnnotationProcessor(['Deep Discoverer 23060001'])
+        annotation_processor = VarsAnnotationProcessor(['Deep Discoverer 23060001'])
         annotation_processor.fetch_vars_phylogeny('Pomacentridae', no_match_records=set())
         assert annotation_processor.phylogeny['Pomacentridae'] == {
             'phylum': 'Chordata',
@@ -70,18 +70,18 @@ class TestAnnotationProcessor:
         }
 
     def test_get_image_url_only_one(self):  # only one image to choose from
-        annotation_processor = AnnotationProcessor(['Deep Discoverer 23060001'])
+        annotation_processor = VarsAnnotationProcessor(['Deep Discoverer 23060001'])
         assert annotation_processor.get_image_url(ex_23060001['annotations'][1]) \
                == 'https://hurlimage.soest.hawaii.edu/SupplementalPhotos/Hphotos/NA138photos/H1920/cam1_20220419064757.png'
 
     def test_get_image_url_png(self):  # multiple images to choose from, get the png
-        annotation_processor = AnnotationProcessor(['Deep Discoverer 23060001'])
+        annotation_processor = VarsAnnotationProcessor(['Deep Discoverer 23060001'])
         assert annotation_processor.get_image_url(ex_23060001['annotations'][0]) \
                == 'https://hurlimage.soest.hawaii.edu/Hercules/images/1381920/20220418T202402.015Z--542830a8-ec69-4ee5-a57d-9de66a412dba.png'
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_get_video_first_media(self, mock_get):
-        annotation_processor = AnnotationProcessor(['Deep Discoverer 23060001'])
+        annotation_processor = VarsAnnotationProcessor(['Deep Discoverer 23060001'])
         sequence_videos = []
         annotation_processor.fetch_media(annotation_processor.sequence_names[0], sequence_videos)
         assert annotation_processor.get_video(ex_23060001['annotations'][0], sequence_videos)['uri'] \
@@ -89,7 +89,7 @@ class TestAnnotationProcessor:
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_get_video_url_second_media(self, mock_get):
-        annotation_processor = AnnotationProcessor(['Deep Discoverer 23060001'])
+        annotation_processor = VarsAnnotationProcessor(['Deep Discoverer 23060001'])
         sequence_videos = []
         annotation_processor.fetch_media(annotation_processor.sequence_names[0], sequence_videos)
         assert annotation_processor.get_video(ex_23060001['annotations'][1], sequence_videos)['uri'] \
@@ -97,10 +97,10 @@ class TestAnnotationProcessor:
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_process_images(self, mock_get):
-        annotation_processor = AnnotationProcessor(['Deep Discoverer 23060001'])
+        annotation_processor = VarsAnnotationProcessor(['Deep Discoverer 23060001'])
         sequence_videos = []
         annotation_processor.fetch_media(annotation_processor.sequence_names[0], sequence_videos)
-        assert annotation_processor.process_images(sequence_videos) == [
+        assert annotation_processor.process_working_records(sequence_videos) == [
             {
                 'observation_uuid': '0059f860-4799-485f-c06c-5830e5ddd31e',
                 'concept': 'Pomacentridae',
@@ -151,11 +151,11 @@ class TestAnnotationProcessor:
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_sort_records(self, mock_get):
-        annotation_processor = AnnotationProcessor(['Deep Discoverer 23060001'])
+        annotation_processor = VarsAnnotationProcessor(['Deep Discoverer 23060001'])
         sequence_videos = []
         annotation_processor.fetch_media(annotation_processor.sequence_names[0], sequence_videos)
-        annotation_processor.sort_records(annotation_processor.process_images(sequence_videos))
-        assert annotation_processor.distilled_records == [
+        annotation_processor.sort_records(annotation_processor.process_working_records(sequence_videos))
+        assert annotation_processor.final_records == [
             {
                 'observation_uuid': '0d9133d7-1d49-47d5-4b6d-6e4fb25dd41e',
                 'concept': 'Pomacentridae',

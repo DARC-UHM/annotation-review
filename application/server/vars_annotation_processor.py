@@ -12,7 +12,7 @@ TERM_YELLOW = '\033[1;93m'
 TERM_NORMAL = '\033[1;37;0m'
 
 
-class AnnotationProcessor:
+class VarsAnnotationProcessor:
     """
     Fetches annotation information from the VARS db on HURLSTOR given a list of sequences. Cleans, formats, and sorts
     the annotation data for display on the image review pages.
@@ -21,8 +21,8 @@ class AnnotationProcessor:
     def __init__(self, sequence_names: list):
         self.sequence_names = sequence_names
         self.phylogeny = {}
-        self.image_records = []  # all of the annotations that have images
-        self.distilled_records = []  # the final list of annotations
+        self.working_records = []  # all of the annotations that have images
+        self.final_records = []    # the final list of annotations
         temp_name = sequence_names[0].split()
         temp_name.pop()
         self.vessel_name = ' '.join(temp_name)
@@ -37,7 +37,7 @@ class AnnotationProcessor:
             print('fetched!')
         print('Processing annotations...', end='')
         sys.stdout.flush()
-        self.sort_records(self.process_images(sequence_videos))
+        self.sort_records(self.process_working_records(sequence_videos))
         print('done!')
         self.save_phylogeny()
 
@@ -75,7 +75,7 @@ class AnnotationProcessor:
         for annotation in response['annotations']:
             concept_name = annotation['concept']
             if annotation['image_references'] and concept_name[0].isupper():
-                self.image_records.append(annotation)
+                self.working_records.append(annotation)
 
     def fetch_vars_phylogeny(self, concept_name: str, no_match_records: set):
         """
@@ -133,14 +133,14 @@ class AnnotationProcessor:
             'sequence_name': matching_video['sequence_name'],
         }
 
-    def process_images(self, sequence_videos: list):
+    def process_working_records(self, sequence_videos: list):
         """
-        Cleans and formats the image records into a list of dicts.
+        Cleans and formats the working records into a list of dicts.
         """
         formatted_images = []
         no_match_records = set()
 
-        for record in self.image_records:
+        for record in self.working_records:
             concept_name = record['concept']
             if concept_name not in self.phylogeny.keys():
                 self.fetch_vars_phylogeny(concept_name, no_match_records)
@@ -232,7 +232,7 @@ class AnnotationProcessor:
         annotation_df = annotation_df.replace({float('nan'): None})
 
         for index, row in annotation_df.iterrows():
-            self.distilled_records.append({
+            self.final_records.append({
                 'observation_uuid': row['observation_uuid'],
                 'concept': row['concept'],
                 'associations': row['associations'],
