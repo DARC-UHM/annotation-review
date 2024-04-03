@@ -4,6 +4,7 @@ import pandas as pd
 import requests
 
 from flask import session
+from json import JSONDecodeError
 
 from .functions import *
 
@@ -20,6 +21,7 @@ class CommentProcessor:
     def __init__(self, comments: Dict):
         self.comments = comments
         self.distilled_records = []
+        self.missing_records = []
         self.load_comments()
 
     def load_comments(self):
@@ -36,8 +38,14 @@ class CommentProcessor:
         for comment in self.comments:
             if 'scientific_name' not in self.comments[comment].keys()\
                     or self.comments[comment]['scientific_name'] is None\
-                    or self.comments[comment]['scientific_name'] == '':  # vars annotation
-                annotation = requests.get(f'{os.environ.get("ANNOSAURUS_URL")}/annotations/{comment}').json()
+                    or self.comments[comment]['scientific_name'] == '':  # vars annotation'
+                try:
+                    annotation = requests.get(f'{os.environ.get("ANNOSAURUS_URL")}/annotations/{comment}').json()
+                except JSONDecodeError:
+                    problem_comment = self.comments[comment]
+                    print(f'{TERM_RED}ERROR: Could not find annotation with UUID {comment} in VARS ({problem_comment["sequence"]}, {problem_comment["timestamp"]}){TERM_NORMAL}')
+                    self.missing_records.append(problem_comment)
+                    continue
                 concept_name = annotation['concept']
             else:  # tator localization
                 concept_name = self.comments[comment]['scientific_name']

@@ -586,6 +586,7 @@ def get_external_review():
         'concepts': session['vars_concepts'],
         'reviewers': session['reviewers'],
         'comments': comments,
+        'missing_records': comment_loader.missing_records,
         'unread_comment_count': unread_comments,
         'read_comment_count': read_comments,
         'total_comment_count': total_comments,

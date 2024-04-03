@@ -1,0 +1,31 @@
+<div class="modal fade" id="missingRecordsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <form id="deleteMissingRecordsForm" onsubmit="deleteMissingRecords()" autocomplete="off">
+            <div class="modal-content">
+                <div class="modal-header text-center">
+                    <h5 class="modal-title mt-1 ms-4" style="font-weight: 600;">Missing Annotations</h5>
+                    <button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-start mx-4">
+                    The following annotations are present in the external review database but cannot be found in VARS:
+                    <table id="missingRecordTable" class="mt-4 my-5 small w-100">
+                        <thead>
+                            <tr>
+                                <th>Dive</th>
+                                <th>Timestamp</th>
+                                <th>Annotator</th>
+                                <th>Image URL</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                    Would you like to delete these records from the external review database?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Ignore</button>
+                    <input type="submit" id="externalModalDeleteButton" class="btn btn-danger modal-button" value="Delete">
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

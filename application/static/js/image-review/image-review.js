@@ -488,6 +488,18 @@ window.onhashchange = () => {
 
 // get the annotation data and add it to the modal
 $(document).ready(()=> {
+    if (missingRecords.length) {
+        $('#missingRecordTable').find('tbody').append(missingRecords.map((record) =>
+            `<tr>
+                <td>${record.sequence}</td>
+                <td>${record.timestamp}</td>
+                <td>${record.annotator}</td>
+                <td><a href="${record.image_url}" target="_blank" class="aquaLink" style="font-weight: 600;">Link</a></td>
+            </tr>`
+        ));
+        $('#missingRecordsModal').modal('show');
+    }
+
     $('#editVarsAnnotationModal').on('show.bs.modal', function (e) {
         const annotation = $(e.relatedTarget).data('anno');
         const conceptNameField = $(this).find('#editConceptName');

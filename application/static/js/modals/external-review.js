@@ -192,6 +192,35 @@ async function deleteFromExternalReview() {
     $('#load-overlay').removeClass('loader-bg');
 }
 
+async function deleteMissingRecords() {
+    event.preventDefault();
+    $('#load-overlay').removeClass('loader-bg-hidden');
+    $('#load-overlay').addClass('loader-bg');
+    $('#missingRecordsModal').modal('hide');
+    let statusOkay = true;
+
+    for (const missingRecord of missingRecords) {
+        const formData = new FormData();
+        formData.append('uuid', missingRecord.uuid);
+        const res = await fetch('/external-review', {
+            method: 'DELETE',
+            body: formData,
+        });
+        if (res.status !== 200) {
+            statusOkay = false;
+            break;
+        }
+    }
+    if (statusOkay) {
+        updateFlashMessages('Removed missing records from external review', 'success');
+        updateHash();
+    } else {
+        updateFlashMessages('Error removing missing records from external review', 'danger');
+    }
+    $('#load-overlay').addClass('loader-bg-hidden');
+    $('#load-overlay').removeClass('loader-bg');
+}
+
 $(document).ready(() => {
     window.addReviewer = addReviewer;
     window.removeReviewer = removeReviewer;
@@ -200,6 +229,7 @@ $(document).ready(() => {
     window.markCommentRead = markCommentRead;
     window.markCommentUnread = markCommentUnread;
     window.deleteFromExternalReview = deleteFromExternalReview;
+    window.deleteMissingRecords = deleteMissingRecords;
 
     $('#externalReviewModal').on('show.bs.modal', (e) => {
         currentAnnotation = $(e.relatedTarget).data('anno');
