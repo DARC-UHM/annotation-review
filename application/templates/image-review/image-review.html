@@ -111,7 +111,7 @@
         const allConcepts = {{ data.concepts|safe }};
         const reviewers = {{ data.reviewers|safe }};
         const comments = {{ data.comments|safe }};
-        const missingRecords =  {{ data.missing_records|safe }};
+        const missingRecords = {{ data.missing_records|safe or None }};
     </script>
     <script type="module" src="/static/js/image-review/image-review.js"></script>
     <script type="module" src="/static/js/modals/external-review.js"></script>
