@@ -488,7 +488,7 @@ window.onhashchange = () => {
 
 // get the annotation data and add it to the modal
 $(document).ready(()=> {
-    if (missingRecords.length) {
+    if (missingRecords?.length) {
         $('#missingRecordTable').find('tbody').append(missingRecords.map((record) =>
             `<tr>
                 <td>${record.sequence}</td>
