@@ -431,6 +431,37 @@ select:active {
     border-radius: 2px;
 }
 
+.alert-bottom-bar-success {
+    background-color: #80c9a7;
+}
+
+.alert-bottom-bar-danger {
+    background-color: #ff8383;
+}
+
+.text-input-loading-container {
+    pointer-events: none;
+    position: absolute;
+    display: flex;
+    justify-content: end;
+    align-items: center;
+    top: 0;
+    width: 300px;
+    height: 100%;
+}
+
+.text-input-loading-spinner {
+    border: 3px solid rgba(0, 0, 0, 0);
+    border-top: 3px solid #79b1e8;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    animation: spin 1s linear infinite;
+    margin-top: auto;
+    margin-bottom: auto;
+    margin-right: 10px;
+}
+
 @keyframes progressBar {
   0% {
     width: 100%;
@@ -438,14 +469,6 @@ select:active {
   100% {
     width: 0;
   }
-}
-
-.alert-bottom-bar-success {
-    background-color: #80c9a7;
-}
-
-.alert-bottom-bar-danger {
-    background-color: #ff8383;
 }
 
 @keyframes spin {

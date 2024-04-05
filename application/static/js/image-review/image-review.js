@@ -1,4 +1,4 @@
-import { autocomplete } from '../util/autocomplete.js';
+import { autocomplete, removeAllLists, removeAutocomplete } from '../util/autocomplete.js';
 import { updateFlashMessages } from '../util/updateFlashMessages.js';
 import { varsAnnotationTableRow } from './vars-annotation-table-row.js';
 import { tatorLocalizationRow } from './tator-localization-table-row.js';
@@ -110,9 +110,9 @@ const handlePageButtonsStatus = () => {
     }
 };
 
-function validateName(name, button) {
+function validateName(name, nameList, button) {
     let disabled = false;
-    if (name && !allConcepts.includes(name)) {
+    if (name && !nameList.includes(name)) {
         disabled = true;
     }
     button.disabled = disabled;
@@ -386,6 +386,32 @@ function saveScrollPosition(page) {
     sessionStorage.setItem(`scrollPos${queryAndHash}`, `${window.scrollY}`);
 }
 
+async function getWormsAutocomplete() {
+    const scientificNameObj = $('#editScientificName');
+    const scientificName = scientificNameObj.val();
+    if (scientificName.length > 2) {
+        removeAutocomplete(scientificNameObj);
+        removeAllLists();
+        $('#scientificNameAutocompleteSpinner').show();
+        const res = await fetch(`https://www.marinespecies.org/rest/AphiaRecordsByName/${scientificName}?like=true&marine_only=true`);
+        let scientificNameList = [];
+        if (res.status === 200) {
+            const data = await res.json();
+            scientificNameList = data.map((record) => record.scientificname);
+        }
+        autocomplete(scientificNameObj, scientificNameList);
+        scientificNameObj.on('input', () => getWormsAutocomplete());
+
+        validateName(scientificNameObj.val(), scientificNameList, $('#editTatorLocaModalSubmitButton')[0]);
+        scientificNameObj.on('input', () => validateName(scientificNameObj.val(), scientificNameList, $('#editTatorLocaModalSubmitButton')[0]));
+        scientificNameObj.on('change', () => validateName(scientificNameObj.val(), scientificNameList, $('#editTatorLocaModalSubmitButton')[0]));
+        $('#scientificNameAutocompleteSpinner').hide();
+    } else {
+        $('#editTatorLocaModalSubmitButton')[0].disabled = true;
+        removeAllLists(); // only show autocomplete if there are more than 2 characters
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function(event) {
     const url = new URL(window.location.href);
     const queryAndHash = url.search + url.hash;
@@ -395,7 +421,9 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
     autocomplete($('#editConceptName'), allConcepts);
     autocomplete($('#editUpon'), allConcepts);
-    autocomplete($('#editScientificName'), allConcepts);
+
+    $('#scientificNameAutocompleteSpinner').hide();
+    $('#editScientificName').on('input', () => getWormsAutocomplete());
 
     if (sessionStorage.getItem(`scrollPos${queryAndHash}`)) {
         window.scrollTo({
@@ -512,10 +540,10 @@ $(document).ready(()=> {
         $(this).find('#editComments').val(annotation.comment);
         $(this).find('#editObservationUuid').val(annotation.observation_uuid);
 
-        conceptNameField.on('input', () => validateName(conceptNameField.val(), $('#editVarsAnnoModalSubmitButton')[0]));
-        conceptNameField.on('change', () => validateName(conceptNameField.val(), $('#editVarsAnnoModalSubmitButton')[0]));
-        uponField.on('input', () => validateName(uponField.val(), $('#editVarsAnnoModalSubmitButton')[0]));
-        uponField.on('change', () => validateName(uponField.val(), $('#editVarsAnnoModalSubmitButton')[0]));
+        conceptNameField.on('input', () => validateName(conceptNameField.val(), allConcepts, $('#editVarsAnnoModalSubmitButton')[0]));
+        conceptNameField.on('change', () => validateName(conceptNameField.val(), allConcepts, $('#editVarsAnnoModalSubmitButton')[0]));
+        uponField.on('input', () => validateName(uponField.val(), allConcepts, $('#editVarsAnnoModalSubmitButton')[0]));
+        uponField.on('change', () => validateName(uponField.val(), allConcepts, $('#editVarsAnnoModalSubmitButton')[0]));
 
         document.getElementById("editGuidePhoto").options.length = 0; // clear options
         const guidePhotoSelect = $(this).find('#editGuidePhoto');
@@ -544,9 +572,6 @@ $(document).ready(()=> {
             return { id: loc.id, type: loc.type };
         })));
         $(this).find('#baseUuid').val(localization.observation_uuid);
-
-        scientificNameField.on('input', () => validateName(scientificNameField.val(), $('#editTatorLocaModalSubmitButton')[0]));
-        scientificNameField.on('change', () => validateName(scientificNameField.val(), $('#editTatorLocaModalSubmitButton')[0]));
     });
 });
 

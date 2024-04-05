@@ -276,7 +276,6 @@ function updateHash() {
             </tr>
         `);
         for (const annotation of sortedAnnotations) {
-            console.log(annotation);
             for (const rank of ['subspecies', 'species', 'subgenus', 'genus', 'subfamily', 'family', 'suborder', 'order', 'subclass', 'class', 'phylum']) {
                 if (annotation[rank]) {
                     annotation.rank = rank.replace(/_/g, ' ');

@@ -1,5 +1,4 @@
 export const tatorLocalizationRow = (localization, externalComment) => {
-    console.log(localization)
     return (`
         <tr>
             <td class="ps-5">
