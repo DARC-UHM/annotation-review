@@ -72,7 +72,9 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                         ID Remarks:
                     </div>
                     <div class="col values">
-                        ${localization.identification_remarks || '-'}<br>
+                        ${localization.identification_remarks || '-'}
+                        ${localization.identification_remarks?.includes(',') ? '<div style="color: red;">^ REMOVE COMMAS ^</div>' : ''}
+                        <br>
                     </div>
                 </div>
                 <div class="row">
