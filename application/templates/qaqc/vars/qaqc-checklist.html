@@ -44,8 +44,8 @@
                             <td id="missingAncillaryCheckbox" class="qaqcCheckbox"></td>
                         </tr>
                         <tr>
-                            <td><a id="multipleAssociationAnchor" class="aquaLink">No records with more than one of the same association type other than s2</a></td>
-                            <td id="multipleAssociationCheckbox" class="qaqcCheckbox"></td>
+                            <td><a id="multipleAssociationsAnchor" class="aquaLink">No records with more than one of the same association type other than s2</a></td>
+                            <td id="multipleAssociationsCheckbox" class="qaqcCheckbox"></td>
                         </tr>
                         <tr>
                             <td><a id="identicalS1S2Anchor" class="aquaLink">No records with identical primary and secondary substrates</a></td>
@@ -126,6 +126,7 @@
     <script>
         const annotationCount = {{ annotation_count }};
         const individualCount = {{ individual_count }};
+        const checklist = {{ checklist|safe }};
     </script>
     <script type="module" src="/static/js/qaqc/vars/qaqc-checklist.js"></script>
 {% endblock content %}

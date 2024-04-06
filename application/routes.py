@@ -222,6 +222,15 @@ def tator_qaqc_checklist(project_id, section_id):
     individual_count = 0
     for deployment in request.args.getlist('deployment'):
         media_ids += session[f'{project_id}_{section_id}'][deployment]
+    with requests.get(
+        f'{app.config.get("DARC_REVIEW_URL")}/tator-qaqc-checklist/{"&".join(request.args.getlist("deployment"))}',
+        headers=app.config.get('DARC_REVIEW_HEADERS'),
+    ) as checklist_res:
+        if checklist_res.status_code == 200:
+            checklist = checklist_res.json()
+        else:
+            print('ERROR: Unable to get QAQC checklist from external review server')
+            checklist = {}
     # REST is much faster than Python API for large queries
     # adding too many media ids results in a query that is too long, so we have to break it up
     for i in range(0, len(media_ids), 300):
@@ -250,6 +259,7 @@ def tator_qaqc_checklist(project_id, section_id):
         'title': section_name,
         'localization_count': len(localizations),
         'individual_count': individual_count,
+        'checklist': checklist,
     }
     return render_template('qaqc/tator/qaqc-checklist.html', data=data)
 
@@ -428,6 +438,15 @@ def vars_qaqc_checklist():
     annotation_count = 0
     individual_count = 0
     identity_references = set()
+    with requests.get(
+        f'{app.config.get("DARC_REVIEW_URL")}/vars-qaqc-checklist/{"&".join(request.args.getlist("sequence"))}',
+        headers=app.config.get('DARC_REVIEW_HEADERS'),
+    ) as checklist_res:
+        if checklist_res.status_code == 200:
+            checklist = checklist_res.json()
+        else:
+            print('ERROR: Unable to get QAQC checklist from external review server')
+            checklist = {}
     for sequence in sequences:
         with requests.get(f'{app.config.get("HURLSTOR_URL")}:8086/query/dive/{sequence.replace(" ", "%20")}') as r:
             annotation_count += len(r.json()['annotations'])
@@ -455,7 +474,28 @@ def vars_qaqc_checklist():
                     individual_count += int(pop_quantity['link_value'])
                     continue
                 individual_count += 1
-    return render_template('qaqc/vars/qaqc-checklist.html', annotation_count=annotation_count, individual_count=individual_count)
+    return render_template(
+        'qaqc/vars/qaqc-checklist.html',
+        annotation_count=annotation_count,
+        individual_count=individual_count,
+        checklist=checklist,
+    )
+
+
+# update vars qaqc checklist
+@app.patch('/vars/qaqc-checklist')
+def patch_vars_qaqc_checklist():
+    req_json = request.json
+    sequences = req_json.get('sequences')
+    if not sequences:
+        return {}, 400
+    req_json.pop('sequences')
+    res = requests.patch(
+        f'{app.config.get("DARC_REVIEW_URL")}/vars-qaqc-checklist/{sequences}',
+        headers=app.config.get('DARC_REVIEW_HEADERS'),
+        json=req_json,
+    )
+    return res.json(), res.status_code
 
 
 # individual qaqc checks (VARS)
