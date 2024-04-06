@@ -578,12 +578,6 @@ def get_external_review():
                 headers=app.config.get('DARC_REVIEW_HEADERS'),
             )
             comments = req.json()
-        elif request.args.get('reviewer'):
-            req = requests.get(
-                f'{app.config.get("DARC_REVIEW_URL")}/comment/reviewer/{request.args.get("reviewer")}',
-                headers=app.config.get('DARC_REVIEW_HEADERS'),
-            )
-            comments = req.json()
         else:
             req = requests.get(
                 f'{app.config.get("DARC_REVIEW_URL")}/comment/all',
