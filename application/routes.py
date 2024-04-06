@@ -585,7 +585,7 @@ def qaqc_quick(check):
     return render_template('not-found.html', err=''), 404
 
 
-# displays all comments in the external review db
+# displays comments in the external review db
 @app.get('/external-review')
 def get_external_review():
     comments = []
@@ -598,28 +598,6 @@ def get_external_review():
         flash('Please log in to Tator', 'info')
         return redirect('/')
     try:
-        # get a list of comments from external review db
-        if request.args.get('unread'):
-            req = requests.get(
-                f'{app.config.get("DARC_REVIEW_URL")}/comment/unread',
-                headers=app.config.get('DARC_REVIEW_HEADERS'),
-            )
-        elif request.args.get('read'):
-            req = requests.get(
-                f'{app.config.get("DARC_REVIEW_URL")}/comment/read',
-                headers=app.config.get('DARC_REVIEW_HEADERS'),
-            )
-        elif request.args.get('reviewer'):
-            req = requests.get(
-                f'{app.config.get("DARC_REVIEW_URL")}/comment/reviewer/{request.args.get("reviewer")}',
-                headers=app.config.get('DARC_REVIEW_HEADERS'),
-            )
-        else:
-            req = requests.get(
-                f'{app.config.get("DARC_REVIEW_URL")}/comment/all',
-                headers=app.config.get('DARC_REVIEW_HEADERS'),
-            )
-        comments = req.json()
         with requests.get(
                 f'{app.config.get("DARC_REVIEW_URL")}/stats',
                 headers=app.config.get('DARC_REVIEW_HEADERS'),
@@ -628,6 +606,40 @@ def get_external_review():
             unread_comments = res['unread_comments']
             read_comments = res['read_comments']
             total_comments = res['total_comments']
+        # get a list of comments from external review db
+        if request.args.get('reviewer'):
+            query = ''
+            if request.args.get('read'):
+                query += '?read=true'
+            elif request.args.get('unread'):
+                query += '?unread=true'
+            req = requests.get(
+                f'{app.config.get("DARC_REVIEW_URL")}/comment/reviewer/{request.args.get("reviewer")}{query}',
+                headers=app.config.get('DARC_REVIEW_HEADERS'),
+            )
+            _json = req.json()
+            comments = _json['comments']
+            unread_comments = _json['unread_comments']
+            read_comments = _json['read_comments']
+            total_comments = _json['total_comments']
+        elif request.args.get('unread'):
+            req = requests.get(
+                f'{app.config.get("DARC_REVIEW_URL")}/comment/unread',
+                headers=app.config.get('DARC_REVIEW_HEADERS'),
+            )
+            comments = req.json()
+        elif request.args.get('read'):
+            req = requests.get(
+                f'{app.config.get("DARC_REVIEW_URL")}/comment/read',
+                headers=app.config.get('DARC_REVIEW_HEADERS'),
+            )
+            comments = req.json()
+        else:
+            req = requests.get(
+                f'{app.config.get("DARC_REVIEW_URL")}/comment/all',
+                headers=app.config.get('DARC_REVIEW_HEADERS'),
+            )
+            comments = req.json()
     except requests.exceptions.ConnectionError:
         _reviewers = []
         print('\nERROR: unable to connect to external review server\n')
