@@ -474,10 +474,13 @@ document.addEventListener('DOMContentLoaded', function(event) {
             $('#externalUnreadAnchor').css('color', 'white');
         } else if (read) {
             $('#externalReadAnchor').css('color', 'white');
-        } else if (reviewer) {
-            $('#externalReviewFilters').hide();
         } else {
             $('#externalAllAnchor').css('color', 'white');
+        }
+        if (reviewer) {
+            $('#externalAllAnchor').attr('href', `/external-review?reviewer=${reviewer}`);
+            $('#externalUnreadAnchor').attr('href', `/external-review?reviewer=${reviewer}&unread=true`);
+            $('#externalReadAnchor').attr('href', `/external-review?reviewer=${reviewer}&read=true`);
         }
     } else {
         // regular dive page
