@@ -74,6 +74,7 @@
     <script>
         const localizationCount = {{ data.localization_count }};
         const individualCount = {{ data.individual_count }};
+        const checklist = {{ data.checklist|safe }};
     </script>
     <script type="module" src="/static/js/qaqc/tator/qaqc-checklist.js"></script>
 {% endblock content %}

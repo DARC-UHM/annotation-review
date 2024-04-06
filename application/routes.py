@@ -264,6 +264,22 @@ def tator_qaqc_checklist(project_id, section_id):
     return render_template('qaqc/tator/qaqc-checklist.html', data=data)
 
 
+# update tator qaqc checklist
+@app.patch('/tator/qaqc-checklist')
+def patch_tator_qaqc_checklist():
+    req_json = request.json
+    deployments = req_json.get('deployments')
+    if not deployments:
+        return {}, 400
+    req_json.pop('deployments')
+    res = requests.patch(
+        f'{app.config.get("DARC_REVIEW_URL")}/tator-qaqc-checklist/{deployments}',
+        headers=app.config.get('DARC_REVIEW_HEADERS'),
+        json=req_json,
+    )
+    return res.json(), res.status_code
+
+
 # individual qaqc checks (Tator)
 @app.get('/tator/qaqc/<project_id>/<section_id>/<check>')
 def tator_qaqc(project_id, section_id, check):
