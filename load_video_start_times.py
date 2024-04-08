@@ -50,7 +50,7 @@ def process_folder(folder_path):
         print(f'Error: {e}')
 
 
-def get_tator_media_ids(project_id, section_id, deployment_name, tator_token):
+def get_tator_media_ids(project_id, section_id, deployment_name, tator_token) -> int:
     if not tator_token:
         print('Error: Tator token not found')
         sys.exit()
@@ -65,9 +65,11 @@ def get_tator_media_ids(project_id, section_id, deployment_name, tator_token):
         # until we decide on an actual naming convention...
         if len(media_name) == 3:  # format DOEX0087_NIU-dscm-02_c009.mp4
             media_list[f'{media_name[1]}_{media_name[2]}'[:-4]] = {'id': media['id']}
+        elif len(media_name) == 4:  # format PLW_dscm_02_c001.mp4  (the best one)
+            media_list[media['name'].split('.')[0]] = {'id': media['id']}
         else:  # format HAW_dscm_01_c010_202304250123Z_0983m.mp4
             media_list[f'{media_name[0]}_{media_name[1]}_{media_name[2]}_{media_name[3]}'] = {'id': media['id']}
-    print(f'Retrieved {len(req.json())} media ids from Tator')
+    return(len(req.json()))
 
 
 def set_video_start_time(media_id, start_time, tator_token):
@@ -99,7 +101,7 @@ DEPLOYMENT_NAME = sys.argv[3]
 
 media_list = {}
 
-get_tator_media_ids(
+total_media_ids = get_tator_media_ids(
     project_id=PROJECT_ID,
     section_id=SECTION_ID,
     deployment_name=DEPLOYMENT_NAME,
@@ -120,4 +122,7 @@ for media in media_list.values():
     else:
         print(f'Error: No creation date found for {media}')
 
-print(f'{DEPLOYMENT_NAME} complete! Updated {total_media_updated} media files.')
+print(f'Number media IDS: {total_media_ids}')
+print(f'Number XML files: {total_xml_files}')
+print(f'Number media updated: {total_media_updated}')
+print(f'{DEPLOYMENT_NAME} complete!')
