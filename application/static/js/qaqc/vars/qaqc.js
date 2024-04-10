@@ -113,11 +113,10 @@ function updateHash() {
         const idRefAssociations = {};
 
         for (const anno of annotationsToDisplay) {
-            const currentIdRef = anno.identity_reference;
+            const currentIdRef = `${anno.video_sequence_name.slice(-3)}:${anno.identity_reference}`;
             if (!Object.keys(idRefAssociations).includes(currentIdRef)) {
                 idRefAssociations[currentIdRef] = {s2: new Set(), 'sampled-by': new Set(), 'sample-reference': new Set()};
                 problemAssociations[currentIdRef] = new Set();
-                console.log(anno.associations);
                 for (const ass of anno.associations) {
                     if (ass.link_name === 's2' || ass.link_name === 'sampled-by') {
                         idRefAssociations[currentIdRef][ass.link_name].add(ass.to_concept);
@@ -336,8 +335,9 @@ function updateHash() {
                     </table>
                 `);
                 const sortedAssociations = annotation.associations.sort((a, b) => (a.link_name > b.link_name) ? 1 : ((b.link_name > a.link_name) ? -1 : 0));
+                const currentIdRef = `${annotation.video_sequence_name.slice(-3)}:${annotation.identity_reference}`;
                 for (const association of sortedAssociations) {
-                    if (problemAssociations[annotation.identity_reference].has(association.link_name)) {
+                    if (problemAssociations[currentIdRef].has(association.link_name)) {
                         $(`#associationTable${index}`).append(`<tr style="color: yellow"><td>${association.link_name}</td><td>${association.to_concept}</td><td>${association.link_value}</td></tr>`);
                     } else {
                         $(`#associationTable${index}`).append(`<tr><td>${association.link_name}</td><td>${association.to_concept}</td><td>${association.link_value}</td></tr>`);

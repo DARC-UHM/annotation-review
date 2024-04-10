@@ -72,7 +72,7 @@ def get_tator_media_ids(project_id, section_id, deployment_name, tator_token) ->
             media_list[media['name'].split('.')[0]] = {'id': media['id']}
         else:  # format HAW_dscm_01_c010_202304250123Z_0983m.mp4
             media_list[f'{media_name[0]}_{media_name[1]}_{media_name[2]}_{media_name[3]}'] = {'id': media['id']}
-    return(len(req.json()))
+    return len(req.json())
 
 
 def set_video_start_time(media_id, start_time, tator_token):
@@ -129,3 +129,4 @@ print(f'Number media IDS: {total_media_ids}')
 print(f'Number XML files: {total_xml_files}')
 print(f'Number media updated: {total_media_updated}')
 print(f'{DEPLOYMENT_NAME} complete!')
+os.system('say "Start times synced."')
