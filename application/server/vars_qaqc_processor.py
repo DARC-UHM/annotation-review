@@ -465,7 +465,6 @@ class VarsQaqcProcessor:
                                 or temp_sampled_by_set != id_ref_associations[current_id_ref]['sampled-by'] \
                                 or temp_sample_ref_set != id_ref_associations[current_id_ref]['sample-reference']:
                             id_ref_associations[current_id_ref]['flag'] = True
-                            break
             for id_ref in id_ref_associations.keys():
                 if id_ref_associations[id_ref]['flag']:
                     for annotation in id_ref_annotations[id_ref]:
