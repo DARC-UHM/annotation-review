@@ -47,7 +47,7 @@ def process_folder(folder_path):
         return xml_file_count
 
     except dropbox.exceptions.ApiError as e:
-        print(f'Error: {e}')
+        print(f'Error connecting to Dropbox: {e}')
 
 
 def get_tator_media_ids(project_id, section_id, deployment_name, tator_token) -> int:
@@ -60,6 +60,9 @@ def get_tator_media_ids(project_id, section_id, deployment_name, tator_token) ->
             'Content-Type': 'application/json',
             'Authorization': f'Token {tator_token}',
         })
+    if req.status_code != 200:
+        print(f'Error connecting to Tator: {req.json()["message"]}')
+        sys.exit()
     for media in req.json():
         media_name = media['name'].split('_')
         # until we decide on an actual naming convention...
