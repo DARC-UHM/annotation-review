@@ -18,12 +18,14 @@ class AnnotationProcessor:
     """
 
     def __init__(self, sequence_names: list):
-        self.distilled_records = []
+        self.final_records = []
+        self.all_record_df = pd.DataFrame()
         temp_name = sequence_names[0].split()
         temp_name.pop()
         self.vessel_name = ' '.join(temp_name)
         for name in sequence_names:
             self.load_images(name)
+        self.sort_em()
 
     def load_images(self, name: str):
         print(f'Fetching annotations for sequence {name} from VARS...', end='')
@@ -164,7 +166,19 @@ class AnnotationProcessor:
             'species'
         ])
 
-        annotation_df = annotation_df.sort_values(by=[
+        self.all_record_df = pd.concat([self.all_record_df, annotation_df], ignore_index=True)
+
+        try:
+            with open(os.path.join('cache', 'phylogeny.json'), 'w') as f:
+                json.dump(phylogeny, f, indent=2)
+        except FileNotFoundError:
+            os.makedirs('cache')
+            with open(os.path.join('cache', 'phylogeny.json'), 'w') as f:
+                json.dump(phylogeny, f, indent=2)
+
+    def sort_em(self):
+
+        annotation_df = self.all_record_df.sort_values(by=[
             'phylum',
             'subphylum',
             'superclass',
@@ -186,7 +200,7 @@ class AnnotationProcessor:
         ])
 
         for index, row in annotation_df.iterrows():
-            self.distilled_records.append({
+            self.final_records.append({
                 'observation_uuid': row['observation_uuid'],
                 'concept': row['concept'],
                 'annotator': row['annotator'],
@@ -211,13 +225,3 @@ class AnnotationProcessor:
                 'recorded_timestamp': parse_datetime(row['recorded_timestamp']).strftime('%d %b %y %H:%M:%S UTC'),
                 'video_sequence_name': row['video_sequence_name']
             })
-
-        try:
-            with open(os.path.join('cache', 'phylogeny.json'), 'w') as f:
-                json.dump(phylogeny, f, indent=2)
-        except FileNotFoundError:
-            os.makedirs('cache')
-            with open(os.path.join('cache', 'phylogeny.json'), 'w') as f:
-                json.dump(phylogeny, f, indent=2)
-
-        print('processed!')
