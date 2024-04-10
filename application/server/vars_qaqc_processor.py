@@ -418,8 +418,7 @@ class VarsQaqcProcessor:
                             'sampled-by': set(),  # more than one association
                             'sample-reference': set(),
                         }
-                        id_ref_annotations[current_id_ref] = []
-                        id_ref_annotations[current_id_ref].append(annotation)
+                        id_ref_annotations[current_id_ref] = [annotation]
                         # populate id_ref dict with all associations
                         for ass in annotation['associations']:
                             if ass['link_name'] == 's2' or ass['link_name'] == 'sampled-by':
@@ -463,7 +462,6 @@ class VarsQaqcProcessor:
                                 or temp_sample_ref_set != id_ref_associations[current_id_ref]['sample-reference']:
                             id_ref_associations[current_id_ref]['flag'] = True
                             break
-                    break
             for id_ref in id_ref_associations.keys():
                 if id_ref_associations[id_ref]['flag']:
                     for annotation in id_ref_annotations[id_ref]:
