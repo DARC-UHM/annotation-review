@@ -30,6 +30,7 @@ def get_tator_media_ids(project_id, section_id, deployment_name, tator_token) ->
         })
     if req.status_code != 200:
         print(f'Error connecting to Tator: {req.json()["message"]}')
+        exit(1)
     for media in req.json():
         media_name = media['name'].split('_')
         # until we decide on an actual naming convention...
@@ -72,6 +73,7 @@ def process_folder(folder_path):
 
     except dropbox.exceptions.ApiError as e:
         print(f'Error connecting to Dropbox: {e}')
+        exit(1)
 
 
 def change_names(folder_path):
