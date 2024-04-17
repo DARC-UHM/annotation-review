@@ -4,4 +4,5 @@ KNOWN_ANNOTATORS = {
     25: 'Sarah Bingo',
     332: 'Nikki Cunanan',
     433: 'Aaron Judah',
+    491: 'Harold Carlson',
 }
