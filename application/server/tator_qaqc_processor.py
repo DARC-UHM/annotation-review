@@ -411,6 +411,7 @@ class TatorQaqcProcessor:
         Finds every record with a tentative ID. Also checks whether or not the tentative ID is in the same
         phylogenetic group as the scientific name.
         """
+        no_match_records = set()
         for localization in self.localizations:
             if localization['type'] not in [48, 49]:
                 continue
@@ -422,8 +423,14 @@ class TatorQaqcProcessor:
         for localization in self.final_records:
             phylogeny_match = False
             if localization['tentative_id'] not in self.phylogeny.keys():
-                localization['problems'] += ' phylogeny no match'
-                continue
+                if localization['tentative_id'] not in no_match_records:
+                    if not self.fetch_worms_phylogeny(localization['tentative_id']):
+                        no_match_records.add(localization['tentative_id'])
+                        localization['problems'] += ' phylogeny no match'
+                        continue
+                else:
+                    localization['problems'] += ' phylogeny no match'
+                    continue
             for value in self.phylogeny[localization['scientific_name']].values():
                 if value in self.phylogeny[localization['tentative_id']].values():
                     phylogeny_match = True
