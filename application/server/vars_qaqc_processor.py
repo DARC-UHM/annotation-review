@@ -403,7 +403,7 @@ class VarsQaqcProcessor:
         """
         Finds annotations with the same ID reference that have conflicting associations
         """
-        to_concepts = ['s1', 's2', 'upon', 'size', 'guide-photo', 'habitat', 'megahabitat', 'sampled-by']
+        to_concepts = ['s1', 's2', 'upon', 'size', 'habitat', 'megahabitat', 'sampled-by']
         for name in self.sequence_names:
             id_ref_associations = {}  # dict of {id_ref: {ass_1_name: ass_1_val, ass_2_name: ass_2_val}}
             id_ref_annotations = {}  # dict of all annotations per id_ref: {id_ref: [annotation_1, annotation_2]}
@@ -418,11 +418,12 @@ class VarsQaqcProcessor:
                             'sampled-by': set(),  # more than one association
                             'sample-reference': set(),
                         }
-                        id_ref_annotations[current_id_ref] = []
-                        id_ref_annotations[current_id_ref].append(annotation)
+                        id_ref_annotations[current_id_ref] = [annotation]
                         # populate id_ref dict with all associations
                         for ass in annotation['associations']:
-                            if ass['link_name'] == 's2' or ass['link_name'] == 'sampled-by':
+                            if ass['link_name'] == 'guide-photo':
+                                pass
+                            elif ass['link_name'] == 's2' or ass['link_name'] == 'sampled-by':
                                 id_ref_associations[current_id_ref][ass['link_name']].add(ass['to_concept'])
                             elif ass['link_name'] == 'sample-reference':
                                 id_ref_associations[current_id_ref][ass['link_name']].add(ass['link_value'])
@@ -436,7 +437,9 @@ class VarsQaqcProcessor:
                         temp_sampled_by_set = set()
                         temp_sample_ref_set = set()
                         for ass in annotation['associations']:
-                            if ass['link_name'] == 's2':
+                            if ass['link_name'] == 'guide-photo':
+                                pass
+                            elif ass['link_name'] == 's2':
                                 temp_s2_set.add(ass['to_concept'])
                             elif ass['link_name'] == 'sampled-by':
                                 temp_sampled_by_set.add(ass['to_concept'])
@@ -462,8 +465,6 @@ class VarsQaqcProcessor:
                                 or temp_sampled_by_set != id_ref_associations[current_id_ref]['sampled-by'] \
                                 or temp_sample_ref_set != id_ref_associations[current_id_ref]['sample-reference']:
                             id_ref_associations[current_id_ref]['flag'] = True
-                            break
-                    break
             for id_ref in id_ref_associations.keys():
                 if id_ref_associations[id_ref]['flag']:
                     for annotation in id_ref_annotations[id_ref]:

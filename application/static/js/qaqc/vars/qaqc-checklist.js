@@ -80,9 +80,9 @@ document.addEventListener('DOMContentLoaded',  (event) => {
     $('#timestampSubstrateAnchor').on('click', () => showLoader());
     $('#missingUponAnchor').attr('href', `/vars/qaqc/missing-upon?sequence=${sequences.join('&sequence=')}`);
     $('#missingUponAnchor').on('click', () => showLoader());
-    $('#refIdConceptNameAnchor').attr('href', `/vars/qaqc/id-ref-concept-name?sequence=${sequences.join('&sequence=')}#sort=ID Reference`);
+    $('#refIdConceptNameAnchor').attr('href', `/vars/qaqc/id-ref-concept-name?sequence=${sequences.join('&sequence=')}#sort=Timestamp`);
     $('#refIdConceptNameAnchor').on('click', () => showLoader());
-    $('#refIdAssociationsAnchor').attr('href', `/vars/qaqc/id-ref-associations?sequence=${sequences.join('&sequence=')}#sort=ID Reference`);
+    $('#refIdAssociationsAnchor').attr('href', `/vars/qaqc/id-ref-associations?sequence=${sequences.join('&sequence=')}#sort=Timestamp`);
     $('#refIdAssociationsAnchor').on('click', () => showLoader());
     $('#blankAssociationsAnchor').attr('href', `/vars/qaqc/blank-associations?sequence=${sequences.join('&sequence=')}`);
     $('#blankAssociationsAnchor').on('click', () => showLoader());

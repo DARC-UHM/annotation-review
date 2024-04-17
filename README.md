@@ -51,6 +51,24 @@ Both the `QA/QC` and `Image Review` sections have the ability to edit annotation
 4. Once a record has been added for external review, the reviewer can see all the images added for them by accessing their review page at https://hurlstor.soest.hawaii.edu:5000/review/REVIEWER-NAME (spaces or dashes between first & last names are both okay).
    1. Example: To share images for review with Jeff Drazen, share the link https://hurlstor.soest.hawaii.edu:5000/review/Jeff-Drazen
 
+### Troubleshooting
+
+If you encounter the following error when attempting to start the application:
+```
+[2024-04-17 09:47:44 -1000] [47269] [INFO] Starting gunicorn 21.2.0
+[2024-04-17 09:47:44 -1000] [47269] [ERROR] Connection in use: ('127.0.0.1', 8000)
+[2024-04-17 09:47:44 -1000] [47269] [ERROR] Retrying in 1 second.
+[2024-04-17 09:47:45 -1000] [47269] [ERROR] Connection in use: ('127.0.0.1', 8000)
+[2024-04-17 09:47:45 -1000] [47269] [ERROR] Retrying in 1 second.
+```
+
+This means that port 8000 is already being used by another application (another instance of the review application) - the terminal was probably closed without hitting `CTRL + C` first. To fix:
+
+1) Find the process that is running the app by entering `ps aux | grep gunicorn` in the terminal. This will print a list of running processes on the machine that match the name `gunicorn`. There will most likely be 3 processes listed, the ones of interest end in `--threads 3`.
+2) Try to kill each `--threads 3` process by entering `kill PROCESS_NUMBER` where `PROCESS_NUMBER` is the first number from the left on the line of the process.
+3) Confirm that all processes ending with `--threads 3` have been killed by running `ps aux | grep gunicorn` again. If a process is still running, try killing it again.
+4) Start the application.
+
 ### Screenshots
 
 ![Images Page](https://i.imgur.com/VUHPDIs.png)

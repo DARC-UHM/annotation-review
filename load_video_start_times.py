@@ -18,6 +18,31 @@ import sys
 import dotenv
 
 
+def get_tator_media_ids(project_id, section_id, deployment_name, tator_token) -> int:
+    if not tator_token:
+        print('Error: Tator token not found')
+        sys.exit()
+    req = requests.get(
+        f'https://cloud.tator.io/rest/Medias/{project_id}?section={section_id}&attribute_contains=%24name%3A%3A{deployment_name}',
+        headers={
+            'Content-Type': 'application/json',
+            'Authorization': f'Token {tator_token}',
+        })
+    if req.status_code != 200:
+        print(f'Error connecting to Tator: {req.json()["message"]}')
+        exit(1)
+    for media in req.json():
+        media_name = media['name'].split('_')
+        # until we decide on an actual naming convention...
+        if len(media_name) == 3:  # format DOEX0087_NIU-dscm-02_c009.mp4
+            media_list[f'{media_name[1]}_{media_name[2]}'[:-4]] = {'id': media['id']}
+        elif len(media_name) == 4:  # format PLW_dscm_02_c001.mp4  (the best one)
+            media_list[media['name'].split('.')[0]] = {'id': media['id']}
+        else:  # format HAW_dscm_01_c010_202304250123Z_0983m.mp4
+            media_list[f'{media_name[0]}_{media_name[1]}_{media_name[2]}_{media_name[3]}'] = {'id': media['id']}
+    return len(req.json())
+
+
 def process_folder(folder_path):
     # Create a Dropbox client instance
     dbx = dropbox.Dropbox(os.getenv('DROPBOX_ACCESS_TOKEN'))
@@ -47,27 +72,24 @@ def process_folder(folder_path):
         return xml_file_count
 
     except dropbox.exceptions.ApiError as e:
-        print(f'Error: {e}')
+        print(f'Error connecting to Dropbox: {e}')
+        exit(1)
 
 
-def get_tator_media_ids(project_id, section_id, deployment_name, tator_token):
-    if not tator_token:
-        print('Error: Tator token not found')
-        sys.exit()
-    req = requests.get(
-        f'https://cloud.tator.io/rest/Medias/{project_id}?section={section_id}&attribute_contains=%24name%3A%3A{deployment_name}',
-        headers={
-            'Content-Type': 'application/json',
-            'Authorization': f'Token {tator_token}',
-        })
-    for media in req.json():
-        media_name = media['name'].split('_')
-        # until we decide on an actual naming convention...
-        if len(media_name) == 3:  # format DOEX0087_NIU-dscm-02_c009.mp4
-            media_list[f'{media_name[1]}_{media_name[2]}'[:-4]] = {'id': media['id']}
-        else:  # format HAW_dscm_01_c010_202304250123Z_0983m.mp4
-            media_list[f'{media_name[0]}_{media_name[1]}_{media_name[2]}_{media_name[3]}'] = {'id': media['id']}
-    print(f'Retrieved {len(req.json())} media ids from Tator')
+def change_names(folder_path):
+    # change all file names in a folder to a new name
+    dbx = dropbox.Dropbox(os.getenv('DROPBOX_ACCESS_TOKEN'))
+    try:
+        files = dbx.files_list_folder(f'{folder_path}/Video').entries
+        for file_entry in files:
+            old_path = file_entry.path_display
+            old_name = file_entry.name
+            new_name = old_name.replace('PLW_dscm_30', 'PLW_dscm_29')
+            new_path = f'{folder_path}/Video/{new_name}'
+            dbx.files_move_v2(old_path, new_path)
+            print(f"File renamed: {old_name} -> {new_name}")
+    except dropbox.exceptions.ApiError as e:
+        print(f"Dropbox API error occurred: {e}")
 
 
 def set_video_start_time(media_id, start_time, tator_token):
@@ -99,7 +121,7 @@ DEPLOYMENT_NAME = sys.argv[3]
 
 media_list = {}
 
-get_tator_media_ids(
+total_media_ids = get_tator_media_ids(
     project_id=PROJECT_ID,
     section_id=SECTION_ID,
     deployment_name=DEPLOYMENT_NAME,
@@ -120,4 +142,8 @@ for media in media_list.values():
     else:
         print(f'Error: No creation date found for {media}')
 
-print(f'{DEPLOYMENT_NAME} complete! Updated {total_media_updated} media files.')
+print(f'Number media IDS: {total_media_ids}')
+print(f'Number XML files: {total_xml_files}')
+print(f'Number media updated: {total_media_updated}')
+print(f'{DEPLOYMENT_NAME} complete!')
+os.system('say "Start times synced."')

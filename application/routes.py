@@ -435,10 +435,10 @@ def view_images():
         print('\nERROR: unable to connect to external review server\n')
     # get images in sequence
     image_loader = AnnotationProcessor(sequences)
-    if len(image_loader.distilled_records) < 1:
+    if len(image_loader.final_records) < 1:
         return render_template('not-found.html', err='pics'), 404
     data = {
-        'annotations': image_loader.distilled_records,
+        'annotations': image_loader.final_records,
         'title': image_loader.vessel_name,
         'concepts': session['vars_concepts'],
         'reviewers': session['reviewers'],
@@ -467,15 +467,25 @@ def vars_qaqc_checklist():
         with requests.get(f'{app.config.get("HURLSTOR_URL")}:8086/query/dive/{sequence.replace(" ", "%20")}') as r:
             annotation_count += len(r.json()['annotations'])
             for annotation in r.json()['annotations']:
-                id_ref = get_association(annotation, 'identity-reference')
+                if annotation['concept'][0].islower():  # ignore non-taxonomic concepts
+                    continue
+                id_ref = None
+                cat_abundance = None
+                pop_quantity = None
+                for association in annotation['associations']:
+                    if association['link_name'] == 'identity-reference':
+                        id_ref = association['link_value']
+                    elif association['link_name'] == 'categorical-abundance':
+                        cat_abundance = association['link_value']
+                    elif association['link_name'] == 'population-quantity':
+                        pop_quantity = association['link_value']
                 if id_ref:
-                    if id_ref['link_value'] in identity_references:
+                    if id_ref in identity_references:
                         continue
                     else:
-                        identity_references.add(id_ref['link_value'])
-                cat_abundance = get_association(annotation, 'categorical-abundance')
+                        identity_references.add(id_ref)
                 if cat_abundance:
-                    match cat_abundance['link_value']:
+                    match cat_abundance:
                         case '11-20':
                             individual_count += 15
                         case '21-50':
@@ -485,9 +495,8 @@ def vars_qaqc_checklist():
                         case '\u003e100':
                             individual_count += 100
                     continue
-                pop_quantity = get_association(annotation, 'population-quantity')
-                if pop_quantity and pop_quantity['link_value'] != '':
-                    individual_count += int(pop_quantity['link_value'])
+                if pop_quantity and pop_quantity != '':
+                    individual_count += int(pop_quantity)
                     continue
                 individual_count += 1
     return render_template(

@@ -176,11 +176,51 @@ function sortBy(key) {
     if (tempKey === 'depth' || tempKey === 'identity_reference') {
         filtered = filtered.sort((a, b) => a[tempKey] - b[tempKey]); // sort by number instead of string
     } else {
-        filtered = filtered.sort((a, b) => (a[tempKey] > b[tempKey]) ? 1 : ((b[tempKey] > a[tempKey]) ? -1 : 0));
+        switch (tempKey) {
+            case 'phylum':
+                filtered = filterAndSort(filtered, 'species');
+                filtered = filterAndSort(filtered, 'genus');
+                filtered = filterAndSort(filtered, 'family');
+                filtered = filterAndSort(filtered, 'order');
+                filtered = filterAndSort(filtered, 'class');
+                filtered = filterAndSort(filtered, 'phylum');
+                break;
+            case 'class':
+                filtered = filterAndSort(filtered, 'species');
+                filtered = filterAndSort(filtered, 'genus');
+                filtered = filterAndSort(filtered, 'family');
+                filtered = filterAndSort(filtered, 'order');
+                filtered = filterAndSort(filtered, 'class');
+                break;
+            case 'order':
+                filtered = filterAndSort(filtered, 'species');
+                filtered = filterAndSort(filtered, 'genus');
+                filtered = filterAndSort(filtered, 'family');
+                filtered = filterAndSort(filtered, 'order');
+                break;
+            case 'family':
+                filtered = filterAndSort(filtered, 'species');
+                filtered = filterAndSort(filtered, 'genus');
+                filtered = filterAndSort(filtered, 'family');
+                break;
+            case 'genus':
+                filtered = filterAndSort(filtered, 'species');
+                filtered = filterAndSort(filtered, 'genus');
+                break;
+            default:
+                filtered = filtered.sort((a, b) => (a[tempKey].toLowerCase() > b[tempKey].toLowerCase()) ? 1 : ((b[tempKey].toLowerCase() > a[tempKey].toLowerCase()) ? -1 : 0));
+                break;
+        }
     }
     annotationsToDisplay = filtered.concat(annotationsToDisplay.filter((anno) => !anno[tempKey]));
 
     $('#sortSelect').val(key);
+}
+
+const filterAndSort = (list, key) => {
+    let filtered = list.filter((anno) => anno[key]);
+    filtered = filtered.sort((a, b) => (a[key] > b[key]) ? 1 : ((b[key] > a[key]) ? -1 : 0));
+    return filtered.concat(list.filter((anno) => !anno[key]));
 }
 
 function updateFilterHint() {

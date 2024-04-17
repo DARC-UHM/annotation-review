@@ -141,6 +141,7 @@ function updateHash() {
                         ${sortKey=== 'scientific_name' ? caretUpFill : sortKey=== 'scientific_name-desc' ? caretDownFill : ''}
                     </div>
                 </th>
+                <th scope="col" style="cursor: default;">Deployment</th>
                 <th scope="col" onclick="setSort('rank')" class="table-header-hover">
                     <div class="d-flex">
                         TaxonRank
@@ -286,7 +287,8 @@ function updateHash() {
             $('#annotationTable').find('tbody').append(`
                 <tr class="small text-start">
                     <td style="position: sticky; left: 0; background: ${dark ? '#212730' : 'var(--darc-bg)'}; z-index: 5;">${annotation.scientific_name}</td>
-                    <td style="z-index: 0;">${annotation.rank}</td>
+                    <td style="z-index: 0;">${annotation.video_sequence_name}</td>
+                    <td>${annotation.rank}</td>
                     <td>${annotation.aphia_id || '-'}</td>
                     <td>${annotation.phylum || '-'}</td>
                     <td>${annotation.class || '-'}</td>

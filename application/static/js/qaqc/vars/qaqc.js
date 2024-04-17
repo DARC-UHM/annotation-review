@@ -40,11 +40,51 @@ function sortBy(key) {
     if (tempKey === 'depth' || tempKey === 'identity_reference') {
         filtered = filtered.sort((a, b) => a[tempKey] - b[tempKey]); // sort by number instead of string
     } else {
-        filtered = filtered.sort((a, b) => (a[tempKey] > b[tempKey]) ? 1 : ((b[tempKey] > a[tempKey]) ? -1 : 0));
+        switch (tempKey) {
+            case 'phylum':
+                filtered = filterAndSort(filtered, 'species');
+                filtered = filterAndSort(filtered, 'genus');
+                filtered = filterAndSort(filtered, 'family');
+                filtered = filterAndSort(filtered, 'order');
+                filtered = filterAndSort(filtered, 'class');
+                filtered = filterAndSort(filtered, 'phylum');
+                break;
+            case 'class':
+                filtered = filterAndSort(filtered, 'species');
+                filtered = filterAndSort(filtered, 'genus');
+                filtered = filterAndSort(filtered, 'family');
+                filtered = filterAndSort(filtered, 'order');
+                filtered = filterAndSort(filtered, 'class');
+                break;
+            case 'order':
+                filtered = filterAndSort(filtered, 'species');
+                filtered = filterAndSort(filtered, 'genus');
+                filtered = filterAndSort(filtered, 'family');
+                filtered = filterAndSort(filtered, 'order');
+                break;
+            case 'family':
+                filtered = filterAndSort(filtered, 'species');
+                filtered = filterAndSort(filtered, 'genus');
+                filtered = filterAndSort(filtered, 'family');
+                break;
+            case 'genus':
+                filtered = filterAndSort(filtered, 'species');
+                filtered = filterAndSort(filtered, 'genus');
+                break;
+            default:
+                filtered = filtered.sort((a, b) => (a[tempKey].toLowerCase() > b[tempKey].toLowerCase()) ? 1 : ((b[tempKey].toLowerCase() > a[tempKey].toLowerCase()) ? -1 : 0));
+                break;
+        }
     }
     annotationsToDisplay = filtered.concat(annotationsToDisplay.filter((anno) => !anno[tempKey]));
 
     $('#sortSelect').val(key);
+}
+
+const filterAndSort = (list, key) => {
+    let filtered = list.filter((anno) => anno[key]);
+    filtered = filtered.sort((a, b) => (a[key] > b[key]) ? 1 : ((b[key] > a[key]) ? -1 : 0));
+    return filtered.concat(list.filter((anno) => !anno[key]));
 }
 
 function updateHash() {
@@ -69,14 +109,11 @@ function updateHash() {
     const problemAssociations = {};
     if (title === 'Id Ref Associations') {
         // this block is to highlight the problem associations. same logic as on the backend :')
-        $('#sortSelect').prop('disabled', 'disabled');
-        $('#sortSelect').prop('title', 'Alternate sorting disabled on this page');
-
         const eqSet = (xs, ys) => xs.size === ys.size && [...xs].every((x) => ys.has(x));
         const idRefAssociations = {};
 
         for (const anno of annotationsToDisplay) {
-            const currentIdRef = anno.identity_reference;
+            const currentIdRef = `${anno.video_sequence_name.slice(-3)}:${anno.identity_reference}`;
             if (!Object.keys(idRefAssociations).includes(currentIdRef)) {
                 idRefAssociations[currentIdRef] = {s2: new Set(), 'sampled-by': new Set(), 'sample-reference': new Set()};
                 problemAssociations[currentIdRef] = new Set();
@@ -115,7 +152,7 @@ function updateHash() {
                                     problemAssociations[currentIdRef].add(ass.link_name);
                                 }
                             } else {
-                                idRefAssociations[currentIdRef][ass.link_name].add(ass.link_value);
+                                idRefAssociations[currentIdRef][ass.link_name]?.add(ass.link_value);
                             }
                         }
                     }
@@ -298,8 +335,9 @@ function updateHash() {
                     </table>
                 `);
                 const sortedAssociations = annotation.associations.sort((a, b) => (a.link_name > b.link_name) ? 1 : ((b.link_name > a.link_name) ? -1 : 0));
+                const currentIdRef = `${annotation.video_sequence_name.slice(-3)}:${annotation.identity_reference}`;
                 for (const association of sortedAssociations) {
-                    if (problemAssociations[annotation.identity_reference].has(association.link_name)) {
+                    if (problemAssociations[currentIdRef].has(association.link_name)) {
                         $(`#associationTable${index}`).append(`<tr style="color: yellow"><td>${association.link_name}</td><td>${association.to_concept}</td><td>${association.link_value}</td></tr>`);
                     } else {
                         $(`#associationTable${index}`).append(`<tr><td>${association.link_name}</td><td>${association.to_concept}</td><td>${association.link_value}</td></tr>`);
