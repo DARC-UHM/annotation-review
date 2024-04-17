@@ -217,9 +217,8 @@ function updateHash() {
                         ${sortKey=== 'subspecies' ? caretUpFill : sortKey=== 'subspecies-desc' ? caretDownFill : ''}
                     </div>
                 </th>
-                
-                <th scope="col">ObservationTimestamp</th> <!-- todo  <<<< -->
-                
+                <th scope="col">TentativeID</th>
+                <th scope="col">ObservationTimestamp</th>
                 <th scope="col" onclick="setSort('identification_remarks')" class="table-header-hover">
                     <div class="d-flex">
                         IdentificationRemarks
@@ -311,6 +310,7 @@ function updateHash() {
                     <td>${annotation.subgenus || '-'}</td>
                     <td>${annotation.species || '-'}</td>
                     <td>${annotation.subspecies || '-'}</td>
+                    <td>${annotation.tentative_id || '-'}</td>
                     <td>${annotation.timestamp || '-'}</td>
                     <td>${annotation.identification_remarks || '-'}</td>
                     <td>${annotation.identified_by || annotation.annotator}</td>
@@ -346,6 +346,7 @@ function downloadCsv() {
         'Subgenus',
         'Species',
         'Subspecies',
+        'TentativeID',
         'ObservationTimestamp',
         'IdentificationRemarks',
         'IdentifiedBy',
@@ -374,6 +375,7 @@ function downloadCsv() {
         annotation.subgenus,
         annotation.species,
         annotation.subspecies,
+        annotation.tentative_id,
         annotation.timestamp,
         annotation.identification_remarks,
         annotation.identified_by || annotation.annotator,

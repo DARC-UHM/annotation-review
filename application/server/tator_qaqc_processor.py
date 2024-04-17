@@ -13,6 +13,14 @@ from .functions import *
 TERM_RED = '\033[1;31;48m'
 TERM_NORMAL = '\033[1;37;0m'
 
+"""
+TODO
+- add QAQC check: records with the same scientific name have different qualifiers
+- add QAQC check: records with 'stet' & 'non-target' must be 'not attracted'
+- TOFA and max N need to take into account tentative IDs
+- add CTD sync script for tator (need to create attribute fields in tator for temp C, O2 sat, and salinity [H,J,I on sensor sheet])
+"""
+
 
 class TatorQaqcProcessor:
     """
@@ -517,5 +525,5 @@ class TatorQaqcProcessor:
         Returns a summary of the final records.
         """
         self.fetch_start_times()
-        self.records_of_interest = self.localizations
+        self.records_of_interest = [localization for localization in self.localizations if localization['type'] != 48]
         self.process_records(get_timestamp=True)
