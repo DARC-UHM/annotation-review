@@ -40,8 +40,9 @@ function updateHash() {
         $('#annotationTable').find('thead').html(`
             <tr>
                 <th scope="col">Scientific Name</th>
+                <th scope="col">TOFA (HH:MM:SS)</th>
                 <th scope="col">Max N</th>
-                <th scope="col">First Dot (TOFA)</th>
+                <th scope="col">First Dot</th>
                 <th scope="col">First Box</th>
                 <th scope="col">Num Dots</th>
                 <th scope="col">Num Boxes</th>
@@ -59,6 +60,7 @@ function updateHash() {
             $('#annotationTable').find('tbody').append(`
                 <tr class="text-start">
                     <td>${taxa}</td>
+                    <td>${uniqueTaxa[taxa].tofa}</td>
                     <td>${uniqueTaxa[taxa].max_n}</td>
                     <td style="${boxBeforeDot ? 'color: yellow; font-weight: bold;' : ''}">${uniqueTaxa[taxa].first_dot}</td>
                     <td style="${boxBeforeDot ? 'color: yellow; font-weight: bold;' : ''}">${uniqueTaxa[taxa].first_box}</td>

@@ -24,6 +24,7 @@ class TatorQaqcProcessor:
         self.section_id = section_id
         self.api = api
         self.deployments = deployment_list
+        self.bottom_times = {deployment: '' for deployment in deployment_list}
         self.deployment_media_dict = {}
         self.records_of_interest = []
         self.final_records = []
@@ -60,6 +61,13 @@ class TatorQaqcProcessor:
                 }
             )
             for media in req.json():
+                if media['attributes']['Arrival']:
+                    video_start_timestamp = datetime.fromisoformat(media['attributes']['Start Time'])
+                    if 'not observed' in media['attributes']['Arrival']:
+                        arrival_frame = 0
+                    else:
+                        arrival_frame = int(media['attributes']['Arrival'].split(' ')[0])
+                    self.bottom_times[deployment] = (video_start_timestamp + timedelta(seconds=arrival_frame / 30)).strftime('%Y-%m-%d %H:%M:%SZ')
                 if media['id'] not in session['media_timestamps'].keys():
                     if 'Start Time' in media['attributes'].keys():
                         session['media_timestamps'][media['id']] = media['attributes']['Start Time']
@@ -476,6 +484,7 @@ class TatorQaqcProcessor:
             if scientific_name not in unique_taxa.keys():
                 # add new unique taxa to dict
                 unique_taxa[scientific_name] = {
+                    'tofa': '',
                     'max_n': record['count'],
                     'box_count': 0,
                     'dot_count': 0,
@@ -496,7 +505,10 @@ class TatorQaqcProcessor:
                 elif localization['type'] == 49:
                     unique_taxa[scientific_name]['dot_count'] += 1
                     first_dot = unique_taxa[scientific_name]['first_dot']
-                    if not first_dot or datetime.strptime(record['timestamp'], '%Y-%m-%d %H:%M:%SZ') < datetime.strptime(first_dot, '%Y-%m-%d %H:%M:%SZ'):
+                    observed_timestamp = datetime.strptime(record['timestamp'], '%Y-%m-%d %H:%M:%SZ')
+                    if not first_dot or observed_timestamp < datetime.strptime(first_dot, '%Y-%m-%d %H:%M:%SZ'):
+                        bottom_time = datetime.strptime(self.bottom_times[record['video_sequence_name']], '%Y-%m-%d %H:%M:%SZ')
+                        unique_taxa[scientific_name]['tofa'] = str(observed_timestamp - bottom_time)
                         unique_taxa[scientific_name]['first_dot'] = record['timestamp']
         self.final_records = unique_taxa
 
