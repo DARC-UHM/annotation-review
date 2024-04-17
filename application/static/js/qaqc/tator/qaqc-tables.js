@@ -286,7 +286,15 @@ function updateHash() {
             }
             $('#annotationTable').find('tbody').append(`
                 <tr class="small text-start">
-                    <td style="position: sticky; left: 0; background: ${dark ? '#212730' : 'var(--darc-bg)'}; z-index: 5;">${annotation.scientific_name}</td>
+                    <td style="position: sticky; left: 0; background: ${dark ? '#212730' : 'var(--darc-bg)'}; z-index: 5;">
+                        <a
+                            class="editButton"
+                            href="https://cloud.tator.io/26/annotation/${annotation.media_id}?playQuality=720&playbackRate=1&frame=${annotation.frame}&version=45&lock=0&fill_boxes=1&toggle_text=1&selected_entity=${annotation.observation_uuid}&selected_type=dot_49"
+                            target="_blank"
+                        >
+                            ${annotation.scientific_name}
+                        </a>
+                    </td>
                     <td style="z-index: 0;">${annotation.video_sequence_name}</td>
                     <td>${annotation.rank}</td>
                     <td>${annotation.aphia_id || '-'}</td>
