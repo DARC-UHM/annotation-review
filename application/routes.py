@@ -343,9 +343,10 @@ def tator_qaqc(project_id, section_id, check):
             qaqc_annos.check_stet_reason()
             data['page_title'] = 'Records with a qualifier of \'stet\' missing \'Reason\''
         case 'attracted-not-attracted':
-            attracted_dict = requests.get(f'{app.config.get("DARC_REVIEW_URL")}/attracted').json()
-            qaqc_annos.check_attracted_not_attracted(attracted_dict)
+            attracted_concepts = requests.get(f'{app.config.get("DARC_REVIEW_URL")}/attracted').json()
+            qaqc_annos.check_attracted_not_attracted(attracted_concepts)
             data['page_title'] = 'Attracted/not attracted match expected taxa list (also flags records with taxa that can be either)'
+            data['attracted_concepts'] = attracted_concepts
         case 'all-tentative-ids':
             qaqc_annos.get_all_tentative_ids()
             data['page_title'] = 'Records with a tentative ID (also checks phylogeny vs. scientific name)'

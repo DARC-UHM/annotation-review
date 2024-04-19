@@ -125,6 +125,7 @@
         const reviewers = {{ data.reviewers|safe }};
         const title = '{{ data.title }}';
         const missingRecords = {{ data.missing_records|safe or None }};
+        const attractedConcepts = {{ data.attracted_concepts|safe or None }};
     </script>
     <script type="module" src="/static/js/image-review/image-review.js"></script>
     <script type="module" src="/static/js/qaqc/tator/qaqc.js"></script>

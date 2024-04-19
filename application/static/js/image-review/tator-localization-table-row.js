@@ -31,7 +31,17 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                         Attracted:
                     </div>
                     <div class="col values">
-                        ${localization.attracted || '-'}<br>
+                        ${localization.attracted || '-'} <span class="small" style="color: var(--darc-text); font-weight: normal">
+                            ${attractedConcepts
+                                ? `${attractedConcepts[localization.scientific_name] === 0 ? '(Expected not attracted)'
+                                        : attractedConcepts[localization.scientific_name] === 1 ? '(Expected attracted)'
+                                            : attractedConcepts[localization.scientific_name] === 2 ? '(Expected either)'
+                                                : '(Unknown - not in list)'
+                                    }` 
+                                : ''
+                            }
+                        </span><br>
+                        
                     </div>
                 </div>
                 <div class="row" style="${localization.problems?.includes('Qualifier') ? 'color: yellow;' : ''}">
