@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Attracted/Not Attracted List{% endblock title %}
+{% block content %}
+    <h4 class="my-2 ms-4 text-center" style="font-weight: 600;">Attracted/Not Attracted List</h4>
+    <div class="col d-flex justify-content-center mt-3">
+        <table id="annotationTable" class="table table-striped">
+            <thead class="thead-dark sticky-top" style="background-color: #393E46; color: #EEEEEE">
+                <tr">
+                    <th scope="col" class="px-4">Concept</th>
+                    <th scope="col" class="px-4" style="width: 50%;">Attracted</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for concept in attracted_concepts.keys() %}
+                    <tr>
+                        <td class="px-4">{{ concept }}</td>
+                        <td class="px-4">{{ 'Attracted' if attracted_concepts[concept] == 1 else 'Not attracted' if attracted_concepts[concept] == 0 else 'Both' }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <script src="/static/modules/jquery/jquery.min.js"></script>
+    <script src="/static/modules/bootstrap/bootstrap.bundle.js"></script>
+{% endblock content %}

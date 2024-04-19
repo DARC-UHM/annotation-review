@@ -9,6 +9,10 @@
             <div class="row m-auto">
                 <div class="col-9 text-start">
                     <h4 class="m-0 p-0 pb-2" style="font-weight: 600;">{{ data.page_title }}</h4>
+                    <div id="attractedNotAttractedSubHeading" class="mb-2" style="display: none;">
+                        (also flags records with taxa that can be either)
+                        <button onclick="viewAttractedList()">View/Edit Attracted/Not Attracted List</button>
+                    </div>
                     <div><span id="vesselName"></span> <span id="sequenceList"></span></div>
                 </div>
                 <div class="col-3 text-end mt-auto">

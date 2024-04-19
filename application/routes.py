@@ -345,7 +345,7 @@ def tator_qaqc(project_id, section_id, check):
         case 'attracted-not-attracted':
             attracted_concepts = requests.get(f'{app.config.get("DARC_REVIEW_URL")}/attracted').json()
             qaqc_annos.check_attracted_not_attracted(attracted_concepts)
-            data['page_title'] = 'Attracted/not attracted match expected taxa list (also flags records with taxa that can be either)'
+            data['page_title'] = 'Attracted/not attracted match expected taxa list'
             data['attracted_concepts'] = attracted_concepts
         case 'all-tentative-ids':
             qaqc_annos.get_all_tentative_ids()
@@ -963,6 +963,12 @@ def page_not_found(e):
 def video():
     data = {'link': request.args.get('link'), 'time': request.args.get('time')}
     return render_template('video.html', data=data), 200
+
+
+@app.get('/attracted-list')
+def attracted_list():
+    req = requests.get(f'{app.config.get("DARC_REVIEW_URL")}/attracted')
+    return render_template('qaqc/tator/attracted-list.html', attracted_concepts=req.json()), 200
 
 
 def server_error(e):
