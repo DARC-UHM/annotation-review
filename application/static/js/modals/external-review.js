@@ -233,11 +233,16 @@ $(document).ready(() => {
 
     $('#externalReviewModal').on('show.bs.modal', (e) => {
         currentAnnotation = $(e.relatedTarget).data('anno');
+        let scientificName = currentAnnotation.scientific_name;
+        if (scientificName !== null && scientificName !== '' && currentAnnotation.tentative_id !== '') {
+            scientificName += ` (${currentAnnotation.tentative_id}?)`;
+        }
         $('#externalModalSubmitButton').prop('disabled', true);
         addReviewer(null);
         $('#externalObservationUuid').val(currentAnnotation.observation_uuid);
         $('#externalSequence').val(currentAnnotation.video_sequence_name);
-        $('#externalScientificName').val(currentAnnotation.scientific_name);
+        $('#externalSectionId').val(currentAnnotation.section_id);
+        $('#externalScientificName').val(scientificName);
         $('#externalTatorOverlay').val(JSON.stringify(currentAnnotation.all_localizations));
         $('#externalTimestamp').val(currentAnnotation.recorded_timestamp);
         $('#externalImageUrl').val(currentAnnotation.image_url || currentAnnotation.frame_url);
