@@ -299,6 +299,7 @@ class TatorQaqcProcessor:
                 'frame_url': row['frame_url'],
                 'annotator': row['annotator'],
                 'scientific_name': row['scientific_name'] if row['scientific_name'] != '' else '--',
+                'section_id': self.section_id,
                 'video_sequence_name': row['video_sequence_name'],
                 'count': row['count'],
                 'attracted': row['attracted'],
