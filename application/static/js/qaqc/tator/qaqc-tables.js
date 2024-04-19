@@ -62,8 +62,16 @@ function updateHash() {
                     <td>${taxa}</td>
                     <td>${uniqueTaxa[taxa].tofa}</td>
                     <td>${uniqueTaxa[taxa].max_n}</td>
-                    <td style="${boxBeforeDot ? 'color: yellow; font-weight: bold;' : ''}">${uniqueTaxa[taxa].first_dot}</td>
-                    <td style="${boxBeforeDot ? 'color: yellow; font-weight: bold;' : ''}">${uniqueTaxa[taxa].first_box}</td>
+                    <td>
+                        <a class="aquaLink" href="${uniqueTaxa[taxa].first_dot_url}" target="_blank" style="${boxBeforeDot ? 'color: yellow; font-weight: bold;' : ''}">
+                            ${uniqueTaxa[taxa].first_dot}
+                        </a>
+                    </td>
+                    <td>
+                        <a class="aquaLink" href="${uniqueTaxa[taxa].first_box_url}" target="_blank" style="${boxBeforeDot ? 'color: yellow; font-weight: bold;' : ''}">
+                            ${uniqueTaxa[taxa].first_box}
+                        </a>
+                    </td>
                     <td style="${uniqueTaxa[taxa].dot_count === 0 ? 'color: yellow; font-weight: bold;' : ''}">${uniqueTaxa[taxa].dot_count}</td>
                     <td style="${uniqueTaxa[taxa].box_count === 0 ? 'color: yellow; font-weight: bold;' : ''}">${uniqueTaxa[taxa].box_count}</td>
                 </tr>
@@ -290,7 +298,7 @@ function updateHash() {
                     <td style="position: sticky; left: 0; background: ${dark ? '#212730' : 'var(--darc-bg)'}; z-index: 5;">
                         <a
                             class="editButton"
-                            href="https://cloud.tator.io/26/annotation/${annotation.media_id}?playQuality=720&playbackRate=1&frame=${annotation.frame}&version=45&lock=0&fill_boxes=1&toggle_text=1&selected_entity=${annotation.observation_uuid}&selected_type=dot_49"
+                            href="https://cloud.tator.io/26/annotation/${annotation.media_id}?frame=${annotation.frame}&selected_entity=${annotation.observation_uuid}"
                             target="_blank"
                         >
                             ${annotation.scientific_name}

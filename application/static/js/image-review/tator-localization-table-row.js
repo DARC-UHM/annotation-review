@@ -73,7 +73,6 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                     </div>
                     <div class="col values">
                         ${localization.identification_remarks || '-'}
-                        ${localization.identification_remarks?.includes(',') ? '<div style="color: red;">^ REMOVE COMMAS ^</div>' : ''}
                         <br>
                     </div>
                 </div>
@@ -91,7 +90,6 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                     </div>
                     <div class="col values">
                         ${localization.notes || '-'}
-                        ${localization.notes?.includes(',') ? '<div style="color: red;">^ REMOVE COMMAS ^</div>' : ''}
                         <br>
                     </div>
                 </div>
@@ -153,7 +151,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                         <br>
                         <a
                             class="editButton"
-                            href="https://cloud.tator.io/26/annotation/${localization.media_id}?playQuality=720&playbackRate=1&frame=${localization.frame}&version=45&lock=0&fill_boxes=1&toggle_text=1&selected_entity=${localization.observation_uuid}&selected_type=dot_49"
+                            href="https://cloud.tator.io/26/annotation/${localization.media_id}?frame=${localization.frame}&selected_entity=${localization.observation_uuid}"
                             target="_blank"
                         >
                             View on Tator

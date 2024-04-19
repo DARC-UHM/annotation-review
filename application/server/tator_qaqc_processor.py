@@ -511,6 +511,7 @@ class TatorQaqcProcessor:
                     first_box = unique_taxa[scientific_name]['first_box']
                     if not first_box or datetime.strptime(record['timestamp'], '%Y-%m-%d %H:%M:%SZ') < datetime.strptime(first_box, '%Y-%m-%d %H:%M:%SZ'):
                         unique_taxa[scientific_name]['first_box'] = record['timestamp']
+                        unique_taxa[scientific_name]['first_box_url'] = f'https://cloud.tator.io/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}&selected_entity={localization["id"]}'
                 elif localization['type'] == 49:
                     unique_taxa[scientific_name]['dot_count'] += 1
                     first_dot = unique_taxa[scientific_name]['first_dot']
@@ -519,6 +520,7 @@ class TatorQaqcProcessor:
                         bottom_time = datetime.strptime(self.bottom_times[record['video_sequence_name']], '%Y-%m-%d %H:%M:%SZ')
                         unique_taxa[scientific_name]['tofa'] = str(observed_timestamp - bottom_time)
                         unique_taxa[scientific_name]['first_dot'] = record['timestamp']
+                        unique_taxa[scientific_name]['first_dot_url'] = f'https://cloud.tator.io/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}&selected_entity={localization["id"]}'
         self.final_records = unique_taxa
 
     def get_summary(self):
