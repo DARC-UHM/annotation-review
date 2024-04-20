@@ -386,6 +386,19 @@ def tator_frame(media_id, frame):
     return '', 500
 
 
+# view tator localization image
+@app.get('/tator-localization/<localization_id>')
+def tator_image(localization_id):
+    req = requests.get(
+        f'{app.config.get("TATOR_URL")}/rest/LocalizationGraphic/{localization_id}',
+        headers={'Authorization': f'Token {session["tator_token"]}'}
+    )
+    if req.status_code == 200:
+        base64_image = base64.b64encode(req.content).decode('utf-8')
+        return Response(base64.b64decode(base64_image), content_type='image/png'), 200
+    return '', 500
+
+
 # update tator localization
 @app.patch('/tator/localization')
 def update_tator_localization():

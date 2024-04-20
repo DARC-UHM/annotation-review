@@ -1,4 +1,11 @@
 export const tatorLocalizationRow = (localization, externalComment) => {
+    let localizationBoxId = null;
+    for (const loco of localization.all_localizations) {
+        if (loco.type === 48) {
+            localizationBoxId = loco.id;
+            break;
+        }
+    }
     return (`
         <tr>
             <td class="ps-5">
@@ -202,11 +209,21 @@ export const tatorLocalizationRow = (localization, externalComment) => {
             </td>
             <td class="text-center" style="width: 50%;">
                 <a href="${localization.frame_url || localization.image_url}" target="_blank">
-                    <div id="${localization.observation_uuid}_image" class="position-relative" style="width: 580px;">
-                        <img src="${localization.frame_url || localization.image_url}" style="width: 580px;" alt="${localization.scientific_name}"/>
+                    <div
+                        id="${localization.observation_uuid}_image"
+                        class="position-relative"
+                        style="width: 580px;"
+                    >
+                        <img
+                            src="${localization.frame_url || localization.image_url}"
+                            style="width: 580px;"
+                            alt="${localization.scientific_name}"
+                            onmouseover="if (!${localizationBoxId}) return; this.src='/tator-localization/${localizationBoxId}'; document.getElementById('${localization.observation_uuid}_overlay').style.display = 'none';"
+                            onmouseout="this.src='${localization.frame_url || localization.image_url}'; document.getElementById('${localization.observation_uuid}_overlay').style.display = 'block';"
+                        />
                         <div id="${localization.observation_uuid}_overlay">
                         ${localization.all_localizations.map((loco, index) => {
-                            if (loco.type === 48) {
+                            if (loco.type === 48) { // 48 is a box
                                 return `<span
                                             class="position-absolute tator-box"
                                             style="top: ${loco.points[1] * 100}%; left: ${loco.points[0] * 100}%; width: ${loco.dimensions[0] * 100}%; height: ${loco.dimensions[1] * 100}%;"
