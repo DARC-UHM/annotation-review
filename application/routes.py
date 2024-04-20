@@ -184,7 +184,7 @@ def tator_image_review(project_id, section_id):
     try:
         for deployment in deployments:
             with requests.get(
-                f'{app.config.get("DARC_REVIEW_URL")}/comment/sequence/{deployment}',
+                f'{app.config.get("DARC_REVIEW_URL")}/comment/sequence/{deployment.replace("-", "_")}',
                 headers=app.config.get('DARC_REVIEW_HEADERS'),
             ) as r:
                 comments = comments | r.json()  # merge dicts
