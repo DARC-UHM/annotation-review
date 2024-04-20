@@ -14,7 +14,7 @@ window.viewAttractedList = viewAttractedList;
 
 $(document).ready(()=> {
     if (window.location.href.includes('attracted-not-attracted')) {
-        $("#attractedNotAttractedSubHeading").css('display', 'inline-block');
-        $("#attractedNotAttractedPopupButton").css('display', 'inline-block');
+        $('#attractedNotAttractedSubHeading').css('display', 'inline-block');
+        $('#attractedNotAttractedPopupButton').css('display', 'inline-block');
     }
 });
