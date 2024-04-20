@@ -431,6 +431,19 @@ select:active {
     border-radius: 2px;
 }
 
+.attractedXButton {
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    border: 0;
+    color: #5e5e5e;
+    transition: 0.2s;
+}
+
+.attractedXButton:hover {
+    color: #949494;
+}
+
 .alert-bottom-bar-success {
     background-color: #80c9a7;
 }

@@ -6,14 +6,15 @@ function returnToCheckList() {
 }
 
 function viewAttractedList() {
-    window.open('/attracted-list','name','height=900,width=600');
+    window.open('/attracted-list','name','height=900,width=550');
 }
 
 window.returnToCheckList = returnToCheckList;
 window.viewAttractedList = viewAttractedList;
 
-document.addEventListener('DOMContentLoaded',  (event) => {
+$(document).ready(()=> {
     if (window.location.href.includes('attracted-not-attracted')) {
-        document.getElementById('attractedNotAttractedSubHeading').style.display = 'block';
+        $("#attractedNotAttractedSubHeading").css('display', 'inline-block');
+        $("#attractedNotAttractedPopupButton").css('display', 'inline-block');
     }
 });

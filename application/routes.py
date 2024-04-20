@@ -954,6 +954,48 @@ def delete_association(uuid):
     return deleted['json'], deleted['status']
 
 
+# add a new concept to the attracted collection
+@app.post('/attracted')
+def add_attracted():
+    req = requests.post(
+        f'{app.config.get("DARC_REVIEW_URL")}/attracted',
+        headers=app.config.get('DARC_REVIEW_HEADERS'),
+        data={
+            'scientific_name': request.values.get('concept'),
+            'attracted': request.values.get('attracted'),
+        },
+    )
+    if req.status_code == 201:
+        flash(f'Added {request.values.get("concept")}', 'success')
+    return req.json(), req.status_code
+
+
+# update an existing attracted concept
+@app.patch('/attracted/<concept>')
+def update_attracted():
+    return {}, 500
+    req = requests.patch(
+        f'{app.config.get("DARC_REVIEW_URL")}/attracted',
+        headers=app.config.get('DARC_REVIEW_HEADERS'),
+        json=request.json,
+    )
+    return req.json(), req.status_code
+
+
+# delete an attracted concept
+@app.delete('/attracted/<concept>')
+def delete_attracted(concept):
+    print(concept)
+    req = requests.delete(
+        f'{app.config.get("DARC_REVIEW_URL")}/attracted/{concept}',
+        headers=app.config.get('DARC_REVIEW_HEADERS'),
+    )
+    print(req.json())
+    if req.status_code == 200:
+        flash(f'Deleted {concept}', 'success')
+    return req.json(), req.status_code
+
+
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('not-found.html', err=''), 404
