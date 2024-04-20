@@ -21,7 +21,6 @@ async function addAttractedConcept() {
 
 async function deleteAttractedConcept() {
     event.preventDefault();
-    console.log($('#conceptToDelete').val());
     const response = await fetch(`/attracted/${$('#conceptToDelete').val()}`, {
         method: 'DELETE',
     });

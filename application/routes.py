@@ -985,12 +985,10 @@ def update_attracted():
 # delete an attracted concept
 @app.delete('/attracted/<concept>')
 def delete_attracted(concept):
-    print(concept)
     req = requests.delete(
         f'{app.config.get("DARC_REVIEW_URL")}/attracted/{concept}',
         headers=app.config.get('DARC_REVIEW_HEADERS'),
     )
-    print(req.json())
     if req.status_code == 200:
         flash(f'Deleted {concept}', 'success')
     return req.json(), req.status_code
