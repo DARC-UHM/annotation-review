@@ -6,17 +6,12 @@ from flask import render_template, request, redirect, flash, session, Response
 from json import JSONDecodeError
 
 from application import app
-from application.server.functions import get_association
 from application.server.annotation_processor import AnnotationProcessor
 from application.server.comment_processor import CommentProcessor
 from application.server.tator_qaqc_processor import TatorQaqcProcessor
 from application.server.vars_qaqc_processor import VarsQaqcProcessor
 from application.server.localization_processor import LocalizationProcessor
 from application.server.annosaurus import *
-
-# TODO add location information to localizations once they are updated in Tator
-# TODO add method of syncing location data from file
-# TODO add bulk editor (lower priority)
 
 
 @app.route('/favicon.ico')

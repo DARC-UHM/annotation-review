@@ -13,14 +13,6 @@ from .functions import *
 TERM_RED = '\033[1;31;48m'
 TERM_NORMAL = '\033[1;37;0m'
 
-"""
-TODO
-- add QAQC check: records with the same scientific name have different qualifiers
-- add QAQC check: records with 'stet' & 'non-target' must be 'not attracted'
-- TOFA and max N need to take into account tentative IDs
-- add CTD sync script for tator (need to create attribute fields in tator for temp C, O2 sat, and salinity [H,J,I on sensor sheet])
-"""
-
 
 class TatorQaqcProcessor:
     """
