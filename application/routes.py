@@ -972,13 +972,16 @@ def add_attracted():
 
 # update an existing attracted concept
 @app.patch('/attracted/<concept>')
-def update_attracted():
-    return {}, 500
+def update_attracted(concept):
     req = requests.patch(
-        f'{app.config.get("DARC_REVIEW_URL")}/attracted',
+        f'{app.config.get("DARC_REVIEW_URL")}/attracted/{concept}',
         headers=app.config.get('DARC_REVIEW_HEADERS'),
-        json=request.json,
+        data={
+            'attracted': request.values.get('attracted'),
+        }
     )
+    if req.status_code == 200:
+        flash(f'Updated {concept}', 'success')
     return req.json(), req.status_code
 
 
