@@ -48,7 +48,7 @@ class CommentProcessor:
                     continue
                 concept_name = annotation['concept']
             else:  # tator localization
-                concept_name = self.comments[comment]['scientific_name']
+                concept_name = self.comments[comment]['scientific_name'].split(' (')[0]  # to account for records like Macrouridae (Coryphaenoides?)
                 annotation = requests.get(
                     f'https://cloud.tator.io/rest/Localization/{comment}',
                     headers={
@@ -78,7 +78,7 @@ class CommentProcessor:
                         if 'rank' in vars_tree.keys():
                             phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
                     else:
-                        print(f'\n{TERM_RED}Unable to find record for {annotation["concept"]}{TERM_NORMAL}')
+                        print(f'\n{TERM_RED}Unable to find record for {concept_name}{TERM_NORMAL}')
 
             comment_dict = {
                 'observation_uuid': comment,
