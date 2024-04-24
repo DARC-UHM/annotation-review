@@ -70,6 +70,8 @@ document.addEventListener('DOMContentLoaded',  (event) => {
     $('#stetReasonAnchor').on('click', () => showLoader());
     $('#sameNameQualifierAnchor').attr('href', `/tator/qaqc/${projectId}/${sectionId}/same-name-qualifier?deployment=${deployments.join('&deployment=')}`);
     $('#sameNameQualifierAnchor').on('click', () => showLoader());
+    $('#nonTargetNotAttractedAnchor').attr('href', `/tator/qaqc/${projectId}/${sectionId}/non-target-not-attracted?deployment=${deployments.join('&deployment=')}`);
+    $('#nonTargetNotAttractedAnchor').on('click', () => showLoader());
     $('#attractedAnchor').attr('href', `/tator/qaqc/${projectId}/${sectionId}/attracted-not-attracted?deployment=${deployments.join('&deployment=')}`);
     $('#attractedAnchor').on('click', () => showLoader());
     $('#tentativeIdAnchor').attr('href', `/tator/qaqc/${projectId}/${sectionId}/all-tentative-ids?deployment=${deployments.join('&deployment=')}`);

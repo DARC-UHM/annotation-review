@@ -432,6 +432,23 @@ class TatorQaqcProcessor:
                 self.records_of_interest.append(localization)
         self.process_records()
 
+    def check_non_target_not_attracted(self):
+        """
+        Finds records that are:
+          - Marked as "non-target" but are marked as "attracted"
+          - Marked as "not attracted" but missing "non-target"
+        """
+        for localization in self.localizations:
+            attracted = localization['attributes']['Attracted']
+            reason = localization['attributes']['Reason']
+            if 'Non-target' in reason and attracted != 'Not Attracted':
+                localization['problems'] = 'Attracted, Reason'
+                self.records_of_interest.append(localization)
+            elif attracted == 'Not Attracted' and 'Non-target' not in reason:
+                localization['problems'] = 'Attracted, Reason'
+                self.records_of_interest.append(localization)
+        self.process_records()
+
     def get_all_tentative_ids(self):
         """
         Finds every record with a tentative ID. Also checks whether or not the tentative ID is in the same
