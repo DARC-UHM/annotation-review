@@ -440,12 +440,13 @@ class TatorQaqcProcessor:
                 else:
                     localization['problems'] += ' phylogeny no match'
                     continue
-            for value in self.phylogeny[localization['scientific_name']].values():
-                if value in self.phylogeny[localization['tentative_id']].values():
+            for value in self.phylogeny[localization['tentative_id']].values():
+                if value == localization['scientific_name']:
                     phylogeny_match = True
                     break
             if not phylogeny_match:
                 localization['problems'] += ' phylogeny no match'
+        self.save_phylogeny()
 
     def get_all_notes_and_remarks(self):
         """
