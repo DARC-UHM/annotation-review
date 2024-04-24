@@ -91,6 +91,7 @@ class LocalizationProcessor:
                     'points': [round(localization['x'], 5), round(localization['y'], 5)],
                     'dimensions': [localization['width'], localization['height']] if localization['type'] == 48 else None,
                 },
+                'type': localization['type'],
                 'video_sequence_name': deployment_media_dict[localization['media']],
                 'scientific_name': scientific_name,
                 'count': 0 if localization['type'] == 48 else 1,
@@ -115,6 +116,7 @@ class LocalizationProcessor:
         localization_df = pd.DataFrame(formatted_localizations, columns=[
             'id',
             'all_localizations',
+            'type',
             'video_sequence_name',
             'scientific_name',
             'count',
@@ -151,7 +153,7 @@ class LocalizationProcessor:
         def collect_localizations(items):
             return [item for item in items]
 
-        localization_df = localization_df.groupby(['media_id', 'frame', 'scientific_name']).agg({
+        localization_df = localization_df.groupby(['media_id', 'frame', 'scientific_name', 'type']).agg({
                 'id': 'first',
                 'all_localizations': collect_localizations,
                 'count': 'sum',

@@ -342,6 +342,9 @@ def tator_qaqc(project_id, section_id, check):
             qaqc_annos.check_attracted_not_attracted(attracted_concepts)
             data['page_title'] = 'Attracted/not attracted match expected taxa list'
             data['attracted_concepts'] = attracted_concepts
+        case 'same-name-qualifier':
+            qaqc_annos.check_same_name_qualifier()
+            data['page_title'] = 'Records with the same scientific name but different qualifiers'
         case 'all-tentative-ids':
             qaqc_annos.get_all_tentative_ids()
             data['page_title'] = 'Records with a tentative ID (also checks phylogeny vs. scientific name)'

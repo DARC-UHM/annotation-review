@@ -152,6 +152,7 @@ class TatorQaqcProcessor:
                     'points': [round(localization['x'], 5), round(localization['y'], 5)],
                     'dimensions': [localization['width'], localization['height']] if localization['type'] == 48 else None,
                 },
+                'type': localization['type'],
                 'video_sequence_name': self.deployment_media_dict[localization['media']],
                 'scientific_name': scientific_name,
                 'count': 0 if localization['type'] == 48 else 1,
@@ -188,6 +189,7 @@ class TatorQaqcProcessor:
             'id',
             'timestamp',
             'all_localizations',
+            'type',
             'video_sequence_name',
             'scientific_name',
             'count',
@@ -226,7 +228,7 @@ class TatorQaqcProcessor:
         def collect_localizations(items):
             return [item for item in items]
 
-        localization_df = localization_df.groupby(['media_id', 'frame', 'scientific_name']).agg({
+        localization_df = localization_df.groupby(['media_id', 'frame', 'scientific_name', 'type']).agg({
             'id': 'first',
             'timestamp': 'first',
             'all_localizations': collect_localizations,
@@ -332,8 +334,6 @@ class TatorQaqcProcessor:
         sys.stdout.flush()
         checked = {}
         for localization in self.localizations:
-            if localization['type'] not in [48, 49]:
-                continue
             flag_record = False
             scientific_name = localization['attributes']['Scientific Name']
             tentative_id = localization['attributes']['Tentative ID']
@@ -389,8 +389,6 @@ class TatorQaqcProcessor:
         Finds records that have a qualifier of 'stet' but no reason set.
         """
         for localization in self.localizations:
-            if localization['type'] not in [48, 49]:
-                continue
             if localization['attributes']['Qualifier'] == 'stet.' and (
                     localization['attributes']['Reason'] == '--' or not localization['attributes']['Reason']):
                 localization['problems'] = 'Qualifier, Reason'
@@ -415,6 +413,25 @@ class TatorQaqcProcessor:
                 self.records_of_interest.append(localization)
         self.process_records()
 
+    def check_same_name_qualifier(self):
+        """
+        Finds records that have the same scientific name but a different qualifier.
+        """
+        scientific_name_qualifiers = {}
+        problem_scientific_names = set()
+        for localization in self.localizations:
+            scientific_name = localization['attributes']['Scientific Name']
+            if scientific_name not in scientific_name_qualifiers.keys():
+                scientific_name_qualifiers[scientific_name] = localization['attributes']['Qualifier']
+            else:
+                if scientific_name_qualifiers[scientific_name] != localization['attributes']['Qualifier']:
+                    problem_scientific_names.add(scientific_name)
+        for localization in self.localizations:
+            if localization['attributes']['Scientific Name'] in problem_scientific_names:
+                localization['problems'] = 'Scientific Name, Qualifier'
+                self.records_of_interest.append(localization)
+        self.process_records()
+
     def get_all_tentative_ids(self):
         """
         Finds every record with a tentative ID. Also checks whether or not the tentative ID is in the same
@@ -422,8 +439,6 @@ class TatorQaqcProcessor:
         """
         no_match_records = set()
         for localization in self.localizations:
-            if localization['type'] not in [48, 49]:
-                continue
             tentative_id = localization['attributes']['Tentative ID']
             if tentative_id and tentative_id not in ['--', '-', '']:
                 localization['problems'] = 'Tentative ID'
@@ -453,8 +468,6 @@ class TatorQaqcProcessor:
         Finds every record with a note or remark.
         """
         for localization in self.localizations:
-            if localization['type'] not in [48, 49]:
-                continue
             notes = localization['attributes']['Notes']
             id_remarks = localization['attributes']['IdentificationRemarks']
             has_note = notes and notes not in ['--', '-', '']
@@ -475,10 +488,7 @@ class TatorQaqcProcessor:
         Finds every unique scientific name and TOFA, max N, and box/dot info.
         """
         self.fetch_start_times()
-        for localization in self.localizations:
-            if localization['type'] not in [48, 49]:
-                continue
-            self.records_of_interest.append(localization)
+        self.records_of_interest = self.localizations
         self.process_records(get_timestamp=True)
         unique_taxa = {}
         for record in self.final_records:
