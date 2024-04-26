@@ -4,7 +4,7 @@
     <div class="text-center small my-2" style="color: #e3e3e3;">
         If the video does not play, try <a class="aquaLink" style="font-weight: 500;" href="{{ data.link }}">downloading it</a> (right click, "Save Link As...") or using another browser (e.g. Chrome or Edge).
     </div>
-    <video id="video" class="w-100" controls style="height: 95vh;">
+    <video id="video" class="w-100 position-fixed" controls disablePictureInPicture style="height: 94vh;">
       <!-- MP4 format with H.264 video codec and AAC audio codec -->
       <source src="{{ data.link }}#t={{ data.time }}" type="video/mp4">
 
@@ -16,7 +16,7 @@
     const video = document.getElementById('video');
     function scroll(event) {
         video.pause();
-        video.currentTime += event.deltaY / 480;
+        video.currentTime -= event.deltaX / 480;
     }
     window.addEventListener('wheel', scroll);
 </script>
