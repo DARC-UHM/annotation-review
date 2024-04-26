@@ -36,9 +36,16 @@ class CommentProcessor:
 
         # add formatted comments to list
         for comment in self.comments:
+            identity_certainty = None
+            identity_reference = None
+            guide_photo = None
+            vars_comment = None
+            upon = None
+
             if 'scientific_name' not in self.comments[comment].keys()\
                     or self.comments[comment]['scientific_name'] is None\
-                    or self.comments[comment]['scientific_name'] == '':  # vars annotation'
+                    or self.comments[comment]['scientific_name'] == '':
+                # vars annotation
                 try:
                     annotation = requests.get(f'{os.environ.get("ANNOSAURUS_URL")}/annotations/{comment}').json()
                 except JSONDecodeError:
@@ -47,7 +54,20 @@ class CommentProcessor:
                     self.missing_records.append(problem_comment)
                     continue
                 concept_name = annotation['concept']
-            else:  # tator localization
+                if annotation.get('associations'):
+                    for association in annotation['associations']:
+                        if association['link_name'] == 'identity-certainty':
+                            identity_certainty = association['link_value']
+                        elif association['link_name'] == 'identity-reference':
+                            identity_reference = association['link_value']
+                        elif association['link_name'] == 'guide-photo':
+                            guide_photo = association['to_concept']
+                        elif association['link_name'] == 'upon':
+                            upon = association['to_concept']
+                        elif association['link_name'] == 'comment':
+                            vars_comment = association['link_value']
+            else:
+                # tator localization
                 concept_name = self.comments[comment]['scientific_name'].split(' (')[0]  # to account for records like Macrouridae (Coryphaenoides?)
                 annotation = requests.get(
                     f'https://cloud.tator.io/rest/Localization/{comment}',
@@ -93,13 +113,13 @@ class CommentProcessor:
                 'qualifier': annotation['attributes'].get('Qualifier') if annotation.get('attributes') else None,
                 'reason': annotation['attributes'].get('Reason') if annotation.get('attributes') else None,
                 'tentative_id': annotation['attributes'].get('Tentative ID') if annotation.get('attributes') else None,
-                'identity_certainty': get_association(annotation, 'identity-certainty')['link_value'] if get_association(annotation, 'identity-certainty') else None,
-                'identity_reference': get_association(annotation, 'identity-reference')['link_value'] if get_association(annotation, 'identity-reference') else None,
-                'guide-photo': get_association(annotation, 'guide-photo')['to_concept'] if get_association(annotation, 'guide-photo') else None,
-                'comment': get_association(annotation, 'comment')['link_value'] if get_association(annotation, 'comment') else None,
+                'identity_certainty': identity_certainty,
+                'identity_reference': identity_reference,
+                'guide-photo': guide_photo,
+                'comment': vars_comment,
                 'image_url': self.comments[comment]['image_url'],
                 'video_url': self.comments[comment]['video_url'],
-                'upon': get_association(annotation, 'upon')['to_concept'] if get_association(annotation, 'upon') else None,
+                'upon': upon,
                 'recorded_timestamp': parse_datetime(annotation['recorded_timestamp']).strftime('%d %b %y %H:%M:%S UTC') if 'recorded_timestamp' in annotation.keys() else None,
                 'video_sequence_name': self.comments[comment]['sequence'],
                 'annotator': format_annotator(annotation['observer']) if 'observer' in annotation.keys() else self.comments[comment]['annotator'],

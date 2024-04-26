@@ -84,6 +84,16 @@ class AnnotationProcessor:
         # add the records to a list, convert hyphens to underlines and remove excess data
         for record in image_records:
             concept_name = record['concept']
+            identity_certainty = None
+            identity_reference = None
+            guide_photo = None
+            comment = None
+            upon = None
+            depth = None
+            lat = None
+            long = None
+            temperature = None
+            oxygen_ml_l = None
 
             # get image url
             image_url = record['image_references'][0]['url']
@@ -106,24 +116,50 @@ class AnnotationProcessor:
             time_diff = timestamp - video_url[0]
             video_url = f'{video_url[1]}#t={int(time_diff.total_seconds()) - 5}'
 
+            if record.get('associations'):
+                for association in record['associations']:
+                    if association['link_name'] == 'identity-certainty':
+                        identity_certainty = association['link_value']
+                    elif association['link_name'] == 'identity-reference':
+                        identity_reference = association['link_value']
+                    elif association['link_name'] == 'guide-photo':
+                        guide_photo = association['to_concept']
+                    elif association['link_name'] == 'comment':
+                        comment = association['link_value']
+                    elif association['link_name'] == 'upon':
+                        upon = association['to_concept']
+
+            if record.get('ancillary_data'):
+                for key in record['ancillary_data'].keys():
+                    if key == 'depth_meters':
+                        depth = int(record['ancillary_data']['depth_meters'])
+                    elif key == 'latitude':
+                        lat = round(record['ancillary_data']['latitude'], 3)
+                    elif key == 'longitude':
+                        long = round(record['ancillary_data']['longitude'], 3)
+                    elif key == 'temperature_celsius':
+                        temperature = round(record['ancillary_data']['temperature_celsius'], 2)
+                    elif key == 'oxygen_ml_l':
+                        oxygen_ml_l = round(record['ancillary_data'][key], 3)
+
             annotation_dict = {
                 'observation_uuid': record['observation_uuid'],
                 'concept': concept_name,
-                'identity_certainty': get_association(record, 'identity-certainty')['link_value'] if get_association(record, 'identity-certainty') else None,
-                'identity_reference': get_association(record, 'identity-reference')['link_value'] if get_association(record, 'identity-reference') else None,
-                'guide_photo': get_association(record, 'guide-photo')['to_concept'] if get_association(record, 'guide-photo') else None,
-                'comment': get_association(record, 'comment')['link_value'] if get_association(record, 'comment') else None,
+                'identity_certainty': identity_certainty,
+                'identity_reference': identity_reference,
+                'guide_photo': guide_photo,
+                'comment': comment,
                 'image_url': image_url,
                 'video_url': video_url,
-                'upon': get_association(record, 'upon')['to_concept'] if get_association(record, 'upon') else None,
+                'upon': upon,
                 'recorded_timestamp': record['recorded_timestamp'],
                 'video_sequence_name': video_sequence_name,
                 'annotator': format_annotator(record['observer']),
-                'depth': int(record['ancillary_data']['depth_meters']) if 'ancillary_data' in record.keys() and 'depth_meters' in record['ancillary_data'].keys() else None,
-                'lat': round(record['ancillary_data']['latitude'], 3) if 'ancillary_data' in record.keys() and 'latitude' in record['ancillary_data'].keys() else None,
-                'long': round(record['ancillary_data']['longitude'], 3) if 'ancillary_data' in record.keys() and 'longitude' in record['ancillary_data'].keys() else None,
-                'temperature': round(record['ancillary_data']['temperature_celsius'], 2) if 'ancillary_data' in record.keys() and 'temperature_celsius' in record['ancillary_data'].keys() else None,
-                'oxygen_ml_l': round(record['ancillary_data']['oxygen_ml_l'], 3) if 'ancillary_data' in record.keys() and 'oxygen_ml_l' in record['ancillary_data'].keys() else None,
+                'depth': depth,
+                'lat': lat,
+                'long': long,
+                'temperature': temperature,
+                'oxygen_ml_l': oxygen_ml_l,
             }
 
             if concept_name in phylogeny.keys():
