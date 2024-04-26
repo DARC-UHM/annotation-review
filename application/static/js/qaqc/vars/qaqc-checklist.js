@@ -66,8 +66,8 @@ document.addEventListener('DOMContentLoaded',  (event) => {
         updateTaskCount();
     }
 
-    $('#multipleAssociationAnchor').attr('href', `/vars/qaqc/multiple-associations?sequence=${sequences.join('&sequence=')}`);
-    $('#multipleAssociationAnchor').on('click', () => showLoader());
+    $('#multipleAssociationsAnchor').attr('href', `/vars/qaqc/multiple-associations?sequence=${sequences.join('&sequence=')}`);
+    $('#multipleAssociationsAnchor').on('click', () => showLoader());
     $('#primarySubstrateAnchor').attr('href', `/vars/qaqc/missing-primary-substrate?sequence=${sequences.join('&sequence=')}`);
     $('#primarySubstrateAnchor').on('click', () => showLoader());
     $('#identicalS1S2Anchor').attr('href', `/vars/qaqc/identical-s1-&-s2?sequence=${sequences.join('&sequence=')}`);
