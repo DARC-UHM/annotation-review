@@ -5,8 +5,6 @@ let numSequences = 1; // VARS
 let numDeployments = 1; // TATOR
 let deploymentList = [];
 
-// TODO add refresh deployments button
-
 function checkSequence() {
     let disabled = false;
     for (let i = 1; i <= numSequences; i++) {
@@ -68,6 +66,17 @@ async function getTatorDeployments(projectId, sectionId) {
     $('#load-overlay').addClass('loader-bg-hidden');
     $('#load-overlay').removeClass('loader-bg');
 }
+
+// refreshes the tator sections and deployments stored in the session (necessary for when changes are made in Tator)
+async function refreshTatorSections() {
+    const res = await fetch('/tator/refresh-sections');
+    if (res.status === 200) {
+        await getTatorProjects();
+        updateFlashMessages('Tator deployments refreshed', 'success');
+    }
+}
+
+window.refreshTatorSections = refreshTatorSections;
 
 async function tatorLogin() {
     event.preventDefault();

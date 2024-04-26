@@ -162,6 +162,16 @@ def load_media(project_id, section_id):
         return sorted(deployment_list.keys()), 200
 
 
+# deletes stored tator sections
+@app.get('/tator/refresh-sections')
+def refresh_tator_sections():
+    for key in list(session.keys()):
+        print(key)
+        if key.split('_')[0] == '26':  # id for NGS-ExTech Project
+            session.pop(key)
+    return {}, 200
+
+
 # view all Tator annotations (localizations) in a specified project & section
 @app.get('/tator/image-review/<project_id>/<section_id>')
 def tator_image_review(project_id, section_id):
