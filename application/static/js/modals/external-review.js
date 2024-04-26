@@ -240,6 +240,8 @@ $(document).ready(() => {
                 scientificName += ` (${currentAnnotation.tentative_id}?)`;
             }
             currentAnnotation.video_url = `https://hurlstor.soest.hawaii.edu:5000/video?link=/tator-video/${currentAnnotation.media_id}&time=${Math.max(0, Math.round(currentAnnotation.frame / 30) - 2)}`;
+            // just assume that all records with the same scientific name in the same clip are the same individual
+            currentAnnotation.id_reference = `${currentAnnotation.media_id}:${scientificName}`;
         }
         $('#externalModalSubmitButton').prop('disabled', true);
         addReviewer(null);
@@ -252,6 +254,7 @@ $(document).ready(() => {
         $('#externalImageUrl').val(currentAnnotation.image_url || currentAnnotation.frame_url);
         $('#externalVideoUrl').val(currentAnnotation.video_url);
         $('#externalAnnotator').val(currentAnnotation.annotator);
+        $('#externalIdRef').val(currentAnnotation.id_reference);
         $('#externalLat').val(currentAnnotation.lat);
         $('#externalLong').val(currentAnnotation.long);
         $('#externalDepth').val(currentAnnotation.depth);
