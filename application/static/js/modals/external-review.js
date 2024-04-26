@@ -233,10 +233,13 @@ $(document).ready(() => {
 
     $('#externalReviewModal').on('show.bs.modal', (e) => {
         currentAnnotation = $(e.relatedTarget).data('anno');
-        console.log(currentAnnotation);
         let scientificName = currentAnnotation.scientific_name;
-        if (scientificName && scientificName !== '' && currentAnnotation.tentative_id && currentAnnotation.tentative_id !== '') {
-            scientificName += ` (${currentAnnotation.tentative_id}?)`;
+        if (scientificName && scientificName !== '') {
+            // tator localization
+            if (currentAnnotation.tentative_id && currentAnnotation.tentative_id !== '') {
+                scientificName += ` (${currentAnnotation.tentative_id}?)`;
+            }
+            currentAnnotation.video_url = `https://hurlstor.soest.hawaii.edu:5000/video?link=/tator-video/${currentAnnotation.media_id}&time=${Math.max(0, Math.round(currentAnnotation.frame / 30) - 2)}`;
         }
         $('#externalModalSubmitButton').prop('disabled', true);
         addReviewer(null);
