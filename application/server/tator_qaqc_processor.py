@@ -502,7 +502,7 @@ class TatorQaqcProcessor:
 
     def get_unique_taxa(self):
         """
-        Finds every unique scientific name and TOFA, max N, and box/dot info.
+        Finds every unique scientific name/tentative ID combo and their TOFA, max N, and box/dot info.
         """
         self.fetch_start_times()
         self.records_of_interest = self.localizations
@@ -510,9 +510,13 @@ class TatorQaqcProcessor:
         unique_taxa = {}
         for record in self.final_records:
             scientific_name = record['scientific_name']
-            if scientific_name not in unique_taxa.keys():
+            tentative_id = record['tentative_id']
+            key = f'{scientific_name}:{tentative_id}'
+            if key not in unique_taxa.keys():
                 # add new unique taxa to dict
-                unique_taxa[scientific_name] = {
+                unique_taxa[key] = {
+                    'scientific_name': scientific_name,
+                    'tentative_id': tentative_id,
                     'tofa': '',
                     'max_n': record['count'],
                     'box_count': 0,
@@ -522,25 +526,25 @@ class TatorQaqcProcessor:
                 }
             else:
                 # check for new max N
-                if record['count'] > unique_taxa[scientific_name]['max_n']:
-                    unique_taxa[scientific_name]['max_n'] = record['count']
+                if record['count'] > unique_taxa[key]['max_n']:
+                    unique_taxa[key]['max_n'] = record['count']
             for localization in record['all_localizations']:
                 # increment box/dot counts, set first box/dot and TOFA
                 if localization['type'] == 48:
-                    unique_taxa[scientific_name]['box_count'] += 1
-                    first_box = unique_taxa[scientific_name]['first_box']
+                    unique_taxa[key]['box_count'] += 1
+                    first_box = unique_taxa[key]['first_box']
                     if not first_box or datetime.strptime(record['timestamp'], '%Y-%m-%d %H:%M:%SZ') < datetime.strptime(first_box, '%Y-%m-%d %H:%M:%SZ'):
-                        unique_taxa[scientific_name]['first_box'] = record['timestamp']
-                        unique_taxa[scientific_name]['first_box_url'] = f'https://cloud.tator.io/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}&selected_entity={localization["id"]}'
+                        unique_taxa[key]['first_box'] = record['timestamp']
+                        unique_taxa[key]['first_box_url'] = f'https://cloud.tator.io/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}&selected_entity={localization["id"]}'
                 elif localization['type'] == 49:
-                    unique_taxa[scientific_name]['dot_count'] += 1
-                    first_dot = unique_taxa[scientific_name]['first_dot']
+                    unique_taxa[key]['dot_count'] += 1
+                    first_dot = unique_taxa[key]['first_dot']
                     observed_timestamp = datetime.strptime(record['timestamp'], '%Y-%m-%d %H:%M:%SZ')
                     if not first_dot or observed_timestamp < datetime.strptime(first_dot, '%Y-%m-%d %H:%M:%SZ'):
                         bottom_time = datetime.strptime(self.bottom_times[record['video_sequence_name']], '%Y-%m-%d %H:%M:%SZ')
-                        unique_taxa[scientific_name]['tofa'] = str(observed_timestamp - bottom_time)
-                        unique_taxa[scientific_name]['first_dot'] = record['timestamp']
-                        unique_taxa[scientific_name]['first_dot_url'] = f'https://cloud.tator.io/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}&selected_entity={localization["id"]}'
+                        unique_taxa[key]['tofa'] = str(observed_timestamp - bottom_time)
+                        unique_taxa[key]['first_dot'] = record['timestamp']
+                        unique_taxa[key]['first_dot_url'] = f'https://cloud.tator.io/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}&selected_entity={localization["id"]}'
         self.final_records = unique_taxa
 
     def get_summary(self):
