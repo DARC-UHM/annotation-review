@@ -233,8 +233,9 @@ $(document).ready(() => {
 
     $('#externalReviewModal').on('show.bs.modal', (e) => {
         currentAnnotation = $(e.relatedTarget).data('anno');
+        console.log(currentAnnotation);
         let scientificName = currentAnnotation.scientific_name;
-        if (scientificName !== null && scientificName !== '' && currentAnnotation.tentative_id !== '') {
+        if (scientificName && scientificName !== '' && currentAnnotation.tentative_id && currentAnnotation.tentative_id !== '') {
             scientificName += ` (${currentAnnotation.tentative_id}?)`;
         }
         $('#externalModalSubmitButton').prop('disabled', true);
