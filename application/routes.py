@@ -724,6 +724,7 @@ def add_external_review():
         'uuid': request.values.get('observation_uuid'),
         'scientific_name': request.values.get('scientific_name'),
         'all_localizations': request.values.get('all_localizations'),
+        'id_reference': request.values.get('id_reference'),
         'section_id': request.values.get('section_id'),
         'sequence': request.values.get('sequence'),
         'timestamp': request.values.get('timestamp'),

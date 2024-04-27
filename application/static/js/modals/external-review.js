@@ -239,7 +239,7 @@ $(document).ready(() => {
             if (currentAnnotation.tentative_id && currentAnnotation.tentative_id !== '') {
                 scientificName += ` (${currentAnnotation.tentative_id}?)`;
             }
-            currentAnnotation.video_url = `https://hurlstor.soest.hawaii.edu:5000/video?link=/tator-video/${currentAnnotation.media_id}&time=${Math.max(0, Math.round(currentAnnotation.frame / 30) - 2)}`;
+            currentAnnotation.video_url = `https://hurlstor.soest.hawaii.edu:5000/video?link=/tator-video/${currentAnnotation.media_id}&time=${Math.round(currentAnnotation.frame / 30)}`;
             // just assume that all records with the same scientific name in the same clip are the same individual
             currentAnnotation.id_reference = `${currentAnnotation.media_id}:${scientificName}`;
         }
