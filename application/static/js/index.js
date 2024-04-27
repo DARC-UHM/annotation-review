@@ -24,8 +24,8 @@ async function getTatorProjects() {
         for (const project of json) {
             $('#tatorProject').append(`<option value="${project.id}">${project.name}</option>`);
         }
-        $('#tatorProject').val(json[0].id);
-        await getTatorSections(json[0].id);
+        $('#tatorProject').val(26); // default to 26 (NGS-ExTech Project)
+        await getTatorSections(26);
     } else {
         updateFlashMessages('Unable to get Tator projects', 'danger');
     }
@@ -42,8 +42,8 @@ async function getTatorSections(projectId) {
         for (const section of json) {
             $('#tatorSection').append(`<option value="${section.id}">${section.name}</option>`);
         }
-        $('#tatorSection').val(json[0].id);
-        await getTatorDeployments(projectId, json[0].id);
+        $('#tatorSection').val(11922); // default to 11922 (Palau DOEX0096)
+        await getTatorDeployments(projectId, 11922);
     }
 }
 

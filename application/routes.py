@@ -166,7 +166,6 @@ def load_media(project_id, section_id):
 @app.get('/tator/refresh-sections')
 def refresh_tator_sections():
     for key in list(session.keys()):
-        print(key)
         if key.split('_')[0] == '26':  # id for NGS-ExTech Project
             session.pop(key)
     return {}, 200
