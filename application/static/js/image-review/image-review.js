@@ -361,28 +361,145 @@ export function updateHash() {
     $('#totalPageNumBottom').html(pageCount);
 }
 
+async function deleteAssociation(associationUuid) {
+    const res = await fetch(`/vars/association/${associationUuid}`, {
+        method: 'DELETE',
+    });
+    if (res.ok) {
+        return true;
+    }
+    updateFlashMessages('Failed to update annotation - please try again', 'danger');
+    $('#load-overlay').addClass('loader-bg-hidden');
+    $('#load-overlay').removeClass('loader-bg');
+    return false;
+}
+
 // vars
 async function updateAnnotation() {
     event.preventDefault();
+    const formData = new FormData($('#updateAnnotationForm')[0]);
+    const associations = JSON.parse(formData.get('associations'));
+    const creations = [];
+    const updates = [];
+    const deletes = [];
+
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
     $('#editVarsAnnotationModal').modal('hide');
-    const formData = new FormData($('#updateAnnotationForm')[0]);
-    const res = await fetch('/vars/annotation', {
-        method: 'PATCH',
-        body: formData,
-    });
-    if (res.status === 200) {
-        const index = annotations.findIndex((anno) => anno.observation_uuid === formData.get('observation_uuid'));
-        for (const pair of formData.entries()){
-            annotations[index][pair[0].replace('-', '_')] = pair[1];
+
+    // check for concept name change
+    if (formData.get('concept') !== formData.get('originalConcept')) {
+        const res = await fetch('/vars/annotation-concept', {
+            method: 'PATCH',
+            body: formData,
+        });
+        if (res.ok) {
+            updates.push('concept');
+        } else {
+            updateFlashMessages('Failed to update annotation - please try again', 'danger');
+            $('#load-overlay').addClass('loader-bg-hidden');
+            $('#load-overlay').removeClass('loader-bg');
+            return;
         }
-        updateFlashMessages('Annotation successfully updated', 'success');
-        updateHash();
-    } else if (res.status === 304) {
-        updateFlashMessages('No changes made', 'secondary');
+    }
+
+        const associationsToCheck = ['upon', 'guide-photo', 'identity-certainty', 'identity-reference', 'comment'];
+
+    // update current associations
+    for (const association of associations) {
+        if (associationsToCheck.includes(association.link_name)) {
+            // remove from list of associations to check
+            associationsToCheck.splice(associationsToCheck.indexOf(association.link_name), 1);
+            if ((['identity-certainty', 'identity-reference', 'comment'].includes(association.link_name) && formData.get(association.link_name) !== association.link_value)
+                || (['upon', 'guide-photo'].includes(association.link_name) && formData.get(association.link_name) !== association.to_concept)
+            ) {
+                if (formData.get(association.link_name) === '') {
+                    // delete association
+                    if (await deleteAssociation(association.uuid)) {
+                        deletes.push(association.link_name.replace('-', ' '));
+                    } else {
+                        return;
+                    }
+                } else {
+                    // update association
+                    const associationFormData = new FormData();
+                    associationFormData.append('uuid', association.uuid);
+                    associationFormData.append('link_name', association.link_name);
+                    if (['identity-certainty', 'identity-reference', 'comment'].includes(association.link_name)) {
+                        associationFormData.append('link_value', formData.get(association.link_name));
+                    } else {
+                        associationFormData.append('to_concept', formData.get(association.link_name));
+                    }
+                    const res = await fetch('/vars/association', {
+                        method: 'PATCH',
+                        body: associationFormData,
+                    });
+                    if (res.ok) {
+                        updates.push(association.link_name.replace('-', ' '));
+                    } else {
+                        updateFlashMessages('Failed to update annotation - please try again', 'danger');
+                        $('#load-overlay').addClass('loader-bg-hidden');
+                        $('#load-overlay').removeClass('loader-bg');
+                    }
+                }
+            }
+        }
+    }
+
+    // add new associations
+    for (const field of associationsToCheck) {
+        if (formData.get(field)) {
+            const newAssociationFormData = new FormData();
+            newAssociationFormData.append('observation_uuid', formData.get('observation_uuid'));
+            newAssociationFormData.append('link_name', field);
+            if (['identity-certainty', 'identity-reference', 'comment'].includes(field)) {
+                newAssociationFormData.append('link_value', formData.get(field));
+            } else {
+                newAssociationFormData.append('to_concept', formData.get(field));
+            }
+            const res = await fetch('/vars/association', {
+                method: 'POST',
+                body: newAssociationFormData,
+            });
+            if (res.ok) {
+                creations.push(field.replace('-', ' '));
+            } else {
+                updateFlashMessages('Failed to update annotation - please try again', 'danger');
+                $('#load-overlay').addClass('loader-bg-hidden');
+                $('#load-overlay').removeClass('loader-bg');
+                return;
+            }
+        }
+    }
+
+    if (!creations.length && !updates.length && !deletes.length) {
+        updateFlashMessages('No changes made', 'info');
+        $('#load-overlay').addClass('loader-bg-hidden');
+        $('#load-overlay').removeClass('loader-bg');
     } else {
-        updateFlashMessages('Failed to update annotation - please try again', 'danger');
+        let flashString = '';
+        if (creations.length) {
+            flashString += `Added ${(creations).join(', ')}`;
+        }
+        if (updates.length) {
+            flashString += `${flashString.length ? ', u' : 'U'}pdated ${(updates).join(', ')}`;
+        }
+        if (deletes.length) {
+            flashString += `${flashString.length ? ', d' : 'D'}eleted ${(deletes).join(', ')}`;
+        }
+        updateFlashMessages(flashString, 'success');
+        console.log(flashString)
+        const res = await fetch(`/current-annotation/${formData.get('observation_uuid')}`);
+        const updatedAnnotation = await res.json();
+        const index = annotations.findIndex((anno) => anno.observation_uuid === formData.get('observation_uuid'));
+        annotations[index].concept = updatedAnnotation.concept;
+        annotations[index].associations = updatedAnnotation.associations;
+        annotations[index].upon = null;
+        annotations[index].guide_photo = null;
+        annotations[index].identity_certainty = null;
+        annotations[index].identity_reference = null;
+        annotations[index].comment = null;
+        updateHash();
     }
     $('#load-overlay').addClass('loader-bg-hidden');
     $('#load-overlay').removeClass('loader-bg');
@@ -582,6 +699,8 @@ $(document).ready(()=> {
         $(this).find('#editIdRef').val(annotation.identity_reference);
         $(this).find('#editComments').val(annotation.comment);
         $(this).find('#editObservationUuid').val(annotation.observation_uuid);
+        $(this).find('#editOgConceptName').val(annotation.concept);
+        $(this).find('#editAssociations').val(JSON.stringify(annotation.associations));
 
         conceptNameField.on('input', () => validateName(conceptNameField.val(), allConcepts, $('#editVarsAnnoModalSubmitButton')[0]));
         conceptNameField.on('change', () => validateName(conceptNameField.val(), allConcepts, $('#editVarsAnnoModalSubmitButton')[0]));

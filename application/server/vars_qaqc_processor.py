@@ -1,208 +1,44 @@
-import json
-import os
+import requests
 import sys
 
-import requests
-import pandas as pd
-
 from .functions import *
+from .vars_annotation_processor import VarsAnnotationProcessor
 
 TERM_RED = '\033[1;31;48m'
 TERM_YELLOW = '\033[1;93m'
 TERM_NORMAL = '\033[1;37;0m'
 
 
-class VarsQaqcProcessor:
+class VarsQaqcProcessor(VarsAnnotationProcessor):
     """
-    Fetches annotation information from the VARS db on HURLSTOR given a list of sequences. Filters and formats the
-    annotations for the various QA/QC checks.
+    Filters and formats annotations for the various DARC QA/QC checks.
     """
 
     def __init__(self, sequence_names: list):
-        self.sequence_names = sequence_names
+        super().__init__(sequence_names)
         self.videos = []
-        self.working_records = []
-        self.final_records = []
+        self.load_phylogeny()
 
-    def fetch_annotations(self, name):
-        print(f'Fetching annotations for sequence {name} from VARS...', end='')
+    def fetch_annotations(self, seq_name):
+        """
+        Fetches annotations for a given sequence name from VARS
+        """
+        print(f'Fetching annotations for sequence {seq_name} from VARS...', end='')
         sys.stdout.flush()
 
-        with requests.get(f'http://hurlstor.soest.hawaii.edu:8086/query/dive/{name.replace(" ", "%20")}') as r:
-            response = r.json()
-            print('fetched!')
+        res = requests.get(url=f'http://hurlstor.soest.hawaii.edu:8086/query/dive/{seq_name.replace(" ", "%20")}')
+        dive_json = res.json()
+        print('fetched!')
 
-        for video in response['media']:
+        for video in dive_json['media']:
             if 'urn:imagecollection:org' not in video['uri']:
-                self.videos.append([
-                    parse_datetime(video['start_timestamp']),
-                    video['uri'].replace('http://hurlstor.soest.hawaii.edu/videoarchive',
-                                         'https://hurlvideo.soest.hawaii.edu'),
-                    video['video_sequence_name']
-                ])
-        return response['annotations']
-
-    def process_records(self):
-        if not self.working_records:
-            return
-        formatted_annos = []
-        no_match_records = set()
-
-        try:
-            with open(os.path.join('cache', 'phylogeny.json'), 'r') as f:
-                phylogeny = json.load(f)
-        except FileNotFoundError:
-            phylogeny = {'Animalia': {}}
-
-        for annotation in self.working_records:
-            concept_name = annotation['concept']
-            if concept_name and concept_name not in phylogeny.keys():
-                # get the phylogeny from VARS kb
-                with requests.get(f'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/{concept_name}') \
-                        as vars_tax_res:
-                    if vars_tax_res.status_code == 200:
-                        # this get us to phylum
-                        try:
-                            vars_tree = vars_tax_res.json()['children'][0]['children'][0]['children'][0]['children'][0]['children'][0]
-                            phylogeny[concept_name] = {}
-                        except KeyError:
-                            if concept_name not in no_match_records:
-                                no_match_records.add(concept_name)
-                                print(f'{TERM_YELLOW}WARNING: Could not find phylogeny for concept "{annotation["concept"]}" in VARS knowledge base{TERM_NORMAL}')
-                            vars_tree = {}
-                        while 'children' in vars_tree.keys():
-                            if 'rank' in vars_tree.keys():  # sometimes it's not
-                                phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
-                            vars_tree = vars_tree['children'][0]
-                        if 'rank' in vars_tree.keys():
-                            phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
-                    else:
-                        print(f'\n{TERM_RED}Unable to find record for {annotation["concept"]}{TERM_NORMAL}')
-
-            # get image url
-            image_url = None
-            if annotation['image_references']:
-                image_url = annotation['image_references'][0]['url']
-                for i in range(1, len(annotation['image_references'])):
-                    if '.png' in annotation['image_references'][i]['url']:
-                        image_url = annotation['image_references'][i]['url']
-                        break
-                image_url = image_url.replace('http://hurlstor.soest.hawaii.edu/imagearchive',
-                                              'https://hurlimage.soest.hawaii.edu')
-
-            video_url = None
-            video_sequence_name = None
-            # get video reference url
-            if 'recorded_timestamp' in annotation.keys():
-                timestamp = parse_datetime(annotation['recorded_timestamp'])
-                video_url = self.videos[0]
-                for video in self.videos:
-                    if video[0] > timestamp:
-                        break
-                    video_url = video
-                time_diff = timestamp - video_url[0]
-                video_sequence_name = video_url[2]
-                video_url = f'{video_url[1]}#t={int(time_diff.total_seconds()) - 5}'
-
-            annotation_dict = {
-                'observation_uuid': annotation['observation_uuid'],
-                'concept': concept_name,
-                'identity_reference': get_association(annotation, 'identity-reference')['link_value'] if get_association(annotation, 'identity-reference') else None,
-                'associations': annotation['associations'],
-                'image_url': image_url,
-                'video_url': video_url,
-                'recorded_timestamp': annotation['recorded_timestamp'],
-                'video_sequence_name': video_sequence_name,
-                'annotator': format_annotator(annotation['observer']),
-                'activity': annotation['activity'] if 'activity' in annotation.keys() else None,
-                'depth': int(annotation['ancillary_data']['depth_meters']) if 'ancillary_data' in annotation.keys() else None,
-                'lat': round(annotation['ancillary_data']['latitude'], 3) if 'ancillary_data' in annotation.keys() else None,
-                'long': round(annotation['ancillary_data']['longitude'], 3) if 'ancillary_data' in annotation.keys() else None,
-            }
-            if concept_name in phylogeny.keys():
-                for key in phylogeny[concept_name].keys():
-                    annotation_dict[key] = phylogeny[concept_name][key]
-            formatted_annos.append(annotation_dict)
-
-        annotation_df = pd.DataFrame(formatted_annos, columns=[
-            'observation_uuid',
-            'concept',
-            'identity_reference',
-            'associations',
-            'image_url',
-            'video_url',
-            'recorded_timestamp',
-            'video_sequence_name',
-            'annotator',
-            'activity',
-            'depth',
-            'lat',
-            'long',
-            'phylum',
-            'subphylum',
-            'superclass',
-            'class',
-            'subclass',
-            'superorder',
-            'order',
-            'suborder',
-            'infraorder',
-            'superfamily',
-            'family',
-            'subfamily',
-            'genus',
-            'species',
-        ])
-        annotation_df = annotation_df.sort_values(by=[
-            'phylum',
-            'subphylum',
-            'superclass',
-            'class',
-            'subclass',
-            'superorder',
-            'order',
-            'suborder',
-            'infraorder',
-            'superfamily',
-            'family',
-            'subfamily',
-            'genus',
-            'species',
-            'concept',
-            'recorded_timestamp',
-        ])
-
-        for index, row in annotation_df.iterrows():
-            self.final_records.append({
-                'observation_uuid': row['observation_uuid'],
-                'concept': row['concept'],
-                'identity_reference': row['identity_reference'],
-                'annotator': row['annotator'],
-                'activity': row['activity'],
-                'depth': row['depth'],
-                'lat': row['lat'],
-                'long': row['long'],
-                'phylum': row['phylum'],
-                'class': row['class'],
-                'order': row['order'],
-                'infraorder': row['infraorder'],
-                'family': row['family'],
-                'genus': row['genus'],
-                'species': row['species'],
-                'image_url': row['image_url'],
-                'video_url': row['video_url'],
-                'recorded_timestamp': parse_datetime(row['recorded_timestamp']).strftime('%d %b %y %H:%M:%S UTC'),
-                'video_sequence_name': row['video_sequence_name'],
-                'associations': row['associations'],
-            })
-
-        try:
-            with open(os.path.join('cache', 'phylogeny.json'), 'w') as f:
-                json.dump(phylogeny, f, indent=2)
-        except FileNotFoundError:
-            os.makedirs('cache')
-            with open(os.path.join('cache', 'phylogeny.json'), 'w') as f:
-                json.dump(phylogeny, f, indent=2)
+                self.videos.append({
+                    'start_timestamp': parse_datetime(video['start_timestamp']),
+                    'uri': video['uri'].replace('http://hurlstor.soest.hawaii.edu/videoarchive', 'https://hurlvideo.soest.hawaii.edu'),
+                    'sequence_name': video['video_sequence_name'],
+                    'video_reference_uuid': video['video_reference_uuid'],
+                })
+            return dive_json['annotations']
 
     def find_duplicate_associations(self):
         """
@@ -223,7 +59,7 @@ class VarsQaqcProcessor:
                         break
                 if duplicate_associations:
                     self.working_records.append(annotation)
-        self.process_records()
+        self.process_working_records(self.videos)
 
     def find_missing_s1(self):
         """
@@ -236,7 +72,7 @@ class VarsQaqcProcessor:
                 s1 = get_association(annotation, 's1')
                 if not s1:
                     self.working_records.append(annotation)
-        self.process_records()
+        self.process_working_records(self.videos)
 
     def find_identical_s1_s2(self):
         """
@@ -253,7 +89,7 @@ class VarsQaqcProcessor:
                         s2s.append(association['to_concept'])
                 if s1 in s2s:
                     self.working_records.append(annotation)
-        self.process_records()
+        self.process_working_records(self.videos)
 
     def find_duplicate_s2(self):
         """
@@ -272,7 +108,7 @@ class VarsQaqcProcessor:
                             s2_set.add(association['to_concept'])
                 if duplicate_s2s:
                     self.working_records.append(annotation)
-        self.process_records()
+        self.process_working_records(self.videos)
 
     def find_missing_upon_substrate(self):
         """
@@ -301,7 +137,7 @@ class VarsQaqcProcessor:
                             break
                 if missing_upon:
                     self.working_records.append(annotation)
-        self.process_records()
+        self.process_working_records(self.videos)
 
     def find_mismatched_substrates(self):
         """
@@ -342,7 +178,7 @@ class VarsQaqcProcessor:
                 if base_substrates != check_substrates:
                     for annotation in annotations_with_same_timestamp[timestamp_key]:
                         self.working_records.append(annotation)
-        self.process_records()
+        self.process_working_records(self.videos)
 
     def find_missing_upon(self):
         """
@@ -354,7 +190,7 @@ class VarsQaqcProcessor:
                     continue
                 if not get_association(annotation, 'upon'):
                     self.working_records.append(annotation)
-        self.process_records()
+        self.process_working_records(self.videos)
 
     def get_num_records_missing_ancillary_data(self):
         """
@@ -375,7 +211,7 @@ class VarsQaqcProcessor:
             for annotation in self.fetch_annotations(name):
                 if 'ancillary_data' not in annotation.keys():
                     self.working_records.append(annotation)
-        self.process_records()
+        self.process_working_records(self.videos)
 
     def find_id_refs_different_concept_name(self):
         """
@@ -397,7 +233,7 @@ class VarsQaqcProcessor:
                 if len(name_set) > 1:
                     for annotation in id_ref_annotations[id_ref]:
                         self.working_records.append(annotation)
-        self.process_records()
+        self.process_working_records(self.videos)
 
     def find_id_refs_conflicting_associations(self):
         """
@@ -469,7 +305,7 @@ class VarsQaqcProcessor:
                 if id_ref_associations[id_ref]['flag']:
                     for annotation in id_ref_annotations[id_ref]:
                         self.working_records.append(annotation)
-        self.process_records()
+        self.process_working_records(self.videos)
 
     def find_blank_associations(self):
         """
@@ -480,7 +316,7 @@ class VarsQaqcProcessor:
                 for association in annotation['associations']:
                     if association['link_value'] == "" and association['to_concept'] == 'self':
                         self.working_records.append(annotation)
-        self.process_records()
+        self.process_working_records(self.videos)
 
     def find_suspicious_hosts(self):
         """
@@ -491,7 +327,7 @@ class VarsQaqcProcessor:
                 upon = get_association(annotation, 'upon')
                 if upon and upon['to_concept'] == annotation['concept']:
                     self.working_records.append(annotation)
-        self.process_records()
+        self.process_working_records(self.videos)
 
     def find_missing_expected_association(self):
         """
@@ -535,7 +371,7 @@ class VarsQaqcProcessor:
         for name in self.sequence_names:
             for annotation in self.fetch_annotations(name):
                 self.working_records.append(annotation)
-        self.process_records()
+        self.process_working_records(self.videos)
         temp_records = self.final_records
         self.final_records = []
         for record in temp_records:
@@ -595,7 +431,7 @@ class VarsQaqcProcessor:
                     if not found:
                         not_found.append(associate_record['observation_uuid'])
                         self.working_records.append(associate_record)
-        self.process_records()
+        self.process_working_records(self.videos)
         for uuid in greater_than_one_min.keys():
             next((x for x in self.final_records if x['observation_uuid'] == uuid), None)['status'] = \
                 'Time between record and closest previous matching host record greater than one minute ' \

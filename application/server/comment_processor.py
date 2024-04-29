@@ -47,7 +47,7 @@ class CommentProcessor:
                     or self.comments[comment]['scientific_name'] == '':
                 # vars annotation
                 try:
-                    annotation = requests.get(f'{os.environ.get("ANNOSAURUS_URL")}/annotations/{comment}').json()
+                    annotation = requests.get(url=f'{os.environ.get("ANNOSAURUS_URL")}/annotations/{comment}').json()
                 except JSONDecodeError:
                     problem_comment = self.comments[comment]
                     print(f'{TERM_RED}ERROR: Could not find annotation with UUID {comment} in VARS ({problem_comment["sequence"]}, {problem_comment["timestamp"]}){TERM_NORMAL}')
@@ -70,7 +70,7 @@ class CommentProcessor:
                 # tator localization
                 concept_name = self.comments[comment]['scientific_name'].split(' (')[0]  # to account for records like Macrouridae (Coryphaenoides?)
                 annotation = requests.get(
-                    f'https://cloud.tator.io/rest/Localization/{comment}',
+                    url=f'https://cloud.tator.io/rest/Localization/{comment}',
                     headers={
                         'Content-Type': 'application/json',
                         'Authorization': f'Token {session["tator_token"]}',
@@ -79,7 +79,7 @@ class CommentProcessor:
                 annotation = annotation.json()
             if concept_name not in phylogeny.keys():
                 # get the phylogeny from VARS kb
-                with requests.get(f'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/{concept_name}') \
+                with requests.get(url=f'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/{concept_name}') \
                         as vars_tax_res:
                     if vars_tax_res.status_code == 200:
                         # this get us to phylum
@@ -104,6 +104,7 @@ class CommentProcessor:
                 'observation_uuid': comment,
                 'concept': concept_name,
                 'scientific_name': self.comments[comment].get('scientific_name'),
+                'associations': annotation.get('associations'),
                 'all_localizations': json.loads(self.comments[comment].get('all_localizations')) if self.comments[comment].get('all_localizations') else None,
                 'attracted': annotation['attributes'].get('Attracted') if annotation.get('attributes') else None,
                 'categorical_abundance': annotation['attributes'].get('Categorical Abundance') if annotation.get('attributes') else None,
@@ -139,6 +140,7 @@ class CommentProcessor:
             'observation_uuid',
             'concept',
             'scientific_name',
+            'associations',
             'all_localizations',
             'attracted',
             'categorical_abundance',
@@ -204,6 +206,7 @@ class CommentProcessor:
                 'observation_uuid': row['observation_uuid'],
                 'concept': row['concept'],
                 'scientific_name': row['scientific_name'],
+                'associations': row['associations'],
                 'all_localizations': row['all_localizations'],
                 'attracted': row['attracted'],
                 'categorical_abundance': row['categorical_abundance'],

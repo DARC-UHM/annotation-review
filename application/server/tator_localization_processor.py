@@ -11,7 +11,7 @@ from application.server.constants import KNOWN_ANNOTATORS
 from application.server.functions import flatten_taxa_tree
 
 
-class LocalizationProcessor:
+class TatorLocalizationProcessor:
     """
     Fetches all localization information for a given project/section/deployment list from Tator. Processes
     and sorts data for display on the image review pages.
@@ -42,13 +42,13 @@ class LocalizationProcessor:
         # adding too many media ids results in a query that is too long, so we have to break it up
         for i in range(0, len(media_ids), 300):
             chunk = media_ids[i:i + 300]
-            req = requests.get(
-                f'https://cloud.tator.io/rest/Localizations/{self.project_id}?media_id={",".join(map(str, chunk))}',
+            get_localization_res = requests.get(
+                url=f'https://cloud.tator.io/rest/Localizations/{self.project_id}?media_id={",".join(map(str, chunk))}',
                 headers={
                     'Content-Type': 'application/json',
                     'Authorization': f'Token {session["tator_token"]}',
                 })
-            localizations += req.json()
+            localizations += get_localization_res.json()
         print(f'fetched {len(localizations)} localizations!')
         print('Processing localizations...')
         sys.stdout.flush()
@@ -65,22 +65,22 @@ class LocalizationProcessor:
                 continue
             scientific_name = localization['attributes']['Scientific Name']
             if scientific_name not in phylogeny.keys():
-                req = requests.get(f'https://www.marinespecies.org/rest/AphiaIDByName/{scientific_name}?marine_only=true')
-                if req.status_code == 200 and req.json() != -999:  # -999 means more than one matching record
-                    aphia_id = req.json()
-                    req = requests.get(f'https://www.marinespecies.org/rest/AphiaClassificationByAphiaID/{aphia_id}')
-                    if req.status_code == 200:
-                        phylogeny[scientific_name] = flatten_taxa_tree(req.json(), {})
+                worms_id_res = requests.get(f'https://www.marinespecies.org/rest/AphiaIDByName/{scientific_name}?marine_only=true')
+                if worms_id_res.status_code == 200 and worms_id_res.json() != -999:  # -999 means more than one matching record
+                    aphia_id = worms_id_res.json()
+                    worms_tree_res = requests.get(f'https://www.marinespecies.org/rest/AphiaClassificationByAphiaID/{aphia_id}')
+                    if worms_tree_res.status_code == 200:
+                        phylogeny[scientific_name] = flatten_taxa_tree(worms_tree_res.json(), {})
                         phylogeny[scientific_name]['aphia_id'] = aphia_id
                 else:
-                    req = requests.get(f'https://www.marinespecies.org/rest/AphiaRecordsByName/{scientific_name}?like=false&marine_only=true&offset=1')
-                    if req.status_code == 200 and len(req.json()) > 0:
+                    worms_name_res = requests.get(f'https://www.marinespecies.org/rest/AphiaRecordsByName/{scientific_name}?like=false&marine_only=true&offset=1')
+                    if worms_name_res.status_code == 200 and len(worms_name_res.json()) > 0:
                         # just take the first accepted record
-                        for record in req.json():
+                        for record in worms_name_res.json():
                             if record['status'] == 'accepted':
-                                req = requests.get(f'https://www.marinespecies.org/rest/AphiaClassificationByAphiaID/{record["AphiaID"]}')
-                                if req.status_code == 200:
-                                    phylogeny[scientific_name] = flatten_taxa_tree(req.json(), {})
+                                worms_tree_res_2 = requests.get(f'https://www.marinespecies.org/rest/AphiaClassificationByAphiaID/{record["AphiaID"]}')
+                                if worms_tree_res_2.status_code == 200:
+                                    phylogeny[scientific_name] = flatten_taxa_tree(worms_tree_res_2.json(), {})
                                     phylogeny[scientific_name]['aphia_id'] = record['AphiaID']
                                 break
             localization_dict = {

@@ -1,8 +1,9 @@
-flask
-Flask-Session
-gunicorn
-jinja2
-pandas
-requests
-python-dotenv
-tator
+flask==3.0.3
+Flask-Session==0.8.0
+gunicorn==22.0.0
+jinja2==3.1.3
+pandas==2.2.2
+requests==2.31.0
+python-dotenv==1.0.1
+tator==1.2.6
+pytest==8.2.0
