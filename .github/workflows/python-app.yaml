@@ -5,7 +5,7 @@ name: DARC Format Output
 
 on:
   push:
-    branches: [ "main", "unit-tests" ]
+    branches: [ "main", "unit-tests-2" ]
   pull_request:
     branches: [ "main" ]
 
