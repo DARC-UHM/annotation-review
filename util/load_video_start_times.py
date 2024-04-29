@@ -56,7 +56,7 @@ def process_folder(folder_path):
             path = os.path.join(folder_path, entry.name)
 
             # If the entry is a file, download and print its contents
-            if isinstance(entry, dropbox.files.FileMetadata) and entry.name[-3:] == 'xml':
+            if isinstance(entry, dropbox.files.FileMetadata) and entry.name[-3:].lower() == 'xml':
                 _, res = dbx.files_download(path)
                 print(path)
                 xml_content = res.content.decode('utf-8')
