@@ -128,7 +128,10 @@ class VarsAnnotationProcessor:
                 break
         if not matching_video:
             print(f'\n{TERM_RED}Unable to find video for {annotation["concept"]}{TERM_NORMAL}')
-            return {}
+            return {
+                'uri': None,
+                'sequence_name': None,
+            }
         time_diff = timestamp - matching_video['start_timestamp']
         return {
             'uri': f'{matching_video["uri"]}#t={int(time_diff.total_seconds())}',

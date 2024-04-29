@@ -38,7 +38,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
                     'sequence_name': video['video_sequence_name'],
                     'video_reference_uuid': video['video_reference_uuid'],
                 })
-            return dive_json['annotations']
+        return dive_json['annotations']
 
     def find_duplicate_associations(self):
         """

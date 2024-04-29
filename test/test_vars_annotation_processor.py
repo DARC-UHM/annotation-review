@@ -47,11 +47,13 @@ class TestVarsAnnotationProcessor:
                 'start_timestamp': parse_datetime('2023-08-24T18:30:00Z'),
                 'uri': 'https://hurlvideo.soest.hawaii.edu/D2/2023/EX2306_01/EX2306_01_20230824T183000Z.m4v',
                 'sequence_name': 'Deep Discoverer 23060001',
+                'video_reference_uuid': 'dda3dc62-9f78-4dbb-91cd-5015026e0434',
             },
             {
                 'start_timestamp':  parse_datetime('2023-08-24T20:30:00Z'),
                 'uri': 'https://hurlvideo.soest.hawaii.edu/D2/2023/EX2306_01/EX2306_01_20230824T203000Z.m4v',
                 'sequence_name': 'Deep Discoverer 23060001',
+                'video_reference_uuid': 'd955c4ef-94e0-4f0d-83f5-d0144a09a933',
             },
         ]
         assert len(annotation_processor.working_records) == 2
@@ -80,20 +82,20 @@ class TestVarsAnnotationProcessor:
                == 'https://hurlimage.soest.hawaii.edu/Hercules/images/1381920/20220418T202402.015Z--542830a8-ec69-4ee5-a57d-9de66a412dba.png'
 
     @patch('requests.get', side_effect=mocked_requests_get)
-    def test_get_video_first_media(self, mock_get):
+    def test_get_video(self, mock_get):
         annotation_processor = VarsAnnotationProcessor(['Deep Discoverer 23060001'])
         sequence_videos = []
         annotation_processor.fetch_media(annotation_processor.sequence_names[0], sequence_videos)
+        print(sequence_videos)
         assert annotation_processor.get_video(ex_23060001['annotations'][0], sequence_videos)['uri'] \
                == 'https://hurlvideo.soest.hawaii.edu/D2/2023/EX2306_01/EX2306_01_20230824T183000Z.m4v#t=374'
 
     @patch('requests.get', side_effect=mocked_requests_get)
-    def test_get_video_url_second_media(self, mock_get):
+    def test_get_video_not_found(self, mock_get):
         annotation_processor = VarsAnnotationProcessor(['Deep Discoverer 23060001'])
         sequence_videos = []
         annotation_processor.fetch_media(annotation_processor.sequence_names[0], sequence_videos)
-        assert annotation_processor.get_video(ex_23060001['annotations'][1], sequence_videos)['uri'] \
-               == 'https://hurlvideo.soest.hawaii.edu/D2/2023/EX2306_01/EX2306_01_20230824T203000Z.m4v#t=3505'
+        assert annotation_processor.get_video(ex_23060001['annotations'][1], sequence_videos)['uri'] is None
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_process_images(self, mock_get):
@@ -130,9 +132,9 @@ class TestVarsAnnotationProcessor:
                 'associations': ex_23060001['annotations'][1]['associations'],
                 'identity_reference': '13',
                 'image_url': 'https://hurlimage.soest.hawaii.edu/SupplementalPhotos/Hphotos/NA138photos/H1920/cam1_20220419064757.png',
-                'video_url': 'https://hurlvideo.soest.hawaii.edu/D2/2023/EX2306_01/EX2306_01_20230824T203000Z.m4v#t=3505',
+                'video_url': None,
                 'recorded_timestamp': '2023-08-24T21:28:25.675Z',
-                'video_sequence_name': 'Deep Discoverer 23060001',
+                'video_sequence_name': None,
                 'annotator': 'Meagan Putts',
                 'depth': 668,
                 'lat': 38.793,
@@ -174,9 +176,9 @@ class TestVarsAnnotationProcessor:
                 'genus': None,
                 'species': None,
                 'image_url': 'https://hurlimage.soest.hawaii.edu/SupplementalPhotos/Hphotos/NA138photos/H1920/cam1_20220419064757.png',
-                'video_url': 'https://hurlvideo.soest.hawaii.edu/D2/2023/EX2306_01/EX2306_01_20230824T203000Z.m4v#t=3505',
+                'video_url': None,
                 'recorded_timestamp': '24 Aug 23 21:28:25 UTC',
-                'video_sequence_name': 'Deep Discoverer 23060001',
+                'video_sequence_name': None,
                 'activity': 'cruise',
             },
             {

@@ -23,7 +23,7 @@ class JWTAuthentication(object):
             base_url = base_url[0:-1]
         self.base_url = base_url
 
-    def authorize(self, client_secret: str, jwt: str) -> str:
+    def authorize(self, client_secret: str = None, jwt: str = None) -> str:
         """
         Fetch a JWT authentication token if needed
         """
@@ -171,7 +171,7 @@ class Annosaurus(JWTAuthentication):
                 updated = self.update_association(
                     association_uuid=comment_association['uuid'],
                     association=new_association,
-                    jwt = jwt,
+                    jwt=jwt,
                 )
                 if updated['status'] != 200:
                     print('Error updating comment')

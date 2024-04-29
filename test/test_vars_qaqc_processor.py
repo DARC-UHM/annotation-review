@@ -31,7 +31,7 @@ class TestVarsQaqcProcessor:
         assert qaqc_processor.videos == []
         assert qaqc_processor.working_records == []
         assert qaqc_processor.final_records == []
-        assert qaqc_processor.phylogeny == {}
+        assert len(qaqc_processor.phylogeny.keys()) > 0
 
     def test_load_phylogeny(self):
         annotation_processor = VarsQaqcProcessor(['Deep Discoverer 23060001'])
@@ -47,11 +47,13 @@ class TestVarsQaqcProcessor:
                 'start_timestamp': parse_datetime('2023-08-24T18:30:00Z'),
                 'uri': 'https://hurlvideo.soest.hawaii.edu/D2/2023/EX2306_01/EX2306_01_20230824T183000Z.m4v',
                 'sequence_name': 'Deep Discoverer 23060001',
+                'video_reference_uuid': 'dda3dc62-9f78-4dbb-91cd-5015026e0434',
             },
             {
                 'start_timestamp':  parse_datetime('2023-08-24T20:30:00Z'),
                 'uri': 'https://hurlvideo.soest.hawaii.edu/D2/2023/EX2306_01/EX2306_01_20230824T203000Z.m4v',
                 'sequence_name': 'Deep Discoverer 23060001',
+                'video_reference_uuid': 'd955c4ef-94e0-4f0d-83f5-d0144a09a933',
             },
         ]
 
