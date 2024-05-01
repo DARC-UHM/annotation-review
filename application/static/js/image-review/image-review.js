@@ -378,7 +378,7 @@ async function deleteAssociation(associationUuid) {
 async function updateAnnotation() {
     event.preventDefault();
     const formData = new FormData($('#updateAnnotationForm')[0]);
-    const associations = JSON.parse(formData.get('associations'));
+    const associations = JSON.parse(formData.get('associations')) || [];
     const creations = [];
     const updates = [];
     const deletes = [];

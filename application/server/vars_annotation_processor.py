@@ -119,10 +119,7 @@ class VarsAnnotationProcessor:
         sequence videos that contains the annotation and adds offset to the video url.
         """
         if 'recorded_timestamp' not in annotation.keys():
-            return {
-                'uri': None,
-                'sequence_name': None,
-            }
+            return {}
         timestamp = parse_datetime(annotation['recorded_timestamp'])
         matching_video = videos[0]  # default to first video
         for video in videos:
