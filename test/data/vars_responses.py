@@ -18,7 +18,21 @@ ex_23060001 = {
                     'to_concept': 'sed',
                     'link_value': 'nil',
                     'mime_type': 'text/plain'
-                }
+                },
+                {
+                    'uuid': '08f0563b-090e-417e-0e68-upon',
+                    'link_name': 'upon',
+                    'to_concept': 'sed',
+                    'link_value': 'nil',
+                    'mime_type': 'text/plain'
+                },
+                {
+                    'uuid': '204a46b5-id-reference',
+                    'link_name': 'identity-reference',
+                    'to_concept': 'self',
+                    'link_value': '12',
+                    'mime_type': 'text/plain'
+                },
             ],
             'image_references': [
                 {
@@ -163,7 +177,7 @@ ex_23060001 = {
         # annotations[2]
         {
             'observation_uuid': '080118db-baa2-468a-d06a-144249c1d41e',
-            'concept': 'Etmopteridae',
+            'concept': 'Pomacentridae',
             'observer': 'MeaganPutts',
             'observation_timestamp': '2022-10-14T23:04:45.429Z',
             'video_reference_uuid': 'd955c4ef-94e0-4f0d-83f5-d0144a09a933',
@@ -202,6 +216,13 @@ ex_23060001 = {
                     'mime_type': 'text/plain'
                 },
                 {
+                    'uuid': '7dbddb7d-0442-470e-e46a-upon',
+                    'link_name': 'upon',
+                    'to_concept': 'bed',
+                    'link_value': 'nil',
+                    'mime_type': 'text/plain'
+                },
+                {
                     'uuid': 'faf820ac-93fd-4d5a-486a-87775ec1d41e',
                     'link_name': 'comment',
                     'to_concept': 'self',
@@ -223,7 +244,7 @@ ex_23060001 = {
         # annotations[3]
         {
             'observation_uuid': '35aa2bb9-d067-419b-9a6e-09cdce8ed41e',
-            'concept': 'Demospongiae encrusting',
+            'concept': 'Pomacentridae',
             'observer': 'MeaganPutts',
             'observation_timestamp': '2022-10-10T22:43:14.208Z',
             'video_reference_uuid': '9888ccf0-22d7-40a1-9dc6-70e029c45155',
@@ -248,6 +269,13 @@ ex_23060001 = {
                     'mime_type': 'text/plain'
                 },
                 {
+                    'uuid': '7dbddb7d-0442-470e-e46a-upon',
+                    'link_name': 'upon',
+                    'to_concept': 'bed',
+                    'link_value': 'nil',
+                    'mime_type': 'text/plain'
+                },
+                {
                     'uuid': 'cd581243-bdfb-469e-dc6a-b9dbce8ed41e',
                     'link_name': 's1',
                     'to_concept': 'bed',
@@ -268,49 +296,112 @@ ex_23060001 = {
             }
         },
         {
-            "observation_uuid": "2ccca0ff-10d8-4666-b365-6201604ee81e",
-            "concept": "none",
-            "observer": "MeaganPutts",
-            "observation_timestamp": "2023-11-17T01:09:49.756Z",
-            "video_reference_uuid": "dda3dc62-9f78-4dbb-91cd-5015026e0434",
-            "imaged_moment_uuid": "c0ce51ca-cac1-48a4-e46a-6901604ee81e",
-            "elapsed_time_millis": 7927,
-            "recorded_timestamp": "2023-08-24T18:30:07.927Z",
-            "group": "ROV",
-            "activity": "descend",
-            "associations": [
+            'observation_uuid': '2ccca0ff-10d8-4666-b365-6201604ee81e',
+            'concept': 'none',
+            'observer': 'MeaganPutts',
+            'observation_timestamp': '2023-11-17T01:09:49.756Z',
+            'video_reference_uuid': 'dda3dc62-9f78-4dbb-91cd-5015026e0434',
+            'imaged_moment_uuid': 'c0ce51ca-cac1-48a4-e46a-6901604ee81e',
+            'elapsed_time_millis': 7927,
+            'recorded_timestamp': '2023-08-24T18:30:07.927Z',
+            'group': 'ROV',
+            'activity': 'descend',
+            'associations': [
                 {
-                    "uuid": "71ba8e26-53cd-43f3-166f-b7bf604ee81e",
-                    "link_name": "occurrence-remark",
-                    "to_concept": "nil",
-                    "link_value": "bottom in sight",
-                    "mime_type": "text/plain"
+                    'uuid': '71ba8e26-53cd-43f3-166f-b7bf604ee81e',
+                    'link_name': 'occurrence-remark',
+                    'to_concept': 'nil',
+                    'link_value': 'bottom in sight',
+                    'mime_type': 'text/plain'
                 },
                 {
-                    "uuid": "98ec7927-378e-4922-a860-cfb1614ee81e",
-                    "link_name": "megahabitat",
-                    "to_concept": "continental shelf",
-                    "link_value": "nil",
-                    "mime_type": "text/plain"
+                    'uuid': '98ec7927-378e-4922-a860-cfb1614ee81e',
+                    'link_name': 'megahabitat',
+                    'to_concept': 'continental shelf',
+                    'link_value': 'nil',
+                    'mime_type': 'text/plain'
                 },
                 {
-                    "uuid": "c9dcfd72-ad5e-4a3b-f767-cf50614ee81e",
-                    "link_name": "habitat",
-                    "to_concept": "slope",
-                    "link_value": "nil",
-                    "mime_type": "text/plain"
+                    'uuid': 'c9dcfd72-ad5e-4a3b-f767-cf50614ee81e',
+                    'link_name': 'habitat',
+                    'to_concept': 'slope',
+                    'link_value': 'nil',
+                    'mime_type': 'text/plain'
                 }
             ],
-            "image_references": [],
-            "ancillary_data": {
-                "altitude": 9.100000381469727,
-                "depth_meters": 3089.68310546875,
-                "latitude": 55.9305241742622,
-                "longitude": -152.91831874139763,
-                "oxygen_ml_l": 2.4683001041412354,
-                "salinity": 34.65370178222656,
-                "temperature_celsius": 1.5455000400543213,
-                "uuid": "73184686-bd05-40c1-296b-7be1bb2ee91e"
+            'image_references': [],
+            'ancillary_data': {
+                'altitude': 9.100000381469727,
+                'depth_meters': 3089.68310546875,
+                'latitude': 55.9305241742622,
+                'longitude': -152.91831874139763,
+                'oxygen_ml_l': 2.4683001041412354,
+                'salinity': 34.65370178222656,
+                'temperature_celsius': 1.5455000400543213,
+                'uuid': '73184686-bd05-40c1-296b-7be1bb2ee91e'
+            }
+        },
+        # annotations[4]
+        {
+            'observation_uuid': '0059f860-4799-485f-c06c-5830e5ddd31e',
+            'concept': 'Pomacentridae',
+            'observer': 'NikkiCunanan',
+            'observation_timestamp': '2023-08-24T18:36:38',
+            'video_reference_uuid': 'dda3dc62-9f78-4dbb-91cd-5015026e0434',
+            'imaged_moment_uuid': 'aa7c743e-99ba-4b65-c16c-aeb3585dc91e',
+            'elapsed_time_millis': 0,
+            'recorded_timestamp': '2023-08-24T18:36:14.245Z',
+            'group': 'ROV',
+            'associations': [
+                {
+                    'uuid': '08f0563b-090e-417e-0e68-asdfasd',
+                    'link_name': 's1',
+                    'to_concept': 'sed',
+                    'link_value': 'nil',
+                    'mime_type': 'text/plain'
+                },
+                {
+                    'uuid': '08f0563b-090e-417e-0e68-asdfasdf',
+                    'link_name': 'upon',
+                    'to_concept': 'sed',
+                    'link_value': 'nil',
+                    'mime_type': 'text/plain'
+                },
+                {
+                    'uuid': '204a46b5-id-asdfasdfdas',
+                    'link_name': 'identity-reference',
+                    'to_concept': 'self',
+                    'link_value': '12',
+                    'mime_type': 'text/plain'
+                },
+            ],
+            'image_references': [
+                {
+                    'uuid': '165ea9f2-6e4f-4215-d06e-36801741e01e',
+                    'description': 'compressed image',
+                    'url': 'http://hurlstor.soest.hawaii.edu/imagearchive/Hercules/images/1381920/20220418T202402.015Z--542830a8-ec69-4ee5-a57d-9de66a412dba.jpg',
+                    'format': 'image/jpg',
+                    'width_pixels': 1920,
+                    'height_pixels': 1080
+                },
+                {
+                    'uuid': '78084244-266d-434e-de6b-b27e1741e01e',
+                    'description': 'uncompressed image',
+                    'url': 'http://hurlstor.soest.hawaii.edu/imagearchive/Hercules/images/1381920/20220418T202402.015Z--542830a8-ec69-4ee5-a57d-9de66a412dba.png',
+                    'format': 'image/png',
+                    'width_pixels': 1920,
+                    'height_pixels': 1080
+                }
+            ],
+            'ancillary_data': {
+                'altitude': 1.899999976158142,
+                'depth_meters': 668.458984375,
+                'latitude': 38.793148973388,
+                'longitude': -72.992393976812,
+                'oxygen_ml_l': 7.3196001052856445,
+                'salinity': 35.864898681640625,
+                'temperature_celsius': 5.125999927520752,
+                'uuid': 'b5bdfa60-9b20-40c4-6462-9d4db9b3d41e'
             }
         },
     ],
@@ -353,10 +444,10 @@ ex_23060001 = {
 # this is the 'problem' dive for qaqc checks
 ex_23060002 = {
     'annotations': [
-        # annotations[0]: duplicate s1
+        # annotations[0]: duplicate s1, missing upon substrate, blank association, missing expected association
         {
             'observation_uuid': '006fb032-13b5-4517-136c-11aa9597e81e',
-            'concept': 'Actiniaria',
+            'concept': 'Hydroidolina',
             'observer': 'NikkiCunanan',
             'observation_timestamp': '2023-11-22T20:54:43.743Z',
             'video_reference_uuid': '54915e37-a5d1-4381-af54-81ae25457e7b',
@@ -382,10 +473,17 @@ ex_23060002 = {
                 {
                     'uuid': '9b9d48bb-6425-4f5c-146c-11aa9597e81e',
                     'link_name': 'upon',
-                    'to_concept': 'sed',
+                    'to_concept': 'ded',
                     'link_value': 'nil',
                     'mime_type': 'text/plain'
-                }
+                },
+                {
+                    'uuid': '954b0835-ca6d-4180-1d6f-4ee4ce8ed41e',
+                    'link_name': 'comment',
+                    'to_concept': 'self',
+                    'link_value': '',
+                    'mime_type': 'text/plain'
+                },
             ],
             'image_references': [],
             'ancillary_data': {
@@ -399,10 +497,10 @@ ex_23060002 = {
                 'uuid': 'fd7a9d9c-274d-4e7c-a36a-96dbbd2ee91e'
             }
         },
-        # annotations[1]: missing s1
+        # annotations[1]: missing s1, duplicate s2s, blank association, suspicious host
         {
             'observation_uuid': '01f3e954-b793-40a3-6166-88f24898e81e',
-            'concept': 'Actinopterygii',
+            'concept': 'Pomacentridae',
             'observer': 'NikkiCunanan',
             'observation_timestamp': '2023-11-22T22:14:53.738Z',
             'video_reference_uuid': '54915e37-a5d1-4381-af54-81ae25457e7b',
@@ -418,6 +516,34 @@ ex_23060002 = {
                     'link_value': 'maybe',
                     'mime_type': 'text/plain'
                 },
+                {
+                    'uuid': '954b0835-ca6d-4180-1d6f-4ee4ohno',
+                    'link_name': 's2',
+                    'to_concept': 'sed',
+                    'link_value': 'nil',
+                    'mime_type': 'text/plain'
+                },
+                {
+                    'uuid': '954b0835-ca6d-4180-1d6f-4ee4ce8ed41e',
+                    'link_name': 's2',
+                    'to_concept': 'sed',
+                    'link_value': 'nil',
+                    'mime_type': 'text/plain'
+                },
+                {
+                    'uuid': '954b0835-ca6d-4180-1d6f-4ee4ce8ed41e',
+                    'link_name': 'comment',
+                    'to_concept': 'self',
+                    'link_value': '',
+                    'mime_type': 'text/plain'
+                },
+                {
+                    'uuid': '98d04f38-0d7f-484e-4a60-9577c98ce81e',
+                    'link_name': 'upon',
+                    'to_concept': 'Pomacentridae',
+                    'link_value': 'nil',
+                    'mime_type': 'text/plain'
+                }
             ],
                 'image_references': [],
                 'ancillary_data': {
@@ -431,9 +557,10 @@ ex_23060002 = {
                     'uuid': 'f769daac-0f90-4ebb-526a-96dbbd2ee91e'
             }
         },
+        # annotations[2]: mismatched substrates, missing ancillary data, id ref different concept name, id ref conflicting assocaitions
         {
             'observation_uuid': '02dfd7f4-c834-433d-4960-9577c98ce81e',
-            'concept': 'Pennatuloidea',
+            'concept': 'Pomacentridae',
             'observer': 'NikkiCunanan',
             'observation_timestamp': '2023-11-22T00:18:01.961Z',
             'video_reference_uuid': '54915e37-a5d1-4381-af54-81ae25457e7b',
@@ -463,19 +590,53 @@ ex_23060002 = {
                     'to_concept': 'sed',
                     'link_value': 'nil',
                     'mime_type': 'text/plain'
-                }
+                },
+                {
+                    'uuid': '204a46b5-id-reference',
+                    'link_name': 'identity-reference',
+                    'to_concept': 'self',
+                    'link_value': '13',
+                    'mime_type': 'text/plain'
+                },
             ],
             'image_references': [],
-            'ancillary_data': {
-                'altitude': 0.30000001192092896,
-                'depth_meters': 4254.2890625,
-                'latitude': 56.92282430812428,
-                'longitude': -149.55694167460783,
-                'oxygen_ml_l': 3.1524999141693115,
-                'salinity': 34.67890167236328,
-                'temperature_celsius': 1.4824999570846558,
-                'uuid': '08847c46-2f0e-4280-c96a-96dbbd2ee91e'
-            }
+        },
+        # annotations[3]: mismatched substrates, missing upon, missing ancillary data, id ref different concept name, id ref conflicting assocaitions
+        {
+            'observation_uuid': '02dfd7f4-c834-433d-4960-9123',
+            'concept': 'OtherConcept',
+            'observer': 'NikkiCunanan',
+            'observation_timestamp': '2023-11-22T00:18:01.961Z',
+            'video_reference_uuid': '54915e37-a5d1-4381-af54-81ae25457e7b',
+            'imaged_moment_uuid': '6ee8b4c6-8ea6-4f28-4860-9577c98ce81e',
+            'elapsed_time_millis': 2435762,
+            'recorded_timestamp': '2023-08-25T20:30:35.762Z',
+            'group': 'ROV',
+            'activity': 'cruise',
+            'associations': [
+                {
+                    'uuid': '6767d952-4996-4c3a-8e6a-59b4c98ce81e',
+                    'link_name': 'population-quantity',
+                    'to_concept': 'self',
+                    'link_value': '5',
+                    'mime_type': 'text/plain'
+                },
+                {
+                    'uuid': 'eb8f9358-cdec-434a-4b60-9577c98ce81e',
+                    'link_name': 's1',
+                    'to_concept': 'ded',
+                    'link_value': 'nil',
+                    'mime_type': 'text/plain'
+                },
+                {
+                    'uuid': '204a46b5-id-reference',
+                    'link_name': 'identity-reference',
+                    'to_concept': 'self',
+                    'link_value': '13',
+                    'mime_type': 'text/plain'
+                },
+            ],
+            'image_references': [],
         },
     ],
     'media': [
@@ -601,4 +762,61 @@ pomacentridae = {
             ]
         }
     ]
+}
+
+hydroidolina = {
+  'name': 'object',
+  'alternativeNames': [
+    'root'
+  ],
+  'children': [
+    {
+      'name': 'physical-object',
+      'alternativeNames': [
+        'physical object'
+      ],
+      'children': [
+        {
+          'name': 'Biological',
+          'children': [
+            {
+              'name': 'Organism',
+              'children': [
+                {
+                  'name': 'Animalia',
+                  'rank': 'kingdom',
+                  'children': [
+                    {
+                      'name': 'Cnidaria',
+                      'alternativeNames': [
+                        'coelenterate',
+                        'cnidarian'
+                      ],
+                      'rank': 'phylum',
+                      'children': [
+                        {
+                          'name': 'Hydrozoa',
+                          'alternativeNames': [
+                            'hydrozoan',
+                            'hydroid'
+                          ],
+                          'rank': 'class',
+                          'children': [
+                            {
+                              'name': 'Hydroidolina',
+                              'rank': 'subclass'
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }

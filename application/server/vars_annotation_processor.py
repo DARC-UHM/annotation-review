@@ -150,7 +150,7 @@ class VarsAnnotationProcessor:
             temperature = None
             oxygen_ml_l = None
 
-            if concept_name not in self.phylogeny.keys():
+            if concept_name not in self.phylogeny.keys() and concept_name != 'none':
                 self.fetch_vars_phylogeny(concept_name, no_match_records)
 
             video = self.get_video(record, videos)

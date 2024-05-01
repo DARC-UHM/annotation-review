@@ -1,4 +1,4 @@
-from test.data.vars_responses import ex_23060001, ex_23060002, pomacentridae
+from test.data.vars_responses import ex_23060001, ex_23060002, pomacentridae, hydroidolina
 
 
 class MockResponse:
@@ -14,4 +14,6 @@ class MockResponse:
                 return ex_23060002
             case 'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/Pomacentridae':
                 return pomacentridae
-        return None
+            case 'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/Hydroidolina':
+                return hydroidolina
+        return {}

@@ -40,118 +40,121 @@ class TestVarsQaqcProcessor:
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_duplicate_associations(self, _):
-        qaqc_processor = VarsQaqcProcessor(['Deep Discoverer 23060002'])
-        qaqc_processor.find_duplicate_associations()
-        assert qaqc_processor.working_records == [ex_23060002['annotations'][0]]
-
-    @patch('requests.get', side_effect=mocked_requests_get)
-    def test_find_duplicate_associations_none(self, _):
-        qaqc_processor = VarsQaqcProcessor(['Deep Discoverer 23060001'])
-        qaqc_processor.find_duplicate_associations()
-        assert qaqc_processor.working_records == []
+        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'])
+        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'])
+        qaqc_processor_okay.find_duplicate_associations()
+        qaqc_processor_problems.find_duplicate_associations()
+        assert qaqc_processor_okay.working_records == []
+        assert qaqc_processor_problems.working_records == [ex_23060002['annotations'][0]]
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_missing_s1(self, _):
-        qaqc_processor = VarsQaqcProcessor(['Deep Discoverer 23060002'])
-        qaqc_processor.find_missing_s1()
-        assert qaqc_processor.working_records == [ex_23060002['annotations'][1]]
-
-    @patch('requests.get', side_effect=mocked_requests_get)
-    def test_find_missing_s1_none(self, _):
-        qaqc_processor = VarsQaqcProcessor(['Deep Discoverer 23060001'])
-        qaqc_processor.find_missing_s1()
-        assert qaqc_processor.working_records == []
+        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'])
+        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'])
+        qaqc_processor_okay.find_missing_s1()
+        qaqc_processor_problems.find_missing_s1()
+        assert qaqc_processor_okay.working_records == []
+        assert qaqc_processor_problems.working_records == [ex_23060002['annotations'][1]]
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_duplicate_s2(self, _):
-        assert False
-
-    @patch('requests.get', side_effect=mocked_requests_get)
-    def test_find_duplicate_s2_none(self, _):
-        assert False
+        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'])
+        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'])
+        qaqc_processor_okay.find_duplicate_s2()
+        qaqc_processor_problems.find_duplicate_s2()
+        assert qaqc_processor_okay.working_records == []
+        assert qaqc_processor_problems.working_records == [ex_23060002['annotations'][1]]
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_missing_upon_substrate(self, _):
-        assert False
-
-    @patch('requests.get', side_effect=mocked_requests_get)
-    def test_find_missing_upon_substrate_none(self, _):
-        assert False
+        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'])
+        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'])
+        qaqc_processor_okay.find_missing_upon_substrate()
+        qaqc_processor_problems.find_missing_upon_substrate()
+        assert qaqc_processor_okay.working_records == []
+        assert qaqc_processor_problems.working_records == [ex_23060002['annotations'][0]]
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_mismatched_substrates(self, _):
-        assert False
-
-    @patch('requests.get', side_effect=mocked_requests_get)
-    def test_find_mismatched_substrates_none(self, _):
-        assert False
+        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'])
+        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'])
+        qaqc_processor_okay.find_mismatched_substrates()
+        qaqc_processor_problems.find_mismatched_substrates()
+        assert qaqc_processor_okay.working_records == []
+        assert qaqc_processor_problems.working_records == [ex_23060002['annotations'][2], ex_23060002['annotations'][3]]
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_missing_upon(self, _):
-        assert False
-
-    @patch('requests.get', side_effect=mocked_requests_get)
-    def test_find_missing_upon_none(self, _):
-        assert False
+        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'])
+        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'])
+        qaqc_processor_okay.find_missing_upon()
+        qaqc_processor_problems.find_missing_upon()
+        assert qaqc_processor_okay.working_records == []
+        assert qaqc_processor_problems.working_records == [ex_23060002['annotations'][3]]
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_get_num_records_missing_ancillary_data(self, _):
-        assert False
+        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'])
+        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'])
+        assert qaqc_processor_okay.get_num_records_missing_ancillary_data() == 0
+        assert qaqc_processor_problems.get_num_records_missing_ancillary_data() == 2
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_missing_ancillary_data(self, _):
-        assert False
-
-    @patch('requests.get', side_effect=mocked_requests_get)
-    def test_find_missing_ancillary_data_none(self, _):
-        assert False
+        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'])
+        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'])
+        qaqc_processor_okay.find_missing_ancillary_data()
+        qaqc_processor_problems.find_missing_ancillary_data()
+        assert qaqc_processor_okay.working_records == []
+        assert qaqc_processor_problems.working_records == [ex_23060002['annotations'][2], ex_23060002['annotations'][3]]
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_id_refs_different_concept_name(self, _):
-        assert False
-
-    @patch('requests.get', side_effect=mocked_requests_get)
-    def test_find_id_refs_different_concept_name_none(self, _):
-        assert False
+        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'])
+        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'])
+        qaqc_processor_okay.find_id_refs_different_concept_name()
+        qaqc_processor_problems.find_id_refs_different_concept_name()
+        assert qaqc_processor_okay.working_records == []
+        assert qaqc_processor_problems.working_records == [ex_23060002['annotations'][2], ex_23060002['annotations'][3]]
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_id_refs_conflicting_associations(self, _):
-        assert False
-
-    @patch('requests.get', side_effect=mocked_requests_get)
-    def test_find_id_refs_conflicting_associations_none(self, _):
-        assert False
+        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'])
+        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'])
+        qaqc_processor_okay.find_id_refs_conflicting_associations()
+        qaqc_processor_problems.find_id_refs_conflicting_associations()
+        assert qaqc_processor_okay.working_records == []
+        assert qaqc_processor_problems.working_records == [ex_23060002['annotations'][2], ex_23060002['annotations'][3]]
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_blank_associations(self, _):
-        assert False
-
-    @patch('requests.get', side_effect=mocked_requests_get)
-    def test_find_blank_associations_none(self, _):
-        assert False
+        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'])
+        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'])
+        qaqc_processor_okay.find_blank_associations()
+        qaqc_processor_problems.find_blank_associations()
+        assert qaqc_processor_okay.working_records == []
+        assert qaqc_processor_problems.working_records == [ex_23060002['annotations'][0], ex_23060002['annotations'][1]]
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_suspicious_hosts(self, _):
-        assert False
-
-    @patch('requests.get', side_effect=mocked_requests_get)
-    def test_find_suspicious_hosts_none(self, _):
-        assert False
+        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'])
+        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'])
+        qaqc_processor_okay.find_suspicious_hosts()
+        qaqc_processor_problems.find_suspicious_hosts()
+        assert qaqc_processor_okay.working_records == []
+        assert qaqc_processor_problems.working_records == [ex_23060002['annotations'][1]]
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_missing_expected_association(self, _):
-        assert False
-
-    @patch('requests.get', side_effect=mocked_requests_get)
-    def test_find_missing_expected_association_none(self, _):
-        assert False
+        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'])
+        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'])
+        qaqc_processor_okay.find_missing_expected_association()
+        qaqc_processor_problems.find_missing_expected_association()
+        assert qaqc_processor_okay.working_records == []
+        assert qaqc_processor_problems.working_records == [ex_23060002['annotations'][0]]
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_long_host_associate_time_diff(self, _):
-        assert False
-
-    @patch('requests.get', side_effect=mocked_requests_get)
-    def test_find_long_host_associate_time_diff_none(self, _):
         assert False
 
     @patch('requests.get', side_effect=mocked_requests_get)
