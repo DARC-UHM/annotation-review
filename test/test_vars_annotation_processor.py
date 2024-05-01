@@ -2,21 +2,8 @@ from unittest.mock import patch
 
 from application.server.vars_annotation_processor import VarsAnnotationProcessor
 from application.server.functions import parse_datetime
-from test.data.vars_responses import ex_23060001, pomacentridae
-
-
-class MockResponse:
-    def __init__(self, url: str):
-        self.url = url
-        self.status_code = 200
-
-    def json(self):
-        match self.url:
-            case 'http://hurlstor.soest.hawaii.edu:8086/query/dive/Deep%20Discoverer%2023060001':
-                return ex_23060001
-            case 'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/Pomacentridae':
-                return pomacentridae
-        return None
+from test.data.vars_responses import ex_23060001
+from test.util.mock_response import MockResponse
 
 
 def mocked_requests_get(*args, **kwargs):
@@ -91,11 +78,12 @@ class TestVarsAnnotationProcessor:
                == 'https://hurlvideo.soest.hawaii.edu/D2/2023/EX2306_01/EX2306_01_20230824T183000Z.m4v#t=374'
 
     @patch('requests.get', side_effect=mocked_requests_get)
-    def test_get_video_not_found(self, mock_get):
+    def test_get_video_url_second_media(self, mock_get):
         annotation_processor = VarsAnnotationProcessor(['Deep Discoverer 23060001'])
         sequence_videos = []
         annotation_processor.fetch_media(annotation_processor.sequence_names[0], sequence_videos)
-        assert annotation_processor.get_video(ex_23060001['annotations'][1], sequence_videos)['uri'] is None
+        assert annotation_processor.get_video(ex_23060001['annotations'][1], sequence_videos)['uri'] \
+               == 'https://hurlvideo.soest.hawaii.edu/D2/2023/EX2306_01/EX2306_01_20230824T203000Z.m4v#t=3505'
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_process_images(self, mock_get):
@@ -132,9 +120,9 @@ class TestVarsAnnotationProcessor:
                 'associations': ex_23060001['annotations'][1]['associations'],
                 'identity_reference': '13',
                 'image_url': 'https://hurlimage.soest.hawaii.edu/SupplementalPhotos/Hphotos/NA138photos/H1920/cam1_20220419064757.png',
-                'video_url': None,
+                'video_url': 'https://hurlvideo.soest.hawaii.edu/D2/2023/EX2306_01/EX2306_01_20230824T203000Z.m4v#t=3505',
                 'recorded_timestamp': '2023-08-24T21:28:25.675Z',
-                'video_sequence_name': None,
+                'video_sequence_name': 'Deep Discoverer 23060001',
                 'annotator': 'Meagan Putts',
                 'depth': 668,
                 'lat': 38.793,
@@ -176,9 +164,9 @@ class TestVarsAnnotationProcessor:
                 'genus': None,
                 'species': None,
                 'image_url': 'https://hurlimage.soest.hawaii.edu/SupplementalPhotos/Hphotos/NA138photos/H1920/cam1_20220419064757.png',
-                'video_url': None,
+                'video_url': 'https://hurlvideo.soest.hawaii.edu/D2/2023/EX2306_01/EX2306_01_20230824T203000Z.m4v#t=3505',
                 'recorded_timestamp': '24 Aug 23 21:28:25 UTC',
-                'video_sequence_name': None,
+                'video_sequence_name': 'Deep Discoverer 23060001',
                 'activity': 'cruise',
             },
             {

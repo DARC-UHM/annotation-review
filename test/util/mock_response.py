@@ -1,0 +1,15 @@
+from test.data.vars_responses import ex_23060001, pomacentridae
+
+
+class MockResponse:
+    def __init__(self, url: str):
+        self.url = url
+        self.status_code = 200
+
+    def json(self):
+        match self.url:
+            case 'http://hurlstor.soest.hawaii.edu:8086/query/dive/Deep%20Discoverer%2023060001':
+                return ex_23060001
+            case 'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/Pomacentridae':
+                return pomacentridae
+        return None
