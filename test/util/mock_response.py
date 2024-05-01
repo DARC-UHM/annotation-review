@@ -1,4 +1,4 @@
-from test.data.vars_responses import ex_23060001, pomacentridae
+from test.data.vars_responses import ex_23060001, ex_23060002, pomacentridae
 
 
 class MockResponse:
@@ -10,6 +10,8 @@ class MockResponse:
         match self.url:
             case 'http://hurlstor.soest.hawaii.edu:8086/query/dive/Deep%20Discoverer%2023060001':
                 return ex_23060001
+            case 'http://hurlstor.soest.hawaii.edu:8086/query/dive/Deep%20Discoverer%2023060002':
+                return ex_23060002
             case 'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/Pomacentridae':
                 return pomacentridae
         return None

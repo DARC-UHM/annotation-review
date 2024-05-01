@@ -106,6 +106,8 @@ class VarsAnnotationProcessor:
         Gets the correct image url from the given annotation record. Preferentially selects a png image if available
         (higher quality).
         """
+        if len(annotation['image_references']) == 0:
+            return ''
         image_url = annotation['image_references'][0]['url']
         for i in range(1, len(annotation['image_references'])):
             if '.png' in annotation['image_references'][i]['url']:

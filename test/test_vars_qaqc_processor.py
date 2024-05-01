@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 from application.server.functions import parse_datetime
 from application.server.vars_qaqc_processor import VarsQaqcProcessor
-from test.data.vars_responses import ex_23060001
+from test.data.vars_responses import ex_23060001, ex_23060002
 from test.util.mock_response import MockResponse
 
 
@@ -18,11 +18,6 @@ class TestVarsQaqcProcessor:
         assert qaqc_processor.working_records == []
         assert qaqc_processor.final_records == []
         assert len(qaqc_processor.phylogeny.keys()) > 0
-
-    def test_load_phylogeny(self):
-        annotation_processor = VarsQaqcProcessor(['Deep Discoverer 23060001'])
-        annotation_processor.load_phylogeny()
-        assert len(annotation_processor.phylogeny.keys()) > 0
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_fetch_annotations(self, _):
@@ -42,6 +37,126 @@ class TestVarsQaqcProcessor:
                 'video_reference_uuid': 'd955c4ef-94e0-4f0d-83f5-d0144a09a933',
             },
         ]
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_duplicate_associations(self, _):
+        qaqc_processor = VarsQaqcProcessor(['Deep Discoverer 23060002'])
+        qaqc_processor.find_duplicate_associations()
+        assert qaqc_processor.working_records == [ex_23060002['annotations'][0]]
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_duplicate_associations_none(self, _):
+        qaqc_processor = VarsQaqcProcessor(['Deep Discoverer 23060001'])
+        qaqc_processor.find_duplicate_associations()
+        assert qaqc_processor.working_records == []
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_missing_s1(self, _):
+        qaqc_processor = VarsQaqcProcessor(['Deep Discoverer 23060002'])
+        qaqc_processor.find_missing_s1()
+        assert qaqc_processor.working_records == [ex_23060002['annotations'][1]]
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_missing_s1_none(self, _):
+        qaqc_processor = VarsQaqcProcessor(['Deep Discoverer 23060001'])
+        qaqc_processor.find_missing_s1()
+        assert qaqc_processor.working_records == []
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_duplicate_s2(self, _):
+        assert False
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_duplicate_s2_none(self, _):
+        assert False
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_missing_upon_substrate(self, _):
+        assert False
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_missing_upon_substrate_none(self, _):
+        assert False
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_mismatched_substrates(self, _):
+        assert False
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_mismatched_substrates_none(self, _):
+        assert False
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_missing_upon(self, _):
+        assert False
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_missing_upon_none(self, _):
+        assert False
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    def test_get_num_records_missing_ancillary_data(self, _):
+        assert False
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_missing_ancillary_data(self, _):
+        assert False
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_missing_ancillary_data_none(self, _):
+        assert False
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_id_refs_different_concept_name(self, _):
+        assert False
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_id_refs_different_concept_name_none(self, _):
+        assert False
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_id_refs_conflicting_associations(self, _):
+        assert False
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_id_refs_conflicting_associations_none(self, _):
+        assert False
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_blank_associations(self, _):
+        assert False
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_blank_associations_none(self, _):
+        assert False
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_suspicious_hosts(self, _):
+        assert False
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_suspicious_hosts_none(self, _):
+        assert False
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_missing_expected_association(self, _):
+        assert False
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_missing_expected_association_none(self, _):
+        assert False
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_long_host_associate_time_diff(self, _):
+        assert False
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_long_host_associate_time_diff_none(self, _):
+        assert False
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_unique_fields(self, _):
+        assert False
 
     def test_tests_done(self):
         assert False

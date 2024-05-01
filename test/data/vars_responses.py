@@ -103,7 +103,8 @@ ex_23060001 = {
                     'to_concept': 'self',
                     'link_value': 'this is a comment',
                     'mime_type': 'text/plain'
-                },                {
+                },
+                {
                     'uuid': 'c4eaa100-guide-photo',
                     'link_name': 'guide-photo',
                     'to_concept': '1 best',
@@ -221,49 +222,95 @@ ex_23060001 = {
         },
         # annotations[3]
         {
-            "observation_uuid": "35aa2bb9-d067-419b-9a6e-09cdce8ed41e",
-            "concept": "Demospongiae encrusting",
+            'observation_uuid': '35aa2bb9-d067-419b-9a6e-09cdce8ed41e',
+            'concept': 'Demospongiae encrusting',
+            'observer': 'MeaganPutts',
+            'observation_timestamp': '2022-10-10T22:43:14.208Z',
+            'video_reference_uuid': '9888ccf0-22d7-40a1-9dc6-70e029c45155',
+            'imaged_moment_uuid': '74c08709-b3ab-43d0-bb6c-0ecdce8ed41e',
+            'elapsed_time_millis': 3995082,
+            'recorded_timestamp': '2014-09-06T13:35:03.082Z',
+            'group': 'ROV',
+            'activity': 'cruise',
+            'associations': [
+                {
+                    'uuid': '297d23d7-5979-46e7-6f66-8f1fcf8ed41e',
+                    'link_name': 'comment',
+                    'to_concept': 'self',
+                    'link_value': 'Added for review: Jon Snow; This is a weird lookin sponge thing!',
+                    'mime_type': 'text/plain'
+                },
+                {
+                    'uuid': '954b0835-ca6d-4180-1d6f-4ee4ce8ed41e',
+                    'link_name': 's2',
+                    'to_concept': 'sed',
+                    'link_value': 'nil',
+                    'mime_type': 'text/plain'
+                },
+                {
+                    'uuid': 'cd581243-bdfb-469e-dc6a-b9dbce8ed41e',
+                    'link_name': 's1',
+                    'to_concept': 'bed',
+                    'link_value': 'nil',
+                    'mime_type': 'text/plain'
+                }
+            ],
+            'image_references': [],
+            'ancillary_data': {
+                'altitude': 1.600000023841858,
+                'depth_meters': 639.4940185546875,
+                'latitude': 37.410213069179,
+                'longitude': -74.464855305838,
+                'oxygen_ml_l': 7.184100151062012,
+                'salinity': 35.87260055541992,
+                'temperature_celsius': 5.309000015258789,
+                'uuid': '855dc798-961a-460f-886e-f53bbbb3d41e'
+            }
+        },
+        {
+            "observation_uuid": "2ccca0ff-10d8-4666-b365-6201604ee81e",
+            "concept": "none",
             "observer": "MeaganPutts",
-            "observation_timestamp": "2022-10-10T22:43:14.208Z",
-            "video_reference_uuid": "9888ccf0-22d7-40a1-9dc6-70e029c45155",
-            "imaged_moment_uuid": "74c08709-b3ab-43d0-bb6c-0ecdce8ed41e",
-            "elapsed_time_millis": 3995082,
-            "recorded_timestamp": "2014-09-06T13:35:03.082Z",
+            "observation_timestamp": "2023-11-17T01:09:49.756Z",
+            "video_reference_uuid": "dda3dc62-9f78-4dbb-91cd-5015026e0434",
+            "imaged_moment_uuid": "c0ce51ca-cac1-48a4-e46a-6901604ee81e",
+            "elapsed_time_millis": 7927,
+            "recorded_timestamp": "2023-08-24T18:30:07.927Z",
             "group": "ROV",
-            "activity": "cruise",
+            "activity": "descend",
             "associations": [
                 {
-                    "uuid": "297d23d7-5979-46e7-6f66-8f1fcf8ed41e",
-                    "link_name": "comment",
-                    "to_concept": "self",
-                    "link_value": "Added for review: Jon Snow; This is a weird lookin sponge thing!",
+                    "uuid": "71ba8e26-53cd-43f3-166f-b7bf604ee81e",
+                    "link_name": "occurrence-remark",
+                    "to_concept": "nil",
+                    "link_value": "bottom in sight",
                     "mime_type": "text/plain"
                 },
                 {
-                    "uuid": "954b0835-ca6d-4180-1d6f-4ee4ce8ed41e",
-                    "link_name": "s2",
-                    "to_concept": "sed",
+                    "uuid": "98ec7927-378e-4922-a860-cfb1614ee81e",
+                    "link_name": "megahabitat",
+                    "to_concept": "continental shelf",
                     "link_value": "nil",
                     "mime_type": "text/plain"
                 },
                 {
-                    "uuid": "cd581243-bdfb-469e-dc6a-b9dbce8ed41e",
-                    "link_name": "s1",
-                    "to_concept": "bed",
+                    "uuid": "c9dcfd72-ad5e-4a3b-f767-cf50614ee81e",
+                    "link_name": "habitat",
+                    "to_concept": "slope",
                     "link_value": "nil",
                     "mime_type": "text/plain"
                 }
             ],
             "image_references": [],
             "ancillary_data": {
-                "altitude": 1.600000023841858,
-                "depth_meters": 639.4940185546875,
-                "latitude": 37.410213069179,
-                "longitude": -74.464855305838,
-                "oxygen_ml_l": 7.184100151062012,
-                "salinity": 35.87260055541992,
-                "temperature_celsius": 5.309000015258789,
-                "uuid": "855dc798-961a-460f-886e-f53bbbb3d41e"
+                "altitude": 9.100000381469727,
+                "depth_meters": 3089.68310546875,
+                "latitude": 55.9305241742622,
+                "longitude": -152.91831874139763,
+                "oxygen_ml_l": 2.4683001041412354,
+                "salinity": 34.65370178222656,
+                "temperature_celsius": 1.5455000400543213,
+                "uuid": "73184686-bd05-40c1-296b-7be1bb2ee91e"
             }
         },
     ],
@@ -301,6 +348,169 @@ ex_23060001 = {
             'video_name': 'Deep Discoverer 23060001 20230824T203000.000000Z'
         },
     ],
+}
+
+# this is the 'problem' dive for qaqc checks
+ex_23060002 = {
+    'annotations': [
+        # annotations[0]: duplicate s1
+        {
+            'observation_uuid': '006fb032-13b5-4517-136c-11aa9597e81e',
+            'concept': 'Actiniaria',
+            'observer': 'NikkiCunanan',
+            'observation_timestamp': '2023-11-22T20:54:43.743Z',
+            'video_reference_uuid': '54915e37-a5d1-4381-af54-81ae25457e7b',
+            'imaged_moment_uuid': 'edd0673a-84a8-4e80-126c-11aa9597e81e',
+            'elapsed_time_millis': 3725393,
+            'recorded_timestamp': '2023-08-25T20:52:05.393Z',
+            'activity': 'cruise',
+            'associations': [
+                {
+                    'uuid': '22a296c3-8d1b-4593-156c-11aa9597e81e',
+                    'link_name': 's1',
+                    'to_concept': 'sed',
+                    'link_value': 'nil',
+                    'mime_type': 'text/plain'
+                },
+                {
+                    'uuid': '22a296c3-8d1b-4593-156c-oh-no',
+                    'link_name': 's1',
+                    'to_concept': 'bed',
+                    'link_value': 'nil',
+                    'mime_type': 'text/plain'
+                },
+                {
+                    'uuid': '9b9d48bb-6425-4f5c-146c-11aa9597e81e',
+                    'link_name': 'upon',
+                    'to_concept': 'sed',
+                    'link_value': 'nil',
+                    'mime_type': 'text/plain'
+                }
+            ],
+            'image_references': [],
+            'ancillary_data': {
+                'altitude': 0.4000000059604645,
+                'depth_meters': 4255.12890625,
+                'latitude': 56.92319044566854,
+                'longitude': -149.55652416503983,
+                'oxygen_ml_l': 3.2002999782562256,
+                'salinity': 34.67940139770508,
+                'temperature_celsius': 1.4749000072479248,
+                'uuid': 'fd7a9d9c-274d-4e7c-a36a-96dbbd2ee91e'
+            }
+        },
+        # annotations[1]: missing s1
+        {
+            'observation_uuid': '01f3e954-b793-40a3-6166-88f24898e81e',
+            'concept': 'Actinopterygii',
+            'observer': 'NikkiCunanan',
+            'observation_timestamp': '2023-11-22T22:14:53.738Z',
+            'video_reference_uuid': '54915e37-a5d1-4381-af54-81ae25457e7b',
+            'imaged_moment_uuid': '13e84950-60be-408a-6066-88f24898e81e',
+            'elapsed_time_millis': 4543805,
+            'recorded_timestamp': '2023-08-25T21:05:43.805Z',
+            'activity': 'cruise',
+            'associations': [
+                {
+                    'uuid': '001adc93-d793-4032-e462-b91c4998e81e',
+                    'link_name': 'identity-certainty',
+                    'to_concept': 'self',
+                    'link_value': 'maybe',
+                    'mime_type': 'text/plain'
+                },
+            ],
+                'image_references': [],
+                'ancillary_data': {
+                    'altitude': 0.20000000298023224,
+                    'depth_meters': 4256.0888671875,
+                    'latitude': 56.92335858355786,
+                    'longitude': -149.5563359228375,
+                    'oxygen_ml_l': 3.0899999141693115,
+                    'salinity': 34.6781005859375,
+                    'temperature_celsius': 1.4814000129699707,
+                    'uuid': 'f769daac-0f90-4ebb-526a-96dbbd2ee91e'
+            }
+        },
+        {
+            'observation_uuid': '02dfd7f4-c834-433d-4960-9577c98ce81e',
+            'concept': 'Pennatuloidea',
+            'observer': 'NikkiCunanan',
+            'observation_timestamp': '2023-11-22T00:18:01.961Z',
+            'video_reference_uuid': '54915e37-a5d1-4381-af54-81ae25457e7b',
+            'imaged_moment_uuid': '6ee8b4c6-8ea6-4f28-4860-9577c98ce81e',
+            'elapsed_time_millis': 2435762,
+            'recorded_timestamp': '2023-08-25T20:30:35.762Z',
+            'group': 'ROV',
+            'activity': 'cruise',
+            'associations': [
+                {
+                    'uuid': '6767d952-4996-4c3a-8e6a-59b4c98ce81e',
+                    'link_name': 'population-quantity',
+                    'to_concept': 'self',
+                    'link_value': '5',
+                    'mime_type': 'text/plain'
+                },
+                {
+                    'uuid': '98d04f38-0d7f-484e-4a60-9577c98ce81e',
+                    'link_name': 'upon',
+                    'to_concept': 'sed',
+                    'link_value': 'nil',
+                    'mime_type': 'text/plain'
+                },
+                {
+                    'uuid': 'eb8f9358-cdec-434a-4b60-9577c98ce81e',
+                    'link_name': 's1',
+                    'to_concept': 'sed',
+                    'link_value': 'nil',
+                    'mime_type': 'text/plain'
+                }
+            ],
+            'image_references': [],
+            'ancillary_data': {
+                'altitude': 0.30000001192092896,
+                'depth_meters': 4254.2890625,
+                'latitude': 56.92282430812428,
+                'longitude': -149.55694167460783,
+                'oxygen_ml_l': 3.1524999141693115,
+                'salinity': 34.67890167236328,
+                'temperature_celsius': 1.4824999570846558,
+                'uuid': '08847c46-2f0e-4280-c96a-96dbbd2ee91e'
+            }
+        },
+    ],
+    'media': [
+        {
+            'video_sequence_uuid': '9d3265d1-376b-4c55-b9be-4ae6bb58e4df',
+            'video_reference_uuid': '54915e37-a5d1-4381-af54-81ae25457e7b',
+            'video_uuid': '17a7fffa-43ea-437c-b05d-fb14550264ad',
+            'video_sequence_name': 'Deep Discoverer 23060002',
+            'camera_id': 'Deep Discoverer',
+            'uri': 'http://hurlstor.soest.hawaii.edu/videoarchive/D2/2023/EX2306_02/EX2306_02_20230825T195000Z.m4v',
+            'start_timestamp': '2023-08-25T19:50:00Z',
+            'duration_millis': 8399992,
+            'width': 1920,
+            'height': 1080,
+            'frame_rate': 29.97002997002997,
+            'size_bytes': 10623288499,
+            'sha512': 'BB7420CF2A038E1E311BEFD94B0C0C1C005B3EB8AC29557F4FC4D725EBD9C71FCEF33B98BBF7638F76D7FE65984729F79D92AB38877B81B455AC4584D330D1F4',
+            'video_name': 'Deep Discoverer 23060002 20230825T195000.000000Z'
+        },
+        {
+            'video_sequence_uuid': '9d3265d1-376b-4c55-b9be-4ae6bb58e4df',
+            'video_reference_uuid': 'c26617a3-6527-4805-9d79-3af6fbf149d4',
+            'video_uuid': 'c41045b3-1b05-4d2e-b30d-729b5e684701',
+            'video_sequence_name': 'Deep Discoverer 23060002',
+            'camera_id': 'Deep Discoverer',
+            'uri': 'urn:imagecollection:org.mbari:Deep_Discoverer_23060002',
+            'start_timestamp': '2023-08-25T19:57:48Z',
+            'duration_millis': 7657000,
+            'width': 0,
+            'height': 0,
+            'frame_rate': 0.0,
+            'size_bytes': 0,
+            'video_name': 'Deep Discoverer 23060002 image collection'
+        }
+    ]
 }
 
 pomacentridae = {
