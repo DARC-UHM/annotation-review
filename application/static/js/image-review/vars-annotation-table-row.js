@@ -1,6 +1,8 @@
 export const varsAnnotationTableRow = (annotation, externalComment) => {
     let videoUrl = annotation.video_url;
-    videoUrl = `/video?link=${videoUrl.split('#t=')[0]}&time=${videoUrl.split('#t=')[1]}`;
+    if (videoUrl) {
+        videoUrl = `/video?link=${videoUrl.split('#t=')[0]}&time=${videoUrl.split('#t=')[1]}`;
+    }
     let commentExists = false;
     if (externalComment) {
         for (const comment of externalComment.reviewer_comments) {
@@ -153,7 +155,10 @@ export const varsAnnotationTableRow = (annotation, externalComment) => {
                                 Edit annotation
                         </button>
                         <br>
-                        <a class="editButton" href="${videoUrl}" target="_blank">See video</a>
+                        ${videoUrl
+                            ? `<a class="editButton" href="${videoUrl}" target="_blank">See video</a>`
+                            : '<span style="opacity: 50%;">Video not available</span>'
+                        }
                         <br>
                     </div>
                     <div class="col values">
