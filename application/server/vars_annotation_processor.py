@@ -138,7 +138,7 @@ class VarsAnnotationProcessor:
         """
         Cleans and formats the working records into a list of dicts.
         """
-        formatted_images = []
+        formatted_records = []
         no_match_records = set()
 
         for record in self.working_records:
@@ -194,16 +194,15 @@ class VarsAnnotationProcessor:
             if concept_name in self.phylogeny.keys():
                 for key in self.phylogeny[concept_name].keys():
                     annotation_dict[key] = self.phylogeny[concept_name][key]
-            formatted_images.append(annotation_dict)
+            formatted_records.append(annotation_dict)
+        return formatted_records
 
-        return formatted_images
-
-    def sort_records(self, formatted_images: list):
+    def sort_records(self, formatted_records: list):
         """
         Uses pandas to sort the formatted images by phylogeny and other attributes. Adds the sorted records to the
         distilled records list.
         """
-        annotation_df = pd.DataFrame(formatted_images, columns=[
+        annotation_df = pd.DataFrame(formatted_records, columns=[
             'observation_uuid',
             'concept',
             'associations',

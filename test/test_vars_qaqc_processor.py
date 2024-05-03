@@ -81,7 +81,7 @@ class TestVarsQaqcProcessor:
         qaqc_processor_okay.find_mismatched_substrates()
         qaqc_processor_problems.find_mismatched_substrates()
         assert qaqc_processor_okay.working_records == []
-        assert qaqc_processor_problems.working_records == [ex_23060002['annotations'][2], ex_23060002['annotations'][3]]
+        assert qaqc_processor_problems.working_records == [ex_23060002['annotations'][3], ex_23060002['annotations'][5]]
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_missing_upon(self, _):
@@ -150,12 +150,113 @@ class TestVarsQaqcProcessor:
         qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'])
         qaqc_processor_okay.find_missing_expected_association()
         qaqc_processor_problems.find_missing_expected_association()
-        assert qaqc_processor_okay.working_records == []
-        assert qaqc_processor_problems.working_records == [ex_23060002['annotations'][0]]
+        assert qaqc_processor_okay.final_records == []
+        assert qaqc_processor_problems.final_records == [
+            {
+                'observation_uuid': '006fb032-13b5-4517-136c-11aa9597e81e',
+                'concept': 'Hydroidolina',
+                'associations': ex_23060002['annotations'][0]['associations'],
+                'activity': 'cruise',
+                'annotator': 'Nikki Cunanan',
+                'depth': 4255.0,
+                'lat': 56.923,
+                'long': -149.557,
+                'temperature': 1.47,
+                'oxygen_ml_l': 3.2,
+                'phylum': 'Cnidaria',
+                'class': 'Hydrozoa',
+                'order': None,
+                'family': None,
+                'genus': None,
+                'species': None,
+                'identity_reference': '50',
+                'image_url': '',
+                'video_url': 'https://hurlvideo.soest.hawaii.edu/D2/2023/EX2306_02/EX2306_02_20230825T195000Z.m4v#t=3725',
+                'recorded_timestamp': '25 Aug 23 20:52:05 UTC',
+                'video_sequence_name': 'Deep Discoverer 23060002',
+            }
+        ]
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_long_host_associate_time_diff(self, _):
-        assert False
+        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'])
+        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'])
+        qaqc_processor_okay.find_long_host_associate_time_diff()
+        qaqc_processor_problems.find_long_host_associate_time_diff()
+        assert qaqc_processor_okay.final_records == []
+        assert qaqc_processor_problems.final_records == [
+            {
+                'observation_uuid': '01f3e954-b793-40a3-6166-88f24898e81e',
+                'concept': 'Pomacentridae',
+                'associations': ex_23060002['annotations'][1]['associations'],
+                'activity': 'cruise',
+                'annotator': 'Nikki Cunanan',
+                'depth': 4256.0,
+                'lat': 56.923,
+                'long': -149.556,
+                'temperature': 1.48,
+                'oxygen_ml_l': 3.09,
+                'phylum': 'Chordata',
+                'class': 'Actinopterygii',
+                'order': 'Perciformes',
+                'family': 'Pomacentridae',
+                'genus': None,
+                'species': None,
+                'identity_reference': None,
+                'image_url': '',
+                'video_url': 'https://hurlvideo.soest.hawaii.edu/D2/2023/EX2306_02/EX2306_02_20230825T195000Z.m4v#t=4543',
+                'recorded_timestamp': '25 Aug 23 21:05:43 UTC',
+                'video_sequence_name': 'Deep Discoverer 23060002',
+                'status': 'Host not found in previous records'
+            },
+            {
+                'observation_uuid': '02dfd7f4-c834-433d-4960-9577c98ce81e',
+                'concept': 'Hydroidolina',
+                'associations': ex_23060002['annotations'][2]['associations'],
+                'activity': 'cruise',
+                'annotator': 'Nikki Cunanan',
+                'depth': None,
+                'lat': None,
+                'long': None,
+                'temperature': None,
+                'oxygen_ml_l': None,
+                'phylum': 'Cnidaria',
+                'class': 'Hydrozoa',
+                'order': None,
+                'family': None,
+                'genus': None,
+                'species': None,
+                'identity_reference': '13',
+                'image_url': '',
+                'video_url': 'https://hurlvideo.soest.hawaii.edu/D2/2023/EX2306_02/EX2306_02_20230825T195000Z.m4v#t=2435',
+                'recorded_timestamp': '25 Aug 23 20:30:35 UTC',
+                'video_sequence_name': 'Deep Discoverer 23060002',
+                'status': 'Time between record and closest previous matching host record greater than one minute (95 seconds)'
+            },
+            {
+                'observation_uuid': '0983d9f1-d28a-482e-0160-6d3df753e91e',
+                'concept': 'AssociateConcept',
+                'associations': ex_23060002['annotations'][4]['associations'],
+                'activity': 'stationary',
+                'annotator': 'Nikki Cunanan',
+                'depth': 4260.0,
+                'lat': 56.924,
+                'long': -149.556,
+                'temperature': 1.46,
+                'oxygen_ml_l': 3.192,
+                'phylum': None,
+                'class': None,
+                'order': None,
+                'family': None, 'genus': None,
+                'species': None,
+                'identity_reference': None,
+                'image_url': '',
+                'video_url': 'https://hurlvideo.soest.hawaii.edu/D2/2023/EX2306_02/EX2306_02_20230825T195000Z.m4v#t=2941',
+                'recorded_timestamp': '25 Aug 23 20:39:01 UTC',
+                'video_sequence_name': 'Deep Discoverer 23060002',
+                'status': 'Time between record and closest previous matching host record greater than five minutes (10 mins, 0 seconds)'
+            },
+        ]
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_unique_fields(self, _):

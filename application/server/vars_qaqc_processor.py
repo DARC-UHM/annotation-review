@@ -59,7 +59,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
                         break
                 if duplicate_associations:
                     self.working_records.append(annotation)
-        self.process_working_records(self.videos)
+        self.sort_records(self.process_working_records(self.videos))
 
     def find_missing_s1(self):
         """
@@ -72,7 +72,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
                 s1 = get_association(annotation, 's1')
                 if not s1:
                     self.working_records.append(annotation)
-        self.process_working_records(self.videos)
+        self.sort_records(self.process_working_records(self.videos))
 
     def find_identical_s1_s2(self):
         """
@@ -89,7 +89,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
                         s2s.append(association['to_concept'])
                 if s1 in s2s:
                     self.working_records.append(annotation)
-        self.process_working_records(self.videos)
+        self.sort_records(self.process_working_records(self.videos))
 
     def find_duplicate_s2(self):
         """
@@ -108,7 +108,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
                             s2_set.add(association['to_concept'])
                 if duplicate_s2s:
                     self.working_records.append(annotation)
-        self.process_working_records(self.videos)
+        self.sort_records(self.process_working_records(self.videos))
 
     def find_missing_upon_substrate(self):
         """
@@ -137,7 +137,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
                             break
                 if missing_upon:
                     self.working_records.append(annotation)
-        self.process_working_records(self.videos)
+        self.sort_records(self.process_working_records(self.videos))
 
     def find_mismatched_substrates(self):
         """
@@ -178,7 +178,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
                 if base_substrates != check_substrates:
                     for annotation in annotations_with_same_timestamp[timestamp_key]:
                         self.working_records.append(annotation)
-        self.process_working_records(self.videos)
+        self.sort_records(self.process_working_records(self.videos))
 
     def find_missing_upon(self):
         """
@@ -190,7 +190,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
                     continue
                 if not get_association(annotation, 'upon'):
                     self.working_records.append(annotation)
-        self.process_working_records(self.videos)
+        self.sort_records(self.process_working_records(self.videos))
 
     def get_num_records_missing_ancillary_data(self):
         """
@@ -211,7 +211,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
             for annotation in self.fetch_annotations(name):
                 if 'ancillary_data' not in annotation.keys():
                     self.working_records.append(annotation)
-        self.process_working_records(self.videos)
+        self.sort_records(self.process_working_records(self.videos))
 
     def find_id_refs_different_concept_name(self):
         """
@@ -233,7 +233,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
                 if len(name_set) > 1:
                     for annotation in id_ref_annotations[id_ref]:
                         self.working_records.append(annotation)
-        self.process_working_records(self.videos)
+        self.sort_records(self.process_working_records(self.videos))
 
     def find_id_refs_conflicting_associations(self):
         """
@@ -305,7 +305,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
                 if id_ref_associations[id_ref]['flag']:
                     for annotation in id_ref_annotations[id_ref]:
                         self.working_records.append(annotation)
-        self.process_working_records(self.videos)
+        self.sort_records(self.process_working_records(self.videos))
 
     def find_blank_associations(self):
         """
@@ -316,7 +316,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
                 for association in annotation['associations']:
                     if association['link_value'] == "" and association['to_concept'] == 'self':
                         self.working_records.append(annotation)
-        self.process_working_records(self.videos)
+        self.sort_records(self.process_working_records(self.videos))
 
     def find_suspicious_hosts(self):
         """
@@ -327,7 +327,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
                 upon = get_association(annotation, 'upon')
                 if upon and upon['to_concept'] == annotation['concept']:
                     self.working_records.append(annotation)
-        self.process_working_records(self.videos)
+        self.sort_records(self.process_working_records(self.videos))
 
     def find_missing_expected_association(self):
         """
@@ -371,7 +371,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
         for name in self.sequence_names:
             for annotation in self.fetch_annotations(name):
                 self.working_records.append(annotation)
-        self.process_working_records(self.videos)
+        self.sort_records(self.process_working_records(self.videos))
         temp_records = self.final_records
         self.final_records = []
         for record in temp_records:
@@ -431,7 +431,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
                     if not found:
                         not_found.append(associate_record['observation_uuid'])
                         self.working_records.append(associate_record)
-        self.process_working_records(self.videos)
+        self.sort_records(self.process_working_records(self.videos))
         for uuid in greater_than_one_min.keys():
             next((x for x in self.final_records if x['observation_uuid'] == uuid), None)['status'] = \
                 'Time between record and closest previous matching host record greater than one minute ' \

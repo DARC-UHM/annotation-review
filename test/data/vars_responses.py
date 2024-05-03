@@ -295,6 +295,7 @@ ex_23060001 = {
                 'uuid': '855dc798-961a-460f-886e-f53bbbb3d41e'
             }
         },
+        # annotations[4]
         {
             'observation_uuid': '2ccca0ff-10d8-4666-b365-6201604ee81e',
             'concept': 'none',
@@ -341,16 +342,16 @@ ex_23060001 = {
                 'uuid': '73184686-bd05-40c1-296b-7be1bb2ee91e'
             }
         },
-        # annotations[4]
+        # annotations[5]
         {
-            'observation_uuid': '0059f860-4799-485f-c06c-5830e5ddd31e',
+            'observation_uuid': '0059f860-4799-485f-c06c-asdfasdfadsf',
             'concept': 'Pomacentridae',
             'observer': 'NikkiCunanan',
             'observation_timestamp': '2023-08-24T18:36:38',
             'video_reference_uuid': 'dda3dc62-9f78-4dbb-91cd-5015026e0434',
             'imaged_moment_uuid': 'aa7c743e-99ba-4b65-c16c-aeb3585dc91e',
             'elapsed_time_millis': 0,
-            'recorded_timestamp': '2023-08-24T18:36:14.245Z',
+            'recorded_timestamp': '2023-08-24T18:45:13Z',
             'group': 'ROV',
             'associations': [
                 {
@@ -484,6 +485,13 @@ ex_23060002 = {
                     'link_value': '',
                     'mime_type': 'text/plain'
                 },
+                {
+                    'uuid': '204a46b5-id-reference',
+                    'link_name': 'identity-reference',
+                    'to_concept': 'self',
+                    'link_value': '50',
+                    'mime_type': 'text/plain'
+                },
             ],
             'image_references': [],
             'ancillary_data': {
@@ -497,7 +505,7 @@ ex_23060002 = {
                 'uuid': 'fd7a9d9c-274d-4e7c-a36a-96dbbd2ee91e'
             }
         },
-        # annotations[1]: missing s1, duplicate s2s, blank association, suspicious host
+        # annotations[1]: missing s1, duplicate s2s, blank association, suspicious host, missing host in previous records
         {
             'observation_uuid': '01f3e954-b793-40a3-6166-88f24898e81e',
             'concept': 'Pomacentridae',
@@ -543,7 +551,7 @@ ex_23060002 = {
                     'to_concept': 'Pomacentridae',
                     'link_value': 'nil',
                     'mime_type': 'text/plain'
-                }
+                },
             ],
                 'image_references': [],
                 'ancillary_data': {
@@ -557,10 +565,10 @@ ex_23060002 = {
                     'uuid': 'f769daac-0f90-4ebb-526a-96dbbd2ee91e'
             }
         },
-        # annotations[2]: mismatched substrates, missing ancillary data, id ref different concept name, id ref conflicting assocaitions
+        # annotations[2]: missing ancillary data, id ref different concept name, id ref conflicting associations, long host associate time diff
         {
             'observation_uuid': '02dfd7f4-c834-433d-4960-9577c98ce81e',
-            'concept': 'Pomacentridae',
+            'concept': 'Hydroidolina',
             'observer': 'NikkiCunanan',
             'observation_timestamp': '2023-11-22T00:18:01.961Z',
             'video_reference_uuid': '54915e37-a5d1-4381-af54-81ae25457e7b',
@@ -580,7 +588,7 @@ ex_23060002 = {
                 {
                     'uuid': '98d04f38-0d7f-484e-4a60-9577c98ce81e',
                     'link_name': 'upon',
-                    'to_concept': 'sed',
+                    'to_concept': 'HostConcept',
                     'link_value': 'nil',
                     'mime_type': 'text/plain'
                 },
@@ -601,16 +609,16 @@ ex_23060002 = {
             ],
             'image_references': [],
         },
-        # annotations[3]: mismatched substrates, missing upon, missing ancillary data, id ref different concept name, id ref conflicting assocaitions
+        # annotations[3]: mismatched substrates, missing upon, missing ancillary data, id ref different concept name, id ref conflicting assocaitions, long host associate time diff
         {
             'observation_uuid': '02dfd7f4-c834-433d-4960-9123',
-            'concept': 'OtherConcept',
+            'concept': 'HostConcept',
             'observer': 'NikkiCunanan',
-            'observation_timestamp': '2023-11-22T00:18:01.961Z',
+            'observation_timestamp': '2023-11-22T00:16:25Z',
             'video_reference_uuid': '54915e37-a5d1-4381-af54-81ae25457e7b',
             'imaged_moment_uuid': '6ee8b4c6-8ea6-4f28-4860-9577c98ce81e',
             'elapsed_time_millis': 2435762,
-            'recorded_timestamp': '2023-08-25T20:30:35.762Z',
+            'recorded_timestamp': '2023-08-25T20:29:01Z',
             'group': 'ROV',
             'activity': 'cruise',
             'associations': [
@@ -637,6 +645,77 @@ ex_23060002 = {
                 },
             ],
             'image_references': [],
+        },
+        # annotations[4]: long host associate time diff (>5 min)
+        {
+            'observation_uuid': '0983d9f1-d28a-482e-0160-6d3df753e91e',
+            'concept': 'AssociateConcept',
+            'observer': 'NikkiCunanan',
+            'observation_timestamp': '2023-11-22T00:18:01.961Z',
+            'video_reference_uuid': '54915e37-a5d1-4381-af54-81ae25457e7b',
+            'imaged_moment_uuid': '4ed4f8b7-086d-4b5a-af6c-603df753e91e',
+            'elapsed_time_millis': 6842402,
+            'recorded_timestamp': '2023-08-25T20:39:01Z',
+            'group': 'ROV',
+            'activity': 'stationary',
+            'associations': [
+                {
+                    'uuid': '489eccde-8e58-4717-1b64-1f83c55fe91e',
+                    'link_name': 'upon',
+                    'to_concept': 'HostConcept',
+                    'link_value': 'nil',
+                    'mime_type': 'text/plain'
+                },
+                {
+                    'uuid': 'a3f4ff3d-b915-4095-7b6b-89f9f753e91e',
+                    'link_name': 's1',
+                    'to_concept': 'sed',
+                    'link_value': 'nil',
+                    'mime_type': 'text/plain'
+                }
+            ],
+            'image_references': [],
+            'ancillary_data': {
+                'depth_meters': 4260.2080078125,
+                'latitude': 56.92390544652011,
+                'longitude': -149.55602221947646,
+                'oxygen_ml_l': 3.1916000843048096,
+                'salinity': 34.68040084838867,
+                'temperature_celsius': 1.455899953842163,
+                'uuid': '07336680-9b62-495d-9966-e998f753e91e'
+            }
+        },
+        # annotations[5]: mismatched substrates
+        {
+            'observation_uuid': '02dfd7f4-c834-433d-4960-9123',
+            'concept': 'none',
+            'observer': 'NikkiCunanan',
+            'observation_timestamp': '2023-11-22T00:16:25Z',
+            'video_reference_uuid': '54915e37-a5d1-4381-af54-81ae25457e7b',
+            'imaged_moment_uuid': '6ee8b4c6-8ea6-4f28-4860-9577c98ce81e',
+            'elapsed_time_millis': 2435762,
+            'recorded_timestamp': '2023-08-25T20:29:01Z',
+            'group': 'ROV',
+            'activity': 'cruise',
+            'associations': [
+                {
+                    'uuid': 'eb8f9358-cdec-434a-4b60-9577c98ce81e',
+                    'link_name': 's1',
+                    'to_concept': 'sssssssed',
+                    'link_value': 'nil',
+                    'mime_type': 'text/plain'
+                },
+            ],
+            'image_references': [],
+            'ancillary_data': {
+                'depth_meters': 4260.2080078125,
+                'latitude': 56.92390544652011,
+                'longitude': -149.55602221947646,
+                'oxygen_ml_l': 3.1916000843048096,
+                'salinity': 34.68040084838867,
+                'temperature_celsius': 1.455899953842163,
+                'uuid': '07336680-9b62-495d-9966-e998f753e91e'
+            }
         },
     ],
     'media': [
