@@ -11,8 +11,8 @@ function addReviewer(reviewerName) {
     if (totalReviewers > 4) {
         return;
     }
-    const phylum = currentAnnotation.phylum.toLowerCase();
-    const recommendedReviewers = reviewers.filter((obj) => obj.phylum.toLowerCase().includes(phylum));
+    const phylum = currentAnnotation.phylum?.toLowerCase() || null;
+    const recommendedReviewers = phylum ? reviewers.filter((obj) => obj.phylum.toLowerCase().includes(phylum)) : reviewers;
     const thisReviewerIndex = ++reviewerIndex;
 
     totalReviewers++;
