@@ -57,6 +57,15 @@ class TestVarsQaqcProcessor:
         assert qaqc_processor_problems.working_records == [ex_23060002['annotations'][1]]
 
     @patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_identical_s1_s2(self, _):
+        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'])
+        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'])
+        qaqc_processor_okay.find_identical_s1_s2()
+        qaqc_processor_problems.find_identical_s1_s2()
+        assert qaqc_processor_okay.working_records == []
+        assert qaqc_processor_problems.working_records == [ex_23060002['annotations'][2]]
+
+    @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_duplicate_s2(self, _):
         qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'])
         qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'])
@@ -260,7 +269,151 @@ class TestVarsQaqcProcessor:
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_unique_fields(self, _):
-        assert False
-
-    def test_tests_done(self):
-        assert False
+        qaqc_processor = VarsQaqcProcessor(['Deep Discoverer 23060001'])
+        qaqc_processor.find_unique_fields()
+        assert qaqc_processor.final_records == [
+            {
+                'concept-names': {
+                    'Pomacentridae': {
+                        'individuals': 5,
+                        'records': 5,
+                    },
+                    'none': {
+                        'individuals': 1,
+                        'records': 1,
+                    }
+                },
+            },
+            {
+                'concept-upon-combinations': {
+                    'Pomacentridae:bed': {
+                        'individuals': 2,
+                        'records': 2,
+                    },
+                    'Pomacentridae:sed': {
+                        'individuals': 3,
+                        'records': 3,
+                    },
+                    'none:None': {
+                        'individuals': 1,
+                        'records': 1,
+                    }
+                },
+            },
+            {
+                'substrate-combinations': {
+                    '': {
+                        'individuals': 1,
+                        'records': 1,
+                    },
+                    'bed, bou, sed': {
+                        'individuals': 1,
+                        'records': 1,
+                    },
+                    'bed, sed': {
+                        'individuals': 1,
+                        'records': 1,
+                    },
+                    'mantra, sed': {
+                        'individuals': 1,
+                        'records': 1,
+                    },
+                    'sed': {
+                        'individuals': 2,
+                        'records': 2,
+                    },
+                },
+            },
+            {
+                'comments': {
+                    None: {
+                        'individuals': 3,
+                        'records': 3,
+                    },
+                    'Added for review: Don Draper': {
+                        'individuals': 1,
+                        'records': 1,
+                    },
+                    'Added for review: Jon Snow; This is a weird lookin sponge thing!': {
+                        'individuals': 1,
+                        'records': 1,
+                    },
+                    'this is a comment': {
+                        'individuals': 1,
+                        'records': 1,
+                    },
+                },
+            },
+            {
+                'condition-comments': {
+                    None: {
+                        'individuals': 6,
+                        'records': 6,
+                    },
+                },
+            },
+            {
+                'megahabitats': {
+                    None: {
+                        'individuals': 5,
+                        'records': 5,
+                    },
+                    'continental shelf': {
+                        'individuals': 1,
+                        'records': 1,
+                    },
+                },
+            },
+            {
+                'habitats': {
+                    None: {
+                        'individuals': 5,
+                        'records': 5,
+                    },
+                    'slope': {
+                        'individuals': 1,
+                        'records': 1,
+                    },
+                },
+            },
+            {
+                'habitat-comments': {
+                    None: {
+                        'individuals': 5,
+                        'records': 5,
+                    },
+                    'loose talus': {
+                        'individuals': 1,
+                        'records': 1,
+                    },
+                },
+            },
+            {
+                'identity-certainty': {
+                    None: {
+                        'individuals': 4,
+                        'records': 4,
+                    },
+                    'maybe': {
+                        'individuals': 2,
+                        'records': 2,
+                    },
+                },
+            },
+            {
+                'occurrence-remarks': {
+                    None: {
+                        'individuals': 4,
+                        'records': 4,
+                    },
+                    'bottom in sight': {
+                        'individuals': 1,
+                        'records': 1,
+                    },
+                    'in water column on descent': {
+                        'individuals': 1,
+                        'records': 1,
+                    },
+                },
+            },
+        ]

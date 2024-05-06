@@ -565,7 +565,7 @@ ex_23060002 = {
                     'uuid': 'f769daac-0f90-4ebb-526a-96dbbd2ee91e'
             }
         },
-        # annotations[2]: missing ancillary data, id ref different concept name, id ref conflicting associations, long host associate time diff
+        # annotations[2]: missing ancillary data, id ref different concept name, id ref conflicting associations, long host associate time diff, duplicate s1/s2
         {
             'observation_uuid': '02dfd7f4-c834-433d-4960-9577c98ce81e',
             'concept': 'Hydroidolina',
@@ -595,6 +595,13 @@ ex_23060002 = {
                 {
                     'uuid': 'eb8f9358-cdec-434a-4b60-9577c98ce81e',
                     'link_name': 's1',
+                    'to_concept': 'sed',
+                    'link_value': 'nil',
+                    'mime_type': 'text/plain'
+                },
+                {
+                    'uuid': 'eb8f9358-cdec-434a-4b60-9577c98ce81e',
+                    'link_name': 's2',
                     'to_concept': 'sed',
                     'link_value': 'nil',
                     'mime_type': 'text/plain'
