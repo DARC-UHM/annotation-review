@@ -3,6 +3,8 @@ Streamlined QA/QC and image review for VARS annotations.
 
 [![Tests Status](https://darc-uhm.github.io/annotation-review/junit/junit.svg)](https://darc-uhm.github.io/annotation-review/junit/report.html)
 [![Coverage Status](https://darc-uhm.github.io/annotation-review/coverage/coverage.svg)](https://darc-uhm.github.io/annotation-review/coverage/)
+[![Issues](https://img.shields.io/github/issues/darc-uhm/annotation-review)](https://github.com/DARC-UHM/annotation-review/issues)
+
 ***
 
 ### Installation
