@@ -423,19 +423,20 @@ class TatorQaqcProcessor:
 
     def check_same_name_qualifier(self):
         """
-        Finds records that have the same scientific name but a different qualifier.
+        Finds records that have the same scientific name/tentative ID combo but a different qualifier.
         """
         scientific_name_qualifiers = {}
         problem_scientific_names = set()
         for localization in self.localizations:
-            scientific_name = localization['attributes']['Scientific Name']
+            scientific_name = f'{localization["attributes"]["Scientific Name"]}{" (" + localization["attributes"]["Tentative ID"] + "?)" if localization["attributes"]["Tentative ID"] else ""}'
             if scientific_name not in scientific_name_qualifiers.keys():
                 scientific_name_qualifiers[scientific_name] = localization['attributes']['Qualifier']
             else:
                 if scientific_name_qualifiers[scientific_name] != localization['attributes']['Qualifier']:
                     problem_scientific_names.add(scientific_name)
         for localization in self.localizations:
-            if localization['attributes']['Scientific Name'] in problem_scientific_names:
+            scientific_name = f'{localization["attributes"]["Scientific Name"]}{" (" + localization["attributes"]["Tentative ID"] + "?)" if localization["attributes"]["Tentative ID"] else ""}'
+            if scientific_name in problem_scientific_names:
                 localization['problems'] = 'Scientific Name, Qualifier'
                 self.records_of_interest.append(localization)
         self.process_records()
