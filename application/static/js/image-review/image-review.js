@@ -279,6 +279,7 @@ export function updateHash() {
                         <option value="comment">Comment (VARS)</option>
                         <option value="notes">Notes (Tator)</option>
                         <option value="localization_type">Type (Tator)</option>
+                        <option value="good_image">Good Image (Tator)</option>
                         <option>Annotator</option>
                     </select>
                     <span class="position-absolute dropdown-chev">
@@ -338,6 +339,9 @@ export function updateHash() {
     if (filter['localization_type']) {
         const localizationType = filter.localization_type.toLowerCase().includes('box') ? 48 : 49;
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['all_localizations'][0].type === localizationType);
+    }
+    if (filter['good_image']) {
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['good_image']);
     }
     if (filter['annotator']) {
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['annotator']?.toLowerCase().includes(filter['annotator'].toLowerCase().replaceAll('%20', ' ')));
