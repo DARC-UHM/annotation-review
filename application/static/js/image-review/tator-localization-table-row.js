@@ -242,12 +242,11 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                             <div class="my-auto">
                                 Good Image 
                             </div>
-                            <div class="checkbox-wrapper-55 ms-2">
-                                <label class="rocker rocker-small">
-                                    <input type="checkbox" ${localization.good_image ? 'checked' : ''} onchange="updateGoodImage('${JSON.stringify(localization.all_localizations.map((loco) => loco.id))}', this.checked)">
-                                    <span class="switch-left">Yes</span>
-                                    <span class="switch-right">No</span>
-                                </label>
+                            <div class="checkbox-wrapper-5 ms-2 pt-1">
+                              <div class="check">
+                                <input id="goodImage${localization.id}" type="checkbox" ${localization.good_image ? 'checked' : ''} onchange="updateGoodImage('${JSON.stringify(localization.all_localizations.map((loco) => loco.id))}', this.checked)">
+                                <label for="goodImage${localization.id}"></label>
+                              </div>
                             </div>
                         </div>
                     ` : ''

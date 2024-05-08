@@ -596,147 +596,97 @@ select:active {
     border: 0;
 }
 
-.checkbox-wrapper-55 input[type="checkbox"] {
-    visibility: hidden;
-    display: none;
-}
-
-.checkbox-wrapper-55 *,
-.checkbox-wrapper-55 ::after,
-.checkbox-wrapper-55 ::before {
-    box-sizing: border-box;
-}
-
-.checkbox-wrapper-55 .rocker {
-    display: inline-block;
+.checkbox-wrapper-5 .check {
+    --size: 20px;
     position: relative;
-    /*
-    SIZE OF SWITCH
-    ==============
-    All sizes are in em - therefore
-    changing the font-size here
-    will change the size of the switch.
-    See .rocker-small below as example.
-    */
-    font-size: 2em;
-    font-weight: bold;
-    text-align: center;
-    text-transform: uppercase;
-    color: #888;
-    width: 7em;
-    height: 4em;
-    overflow: hidden;
-    border-bottom: 0.5em solid #eee;
+    background: linear-gradient(90deg, #46a5c2, #359fb4);
+    line-height: 0;
+    perspective: 400px;
+    font-size: var(--size);
 }
 
-.checkbox-wrapper-55 .rocker-small {
-    font-size: 0.5em;
-}
-
-.checkbox-wrapper-55 .rocker::before {
-    content: "";
-    position: absolute;
-    top: 0.5em;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #999;
-    border: 0.5em solid #eee;
-    border-bottom: 0;
-}
-
-.checkbox-wrapper-55 .switch-left,
-.checkbox-wrapper-55 .switch-right {
+.checkbox-wrapper-5 .check input[type="checkbox"],
+.checkbox-wrapper-5 .check label,
+.checkbox-wrapper-5 .check label::before,
+.checkbox-wrapper-5 .check label::after,
+.checkbox-wrapper-5 .check {
+    appearance: none;
+    display: inline-block;
+    border-radius: var(--size);
+    border: 0;
+    transition: .35s ease-in-out;
+    box-sizing: border-box;
     cursor: pointer;
+}
+
+.checkbox-wrapper-5 .check label {
+    width: calc(2.2 * var(--size));
+    height: var(--size);
+    background: #303642;
+    overflow: hidden;
+}
+
+.checkbox-wrapper-5 .check input[type="checkbox"] {
     position: absolute;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 2.5em;
-    width: 3em;
-    transition: 0.2s;
-    user-select: none;
+    z-index: 1;
+    width: calc(.8 * var(--size));
+    height: calc(.8 * var(--size));
+    top: calc(.1 * var(--size));
+    left: calc(.1 * var(--size));
+    background: linear-gradient(45deg, #dedede, #ffffff);
+    box-shadow: 0 6px 7px rgba(0,0,0,0.3);
+    outline: none;
+    margin: 0;
 }
 
-.checkbox-wrapper-55 .switch-left {
-    height: 2.4em;
-    width: 2.75em;
-    left: 0.85em;
-    bottom: 0.4em;
-    background-color: #ddd;
-    transform: rotate(15deg) skewX(15deg);
+.checkbox-wrapper-5 .check input[type="checkbox"]:checked {
+    left: calc(1.3 * var(--size));
 }
 
-.checkbox-wrapper-55 .switch-right {
-    right: 0.5em;
-    bottom: 0;
-    background-color: #bd5757;
-    color: #fff;
+.checkbox-wrapper-5 .check input[type="checkbox"]:checked + label {
+    background: transparent;
 }
 
-.checkbox-wrapper-55 .switch-left::before,
-.checkbox-wrapper-55 .switch-right::before {
-    content: "";
+.checkbox-wrapper-5 .check label::before,
+.checkbox-wrapper-5 .check label::after {
+    content: "· ·";
     position: absolute;
-    width: 0.4em;
-    height: 2.45em;
-    bottom: -0.45em;
-    background-color: #ccc;
-    transform: skewY(-65deg);
+    overflow: hidden;
+    left: calc(.15 * var(--size));
+    top: calc(.5 * var(--size));
+    height: var(--size);
+    letter-spacing: calc(-0.04 * var(--size));
+    color: #222831;
+    font-family: "Times New Roman", serif;
+    z-index: 2;
+    font-size: calc(.6 * var(--size));
+    border-radius: 0;
+    transform-origin: 0 0 calc(-0.5 * var(--size));
+    backface-visibility: hidden;
 }
 
-.checkbox-wrapper-55 .switch-left::before {
-    left: -0.4em;
+.checkbox-wrapper-5 .check label::after {
+    content: "●";
+    top: calc(.65 * var(--size));
+    left: calc(.2 * var(--size));
+    height: calc(.1 * var(--size));
+    width: calc(.35 * var(--size));
+    font-size: calc(.2 * var(--size));
+    transform-origin: 0 0 calc(-0.4 * var(--size));
 }
 
-.checkbox-wrapper-55 .switch-right::before {
-    right: -0.375em;
-    background-color: transparent;
-    transform: skewY(65deg);
+.checkbox-wrapper-5 .check input[type="checkbox"]:checked + label::before,
+.checkbox-wrapper-5 .check input[type="checkbox"]:checked + label::after {
+    left: calc(1.55 * var(--size));
+    top: calc(.4 * var(--size));
+    line-height: calc(.1 * var(--size));
+    transform: rotateY(360deg);
 }
 
-.checkbox-wrapper-55 input:checked + .switch-left {
-    background-color: #0084d0;
-    color: #fff;
-    bottom: 0px;
-    left: 0.5em;
-    height: 2.5em;
-    width: 3em;
-    transform: rotate(0deg) skewX(0deg);
-}
-
-.checkbox-wrapper-55 input:checked + .switch-left::before {
-    background-color: transparent;
-    width: 3.0833em;
-}
-
-.checkbox-wrapper-55 input:checked + .switch-left + .switch-right {
-    background-color: #ddd;
-    color: #888;
-    bottom: 0.4em;
-    right: 0.8em;
-    height: 2.4em;
-    width: 2.75em;
-    transform: rotate(-15deg) skewX(-15deg);
-}
-
-.checkbox-wrapper-55 input:checked + .switch-left + .switch-right::before {
-    background-color: #ccc;
-}
-
-/* Keyboard Users */
-.checkbox-wrapper-55 input:focus + .switch-left {
-    color: #333;
-}
-
-.checkbox-wrapper-55 input:checked:focus + .switch-left {
-    color: #fff;
-}
-
-.checkbox-wrapper-55 input:focus + .switch-left + .switch-right {
-    color: #fff;
-}
-
-.checkbox-wrapper-55 input:checked:focus + .switch-left + .switch-right {
-    color: #333;
+.checkbox-wrapper-5 .check input[type="checkbox"]:checked + label::after {
+    height: calc(.16 * var(--size));
+    top: calc(.55 * var(--size));
+    left: calc(1.6 * var(--size));
+    font-size: calc(.6 * var(--size));
+    line-height: 0;
 }
