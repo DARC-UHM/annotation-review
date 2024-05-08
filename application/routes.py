@@ -2,7 +2,7 @@ import base64
 import tator
 
 from io import BytesIO
-from flask import render_template, request, redirect, flash, session, Response
+from flask import render_template, request, redirect, flash, session, Response, send_file
 from json import JSONDecodeError
 
 from application import app
@@ -373,6 +373,11 @@ def tator_qaqc(project_id, section_id, check):
             data['page_title'] = 'Summary'
             data['annotations'] = qaqc_annos.final_records
             return render_template('qaqc/tator/qaqc-tables.html', data=data)
+        case 'image-guide':
+            presentation_data = BytesIO()
+            qaqc_annos.download_image_guide(app).save(presentation_data)
+            presentation_data.seek(0)
+            return send_file(presentation_data, as_attachment=True, download_name='image-guide.pptx')
         case _:
             return render_template('not-found.html', err=''), 404
     data['annotations'] = qaqc_annos.final_records
@@ -399,9 +404,15 @@ def tator_frame(media_id, frame):
 # view tator localization image
 @app.get('/tator-localization/<localization_id>')
 def tator_image(localization_id):
+    if not session.get('tator_token'):
+        if not request.values.get('token'):
+            return {}, 400
+        token = request.values.get('token')
+    else:
+        token = session["tator_token"]
     res = requests.get(
         url=f'{app.config.get("TATOR_URL")}/rest/LocalizationGraphic/{localization_id}',
-        headers={'Authorization': f'Token {session["tator_token"]}'}
+        headers={'Authorization': f'Token {token}'}
     )
     if res.status_code == 200:
         base64_image = base64.b64encode(res.content).decode('utf-8')

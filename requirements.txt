@@ -3,7 +3,8 @@ Flask-Session==0.8.0
 gunicorn==22.0.0
 jinja2==3.1.4
 pandas==2.2.2
-requests==2.31.0
-python-dotenv==1.0.1
-tator==1.2.6
 pytest==8.2.0
+python-dotenv==1.0.1
+python-pptx==0.6.23
+requests==2.31.0
+tator==1.2.8

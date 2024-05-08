@@ -1,11 +1,15 @@
 import json
-import os
-import sys
-
-import requests
 import pandas as pd
+import os
+import requests
+import sys
 import tator
+
 from flask import session
+from io import BytesIO
+from pptx import Presentation
+from pptx.dml.color import RGBColor
+from pptx.util import Inches, Pt
 
 from .constants import KNOWN_ANNOTATORS
 from .functions import *
@@ -164,6 +168,7 @@ class TatorQaqcProcessor:
                 'qualifier': localization['attributes'].get('Qualifier'),
                 'reason': localization['attributes'].get('Reason'),
                 'tentative_id': localization['attributes'].get('Tentative ID'),
+                'good_image': localization['attributes'].get('Good Image'),
                 'annotator': KNOWN_ANNOTATORS[localization['created_by']] if localization['created_by'] in KNOWN_ANNOTATORS.keys() else f'Unknown Annotator (#{localization["created_by"]})',
                 'frame': localization['frame'],
                 'frame_url': f'/tator/frame/{localization["media"]}/{localization["frame"]}',
@@ -201,6 +206,7 @@ class TatorQaqcProcessor:
             'qualifier',
             'reason',
             'tentative_id',
+            'good_image',
             'annotator',
             'frame',
             'frame_url',
@@ -241,6 +247,7 @@ class TatorQaqcProcessor:
             'qualifier': 'first',
             'reason': 'first',
             'tentative_id': 'first',
+            'good_image': 'first',
             'video_sequence_name': 'first',
             'annotator': 'first',
             'frame_url': 'first',
@@ -304,6 +311,7 @@ class TatorQaqcProcessor:
                 'qualifier': row['qualifier'],
                 'reason': row['reason'],
                 'tentative_id': row['tentative_id'],
+                'good_image': row['good_image'],
                 'phylum': row['phylum'],
                 'subphylum': row['subphylum'],
                 'superclass': row['superclass'],
@@ -554,3 +562,50 @@ class TatorQaqcProcessor:
         self.fetch_start_times()
         self.records_of_interest = [localization for localization in self.localizations if localization['type'] != 48]
         self.process_records(get_timestamp=True)
+
+    def download_image_guide(self, app) -> Presentation:
+        """
+        Finds all records marked as "good" images, saves them to a ppt.
+        """
+        for localization in self.localizations:
+            if localization['attributes'].get('Good Image'):
+                self.records_of_interest.append(localization)
+        self.process_records()
+        pres = Presentation()
+        image_slide_layout = pres.slide_layouts[6]
+
+        for record in self.final_records:
+            slide = pres.slides.add_slide(image_slide_layout)
+            # add image
+            response = requests.get(f'{app.config.get("LOCAL_APP_URL")}/tator-localization/{record["observation_uuid"]}?token={session["tator_token"]}')
+            if response.status_code != 200:
+                print(f'Error fetching image for record {record["observation_uuid"]}')
+                continue
+            image_data = BytesIO(response.content)
+            left = top = Inches(1)
+            slide.shapes.add_picture(image_data, left, top, height=Inches(5.5))
+            width = Inches(2)  # Adjust size as needed
+            height = Inches(1)  # Adjust size as needed
+            # add text box
+            text_box = slide.shapes.add_textbox(left, top, width, height)
+            text_frame = text_box.text_frame
+            paragraph = text_frame.paragraphs[0]
+            run = paragraph.add_run()
+            run.text = f'{record["scientific_name"]}{" (" + record["tentative_id"] + "?)" if record.get("tentative_id") else ""}'
+            font = run.font
+            font.name = 'Arial'
+            font.size = Pt(18)
+            font.color.rgb = RGBColor(0xff, 0xff, 0xff)
+            font.italic = True
+            if record['attracted'] == 'Not Attracted':
+                text_frame.add_paragraph()
+                paragraph = text_frame.paragraphs[1]
+                run_2 = paragraph.add_run()
+                run_2.text = 'NOT ATTRACTED'
+                font = run_2.font
+                font.name = 'Arial'
+                font.size = Pt(18)
+                font.color.rgb = RGBColor(0xff, 0x0, 0x0)
+                font.italic = False
+        return pres
+
