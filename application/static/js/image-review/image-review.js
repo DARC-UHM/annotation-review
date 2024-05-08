@@ -278,6 +278,7 @@ export function updateHash() {
                         <option value="video_sequence">Video Sequence</option>
                         <option value="comment">Comment (VARS)</option>
                         <option value="notes">Notes (Tator)</option>
+                        <option value="localization_type">Type (Tator)</option>
                         <option>Annotator</option>
                     </select>
                     <span class="position-absolute dropdown-chev">
@@ -333,6 +334,10 @@ export function updateHash() {
     }
     if (filter['notes']) { // Tator
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['notes']?.toLowerCase().includes(filter['notes'].toLowerCase().replaceAll('%20', ' ')));
+    }
+    if (filter['localization_type']) {
+        const localizationType = filter.localization_type.toLowerCase().includes('box') ? 48 : 49;
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['all_localizations'][0].type === localizationType);
     }
     if (filter['annotator']) {
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['annotator']?.toLowerCase().includes(filter['annotator'].toLowerCase().replaceAll('%20', ' ')));

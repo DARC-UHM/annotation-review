@@ -440,6 +440,26 @@ def update_tator_localization():
     return {}, 200
 
 
+# update tator localization 'good image'
+@app.patch('/tator/localization/good-image')
+def update_tator_localization_image():
+    localization_ids = request.values.getlist('localization_ids')
+    try:
+        for localization_id in localization_ids:
+            api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
+            api.update_localization(
+                id=localization_id,
+                localization_update=tator.models.LocalizationUpdate(
+                    attributes={
+                        'Good Image': True if request.values.get('good_image') == 'true' else False,
+                    },
+                )
+            )
+    except tator.openapi.tator_openapi.exceptions.ApiException:
+        return {}, 500
+    return {}, 200
+
+
 # view VARS annotations with images in a specified dive (or dives)
 @app.get('/vars/image-review')
 def view_images():

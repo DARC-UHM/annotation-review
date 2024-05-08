@@ -1,3 +1,5 @@
+import { updateFlashMessages } from '../util/updateFlashMessages.js';
+
 export const tatorLocalizationRow = (localization, externalComment) => {
     let localizationBoxId = null;
     for (const loco of localization.all_localizations) {
@@ -234,7 +236,42 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                         </div>
                     </div>
                 </a>
+                ${localization.all_localizations[0].type === 48
+                    ? `
+                        <div class="mt-2 small d-flex justify-content-center">
+                            <div class="my-auto">
+                                Good Image 
+                            </div>
+                            <div class="checkbox-wrapper-55 ms-2">
+                                <label class="rocker rocker-small">
+                                    <input type="checkbox" ${localization.good_image ? 'checked' : ''} onchange="updateGoodImage('${JSON.stringify(localization.all_localizations.map((loco) => loco.id))}', this.checked)">
+                                    <span class="switch-left">Yes</span>
+                                    <span class="switch-right">No</span>
+                                </label>
+                            </div>
+                        </div>
+                    ` : ''
+                }
             </td>
         </tr>
     `);
 };
+
+async function updateGoodImage(localization_ids, checked) {
+    const formData = new FormData();
+    for (const id of JSON.parse(localization_ids)) {
+        formData.append('localization_ids', id);
+    }
+    formData.append('good_image', checked);
+    const res = await fetch('/tator/localization/good-image', {
+        method: 'PATCH',
+        body: formData,
+    });
+    if (res.ok) {
+        updateFlashMessages('Image status updated', 'success');
+    } else {
+        updateFlashMessages('Error updating image status', 'danger');
+    }
+}
+
+window.updateGoodImage = updateGoodImage;
