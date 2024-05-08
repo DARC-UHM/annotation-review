@@ -1,7 +1,8 @@
 # DARC Annotation Review
 Streamlined QA/QC and image review for VARS annotations.
 
-[![Build Status](https://github.com/DARC-UHM/annotation-review/actions/workflows/python-app.yml/badge.svg)](https://github.com/DARC-UHM/annotation-review/actions/workflows/python-app.yml)
+[![Tests Status](https://darc-uhm.github.io/annotation-review/junit/junit.svg)](https://darc-uhm.github.io/annotation-review/junit/report.html)
+[![Coverage Status](https://darc-uhm.github.io/annotation-review/coverage/coverage.svg)](https://darc-uhm.github.io/annotation-review/coverage/)
 ***
 
 ### Installation
