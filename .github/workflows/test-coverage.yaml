@@ -44,14 +44,19 @@ jobs:
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
           # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-      - name: Test with pytest and generate coverage badge
+      - name: Test with pytest
         run: |
           pytest --cov=./ --cov-report xml:reports/coverage/coverage.xml --cov-report html:reports/coverage --junitxml=reports/junit/junit.xml --html=reports/junit/report.html test
+      - name: Gen Badges
+        if: always()
+        run: |
           genbadge coverage -o reports/coverage/coverage.svg
           genbadge tests -o reports/junit/junit.svg
       - name: Setup Pages
+        if: always()
         uses: actions/configure-pages@v5
       - name: Upload artifact
+        if: always()
         uses: actions/upload-pages-artifact@v3
         with:
           path: '${{ github.workspace }}/reports'
