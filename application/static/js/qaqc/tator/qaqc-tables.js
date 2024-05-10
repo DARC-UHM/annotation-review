@@ -63,7 +63,14 @@ function updateHash() {
                     <td>${uniqueTaxa[taxa].scientific_name}</td>
                     <td>${uniqueTaxa[taxa].tentative_id}</td>
                     <td>${uniqueTaxa[taxa].tofa}</td>
-                    <td>${uniqueTaxa[taxa].max_n}</td>
+                    <td>
+                        ${uniqueTaxa[taxa].max_n_url
+                            ? `<a class="aquaLink" href="${uniqueTaxa[taxa].max_n_url}" target="_blank">
+                                    ${uniqueTaxa[taxa].max_n}
+                                </a>`
+                            : uniqueTaxa[taxa].max_n
+                        }
+                    </td>
                     <td>
                         <a class="aquaLink" href="${uniqueTaxa[taxa].first_dot_url}" target="_blank" style="${boxBeforeDot ? 'color: yellow; font-weight: bold;' : ''}">
                             ${uniqueTaxa[taxa].first_dot}

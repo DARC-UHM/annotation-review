@@ -537,6 +537,7 @@ class TatorQaqcProcessor:
                 # check for new max N
                 if record['count'] > unique_taxa[key]['max_n']:
                     unique_taxa[key]['max_n'] = record['count']
+                    unique_taxa[key]['max_n_url'] = f'https://cloud.tator.io/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}'
             for localization in record['all_localizations']:
                 # increment box/dot counts, set first box/dot and TOFA
                 if localization['type'] == 48:
