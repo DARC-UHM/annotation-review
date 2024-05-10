@@ -259,7 +259,7 @@ class TatorQaqcProcessor:
         def collect_localizations(items):
             return [item for item in items]
 
-        localization_df = localization_df.groupby(['media_id', 'frame', 'scientific_name', 'type']).agg({
+        localization_df = localization_df.groupby(['media_id', 'frame', 'scientific_name', 'tentative_id', 'type']).agg({
             'id': 'first',
             'timestamp': 'first',
             'all_localizations': collect_localizations,
@@ -271,7 +271,6 @@ class TatorQaqcProcessor:
             'notes': 'first',
             'qualifier': 'first',
             'reason': 'first',
-            'tentative_id': 'first',
             'good_image': 'first',
             'video_sequence_name': 'first',
             'annotator': 'first',
@@ -561,6 +560,7 @@ class TatorQaqcProcessor:
                     'tentative_id': tentative_id,
                     'tofa': '',
                     'max_n': record['count'],
+                    'max_n_url': f'https://cloud.tator.io/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}',
                     'box_count': 0,
                     'dot_count': 0,
                     'first_box': '',
