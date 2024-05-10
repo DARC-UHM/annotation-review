@@ -335,6 +335,7 @@ def tator_qaqc(project_id, section_id, check):
         section_id=section_id,
         api=api,
         deployment_list=request.args.getlist('deployment'),
+        darc_review_url=app.config.get('DARC_REVIEW_URL'),
     )
     match check:
         case 'names-accepted':

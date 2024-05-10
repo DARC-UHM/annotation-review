@@ -280,6 +280,7 @@ function updateHash() {
                         ${sortKey=== 'depth' ? caretUpFill : sortKey=== 'depth-desc' ? caretDownFill : ''}
                     </div>
                 </th>
+                <th scope="col" style="cursor: default;">BaitType</th>
                 <th scope="col" onclick="setSort('count')" class="table-header-hover">
                     <div class="d-flex">
                         IndividualCount
@@ -337,7 +338,8 @@ function updateHash() {
                     <td>${annotation.attracted}</td>
                     <td>${annotation.lat || '-'}</td>
                     <td>${annotation.long || '-'}</td>
-                    <td>${annotation.depth || '-'}</td>
+                    <td>${annotation.depth_m || '-'}</td>
+                    <td>${annotation.bait_type || '-'}</td>
                     <td>${annotation.count || '-'}</td>
                     <td>${annotation.categorical_abundance || '-'}</td>
                 </tr>

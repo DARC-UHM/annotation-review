@@ -23,13 +23,14 @@ class TatorQaqcProcessor:
     Fetches annotation information from the Tator given a project id, section id, and list of deployments.
     Filters and formats the annotations for the various QA/QC checks.
     """
-    def __init__(self, project_id: int, section_id: int, api: tator.api, deployment_list: list):
+    def __init__(self, project_id: int, section_id: int, api: tator.api, deployment_list: list, darc_review_url: str = None):
         self.project_id = project_id
         self.section_id = section_id
         self.api = api
         self.deployments = deployment_list
         self.bottom_times = {deployment: '' for deployment in deployment_list}
         self.deployment_media_dict = {}
+        self.darc_review_url = darc_review_url
         self.records_of_interest = []
         self.final_records = []
         self.phylogeny = self.load_phylogeny()
@@ -131,15 +132,27 @@ class TatorQaqcProcessor:
                 return False
         return True
 
-    def process_records(self, no_match_records: set = None, get_timestamp: bool = False):
+    def process_records(self, no_match_records: set = None, get_timestamp: bool = False, get_ctd: bool = False):
         if not self.records_of_interest:
             return
         print('Processing localizations...', end='')
         sys.stdout.flush()
 
         formatted_localizations = []
+        expedition_fieldbook = []
+
         if not no_match_records:
             no_match_records = set()
+
+        if get_ctd:
+            fieldbook = requests.get(
+                url=f'{self.darc_review_url}/dropcam-fieldbook/{self.section_id}',
+                headers={'API-Key': os.environ.get('DARC_REVIEW_API_KEY')},
+            )
+            if fieldbook.status_code == 200:
+                expedition_fieldbook = fieldbook.json()['deployments']
+            else:
+                print(f'{TERM_RED}Error fetching expedition fieldbook.{TERM_NORMAL}')
 
         for localization in self.records_of_interest:
             if localization['type'] not in [48, 49]:
@@ -179,6 +192,14 @@ class TatorQaqcProcessor:
                 if localization['media'] in session['media_timestamps'].keys():
                     video_start_timestamp = datetime.fromisoformat(session['media_timestamps'][localization['media']])
                     localization_dict['timestamp'] = (video_start_timestamp + timedelta(seconds=localization['frame'] / 30)).strftime('%Y-%m-%d %H:%M:%SZ')
+            if get_ctd and expedition_fieldbook:
+                deployment_name = self.deployment_media_dict[localization['media']]
+                deployment_ctd = next((x for x in expedition_fieldbook if x['deployment_name'] == deployment_name), None)
+                if deployment_ctd:
+                    localization_dict['lat'] = deployment_ctd['lat']
+                    localization_dict['long'] = deployment_ctd['long']
+                    localization_dict['depth_m'] = deployment_ctd['depth_m']
+                    localization_dict['bait_type'] = deployment_ctd['bait_type']
             if scientific_name in self.phylogeny.keys():
                 for key in self.phylogeny[scientific_name].keys():
                     localization_dict[key] = self.phylogeny[scientific_name][key]
@@ -212,6 +233,10 @@ class TatorQaqcProcessor:
             'frame_url',
             'media_id',
             'problems',
+            'lat',
+            'long',
+            'depth_m',
+            'bait_type',
             'phylum',
             'subphylum',
             'superclass',
@@ -251,6 +276,11 @@ class TatorQaqcProcessor:
             'video_sequence_name': 'first',
             'annotator': 'first',
             'frame_url': 'first',
+            'problems': 'first',
+            'lat': 'first',
+            'long': 'first',
+            'depth_m': 'first',
+            'bait_type': 'first',
             'phylum': 'first',
             'subphylum': 'first',
             'superclass': 'first',
@@ -267,7 +297,6 @@ class TatorQaqcProcessor:
             'subgenus': 'first',
             'species': 'first',
             'subspecies': 'first',
-            'problems': 'first',
             'aphia_id': 'first',
         }).reset_index()
 
@@ -312,6 +341,11 @@ class TatorQaqcProcessor:
                 'reason': row['reason'],
                 'tentative_id': row['tentative_id'],
                 'good_image': row['good_image'],
+                'problems': row['problems'],
+                'lat': row['lat'],
+                'long': row['long'],
+                'depth_m': row['depth_m'],
+                'bait_type': row['bait_type'],
                 'phylum': row['phylum'],
                 'subphylum': row['subphylum'],
                 'superclass': row['superclass'],
@@ -328,7 +362,6 @@ class TatorQaqcProcessor:
                 'subgenus': row['subgenus'],
                 'species': row['species'],
                 'subspecies': row['subspecies'],
-                'problems': row['problems'],
                 'aphia_id': row['aphia_id'],
             })
 
