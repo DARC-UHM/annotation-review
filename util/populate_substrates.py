@@ -21,6 +21,16 @@ with open(CSV_FILE, newline='') as file:
         # get all media ids that match deployment name
         deployment_name = row['deployment'].replace('_2024', '')
         print(deployment_name)
+        attributes = {
+            'FOV': row['FoV'],
+            'Relief': row['relief'].replace('Relief: ', ''),
+            'Bedforms': row['bedforms'].replace('Bedforms: ', ''),
+            'Substrate': row['Substrate (Hard/Soft)'],
+            'Substrate Notes': row['Notes'],
+            'Primary Substrate': row['primarySubstrate'].replace('Substrate: ', ''),
+            'Secondary Substrate': row['secondarySubstrate'].replace('Substrate: ', ''),
+        }
+        print('New attributes:', attributes)
         res = requests.get(
             f'https://cloud.tator.io/rest/Medias/{PROJECT_ID}?section={SECTION_ID}&attribute_contains=%24name%3A%3A{deployment_name}',
             headers={
@@ -39,15 +49,7 @@ with open(CSV_FILE, newline='') as file:
                     'Authorization': f'Token {os.getenv("TATOR_TOKEN")}',
                 },
                 json={
-                    'attributes': {
-                        'FOV': row['FoV'],
-                        'Relief': row['relief'],
-                        'Bedforms': row['bedforms'],
-                        'Substrate': row['Substrate (Hard/Soft)'],
-                        'Substrate Notes': row['Notes'],
-                        'Primary Substrate': row['primarySubstrate'],
-                        'Secondary Substrate': row['secondarySubstrate'],
-                    },
+                    'attributes': attributes,
                 }
             )
             print(req.json())

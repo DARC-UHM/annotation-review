@@ -663,13 +663,13 @@ class TatorQaqcProcessor:
             if scientific_tentative not in deployment_taxa[record['video_sequence_name']]['tofa_dict'].keys():
                 # add new unique taxa to dict
                 deployment_taxa[record['video_sequence_name']]['tofa_dict'][scientific_tentative] = {
-                    'tofa': str(observed_timestamp - bottom_time),
+                    'tofa': str(observed_timestamp - bottom_time) if observed_timestamp > bottom_time else '00:00:00',
                     'tofa_url': f'https://cloud.tator.io/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}',
                 }
             else:
                 # check for new tofa
                 if str(observed_timestamp - bottom_time) < deployment_taxa[record['video_sequence_name']]['tofa_dict'][scientific_tentative]['tofa']:
-                    deployment_taxa[record['video_sequence_name']]['tofa_dict'][scientific_tentative]['tofa'] = str(observed_timestamp - bottom_time)
+                    deployment_taxa[record['video_sequence_name']]['tofa_dict'][scientific_tentative]['tofa'] = str(observed_timestamp - bottom_time) if observed_timestamp > bottom_time else '00:00:00'
                     deployment_taxa[record['video_sequence_name']]['tofa_dict'][scientific_tentative]['tofa_url'] = f'https://cloud.tator.io/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}'
         # convert unique taxa to list for sorting
         unique_taxa_list = list(unique_taxa.values())
