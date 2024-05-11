@@ -109,6 +109,18 @@ class TatorLocalizationProcessor:
                 'frame_url': f'/tator/frame/{localization["media"]}/{localization["frame"]}',
                 'media_id': localization['media'],
             }
+            if localization_dict['categorical_abundance'] and localization_dict['categorical_abundance'] != '--':
+                match localization_dict['categorical_abundance']:
+                    case '1-19':
+                        localization_dict['count'] = 10
+                    case '20-49':
+                        localization_dict['count'] = 35
+                    case '50-99':
+                        localization_dict['count'] = 75
+                    case '100-999':
+                        localization_dict['count'] = 500
+                    case _:
+                        print(f'Unknown categorical abundance: {localization_dict["categorical_abundance"]}')
             if scientific_name in phylogeny.keys():
                 for key in phylogeny[scientific_name].keys():
                     localization_dict[key] = phylogeny[scientific_name][key]

@@ -188,6 +188,18 @@ class TatorQaqcProcessor:
                 'media_id': localization['media'],
                 'problems': localization['problems'] if 'problems' in localization.keys() else None,
             }
+            if localization_dict['categorical_abundance'] and localization_dict['categorical_abundance'] != '--':
+                match localization_dict['categorical_abundance']:
+                    case '1-19':
+                        localization_dict['count'] = 10
+                    case '20-49':
+                        localization_dict['count'] = 35
+                    case '50-99':
+                        localization_dict['count'] = 75
+                    case '100-999':
+                        localization_dict['count'] = 500
+                    case _:
+                        print(f'{TERM_RED}Unknown categorical abundance: {localization_dict["categorical_abundance"]}{TERM_NORMAL}')
             if get_timestamp:
                 if localization['media'] in session['media_timestamps'].keys():
                     video_start_timestamp = datetime.fromisoformat(session['media_timestamps'][localization['media']])
