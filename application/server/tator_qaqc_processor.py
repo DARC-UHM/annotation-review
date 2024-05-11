@@ -608,6 +608,8 @@ class TatorQaqcProcessor:
         unique_taxa = {}
         for record in self.final_records:
             scientific_tentative = f'{record["scientific_name"]}{" (" + record["tentative_id"] + "?)" if record["tentative_id"] else ""}'
+            if record['count'] < 1:
+                continue
             if scientific_tentative not in unique_taxa.keys():
                 unique_taxa[scientific_tentative] = {
                     'scientific_tentative': scientific_tentative,
