@@ -580,20 +580,12 @@ class TatorQaqcProcessor:
                         unique_taxa[key]['first_dot_url'] = f'https://cloud.tator.io/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}&selected_entity={localization["id"]}'
         self.final_records = unique_taxa
 
-    def get_summary(self):
-        """
-        Returns a summary of the final records.
-        """
-        self.fetch_start_times()
-        self.records_of_interest = [localization for localization in self.localizations if localization['type'] != 48]
-        self.process_records(get_timestamp=True, get_ctd=True)
-
     def get_max_n(self):
         """
         Finds the highest dot count for each unique scientific name/tentative ID combo per deployment.
         """
         self.records_of_interest = self.localizations
-        self.process_records(get_timestamp=True, get_ctd=True)
+        self.process_records(get_ctd=True)
         deployment_taxa = {}
         unique_taxa = {}
         for record in self.final_records:
@@ -637,6 +629,68 @@ class TatorQaqcProcessor:
             x['species'] if x.get('species') else '',
         ))
         self.final_records = {'deployments': deployment_taxa, 'unique_taxa': [taxa['scientific_tentative'] for taxa in unique_taxa_list]}
+
+    def get_tofa(self):
+        """
+        Finds the time of first arrival for each unique scientific name/tentative ID combo per deployment.
+        """
+        self.fetch_start_times()
+        self.records_of_interest = self.localizations
+        self.process_records(get_timestamp=True, get_ctd=True)
+        deployment_taxa = {}
+        unique_taxa = {}
+        for record in self.final_records:
+            scientific_tentative = f'{record["scientific_name"]}{" (" + record["tentative_id"] + "?)" if record["tentative_id"] else ""}'
+            print(record)
+            observed_timestamp = datetime.strptime(record['timestamp'], '%Y-%m-%d %H:%M:%SZ')
+            bottom_time = datetime.strptime(self.bottom_times[record['video_sequence_name']], '%Y-%m-%d %H:%M:%SZ')
+            if record['count'] < 1:
+                continue
+            if scientific_tentative not in unique_taxa.keys():
+                unique_taxa[scientific_tentative] = {
+                    'scientific_tentative': scientific_tentative,
+                    'phylum': record.get('phylum'),
+                    'class': record.get('class'),
+                    'order': record.get('order'),
+                    'family': record.get('family'),
+                    'genus': record.get('genus'),
+                    'species': record.get('species'),
+                }
+            if record['video_sequence_name'] not in deployment_taxa.keys():
+                deployment_taxa[record['video_sequence_name']] = {
+                    'depth_m': record['depth_m'],
+                    'tofa_dict': {},
+                }
+            if scientific_tentative not in deployment_taxa[record['video_sequence_name']]['tofa_dict'].keys():
+                # add new unique taxa to dict
+                deployment_taxa[record['video_sequence_name']]['tofa_dict'][scientific_tentative] = {
+                    'tofa': str(observed_timestamp - bottom_time),
+                    'tofa_url': f'https://cloud.tator.io/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}',
+                }
+            else:
+                # check for new tofa
+                if str(observed_timestamp - bottom_time) < deployment_taxa[record['video_sequence_name']]['tofa_dict'][scientific_tentative]['tofa']:
+                    deployment_taxa[record['video_sequence_name']]['tofa_dict'][scientific_tentative]['tofa'] = str(observed_timestamp - bottom_time)
+                    deployment_taxa[record['video_sequence_name']]['tofa_dict'][scientific_tentative]['tofa_url'] = f'https://cloud.tator.io/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}'
+        # convert unique taxa to list for sorting
+        unique_taxa_list = list(unique_taxa.values())
+        unique_taxa_list.sort(key=lambda x: (
+            x['phylum'] if x.get('phylum') else '',
+            x['class'] if x.get('class') else '',
+            x['order'] if x.get('order') else '',
+            x['family'] if x.get('family') else '',
+            x['genus'] if x.get('genus') else '',
+            x['species'] if x.get('species') else '',
+        ))
+        self.final_records = {'deployments': deployment_taxa, 'unique_taxa': [taxa['scientific_tentative'] for taxa in unique_taxa_list]}
+
+    def get_summary(self):
+        """
+        Returns a summary of the final records.
+        """
+        self.fetch_start_times()
+        self.records_of_interest = [localization for localization in self.localizations if localization['type'] != 48]
+        self.process_records(get_timestamp=True, get_ctd=True)
 
     def download_image_guide(self, app) -> Presentation:
         """

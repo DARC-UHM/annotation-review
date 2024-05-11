@@ -376,8 +376,13 @@ def tator_qaqc(project_id, section_id, check):
             return render_template('qaqc/tator/qaqc-tables.html', data=data)
         case 'max-n':
             qaqc_annos.get_max_n()
-            data['page_title'] = 'Max N Table'
+            data['page_title'] = 'Max N'
             data['max_n'] = qaqc_annos.final_records
+            return render_template('qaqc/tator/qaqc-tables.html', data=data)
+        case 'tofa':
+            qaqc_annos.get_tofa()
+            data['page_title'] = 'Time of First Arrival'
+            data['tofa'] = qaqc_annos.final_records
             return render_template('qaqc/tator/qaqc-tables.html', data=data)
         case 'image-guide':
             presentation_data = BytesIO()

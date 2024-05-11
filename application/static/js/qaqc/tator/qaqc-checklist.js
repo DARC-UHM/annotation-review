@@ -86,6 +86,8 @@ document.addEventListener('DOMContentLoaded',  (event) => {
     $('#summaryAnchor').on('click', () => showLoader());
     $('#maxNAnchor').attr('href', `/tator/qaqc/${projectId}/${sectionId}/max-n?deployment=${deployments.join('&deployment=')}`);
     $('#maxNAnchor').on('click', () => showLoader());
+    $('#tofaAnchor').attr('href', `/tator/qaqc/${projectId}/${sectionId}/tofa?deployment=${deployments.join('&deployment=')}`);
+    $('#tofaAnchor').on('click', () => showLoader());
     $('#imageGuideAnchor').attr('href', `/tator/qaqc/${projectId}/${sectionId}/image-guide?deployment=${deployments.join('&deployment=')}`);
 });
 

@@ -136,6 +136,37 @@ function updateHash() {
                 </tr>
             `);
         }
+    } else if (Object.keys(tofa).length) {
+        // tofa table
+        $('#countLabel').html('Unique Taxa:&nbsp;&nbsp');
+        $('#totalCount').html(Object.keys(tofa.unique_taxa).length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+        $('#downloadCsvButton').show();
+        $('#downloadCsvButton').on('click', () => {
+            downloadTofaCsv();
+        });
+        $('#annotationTable').find('thead').html(`
+            <tr class="small">
+                <th scope="col">Deployment</th>
+                <th scope="col" >Depth (m)</th>
+                ${tofa.unique_taxa.map((taxa) => `<th scope="col" class="fw-normal" style="writing-mode: vertical-lr;">${taxa}</th>`)}
+            </tr>
+        `);
+        for (let i = 0; i < Object.keys(tofa.deployments).length; i++) {
+            const deployment = tofa.deployments[Object.keys(tofa.deployments)[i]];
+            $('#annotationTable').find('tbody').append(`
+                <tr class="text-start small">
+                    <td>${Object.keys(tofa.deployments)[i]}</td>
+                    <td>${deployment.depth_m}</td>
+                    ${tofa.unique_taxa.map((taxa) => deployment.tofa_dict[taxa] ? `
+                        <td>
+                            <a href="${deployment.tofa_dict[taxa].tofa_url}" target="_blank" class="aquaLink">
+                                ${deployment.tofa_dict[taxa].tofa}
+                            </a>
+                        </td>
+                    ` : '<td></td>')}
+                </tr>
+            `);
+        }
     } else {
         // summary table
         const url = new URL(window.location.href);
@@ -391,6 +422,7 @@ function downloadSummaryCsv() {
         'Subspecies',
         'TentativeID',
         'ObservationTimestamp',
+        'TimestampUNIX',
         'IdentificationRemarks',
         'IdentifiedBy',
         'IdentificationQualifier',
@@ -421,6 +453,7 @@ function downloadSummaryCsv() {
         annotation.subspecies,
         annotation.tentative_id,
         annotation.timestamp,
+        new Date(annotation.timestamp).getTime(),
         annotation.identification_remarks,
         annotation.identified_by || annotation.annotator,
         annotation.qualifier,
@@ -433,20 +466,7 @@ function downloadSummaryCsv() {
         annotation.count,
         annotation.categorical_abundance,
     ]);
-
-    let csvContent = 'data:text/csv;charset=utf-8,';
-    csvContent += headers.join(',') + '\n';
-    rows.forEach((rowArray) => {
-        const row = rowArray.join(',');
-        csvContent += row + '\n';
-    });
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `${deployments.join('|')}.csv`);
-    document.body.appendChild(link);
-    link.click();
+    downloadCsv(headers, rows, 'summary');
 }
 
 function downloadMaxNCsv() {
@@ -462,7 +482,26 @@ function downloadMaxNCsv() {
         });
         return row;
     });
+    downloadCsv(headers, rows, 'max-n');
+}
 
+function downloadTofaCsv() {
+    const headers = [
+        'Deployment',
+        'DepthMeters',
+        ...tofa.unique_taxa,
+    ];
+    const rows = Object.keys(tofa.deployments).map((deployment) => {
+        const row = [deployment, tofa.deployments[deployment].depth_m];
+        tofa.unique_taxa.forEach((taxa) => {
+            row.push(tofa.deployments[deployment].tofa_dict[taxa]?.tofa || '');
+        });
+        return row;
+    });
+    downloadCsv(headers, rows, 'tofa');
+}
+
+function downloadCsv(headers, rows, title) {
     let csvContent = 'data:text/csv;charset=utf-8,';
     csvContent += headers.join(',') + '\n';
     rows.forEach((rowArray) => {
@@ -473,7 +512,7 @@ function downloadMaxNCsv() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', 'max-n.csv');
+    link.setAttribute('download', `${title}.csv`);
     document.body.appendChild(link);
     link.click();
 }
