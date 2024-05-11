@@ -375,6 +375,7 @@ function updateHash() {
 function downloadSummaryCsv() {
     const headers = [
         'ScientificName',
+        'Deployment',
         'TaxonRank',
         'AphiaID',
         'Phylum',
@@ -404,6 +405,7 @@ function downloadSummaryCsv() {
     ];
     const rows = annotations.map((annotation) => [
         annotation.scientific_name,
+        annotation.video_sequence_name,
         annotation.rank,
         annotation.aphia_id,
         annotation.phylum,
@@ -427,7 +429,7 @@ function downloadSummaryCsv() {
         annotation.attracted,
         annotation.lat,
         annotation.long,
-        annotation.depth,
+        annotation.depth_m,
         annotation.count,
         annotation.categorical_abundance,
     ]);
