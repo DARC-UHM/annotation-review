@@ -374,6 +374,11 @@ def tator_qaqc(project_id, section_id, check):
             data['page_title'] = 'Summary'
             data['annotations'] = qaqc_annos.final_records
             return render_template('qaqc/tator/qaqc-tables.html', data=data)
+        case 'max-n':
+            qaqc_annos.get_max_n()
+            data['page_title'] = 'Max N Table'
+            data['max_n'] = qaqc_annos.final_records
+            return render_template('qaqc/tator/qaqc-tables.html', data=data)
         case 'image-guide':
             presentation_data = BytesIO()
             qaqc_annos.download_image_guide(app).save(presentation_data)

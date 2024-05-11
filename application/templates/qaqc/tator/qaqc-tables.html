@@ -22,7 +22,7 @@
             <h3>No records found<br></h3>
         </div>
         <div id="tableContainer" class="col d-flex justify-content-center mt-3">
-            <table id="annotationTable" class="table table-striped" style="max-width: 1300px !important;">
+            <table id="annotationTable" class="table table-striped">
                 <thead class="text-start"></thead>
                 <tbody></tbody>
             </table>
@@ -36,6 +36,7 @@
         const True = true;
         const False = false;
         const uniqueTaxa = {{ data.unique_taxa|safe or {} }};
+        const maxN = {{ data.max_n|safe or {} }};
         const mediaAttributes = {{ data.media_attributes|safe or {} }};
         const annotations = {{ data.annotations|safe or {} }};
     </script>

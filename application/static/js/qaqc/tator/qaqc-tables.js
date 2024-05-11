@@ -116,6 +116,37 @@ function updateHash() {
         }
         $('#countLabel').html('Total Media:&nbsp;&nbsp');
         $('#totalCount').html(totalMedia.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+    } else if (Object.keys(maxN).length) {
+        // max n table
+        $('#countLabel').html('Unique Taxa:&nbsp;&nbsp');
+        $('#totalCount').html(Object.keys(maxN.unique_taxa).length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+        $('#downloadCsvButton').show();
+        $('#downloadCsvButton').on('click', () => {
+            downloadMaxNCsv();
+        });
+        $('#annotationTable').find('thead').html(`
+            <tr class="small">
+                <th scope="col">Deployment</th>
+                <th scope="col" >Depth (m)</th>
+                ${maxN.unique_taxa.map((taxa) => `<th scope="col" class="fw-normal" style="writing-mode: vertical-lr;">${taxa}</th>`)}
+            </tr>
+        `);
+        for (let i = 0; i < Object.keys(maxN.deployments).length; i++) {
+            const deployment = maxN.deployments[Object.keys(maxN.deployments)[i]];
+            $('#annotationTable').find('tbody').append(`
+                <tr class="text-start small">
+                    <td>${Object.keys(maxN.deployments)[i]}</td>
+                    <td>${deployment.depth_m}</td>
+                    ${maxN.unique_taxa.map((taxa) => deployment.max_n_dict[taxa] ? `
+                        <td>
+                            <a href="${deployment.max_n_dict[taxa].max_n_url}" target="_blank" class="aquaLink">
+                                ${deployment.max_n_dict[taxa].max_n}
+                            </a>
+                        </td>
+                    ` : '<td></td>')}
+                </tr>
+            `);
+        }
     } else {
         // summary table
         const url = new URL(window.location.href);
@@ -147,6 +178,9 @@ function updateHash() {
         $('#tableContainer').removeClass('d-flex');
         $('#backButtonText').removeClass('d-xxl-inline');
         $('#downloadCsvButton').show();
+        $('#downloadCsvButton').on('click', () => {
+            downloadSummaryCsv();
+        });
         $('#annotationTable').find('thead').html(`
             <tr class="small text-start sticky-top" style="background: #1c2128; cursor: pointer;">
                 <th
@@ -349,7 +383,7 @@ function updateHash() {
     }
 }
 
-function downloadCsv() {
+function downloadSummaryCsv() {
     const headers = [
         'ScientificName',
         'TaxonRank',
@@ -424,6 +458,35 @@ function downloadCsv() {
     link.click();
 }
 
+function downloadMaxNCsv() {
+    const headers = [
+        'Deployment',
+        'DepthMeters',
+        ...maxN.unique_taxa,
+    ];
+    const rows = Object.keys(maxN.deployments).map((deployment) => {
+        const row = [deployment, maxN.deployments[deployment].depth_m];
+        maxN.unique_taxa.forEach((taxa) => {
+            row.push(maxN.deployments[deployment].max_n_dict[taxa]?.max_n || '');
+        });
+        return row;
+    });
+
+    let csvContent = 'data:text/csv;charset=utf-8,';
+    csvContent += headers.join(',') + '\n';
+    rows.forEach((rowArray) => {
+        const row = rowArray.join(',');
+        csvContent += row + '\n';
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', 'max-n.csv');
+    document.body.appendChild(link);
+    link.click();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const url = new URL(window.location.href);
 
@@ -434,10 +497,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     $('#deploymentList').html(`${deployments.join(', ')}<br>`);
-
-    $('#downloadCsvButton').on('click', () => {
-        downloadCsv();
-    });
 
     updateHash();
 });

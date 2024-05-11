@@ -596,7 +596,55 @@ class TatorQaqcProcessor:
         """
         self.fetch_start_times()
         self.records_of_interest = [localization for localization in self.localizations if localization['type'] != 48]
-        self.process_records(get_timestamp=True)
+        self.process_records(get_timestamp=True, get_ctd=True)
+
+    def get_max_n(self):
+        """
+        Finds the highest dot count for each unique scientific name/tentative ID combo per deployment.
+        """
+        self.records_of_interest = self.localizations
+        self.process_records(get_timestamp=True, get_ctd=True)
+        deployment_taxa = {}
+        unique_taxa = {}
+        for record in self.final_records:
+            scientific_tentative = f'{record["scientific_name"]}{" (" + record["tentative_id"] + "?)" if record["tentative_id"] else ""}'
+            if scientific_tentative not in unique_taxa.keys():
+                unique_taxa[scientific_tentative] = {
+                    'scientific_tentative': scientific_tentative,
+                    'phylum': record.get('phylum'),
+                    'class': record.get('class'),
+                    'order': record.get('order'),
+                    'family': record.get('family'),
+                    'genus': record.get('genus'),
+                    'species': record.get('species'),
+                }
+            if record['video_sequence_name'] not in deployment_taxa.keys():
+                deployment_taxa[record['video_sequence_name']] = {
+                    'depth_m': record['depth_m'],
+                    'max_n_dict': {},
+                }
+            if scientific_tentative not in deployment_taxa[record['video_sequence_name']]['max_n_dict'].keys():
+                # add new unique taxa to dict
+                deployment_taxa[record['video_sequence_name']]['max_n_dict'][scientific_tentative] = {
+                    'max_n': record['count'],
+                    'max_n_url': f'https://cloud.tator.io/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}',
+                }
+            else:
+                # check for new max N
+                if record['count'] > deployment_taxa[record['video_sequence_name']]['max_n_dict'][scientific_tentative]['max_n']:
+                    deployment_taxa[record['video_sequence_name']]['max_n_dict'][scientific_tentative]['max_n'] = record['count']
+                    deployment_taxa[record['video_sequence_name']]['max_n_dict'][scientific_tentative]['max_n_url'] = f'https://cloud.tator.io/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}'
+        # convert unique taxa to list for sorting
+        unique_taxa_list = list(unique_taxa.values())
+        unique_taxa_list.sort(key=lambda x: (
+            x['phylum'] if x.get('phylum') else '',
+            x['class'] if x.get('class') else '',
+            x['order'] if x.get('order') else '',
+            x['family'] if x.get('family') else '',
+            x['genus'] if x.get('genus') else '',
+            x['species'] if x.get('species') else '',
+        ))
+        self.final_records = {'deployments': deployment_taxa, 'unique_taxa': [taxa['scientific_tentative'] for taxa in unique_taxa_list]}
 
     def download_image_guide(self, app) -> Presentation:
         """
