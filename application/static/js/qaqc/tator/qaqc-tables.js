@@ -41,8 +41,6 @@ function updateHash() {
             <tr>
                 <th scope="col">Scientific Name</th>
                 <th scope="col">Tentative ID</th>
-                <th scope="col">TOFA (HH:MM:SS)</th>
-                <th scope="col">Max N</th>
                 <th scope="col">First Dot</th>
                 <th scope="col">First Box</th>
                 <th scope="col">Num Dots</th>
@@ -62,15 +60,6 @@ function updateHash() {
                 <tr class="text-start">
                     <td>${uniqueTaxa[taxa].scientific_name}</td>
                     <td>${uniqueTaxa[taxa].tentative_id}</td>
-                    <td>${uniqueTaxa[taxa].tofa}</td>
-                    <td>
-                        ${uniqueTaxa[taxa].max_n_url
-                            ? `<a class="aquaLink" href="${uniqueTaxa[taxa].max_n_url}" target="_blank">
-                                    ${uniqueTaxa[taxa].max_n}
-                                </a>`
-                            : uniqueTaxa[taxa].max_n
-                        }
-                    </td>
                     <td>
                         <a class="aquaLink" href="${uniqueTaxa[taxa].first_dot_url}" target="_blank" style="${boxBeforeDot ? 'color: yellow; font-weight: bold;' : ''}">
                             ${uniqueTaxa[taxa].first_dot}
