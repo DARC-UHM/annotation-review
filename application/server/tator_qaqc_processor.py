@@ -326,8 +326,8 @@ class TatorQaqcProcessor:
             'subfamily',
             'genus',
             'species',
-            'frame',
             'media_id',
+            'frame',
         ])
 
         for index, row in localization_df.iterrows():
