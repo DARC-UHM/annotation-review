@@ -41,6 +41,9 @@ class CommentProcessor:
             guide_photo = None
             vars_comment = None
             upon = None
+            good_image = False
+            media_id = None
+            frame = None
 
             if 'scientific_name' not in self.comments[comment].keys()\
                     or self.comments[comment]['scientific_name'] is None\
@@ -67,16 +70,32 @@ class CommentProcessor:
                         elif association['link_name'] == 'comment':
                             vars_comment = association['link_value']
             else:
-                # tator localization
-                concept_name = self.comments[comment]['scientific_name'].split(' (')[0]  # to account for records like Macrouridae (Coryphaenoides?)
-                annotation = requests.get(
-                    url=f'https://cloud.tator.io/rest/Localization/{comment}',
-                    headers={
-                        'Content-Type': 'application/json',
-                        'Authorization': f'Token {session["tator_token"]}',
-                    }
-                )
-                annotation = annotation.json()
+                try:
+                    # tator localization
+                    annotation = requests.get(
+                        url=f'https://cloud.tator.io/rest/Localization/{comment}',
+                        headers={
+                            'Content-Type': 'application/json',
+                            'Authorization': f'Token {session["tator_token"]}',
+                        }
+                    )
+                    annotation = annotation.json()
+                    concept_name = annotation['attributes']['Scientific Name']
+                    media_id = annotation['media']
+                    frame = annotation['frame']
+                    if annotation['attributes'].get('Good Image'):
+                        good_image = True
+                    if annotation['variant_deleted']:
+                        problem_comment = self.comments[comment]
+                        problem_comment['timestamp'] = f'Media ID: {media_id}, Frame: {frame}'
+                        print(f'{TERM_RED}ERROR: Could not find annotation with UUID {comment} in Tator ({problem_comment["sequence"]}, {problem_comment["timestamp"]}){TERM_NORMAL}')
+                        self.missing_records.append(problem_comment)
+                        continue
+                except (JSONDecodeError, requests.ConnectTimeout):
+                    problem_comment = self.comments[comment]
+                    print(f'{TERM_RED}ERROR: Could not find annotation with UUID {comment} in Tator ({problem_comment["sequence"]}, {problem_comment["timestamp"]}){TERM_NORMAL}')
+                    self.missing_records.append(problem_comment)
+                    continue
             if concept_name not in phylogeny.keys():
                 # get the phylogeny from VARS kb
                 with requests.get(url=f'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/{concept_name}') \
@@ -103,7 +122,7 @@ class CommentProcessor:
             comment_dict = {
                 'observation_uuid': comment,
                 'concept': concept_name,
-                'scientific_name': self.comments[comment].get('scientific_name'),
+                'scientific_name': concept_name,
                 'associations': annotation.get('associations'),
                 'all_localizations': json.loads(self.comments[comment].get('all_localizations')) if self.comments[comment].get('all_localizations') else None,
                 'attracted': annotation['attributes'].get('Attracted') if annotation.get('attributes') else None,
@@ -117,6 +136,9 @@ class CommentProcessor:
                 'identity_certainty': identity_certainty,
                 'identity_reference': identity_reference,
                 'guide-photo': guide_photo,
+                'good_image': good_image,
+                'media_id': media_id,
+                'frame': frame,
                 'comment': vars_comment,
                 'image_url': self.comments[comment]['image_url'],
                 'video_url': self.comments[comment].get('video_url'),
@@ -153,6 +175,9 @@ class CommentProcessor:
             'identity_certainty',
             'identity_reference',
             'guide_photo',
+            'good_image',
+            'media_id',
+            'frame',
             'comment',
             'image_url',
             'video_url',
@@ -231,6 +256,9 @@ class CommentProcessor:
                 'identity_certainty': row['identity_certainty'],
                 'identity_reference': row['identity_reference'],
                 'guide_photo': row['guide_photo'],
+                'good_image': row['good_image'],
+                'media_id': row['media_id'],
+                'frame': row['frame'],
                 'comment': row['comment'],
                 'image_url': row['image_url'],
                 'video_url': row['video_url'],
