@@ -9,7 +9,7 @@ const sequences = [];
 let currentPage = 1;
 let pageCount;
 let paginationLimit = 25;
-let annotationsToDisplay = annotations;
+let annotationsToDisplay = [...annotations];
 
 const getPaginationNumbers = () => {
     $('#pagination-numbers').empty();
@@ -158,7 +158,7 @@ function sortBy(key) {
     let tempKey;
     key = key.replaceAll('%20', ' ');
     if (key === 'Default') {
-        annotationsToDisplay = annotations;
+        annotationsToDisplay = [...annotations];
         return;
     }
     if (key === 'Timestamp') {
@@ -178,6 +178,7 @@ function sortBy(key) {
     } else {
         switch (tempKey) {
             case 'phylum':
+                filtered = filterAndSort(filtered, 'tentative_id');
                 filtered = filterAndSort(filtered, 'species');
                 filtered = filterAndSort(filtered, 'genus');
                 filtered = filterAndSort(filtered, 'family');
@@ -186,6 +187,7 @@ function sortBy(key) {
                 filtered = filterAndSort(filtered, 'phylum');
                 break;
             case 'class':
+                filtered = filterAndSort(filtered, 'tentative_id');
                 filtered = filterAndSort(filtered, 'species');
                 filtered = filterAndSort(filtered, 'genus');
                 filtered = filterAndSort(filtered, 'family');
@@ -193,17 +195,20 @@ function sortBy(key) {
                 filtered = filterAndSort(filtered, 'class');
                 break;
             case 'order':
+                filtered = filterAndSort(filtered, 'tentative_id');
                 filtered = filterAndSort(filtered, 'species');
                 filtered = filterAndSort(filtered, 'genus');
                 filtered = filterAndSort(filtered, 'family');
                 filtered = filterAndSort(filtered, 'order');
                 break;
             case 'family':
+                filtered = filterAndSort(filtered, 'tentative_id');
                 filtered = filterAndSort(filtered, 'species');
                 filtered = filterAndSort(filtered, 'genus');
                 filtered = filterAndSort(filtered, 'family');
                 break;
             case 'genus':
+                filtered = filterAndSort(filtered, 'tentative_id');
                 filtered = filterAndSort(filtered, 'species');
                 filtered = filterAndSort(filtered, 'genus');
                 break;
@@ -236,7 +241,7 @@ export function updateHash() {
     const filterPairs = hash.split('&');
     const filter = {};
 
-    annotationsToDisplay = annotations;
+    annotationsToDisplay = [...annotations];
 
     filterPairs.pop(); // pop page number
 
