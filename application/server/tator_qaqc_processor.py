@@ -132,7 +132,7 @@ class TatorQaqcProcessor:
                 return False
         return True
 
-    def process_records(self, no_match_records: set = None, get_timestamp: bool = False, get_ctd: bool = False):
+    def process_records(self, no_match_records: set = None, get_timestamp: bool = False, get_ctd: bool = False, get_substrates: bool = False):
         if not self.records_of_interest:
             return
         print('Processing localizations...', end='')
@@ -140,6 +140,7 @@ class TatorQaqcProcessor:
 
         formatted_localizations = []
         expedition_fieldbook = []
+        deployment_substrates = {}
 
         if not no_match_records:
             no_match_records = set()
@@ -153,6 +154,15 @@ class TatorQaqcProcessor:
                 expedition_fieldbook = fieldbook.json()['deployments']
             else:
                 print(f'{TERM_RED}Error fetching expedition fieldbook.{TERM_NORMAL}')
+
+        if get_substrates:
+            for deployment in self.deployments:
+                deployment_substrates[deployment] = self.api.get_media_list(
+                    project=self.project_id,
+                    section=self.section_id,
+                    attribute_contains=[f'$name::{deployment}'],
+                    stop=1,
+                )[0].attributes
 
         for localization in self.records_of_interest:
             if localization['type'] not in [48, 49]:
@@ -212,6 +222,12 @@ class TatorQaqcProcessor:
                     localization_dict['long'] = deployment_ctd['long']
                     localization_dict['depth_m'] = deployment_ctd['depth_m']
                     localization_dict['bait_type'] = deployment_ctd['bait_type']
+            if get_substrates and deployment_substrates:
+                localization_dict['primary_substrate'] = deployment_substrates[self.deployment_media_dict[localization['media']]]['Primary Substrate']
+                localization_dict['secondary_substrate'] = deployment_substrates[self.deployment_media_dict[localization['media']]]['Secondary Substrate']
+                localization_dict['bedforms'] = deployment_substrates[self.deployment_media_dict[localization['media']]]['Bedforms']
+                localization_dict['relief'] = deployment_substrates[self.deployment_media_dict[localization['media']]]['Relief']
+                localization_dict['substrate_notes'] = deployment_substrates[self.deployment_media_dict[localization['media']]]['Substrate Notes']
             if scientific_name in self.phylogeny.keys():
                 for key in self.phylogeny[scientific_name].keys():
                     localization_dict[key] = self.phylogeny[scientific_name][key]
@@ -249,6 +265,11 @@ class TatorQaqcProcessor:
             'long',
             'depth_m',
             'bait_type',
+            'primary_substrate',
+            'secondary_substrate',
+            'bedforms',
+            'relief',
+            'substrate_notes',
             'phylum',
             'subphylum',
             'superclass',
@@ -292,6 +313,11 @@ class TatorQaqcProcessor:
             'long': 'first',
             'depth_m': 'first',
             'bait_type': 'first',
+            'primary_substrate': 'first',
+            'secondary_substrate': 'first',
+            'bedforms': 'first',
+            'relief': 'first',
+            'substrate_notes': 'first',
             'phylum': 'first',
             'subphylum': 'first',
             'superclass': 'first',
@@ -357,6 +383,11 @@ class TatorQaqcProcessor:
                 'long': row['long'],
                 'depth_m': row['depth_m'],
                 'bait_type': row['bait_type'],
+                'primary_substrate': row['primary_substrate'],
+                'secondary_substrate': row['secondary_substrate'],
+                'bedforms': row['bedforms'],
+                'relief': row['relief'],
+                'substrate_notes': row['substrate_notes'],
                 'phylum': row['phylum'],
                 'subphylum': row['subphylum'],
                 'superclass': row['superclass'],
@@ -701,7 +732,7 @@ class TatorQaqcProcessor:
         """
         self.fetch_start_times()
         self.records_of_interest = [localization for localization in self.localizations if localization['type'] != 48]
-        self.process_records(get_timestamp=True, get_ctd=True)
+        self.process_records(get_timestamp=True, get_ctd=True, get_substrates=True)
 
     def download_image_guide(self, app) -> Presentation:
         """

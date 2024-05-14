@@ -290,6 +290,18 @@ function updateHash() {
                 </th>
                 <th scope="col">TentativeID</th>
                 <th scope="col">ObservationTimestamp</th>
+                <th scope="col" onclick="setSort('count')" class="table-header-hover">
+                    <div class="d-flex">
+                        IndividualCount
+                        ${sortKey=== 'count' ? caretUpFill : sortKey=== 'count-desc' ? caretDownFill : ''}
+                    </div>
+                </th>
+                <th scope="col" onclick="setSort('categorical_abundance')" class="table-header-hover">
+                    <div class="d-flex">
+                        CategoricalAbundance
+                        ${sortKey=== 'categorical_abundance' ? caretUpFill : sortKey=== 'categorical_abundance-desc' ? caretDownFill : ''}
+                    </div>
+                </th>
                 <th scope="col" onclick="setSort('identification_remarks')" class="table-header-hover">
                     <div class="d-flex">
                         IdentificationRemarks
@@ -334,19 +346,38 @@ function updateHash() {
                         ${sortKey=== 'depth' ? caretUpFill : sortKey=== 'depth-desc' ? caretDownFill : ''}
                     </div>
                 </th>
+                <th scope="col" onclick="setSort('primary-substrate')" class="table-header-hover">
+                    <div class="d-flex">
+                        PrimarySubstrate
+                        ${sortKey=== 'primary-substrate' ? caretUpFill : sortKey=== 'primary-substrate-desc' ? caretDownFill : ''}
+                    </div>
+                </th>
+                <th scope="col" onclick="setSort('secondary-substrate')" class="table-header-hover">
+                    <div class="d-flex">
+                        SecondarySubstrate
+                        ${sortKey=== 'secondary-substrate' ? caretUpFill : sortKey=== 'secondary-substrate-desc' ? caretDownFill : ''}
+                    </div>
+                </th>
+                <th scope="col" onclick="setSort('relief')" class="table-header-hover">
+                    <div class="d-flex">
+                        Relief
+                        ${sortKey=== 'relief' ? caretUpFill : sortKey=== 'relief-desc' ? caretDownFill : ''}
+                    </div>
+                </th>
+                <th scope="col" onclick="setSort('bedforms')" class="table-header-hover">
+                    <div class="d-flex">
+                        Bedforms
+                        ${sortKey=== 'bedforms' ? caretUpFill : sortKey=== 'bedforms-desc' ? caretDownFill : ''}
+                    </div>
+                </th>
+                <th scope="col" onclick="setSort('substrate-notes')" class="table-header-hover">
+                    <div class="d-flex">
+                        SubstrateNotes
+                        ${sortKey=== 'substrate-notes' ? caretUpFill : sortKey=== 'substrate-notes-desc' ? caretDownFill : ''}
+                    </div>
+                </th>               
                 <th scope="col" style="cursor: default;">BaitType</th>
-                <th scope="col" onclick="setSort('count')" class="table-header-hover">
-                    <div class="d-flex">
-                        IndividualCount
-                        ${sortKey=== 'count' ? caretUpFill : sortKey=== 'count-desc' ? caretDownFill : ''}
-                    </div>
-                </th>
-                <th scope="col" onclick="setSort('categorical_abundance')" class="table-header-hover">
-                    <div class="d-flex">
-                        CategoricalAbundance
-                        ${sortKey=== 'categorical_abundance' ? caretUpFill : sortKey=== 'categorical_abundance-desc' ? caretDownFill : ''}
-                    </div>
-                </th>
+
             </tr>
         `);
         for (const annotation of sortedAnnotations) {
@@ -384,6 +415,8 @@ function updateHash() {
                     <td>${annotation.subspecies || '-'}</td>
                     <td>${annotation.tentative_id || '-'}</td>
                     <td>${annotation.timestamp || '-'}</td>
+                    <td>${annotation.count || '-'}</td>
+                    <td>${annotation.categorical_abundance || '-'}</td>
                     <td>${annotation.identification_remarks || '-'}</td>
                     <td>${annotation.identified_by || annotation.annotator}</td>
                     <td>${annotation.qualifier}</td>
@@ -393,9 +426,12 @@ function updateHash() {
                     <td>${annotation.lat || '-'}</td>
                     <td>${annotation.long || '-'}</td>
                     <td>${annotation.depth_m || '-'}</td>
+                    <td>${annotation.primary_substrate || '-'}</td>
+                    <td>${annotation.secondary_substrate || '-'}</td>
+                    <td>${annotation.relief || '-'}</td>
+                    <td>${annotation.bedforms || '-'}</td>
+                    <td>${annotation.substrate_notes || '-'}</td>
                     <td>${annotation.bait_type || '-'}</td>
-                    <td>${annotation.count || '-'}</td>
-                    <td>${annotation.categorical_abundance || '-'}</td>
                 </tr>
             `);
             dark = !dark;
@@ -422,7 +458,8 @@ function downloadSummaryCsv() {
         'Subspecies',
         'TentativeID',
         'ObservationTimestamp',
-        'TimestampUNIX',
+        'IndividualCount',
+        'CategoricalAbundance',
         'IdentificationRemarks',
         'IdentifiedBy',
         'IdentificationQualifier',
@@ -432,8 +469,12 @@ function downloadSummaryCsv() {
         'Latitude',
         'Longitude',
         'DepthInMeters',
-        'IndividualCount',
-        'CategoricalAbundance',
+        'PrimarySubstrate',
+        'SecondarySubstrate',
+        'Relief',
+        'Bedforms',
+        'SubstrateNotes',
+        'BaitType',
     ];
     const rows = annotations.map((annotation) => [
         annotation.scientific_name,
@@ -453,7 +494,8 @@ function downloadSummaryCsv() {
         annotation.subspecies,
         annotation.tentative_id,
         annotation.timestamp,
-        new Date(annotation.timestamp).getTime(),
+        annotation.count,
+        annotation.categorical_abundance,
         annotation.identification_remarks,
         annotation.identified_by || annotation.annotator,
         annotation.qualifier,
@@ -463,8 +505,12 @@ function downloadSummaryCsv() {
         annotation.lat,
         annotation.long,
         annotation.depth_m,
-        annotation.count,
-        annotation.categorical_abundance,
+        annotation.primary_substrate,
+        annotation.secondary_substrate,
+        annotation.relief,
+        annotation.bedforms,
+        annotation.substrate_notes,
+        annotation.bait_type,
     ]);
     downloadCsv(headers, rows, 'summary');
 }

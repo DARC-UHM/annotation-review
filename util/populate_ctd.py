@@ -150,16 +150,21 @@ for localization in localizations:
     # find the row in the CSV that matches the timestamp
     converted_timestamp = unix_timestamp - offset
     row = df.loc[df['Dropcam Timestamp (s)'] == converted_timestamp]
-    do_temp = row['DO Temperature (celsius)'].values[0]
-    do_concentration = row['DO Concentration Salin Comp (mol/L)'].values[0]
-    depth = row['Depth (meters)'].values[0]
+    try:
+        do_temp = row['DO Temperature (celsius)'].values[0]
+        do_concentration = row['DO Concentration Salin Comp (mol/L)'].values[0]
+        depth = row['Depth (meters)'].values[0]
+    except IndexError:
+        print(f'{TERM_RED}No CTD data found for localization {localization["id"]}{TERM_NORMAL}')
+        print(localization)
+        exit(1)
 
     if do_temp < 0 or do_temp > 35:
-        print(f'{TERM_YELLOW}WARNING: DO Temperature out of range (0-35): ({do_temp}){TERM_NORMAL}')
+        print(f'{TERM_YELLOW}WARNING: DO Temperature out of range (0-35): {do_temp}{TERM_NORMAL}')
     if do_concentration < 0 or do_concentration > 320:
-        print(f'{TERM_YELLOW}WARNING: DO Concentration out of range (0-320): ({do_concentration}){TERM_NORMAL}')
+        print(f'{TERM_YELLOW}WARNING: DO Concentration out of range (0-320): {do_concentration}{TERM_NORMAL}')
     if depth + 10 < deployment_depth_m:
-        print(f'{TERM_YELLOW}WARNING: Excepted depth (deployment depth was {deployment_depth_m}): ({depth}){TERM_NORMAL}')
+        print(f'{TERM_YELLOW}WARNING: Unexpected depth: {depth} (deployment depth was {deployment_depth_m}){TERM_NORMAL}')
 
     # update the localization
     update_res = requests.patch(
