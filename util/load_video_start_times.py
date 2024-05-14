@@ -2,7 +2,7 @@
 Populates the 'Start Time' attribute of videos in Tator with the creation date of the video file.
 Creation date is extracted from the XML metadata of the video file in Dropbox.
 
-To run this script, you must have a .env file in the same directory as this script with the following variables:
+To run this script, you must have a .env file in the root of the repository the following variables:
     - DROPBOX_ACCESS_TOKEN: Access token for the Dropbox API (https://www.dropbox.com/developers/apps)
     - DROPBOX_FOLDER_PATH: Path to the folder in Dropbox containing the deployment's video files
     - TATOR_TOKEN: Tator API token

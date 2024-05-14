@@ -1,3 +1,11 @@
+"""
+Populates the substrate attributes of video clips in Tator with information loaded from a CSV file. Before running
+this script, ensure that the CSV file does not contain special characters (e.g. '%') or commas in the 'Substrate
+Notes' field.
+
+Usage: python populate_substrates.py <project_id> <section_id> <substrates csv file>
+"""
+
 import csv
 import dotenv
 import os
@@ -42,6 +50,8 @@ with open(CSV_FILE, newline='') as file:
         print(f'Found {len(media_ids)} media files')
         # update attributes for each media id
         for media_id in media_ids:
+            print(f'Updating media id: {media_id}...', end='')
+            sys.stdout.flush()
             req = requests.patch(
                 f'https://cloud.tator.io/rest/Media/{media_id}',
                 headers={
