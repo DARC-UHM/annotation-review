@@ -178,7 +178,7 @@ function updateHash() {
         if (sortKey.includes('-desc')) {
             const tempSortKey = sortKey.split('-')[0];
             let filtered = annotations.filter((anno) => anno[tempSortKey]);
-            if (sortKey.includes('count')) {
+            if (['count', 'depth_m'].includes(tempSortKey)) {
                 filtered.sort((a, b) => b[tempSortKey] > a[tempSortKey]);
             } else {
                 filtered.sort((a, b) => b[tempSortKey]?.localeCompare(a[tempSortKey]));
@@ -186,10 +186,10 @@ function updateHash() {
             sortedAnnotations = filtered.concat(annotations.filter((anno) => !anno[tempSortKey]));
         } else {
             let filtered = annotations.filter((anno) => anno[sortKey]);
-            if (sortKey.includes('count')) {
+            if (['count', 'depth_m'].includes(sortKey)) {
                 filtered.sort((a, b) => b[sortKey] < a[sortKey]);
             } else {
-                filtered.sort((a, b) => b[sortKey]?.localeCompare(a[sortKey]));
+                filtered.sort((a, b) => a[sortKey]?.localeCompare(b[sortKey]));
             }
             sortedAnnotations = filtered.concat(annotations.filter((anno) => !anno[sortKey]));
         }
@@ -288,8 +288,18 @@ function updateHash() {
                         ${sortKey=== 'subspecies' ? caretUpFill : sortKey=== 'subspecies-desc' ? caretDownFill : ''}
                     </div>
                 </th>
-                <th scope="col">TentativeID</th>
-                <th scope="col">ObservationTimestamp</th>
+                <th scope="col" onclick="setSort('tentative_id')" class="table-header-hover">
+                    <div class="d-flex">
+                        TentativeID
+                        ${sortKey=== 'tentative_id' ? caretUpFill : sortKey=== 'tentative_id-desc' ? caretDownFill : ''}
+                    </div>
+                </th>
+                <th scope="col" onclick="setSort('timestamp')" class="table-header-hover">
+                    <div class="d-flex">
+                        ObservationTimestamp
+                        ${sortKey=== 'timestamp' ? caretUpFill : sortKey=== 'timestamp-desc' ? caretDownFill : ''}
+                    </div>
+                </th>
                 <th scope="col" onclick="setSort('count')" class="table-header-hover">
                     <div class="d-flex">
                         IndividualCount
@@ -340,24 +350,24 @@ function updateHash() {
                 </th>
                 <th scope="col" style="cursor: default;">Latitude</th>
                 <th scope="col" style="cursor: default;">Longitude</th>
-                <th scope="col" onclick="setSort('depth')" class="table-header-hover">
+                <th scope="col" onclick="setSort('depth_m')" class="table-header-hover">
                     <div class="d-flex">
                         Depth(m)
-                        ${sortKey=== 'depth' ? caretUpFill : sortKey=== 'depth-desc' ? caretDownFill : ''}
+                        ${sortKey=== 'depth_m' ? caretUpFill : sortKey=== 'depth_m-desc' ? caretDownFill : ''}
                     </div>
                 </th>
                 <th scope="col" style="cursor: default;">DOTemperature(C)</th>
                 <th scope="col" style="cursor: default;">DOSalinityComp(mol/L)</th>
-                <th scope="col" onclick="setSort('primary-substrate')" class="table-header-hover">
+                <th scope="col" onclick="setSort('primary_substrate')" class="table-header-hover">
                     <div class="d-flex">
                         PrimarySubstrate
-                        ${sortKey=== 'primary-substrate' ? caretUpFill : sortKey=== 'primary-substrate-desc' ? caretDownFill : ''}
+                        ${sortKey=== 'primary_substrate' ? caretUpFill : sortKey=== 'primary_substrate-desc' ? caretDownFill : ''}
                     </div>
                 </th>
-                <th scope="col" onclick="setSort('secondary-substrate')" class="table-header-hover">
+                <th scope="col" onclick="setSort('secondary_substrate')" class="table-header-hover">
                     <div class="d-flex">
                         SecondarySubstrate
-                        ${sortKey=== 'secondary-substrate' ? caretUpFill : sortKey=== 'secondary-substrate-desc' ? caretDownFill : ''}
+                        ${sortKey=== 'secondary_substrate' ? caretUpFill : sortKey=== 'secondary_substrate-desc' ? caretDownFill : ''}
                     </div>
                 </th>
                 <th scope="col" onclick="setSort('relief')" class="table-header-hover">
@@ -372,10 +382,10 @@ function updateHash() {
                         ${sortKey=== 'bedforms' ? caretUpFill : sortKey=== 'bedforms-desc' ? caretDownFill : ''}
                     </div>
                 </th>
-                <th scope="col" onclick="setSort('substrate-notes')" class="table-header-hover">
+                <th scope="col" onclick="setSort('substrate_notes')" class="table-header-hover">
                     <div class="d-flex">
                         SubstrateNotes
-                        ${sortKey=== 'substrate-notes' ? caretUpFill : sortKey=== 'substrate-notes-desc' ? caretDownFill : ''}
+                        ${sortKey=== 'substrate_notes' ? caretUpFill : sortKey=== 'substrate_notes-desc' ? caretDownFill : ''}
                     </div>
                 </th>               
                 <th scope="col" style="cursor: default;">BaitType</th>
