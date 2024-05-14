@@ -216,6 +216,7 @@ class TatorLocalizationProcessor:
             'subfamily',
             'genus',
             'species',
+            'tentative_id',
             'media_id',
             'frame',
         ])
