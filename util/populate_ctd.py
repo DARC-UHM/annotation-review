@@ -13,7 +13,6 @@ To run this script, you must have a .env file in the root of the repository the 
     - DROPBOX_ACCESS_TOKEN: Access token for the Dropbox API (https://www.dropbox.com/developers/apps)
     - DROPBOX_FOLDER_PATH: Path to the folder in Dropbox containing the deployment's video files
     - TATOR_TOKEN: Tator API token
-    - DARC_REVIEW_API_KEY: DARC Review API key
 
 Usage: python populate_ctd.py <project_id> <section_id> <deployment_name>
 """
@@ -89,22 +88,6 @@ get_localization_res = requests.get(
 localizations += get_localization_res.json()
 print(f'fetched {len(localizations)} localizations')
 
-# find the first row in the CSV where the depth is greater than or equal to the depth in the fieldbook
-req = requests.get(
-    url=f'https://hurlstor.soest.hawaii.edu:5000/dropcam-fieldbook/{SECTION_ID}',
-    headers={
-        'API-Key': os.getenv('DARC_REVIEW_API_KEY'),
-    },
-)
-if req.status_code != 200:
-    print(f'{TERM_RED}Error fetching fieldbook: staus code {req.status_code}{TERM_NORMAL}')
-    exit(1)
-fieldbook = req.json()['deployments']
-deployment_depth_m = next((d['depth_m'] for d in fieldbook if d['deployment_name'] == DEPLOYMENT_NAME), None)
-if deployment_depth_m is None:
-    print(f'{TERM_RED}Deployment {DEPLOYMENT_NAME} not found in fieldbook{TERM_NORMAL}')
-    exit(1)
-
 # get the csv for the deployment
 print(f'Fetching CTD CSV file...', end='')
 dbx = dropbox.Dropbox(os.getenv('DROPBOX_ACCESS_TOKEN'))  # create a Dropbox client instance
@@ -128,11 +111,16 @@ if df is None:
     print(f'{TERM_RED}No CTD CSV file found in Dropbox{TERM_NORMAL}')
     exit(1)
 
-print(f'\nDeployment depth: {deployment_depth_m} m')
-print(f'Video bottom arrival time unix: {camera_bottom_unix_timestamp} ({bottom_time})')
-
-# find the row in the CSV that matches the bottom time
-bottom_row = df.loc[df['Depth (meters)'] >= deployment_depth_m].iloc[0]
+# find the point at which the depths stop increasing
+bottom_row = None
+rolling_avg = df['Depth (meters)'].rolling(window=20).mean()
+for i in range(250, len(rolling_avg)):  # it takes at least 250 seconds to reach the bottom
+    diff = rolling_avg[i] - rolling_avg[i-1]
+    if abs(diff) < 0.1 and df['Depth (meters)'][i] > 250:
+        bottom_row = df.iloc[rolling_avg.index[i] - 20]
+        break
+if bottom_row is None:
+    print(f'{TERM_RED}Could not find bottom arrival time{TERM_NORMAL}')
 print(f'Sensor bottom data arrival time unix: {bottom_row["Dropcam Timestamp (s)"]}')
 
 offset = camera_bottom_unix_timestamp - bottom_row['Dropcam Timestamp (s)']
@@ -163,8 +151,8 @@ for localization in localizations:
         print(f'{TERM_YELLOW}WARNING: DO Temperature out of range (0-35): {do_temp}{TERM_NORMAL}')
     if do_concentration < 0 or do_concentration > 320:
         print(f'{TERM_YELLOW}WARNING: DO Concentration out of range (0-320): {do_concentration}{TERM_NORMAL}')
-    if depth + 10 < deployment_depth_m:
-        print(f'{TERM_YELLOW}WARNING: Unexpected depth: {depth} (deployment depth was {deployment_depth_m}){TERM_NORMAL}')
+    if depth + 50 < bottom_row['Depth (meters)']:
+        print(f'{TERM_YELLOW}WARNING: Unexpected depth: {depth} (deployment depth was ~{bottom_row["Depth (meters)"]}){TERM_NORMAL}')
 
     # update the localization
     update_res = requests.patch(
@@ -183,4 +171,5 @@ for localization in localizations:
     print(update_res.json())
 
 # pau
+print(f'CTD for {DEPLOYMENT_NAME} synced!')
 os.system('say "CTD synced."')
