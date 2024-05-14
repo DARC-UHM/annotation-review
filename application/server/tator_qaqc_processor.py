@@ -215,6 +215,8 @@ class TatorQaqcProcessor:
                     video_start_timestamp = datetime.fromisoformat(session['media_timestamps'][localization['media']])
                     localization_dict['timestamp'] = (video_start_timestamp + timedelta(seconds=localization['frame'] / 30)).strftime('%Y-%m-%d %H:%M:%SZ')
             if get_ctd and expedition_fieldbook:
+                localization_dict['do_temp_c'] = localization['attributes'].get('DO Temperature (celsius)')
+                localization_dict['do_concentration_salin_comp_mol_L'] = localization['attributes'].get('DO Concentration Salin Comp (mol per L)')
                 deployment_name = self.deployment_media_dict[localization['media']]
                 deployment_ctd = next((x for x in expedition_fieldbook if x['deployment_name'] == deployment_name), None)
                 if deployment_ctd:
@@ -264,6 +266,8 @@ class TatorQaqcProcessor:
             'lat',
             'long',
             'depth_m',
+            'do_temp_c',
+            'do_concentration_salin_comp_mol_L',
             'bait_type',
             'primary_substrate',
             'secondary_substrate',
@@ -312,6 +316,8 @@ class TatorQaqcProcessor:
             'lat': 'first',
             'long': 'first',
             'depth_m': 'first',
+            'do_temp_c': 'first',
+            'do_concentration_salin_comp_mol_L': 'first',
             'bait_type': 'first',
             'primary_substrate': 'first',
             'secondary_substrate': 'first',
@@ -382,6 +388,8 @@ class TatorQaqcProcessor:
                 'lat': row['lat'],
                 'long': row['long'],
                 'depth_m': row['depth_m'],
+                'do_temp_c': row['do_temp_c'],
+                'do_concentration_salin_comp_mol_L': row['do_concentration_salin_comp_mol_L'],
                 'bait_type': row['bait_type'],
                 'primary_substrate': row['primary_substrate'],
                 'secondary_substrate': row['secondary_substrate'],

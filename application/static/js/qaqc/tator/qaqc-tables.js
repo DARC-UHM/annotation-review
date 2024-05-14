@@ -342,10 +342,12 @@ function updateHash() {
                 <th scope="col" style="cursor: default;">Longitude</th>
                 <th scope="col" onclick="setSort('depth')" class="table-header-hover">
                     <div class="d-flex">
-                        DepthInMeters
+                        Depth(m)
                         ${sortKey=== 'depth' ? caretUpFill : sortKey=== 'depth-desc' ? caretDownFill : ''}
                     </div>
                 </th>
+                <th scope="col" style="cursor: default;">DOTemperature(C)</th>
+                <th scope="col" style="cursor: default;">DOSalinityComp(mol/L)</th>
                 <th scope="col" onclick="setSort('primary-substrate')" class="table-header-hover">
                     <div class="d-flex">
                         PrimarySubstrate
@@ -426,6 +428,8 @@ function updateHash() {
                     <td>${annotation.lat || '-'}</td>
                     <td>${annotation.long || '-'}</td>
                     <td>${annotation.depth_m || '-'}</td>
+                    <td>${annotation.do_temp_c || '-'}</td>
+                    <td>${annotation.do_concentration_salin_comp_mol_L || '-'}</td>
                     <td>${annotation.primary_substrate || '-'}</td>
                     <td>${annotation.secondary_substrate || '-'}</td>
                     <td>${annotation.relief || '-'}</td>
@@ -468,7 +472,9 @@ function downloadSummaryCsv() {
         'Attracted',
         'Latitude',
         'Longitude',
-        'DepthInMeters',
+        'Depth(m)',
+        'DOTemperature(C)',
+        'DOSalinityComp(mol/L)',
         'PrimarySubstrate',
         'SecondarySubstrate',
         'Relief',
@@ -505,6 +511,8 @@ function downloadSummaryCsv() {
         annotation.lat,
         annotation.long,
         annotation.depth_m,
+        annotation.do_temp_c,
+        annotation.do_concentration_salin_comp_mol_L,
         annotation.primary_substrate,
         annotation.secondary_substrate,
         annotation.relief,
