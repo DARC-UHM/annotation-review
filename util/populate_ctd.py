@@ -17,12 +17,6 @@ To run this script, you must have a .env file in the root of the repository the 
 Usage: python populate_ctd.py <project_id> <section_id> <deployment_name>
 """
 
-# TODO problems:
-#   - 232474154 - abnormal vals
-#   - dep 21 - sliding down slope
-#   - dep 23 - incorrect depth in fieldbook
-#   - dep 24 - need to add 0 to arrival
-
 import dotenv
 import dropbox
 import os
@@ -45,7 +39,6 @@ def populate_ctd(project_id, section_id, deployment_name):
     sys.stdout.flush()
     media_ids = {}
     bottom_time = None
-    arrival_time = None
     camera_bottom_unix_timestamp = None
     res = requests.get(
         url=f'https://cloud.tator.io/rest/Medias/{project_id}?section={section_id}&attribute_contains=%24name%3A%3A{deployment_name}',
@@ -63,7 +56,10 @@ def populate_ctd(project_id, section_id, deployment_name):
         media_ids[media['id']] = media['attributes']['Start Time']
         if media['attributes'].get('Arrival') and media['attributes']['Arrival'] != '':
             video_start_timestamp = datetime.fromisoformat(media["attributes"]["Start Time"])
-            bottom_time = video_start_timestamp + timedelta(seconds=int(int(media['attributes']['Arrival'].split('|')[0]) / 30))
+            if 'not observed' in media['attributes']['Arrival']:
+                bottom_time = video_start_timestamp
+            else:
+                bottom_time = video_start_timestamp + timedelta(seconds=int(int(media['attributes']['Arrival'].split('|')[0]) / 30))
             camera_bottom_unix_timestamp = time.mktime(bottom_time.timetuple())
     print(f'fetched {len(media_ids)} media IDs')
 
@@ -113,7 +109,7 @@ def populate_ctd(project_id, section_id, deployment_name):
     rolling_avg = df['Depth (meters)'].rolling(window=20).mean()
     for i in range(250, len(rolling_avg)):  # it takes at least 250 seconds to reach the bottom
         diff = rolling_avg[i] - rolling_avg[i-1]
-        if abs(diff) < 0.1 and df['Depth (meters)'][i] > 250:
+        if abs(diff) < 0.1 and df['Depth (meters)'][i] > 200:
             bottom_row = df.iloc[rolling_avg.index[i] - 20]
             break
     if bottom_row is None:
@@ -141,15 +137,82 @@ def populate_ctd(project_id, section_id, deployment_name):
             depth = row['Depth (meters)'].values[0]
         except IndexError:
             print(f'{TERM_RED}No CTD data found for localization {localization["id"]}{TERM_NORMAL}')
+            print(f'Localization timestamp: {this_timestamp}')
+            print(f'Localization unix timestamp: {unix_timestamp}')
             print(localization)
             exit(1)
 
-        if do_temp < 0 or do_temp > 35:
+        if do_temp <= 0 or do_temp > 35:
             print(f'{TERM_YELLOW}WARNING: DO Temperature out of range (0-35): {do_temp}{TERM_NORMAL}')
-        if do_concentration < 0 or do_concentration > 320:
+            print(f'Timestamp: {converted_timestamp}')
+            print('Attempting to find row with a valid DO Temperature...')
+            earlier_do_temp = -1
+            later_do_temp = -1
+            search_offset = 1
+            while (earlier_do_temp <= 0 or earlier_do_temp > 35) and (later_do_temp <= 0 or later_do_temp > 35):
+                row = df.loc[df['Dropcam Timestamp (s)'] == converted_timestamp - search_offset]
+                try:
+                    earlier_do_temp = row['DO Temperature (celsius)'].values[0]
+                except IndexError:
+                    pass
+                if 0 < earlier_do_temp <= 35:
+                    print(f'Found valid DO Temperature at timestamp {converted_timestamp - search_offset} ({search_offset} seconds earlier)')
+                    do_temp = earlier_do_temp
+                    do_concentration = row['DO Concentration Salin Comp (mol/L)'].values[0]
+                    depth = row['Depth (meters)'].values[0]
+                    break
+                row = df.loc[df['Dropcam Timestamp (s)'] == converted_timestamp + search_offset]
+                try:
+                    later_do_temp = row['DO Temperature (celsius)'].values[0]
+                except IndexError:
+                    pass
+                if 0 < later_do_temp <= 35:
+                    print(f'Found valid DO Temperature at timestamp {converted_timestamp + search_offset} ({search_offset} seconds later)')
+                    do_temp = later_do_temp
+                    do_concentration = row['DO Concentration Salin Comp (mol/L)'].values[0]
+                    depth = row['Depth (meters)'].values[0]
+                    break
+                search_offset += 1
+                if search_offset > 300:
+                    print(f'{TERM_RED}Could not find valid DO Temperature within 5 minutes of localization, exiting{TERM_NORMAL}')
+                    exit(1)
+        if do_concentration <= 0 or do_concentration > 320:
             print(f'{TERM_YELLOW}WARNING: DO Concentration out of range (0-320): {do_concentration}{TERM_NORMAL}')
+            print(f'Timestamp: {converted_timestamp}')
+            print('Attempting to find row with a valid DO Concentration...')
+            earlier_do_concentration = -1
+            later_do_concentration = -1
+            search_offset = 1
+            while (earlier_do_concentration <= 0 or earlier_do_concentration > 320) and (later_do_concentration <= 0 or later_do_concentration > 320):
+                row = df.loc[df['Dropcam Timestamp (s)'] == converted_timestamp - search_offset]
+                try:
+                    earlier_do_concentration = row['DO Concentration Salin Comp (mol/L)'].values[0]
+                except IndexError:
+                    pass
+                if 0 < earlier_do_concentration <= 320:
+                    print(f'Found valid DO Concentration at timestamp {converted_timestamp - search_offset} ({search_offset} seconds earlier)')
+                    do_concentration = earlier_do_concentration
+                    do_temp = row['DO Temperature (celsius)'].values[0]
+                    depth = row['Depth (meters)'].values[0]
+                    break
+                row = df.loc[df['Dropcam Timestamp (s)'] == converted_timestamp + search_offset]
+                try:
+                    later_do_concentration = row['DO Concentration Salin Comp (mol/L)'].values[0]
+                except IndexError:
+                    pass
+                if 0 < later_do_concentration <= 320:
+                    print(f'Found valid DO Concentration Salin Comp at timestamp {converted_timestamp + search_offset} ({search_offset} seconds later)')
+                    do_concentration = earlier_do_concentration
+                    do_temp = row['DO Temperature (celsius)'].values[0]
+                    depth = row['Depth (meters)'].values[0]
+                    break
+                search_offset += 1
+                if search_offset > 300:
+                    print(f'{TERM_RED}Could not find valid DO Concentration Salin Comp within 5 minutes of localization, exiting{TERM_NORMAL}')
+                    exit(1)
         if depth + 50 < bottom_row['Depth (meters)']:
-            print(f'{TERM_YELLOW}WARNING: Unexpected depth: {depth} (deployment depth was ~{bottom_row["Depth (meters)"]}){TERM_NORMAL}')
+            print(f'{TERM_YELLOW}WARNING: Unexpected depth: {depth} (deployment depth was approximately {bottom_row["Depth (meters)"]}){TERM_NORMAL}')
+            print(f'Localization URL: https://cloud.tator.io/{project_id}/annotation/{localization["media"]}?frame={localization["frame"]}')
 
         # update the localization
         update_res = requests.patch(
@@ -175,12 +238,19 @@ dotenv.load_dotenv()
 TATOR_TOKEN = os.getenv('TATOR_TOKEN')
 
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print('Usage: python load_video_start_times.py <project_id> <section_id>')
+    if len(sys.argv) != 3 and len(sys.argv) != 4:
+        print('Usage: python load_video_start_times.py <project_id> <section_id> <OPTIONAL:deployment_name>')
         sys.exit()
 
-    for i in range(16, 59):
-        populate_ctd(project_id=sys.argv[1], section_id=sys.argv[2], deployment_name=f'PLW_dscm_{i:02d}')
+    if len(sys.argv) == 4:
+        # only do one deployment
+        populate_ctd(project_id=sys.argv[1], section_id=sys.argv[2], deployment_name=sys.argv[3])
+        os.system('say "Deployment CTD synced."')
+    else:
+        # entire expedition
+        for i in range(27, 59):
+            populate_ctd(project_id=sys.argv[1], section_id=sys.argv[2], deployment_name=f'PLW_dscm_{i:02d}')
+        os.system('say "Expedition CTD synced."')
 
     print('Done!')
-    os.system('say "Expedition CTD synced."')
+
