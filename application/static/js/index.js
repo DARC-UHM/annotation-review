@@ -42,8 +42,13 @@ async function getTatorSections(projectId) {
         for (const section of json) {
             $('#tatorSection').append(`<option value="${section.id}">${section.name}</option>`);
         }
-        $('#tatorSection').val(11922); // default to 11922 (Palau DOEX0096)
-        await getTatorDeployments(projectId, 11922);
+        // load default section from local storage
+        let sectionId = json[0].id;
+        if (localStorage.getItem('tatorSection')) {
+            sectionId = localStorage.getItem('tatorSection');
+        }
+        $('#tatorSection').val(sectionId);
+        await getTatorDeployments(projectId, sectionId);
     }
 }
 
@@ -124,7 +129,10 @@ $('#tatorSelect').on('click', async () => {
 });
 
 $('#tatorProject').on('change', () => getTatorSections($('#tatorProject').val()));
-$('#tatorSection').on('change', () => getTatorDeployments($('#tatorProject').val(), $('#tatorSection').val()));
+$('#tatorSection').on('change', () => {
+    localStorage.setItem('tatorSection', $('#tatorSection').val());
+    getTatorDeployments($('#tatorProject').val(), $('#tatorSection').val());
+});
 
 $('#varsSelect').on('click', () => {
     $('#tatorLogin').hide();
