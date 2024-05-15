@@ -526,17 +526,12 @@ class TatorQaqcProcessor:
 
     def check_non_target_not_attracted(self):
         """
-        Finds records that are:
-          - Marked as "non-target" but are marked as "attracted"
-          - Marked as "not attracted" but missing "non-target"
+        Finds records that are marked as "non-target" but are marked as "attracted".
         """
         for localization in self.localizations:
             attracted = localization['attributes']['Attracted']
             reason = localization['attributes']['Reason']
             if 'Non-target' in reason and attracted != 'Not Attracted':
-                localization['problems'] = 'Attracted, Reason'
-                self.records_of_interest.append(localization)
-            elif attracted == 'Not Attracted' and 'Non-target' not in reason:
                 localization['problems'] = 'Attracted, Reason'
                 self.records_of_interest.append(localization)
         self.process_records()
