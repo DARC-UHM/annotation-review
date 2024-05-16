@@ -122,7 +122,7 @@ class CommentProcessor:
             comment_dict = {
                 'observation_uuid': comment,
                 'concept': concept_name,
-                'scientific_name': concept_name,
+                'scientific_name': concept_name if 'scientific_name' in self.comments[comment].keys() else None,
                 'associations': annotation.get('associations'),
                 'all_localizations': json.loads(self.comments[comment].get('all_localizations')) if self.comments[comment].get('all_localizations') else None,
                 'attracted': annotation['attributes'].get('Attracted') if annotation.get('attributes') else None,

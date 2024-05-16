@@ -104,6 +104,16 @@ def populate_ctd(project_id, section_id, deployment_name):
         print(f'{TERM_RED}No CTD CSV file found in Dropbox{TERM_NORMAL}')
         exit(1)
 
+    # ensure csv times are sequential
+    # print('Checking for non-sequential timestamps...', end='')
+    # sys.stdout.flush()
+    # prev_timestamp = None
+    # for i, row in df.iterrows():
+    #     if prev_timestamp is not None and row['Dropcam Timestamp (s)'] != prev_timestamp + 1:
+    #         print(f'{TERM_RED}Non-sequential timestamps found at row {i}{TERM_NORMAL}')
+    #     prev_timestamp = row['Dropcam Timestamp (s)']
+    # return
+
     # find the point at which the depths stop increasing
     bottom_row = None
     rolling_avg = df['Depth (meters)'].rolling(window=20).mean()
@@ -137,8 +147,7 @@ def populate_ctd(project_id, section_id, deployment_name):
             depth = row['Depth (meters)'].values[0]
         except IndexError:
             print(f'{TERM_RED}No CTD data found for localization {localization["id"]}{TERM_NORMAL}')
-            print(f'Localization timestamp: {this_timestamp}')
-            print(f'Localization unix timestamp: {unix_timestamp}')
+            print(f'Sensor timestamp: {converted_timestamp}')
             print(localization)
             exit(1)
 
@@ -213,6 +222,7 @@ def populate_ctd(project_id, section_id, deployment_name):
         if depth + 50 < bottom_row['Depth (meters)']:
             print(f'{TERM_YELLOW}WARNING: Unexpected depth: {depth} (deployment depth was approximately {bottom_row["Depth (meters)"]}){TERM_NORMAL}')
             print(f'Localization URL: https://cloud.tator.io/{project_id}/annotation/{localization["media"]}?frame={localization["frame"]}')
+            print(f'Sensor timestamp: {converted_timestamp}')
 
         # update the localization
         update_res = requests.patch(
@@ -248,7 +258,7 @@ if __name__ == '__main__':
         os.system('say "Deployment CTD synced."')
     else:
         # entire expedition
-        for i in range(27, 59):
+        for i in range(2, 59):  # todo stopped at dive 43 (error)
             populate_ctd(project_id=sys.argv[1], section_id=sys.argv[2], deployment_name=f'PLW_dscm_{i:02d}')
         os.system('say "Expedition CTD synced."')
 
