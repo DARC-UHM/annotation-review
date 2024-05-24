@@ -70,8 +70,8 @@ class CommentProcessor:
                         elif association['link_name'] == 'comment':
                             vars_comment = association['link_value']
             else:
+                # tator localization
                 try:
-                    # tator localization
                     annotation = requests.get(
                         url=f'https://cloud.tator.io/rest/Localization/{comment}',
                         headers={

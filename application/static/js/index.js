@@ -110,9 +110,10 @@ async function tatorLogin() {
 
 window.tatorLogin = tatorLogin;
 
-$('#tatorSelect').on('click', async () => {
+async function showTatorForm() {
     $('#load-overlay').addClass('loader-bg');
     $('#load-overlay').removeClass('loader-bg-hidden');
+    localStorage.setItem('annotationPlatform', 'Tator');
     $('#varsIndexForm').hide();
     $('#platformSelectBtn').html('Tator ');
     const res = await fetch('/tator/check-token');
@@ -126,7 +127,11 @@ $('#tatorSelect').on('click', async () => {
     }
     $('#load-overlay').addClass('loader-bg-hidden');
     $('#load-overlay').removeClass('loader-bg');
-});
+}
+
+window.showTatorForm = showTatorForm;
+
+$('#tatorSelect').on('click', showTatorForm);
 
 $('#tatorProject').on('change', () => getTatorSections($('#tatorProject').val()));
 $('#tatorSection').on('change', () => {
@@ -135,6 +140,7 @@ $('#tatorSection').on('change', () => {
 });
 
 $('#varsSelect').on('click', () => {
+    localStorage.setItem('annotationPlatform', 'VARS');
     $('#tatorLogin').hide();
     $('#tatorIndexForm').hide();
     $('#varsIndexForm').show();
@@ -262,7 +268,12 @@ $('a.external-review-link').on('click', () => {
 $('#sequence1').on('input', checkSequence);
 $('#index').on('click', checkSequence);
 
-autocomplete($('#sequence1'), sequences);
+document.addEventListener('DOMContentLoaded', async () => {
+    autocomplete($('#sequence1'), sequences);
+    if (localStorage.getItem('annotationPlatform') === 'Tator') {
+        await showTatorForm();
+    }
+});
 
 // get rid of loading screen if back button is pressed (mozilla)
 $(window).bind('pageshow', (event) => {
