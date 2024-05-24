@@ -3,6 +3,9 @@ Populates the substrate attributes of video clips in Tator with information load
 this script, ensure that the CSV file does not contain special characters (e.g. '%') or commas in the 'Substrate
 Notes' field.
 
+To run this script, you must have a .env file in the root of the repository with the following variable:
+    - TATOR_TOKEN: Tator API token
+
 Usage: python populate_substrates.py <project_id> <section_id> <substrates csv file>
 """
 

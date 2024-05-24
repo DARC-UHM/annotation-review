@@ -9,7 +9,7 @@ the bottom time in the CTD CSV file by finding where the depth is greater than o
 and compares the time at that row with the camera bottom time to find a time offset. This offset is used to find the
 CTD data that corresponds to each localization.
 
-To run this script, you must have a .env file in the root of the repository the following variables:
+To run this script, you must have a .env file in the root of the repository with the following variables:
     - DROPBOX_ACCESS_TOKEN: Access token for the Dropbox API (https://www.dropbox.com/developers/apps)
     - DROPBOX_FOLDER_PATH: Path to the folder in Dropbox containing the deployment's video files
     - TATOR_TOKEN: Tator API token
