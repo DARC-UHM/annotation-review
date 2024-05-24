@@ -55,7 +55,7 @@ def populate_ctd(project_id, section_id, deployment_name):
             exit(1)
         media_ids[media['id']] = media['attributes']['Start Time']
         if media['attributes'].get('Arrival') and media['attributes']['Arrival'] != '':
-            video_start_timestamp = datetime.fromisoformat(media["attributes"]["Start Time"])
+            video_start_timestamp = datetime.fromisoformat(media['attributes']['Start Time'])
             if 'not observed' in media['attributes']['Arrival']:
                 bottom_time = video_start_timestamp
             else:

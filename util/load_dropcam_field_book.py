@@ -1,3 +1,11 @@
+"""
+Populates the fieldbook information on the DARC external review server for a given expedition. Populates lat/long,
+depth, and bait type information for both internal and external review pages.
+
+Usage:    python load_dropcam_field_book.py <section_id> <expedition_name> <path to dropcam fieldbook xlsx>
+Example:  python load_dropcam_field_book.py 11922 DOEX0087_Niue /Users/darc/Downloads/NIU_dscm_fieldbook.xlsx
+"""
+
 import dotenv
 import os
 import pandas as pd

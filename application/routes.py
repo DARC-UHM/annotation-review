@@ -1089,6 +1089,7 @@ def attracted_list():
     return render_template('qaqc/tator/attracted-list.html', attracted_concepts=res.json()), 200
 
 
+@app.errorhandler(500)
 def server_error(e):
     error = f'{type(e).__name__}: {e}'
     print('\nApplication error 😔')
