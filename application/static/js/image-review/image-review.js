@@ -273,19 +273,21 @@ export function updateHash() {
             <form onsubmit="addFilter()" class="d-inline-block">
                 <span class="position-relative">
                     <select id="imageFilterSelect" onchange="updateFilterHint()">
+                        <option>Annotator</option>
+                        <option>Certainty</option>
+                        <option value="comment">Comment (VARS)</option>
+                        <option value="concept">Concept (VARS)</option>
+                        <option value="good_image">Good Image (Tator)</option>
+                        <option value="notes">Notes (Tator)</option>
+                        <option value="scientific_name">Scientific Name (Tator)</option>
+                        <option value="localization_type">Type (Tator)</option>
+                        <option value="video_sequence">Video Sequence</option>
                         <option>Phylum</option>
                         <option>Class</option>
                         <option>Order</option>
                         <option>Family</option>
                         <option>Genus</option>
                         <option>Species</option>
-                        <option>Certainty</option>
-                        <option value="video_sequence">Video Sequence</option>
-                        <option value="comment">Comment (VARS)</option>
-                        <option value="notes">Notes (Tator)</option>
-                        <option value="localization_type">Type (Tator)</option>
-                        <option value="good_image">Good Image (Tator)</option>
-                        <option>Annotator</option>
                     </select>
                     <span class="position-absolute dropdown-chev">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
@@ -341,7 +343,13 @@ export function updateHash() {
     if (filter['notes']) { // Tator
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['notes']?.toLowerCase().includes(filter['notes'].toLowerCase().replaceAll('%20', ' ')));
     }
-    if (filter['localization_type']) {
+    if (filter['scientific_name']) { // Tator
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['scientific_name']?.toLowerCase().includes(filter['scientific_name'].toLowerCase().replaceAll('%20', ' ')));
+    }
+    if (filter['concept']) { // VARS
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['concept']?.toLowerCase().includes(filter['concept'].toLowerCase().replaceAll('%20', ' ')));
+    }
+    if (filter['localization_type']) { // Tator
         const localizationType = filter.localization_type.toLowerCase().includes('box') ? 48 : 49;
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['all_localizations'][0].type === localizationType);
     }
