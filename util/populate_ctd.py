@@ -14,7 +14,8 @@ To run this script, you must have a .env file in the root of the repository with
     - DROPBOX_FOLDER_PATH: Path to the folder in Dropbox containing the deployment's video files
     - TATOR_TOKEN: Tator API token
 
-Usage: python populate_ctd.py <project_id> <section_id> <deployment_name>
+Usage: python populate_ctd.py <project_id> <section_id> <OPTIONAL:deployment_name>
+                                                        ^ omitting this will sync all deployments in the expedition
 """
 
 import dotenv
@@ -34,6 +35,8 @@ TERM_NORMAL = '\033[1;37;0m'
 
 
 def populate_ctd(project_id, section_id, deployment_name):
+    non_sequential_timestamps = 0
+
     # get list of media ids in deployment
     print(f'Fetching media IDs for deployment {deployment_name}...', end='')
     sys.stdout.flush()
@@ -105,14 +108,15 @@ def populate_ctd(project_id, section_id, deployment_name):
         exit(1)
 
     # ensure csv times are sequential
-    # print('Checking for non-sequential timestamps...', end='')
-    # sys.stdout.flush()
-    # prev_timestamp = None
-    # for i, row in df.iterrows():
-    #     if prev_timestamp is not None and row['Dropcam Timestamp (s)'] != prev_timestamp + 1:
-    #         print(f'{TERM_RED}Non-sequential timestamps found at row {i}{TERM_NORMAL}')
-    #     prev_timestamp = row['Dropcam Timestamp (s)']
-    # return
+    print('Checking for non-sequential timestamps...', end='')
+    sys.stdout.flush()
+    prev_timestamp = None
+    for i, row in df.iterrows():
+        if prev_timestamp is not None and row['Dropcam Timestamp (s)'] != prev_timestamp + 1:
+            non_sequential_timestamps += 1
+        prev_timestamp = row['Dropcam Timestamp (s)']
+
+    print(f'found {non_sequential_timestamps} non-sequential timestamps')
 
     # find the point at which the depths stop increasing
     bottom_row = None
@@ -148,7 +152,7 @@ def populate_ctd(project_id, section_id, deployment_name):
         except IndexError:
             print(f'{TERM_RED}No CTD data found for localization {localization["id"]}{TERM_NORMAL}')
             print(f'Sensor timestamp: {converted_timestamp}')
-            print(localization)
+            print(f'Localization URL: https://cloud.tator.io/{project_id}/annotation/{localization["media"]}?frame={localization["frame"]}')
             exit(1)
 
         if do_temp <= 0 or do_temp > 35:
@@ -258,7 +262,7 @@ if __name__ == '__main__':
         os.system('say "Deployment CTD synced."')
     else:
         # entire expedition
-        for i in range(2, 59):  # todo stopped at dive 43 (error)
+        for i in range(2, 59):  # todo update for each expedition
             populate_ctd(project_id=sys.argv[1], section_id=sys.argv[2], deployment_name=f'PLW_dscm_{i:02d}')
         os.system('say "Expedition CTD synced."')
 
