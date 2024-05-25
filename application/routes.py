@@ -1,5 +1,6 @@
 import base64
 import tator
+import sys
 
 from io import BytesIO
 from flask import render_template, request, redirect, flash, session, Response, send_file
@@ -677,6 +678,8 @@ def get_external_review():
         flash('Please log in to Tator', 'info')
         return redirect('/')
     try:
+        print('Fetching external comments...', end='')
+        sys.stdout.flush()
         with requests.get(
                 url=f'{app.config.get("DARC_REVIEW_URL")}/stats',
                 headers=app.config.get('DARC_REVIEW_HEADERS'),
@@ -719,6 +722,7 @@ def get_external_review():
                 headers=app.config.get('DARC_REVIEW_HEADERS'),
             )
             comments = all_comments_res.json()
+        print('fetched!')
     except requests.exceptions.ConnectionError:
         _reviewers = []
         print('\nERROR: unable to connect to external review server\n')
@@ -1089,7 +1093,7 @@ def attracted_list():
     return render_template('qaqc/tator/attracted-list.html', attracted_concepts=res.json()), 200
 
 
-@app.errorhandler(500)
+@app.errorhandler(Exception)
 def server_error(e):
     error = f'{type(e).__name__}: {e}'
     print('\nApplication error 😔')

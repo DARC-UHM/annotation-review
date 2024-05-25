@@ -2,6 +2,7 @@ import json
 import os
 import pandas as pd
 import requests
+import sys
 
 from flask import session
 from json import JSONDecodeError
@@ -33,6 +34,28 @@ class CommentProcessor:
                 phylogeny = json.load(f)
         except FileNotFoundError:
             phylogeny = {'Animalia': {}}
+
+        print(f'Processing {len(self.comments)} comments...', end='')
+        sys.stdout.flush()
+
+        # get all the tator localizations first, because each tator call takes forever
+        media_ids = set()
+        localizations = []
+        for comment in self.comments:
+            if 'scientific_name' in self.comments[comment].keys() and self.comments[comment]['scientific_name'] is not None:
+                # get the media id from the video url (not stored as its own field)
+                media_id = self.comments[comment]['video_url'].split('/')[-1].split('&')[0]
+                media_ids.add(media_id)
+        for i in range(0, len(media_ids), 300):  # just get all localizations for each media id
+            chunk = list(media_ids)[i:i + 300]
+            # fixme (?) vvvv potential bug using hardcoded "26" as project id (but probably fine) vvvv
+            get_localization_res = requests.get(
+                url=f'https://cloud.tator.io/rest/Localizations/26?media_id={",".join(map(str, chunk))}',
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Token {session["tator_token"]}',
+                })
+            localizations += get_localization_res.json()
 
         # add formatted comments to list
         for comment in self.comments:
@@ -71,31 +94,18 @@ class CommentProcessor:
                             vars_comment = association['link_value']
             else:
                 # tator localization
-                try:
-                    annotation = requests.get(
-                        url=f'https://cloud.tator.io/rest/Localization/{comment}',
-                        headers={
-                            'Content-Type': 'application/json',
-                            'Authorization': f'Token {session["tator_token"]}',
-                        }
-                    )
-                    annotation = annotation.json()
-                    concept_name = annotation['attributes']['Scientific Name']
-                    media_id = annotation['media']
-                    frame = annotation['frame']
-                    if annotation['attributes'].get('Good Image'):
-                        good_image = True
-                    if annotation['variant_deleted']:
-                        problem_comment = self.comments[comment]
-                        problem_comment['timestamp'] = f'Media ID: {media_id}, Frame: {frame}'
-                        print(f'{TERM_RED}ERROR: Could not find annotation with UUID {comment} in Tator ({problem_comment["sequence"]}, {problem_comment["timestamp"]}){TERM_NORMAL}')
-                        self.missing_records.append(problem_comment)
-                        continue
-                except (JSONDecodeError, requests.ConnectTimeout):
+                annotation = next((loco for loco in localizations if loco['id'] == int(comment)), None)
+                if annotation is None or annotation['variant_deleted']:
                     problem_comment = self.comments[comment]
+                    problem_comment['timestamp'] = f'Media ID: {media_id}, Frame: {frame}'
                     print(f'{TERM_RED}ERROR: Could not find annotation with UUID {comment} in Tator ({problem_comment["sequence"]}, {problem_comment["timestamp"]}){TERM_NORMAL}')
                     self.missing_records.append(problem_comment)
                     continue
+                concept_name = annotation['attributes']['Scientific Name']
+                media_id = annotation['media']
+                frame = annotation['frame']
+                if annotation['attributes'].get('Good Image'):
+                    good_image = True
             if concept_name not in phylogeny.keys():
                 # get the phylogeny from VARS kb
                 with requests.get(url=f'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/{concept_name}') \
@@ -266,6 +276,8 @@ class CommentProcessor:
                 'recorded_timestamp': row['recorded_timestamp'],
                 'video_sequence_name': row['video_sequence_name']
             })
+
+        print('processed!')
 
         try:
             with open(os.path.join('cache', 'phylogeny.json'), 'w') as f:
