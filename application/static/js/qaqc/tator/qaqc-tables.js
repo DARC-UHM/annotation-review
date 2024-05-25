@@ -33,7 +33,7 @@ function updateHash() {
     $('#annotationTable').find('tbody').html('');
     if (Object.keys(uniqueTaxa).length) {
         // unique taxa table
-        $('#downloadCsvButton').hide();
+        $('#downloadTsvButton').hide();
         $('#countLabel').html('Unique Taxa:&nbsp;&nbsp');
         $('#totalCount').html(Object.keys(uniqueTaxa).length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
         $('#subheader').html('Highlights taxa that have a box occur before the first dot or do not have both a box and a dot');
@@ -78,7 +78,7 @@ function updateHash() {
     } else if (Object.keys(mediaAttributes).length) {
         // media table
         let totalMedia = 0;
-        $('#downloadCsvButton').hide();
+        $('#downloadTsvButton').hide();
         $('#annotationTable').find('thead').html(`
             <tr>
                 <th scope="col">Media Name</th>
@@ -109,9 +109,9 @@ function updateHash() {
         // max n table
         $('#countLabel').html('Unique Taxa:&nbsp;&nbsp');
         $('#totalCount').html(Object.keys(maxN.unique_taxa).length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-        $('#downloadCsvButton').show();
-        $('#downloadCsvButton').on('click', () => {
-            downloadMaxNCsv();
+        $('#downloadTsvButton').show();
+        $('#downloadTsvButton').on('click', () => {
+            downloadMaxNTsv();
         });
         $('#annotationTable').find('thead').html(`
             <tr class="small">
@@ -140,9 +140,9 @@ function updateHash() {
         // tofa table
         $('#countLabel').html('Unique Taxa:&nbsp;&nbsp');
         $('#totalCount').html(Object.keys(tofa.unique_taxa).length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-        $('#downloadCsvButton').show();
-        $('#downloadCsvButton').on('click', () => {
-            downloadTofaCsv();
+        $('#downloadTsvButton').show();
+        $('#downloadTsvButton').on('click', () => {
+            downloadTofaTsv();
         });
         $('#annotationTable').find('thead').html(`
             <tr class="small">
@@ -197,9 +197,9 @@ function updateHash() {
         $('#headerContainer').css('max-width', '100%');
         $('#tableContainer').removeClass('d-flex');
         $('#backButtonText').removeClass('d-xxl-inline');
-        $('#downloadCsvButton').show();
-        $('#downloadCsvButton').on('click', () => {
-            downloadSummaryCsv();
+        $('#downloadTsvButton').show();
+        $('#downloadTsvButton').on('click', () => {
+            downloadSummaryTsv();
         });
         $('#annotationTable').find('thead').html(`
             <tr class="small text-start sticky-top" style="background: #1c2128; cursor: pointer;">
@@ -453,7 +453,7 @@ function updateHash() {
     }
 }
 
-function downloadSummaryCsv() {
+function downloadSummaryTsv() {
     const headers = [
         'ScientificName',
         'Deployment',
@@ -530,10 +530,10 @@ function downloadSummaryCsv() {
         annotation.substrate_notes,
         annotation.bait_type,
     ]);
-    downloadCsv(headers, rows, 'summary');
+    downloadTsv(headers, rows, 'summary');
 }
 
-function downloadMaxNCsv() {
+function downloadMaxNTsv() {
     const headers = [
         'Deployment',
         'DepthMeters',
@@ -546,10 +546,10 @@ function downloadMaxNCsv() {
         });
         return row;
     });
-    downloadCsv(headers, rows, 'max-n');
+    downloadTsv(headers, rows, 'max-n');
 }
 
-function downloadTofaCsv() {
+function downloadTofaTsv() {
     const headers = [
         'Deployment',
         'DepthMeters',
@@ -562,21 +562,21 @@ function downloadTofaCsv() {
         });
         return row;
     });
-    downloadCsv(headers, rows, 'tofa');
+    downloadTsv(headers, rows, 'tofa');
 }
 
-function downloadCsv(headers, rows, title) {
-    let csvContent = 'data:text/csv;charset=utf-8,';
-    csvContent += headers.join(',') + '\n';
+function downloadTsv(headers, rows, title) {
+    let tsvContent = 'data:text/tsv;charset=utf-8,';
+    tsvContent += headers.join('\t') + '\n';
     rows.forEach((rowArray) => {
-        const row = rowArray.join(',');
-        csvContent += row + '\n';
+        const row = rowArray.join('\t');
+        tsvContent += row + '\n';
     });
 
-    const encodedUri = encodeURI(csvContent);
+    const encodedUri = encodeURI(tsvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `${title}.csv`);
+    link.setAttribute('download', `${title}.tsv`);
     document.body.appendChild(link);
     link.click();
 }
