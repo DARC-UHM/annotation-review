@@ -6,6 +6,16 @@ import { tatorLocalizationRow } from './tator-localization-table-row.js';
 const guidePhotoVals = ['1 best', '2 good', '3 okay', ''];
 const sequences = [];
 
+for (const annotation of annotations) {
+    for (const association of annotation.associations) {
+        if (['guide-photo', 'upon'].includes(association.link_name)) {
+            annotation[association.link_name.replace('-', '_')] = association.to_concept;
+        } else if (['identity-certainty', 'identity-reference', 'comment'].includes(association.link_name)) {
+            annotation[association.link_name.replace('-', '_')] = association.link_value;
+        }
+    }
+}
+
 let currentPage = 1;
 let pageCount;
 let paginationLimit = 25;
@@ -229,7 +239,7 @@ const filterAndSort = (list, key) => {
 }
 
 function updateFilterHint() {
-    $('#imageFilterEntry').attr('placeholder', `Enter ${$('#imageFilterSelect').val().toLowerCase()}`);
+    $('#imageFilterEntry').attr('placeholder', `Enter ${$('#imageFilterSelect').val().toLowerCase().replaceAll('_', ' ')}`);
 }
 
 window.updateFilterHint = updateFilterHint;
@@ -273,21 +283,21 @@ export function updateHash() {
             <form onsubmit="addFilter()" class="d-inline-block">
                 <span class="position-relative">
                     <select id="imageFilterSelect" onchange="updateFilterHint()">
-                        <option>Annotator</option>
-                        <option>Certainty</option>
-                        <option value="comment">Comment (VARS)</option>
-                        <option value="concept">Concept (VARS)</option>
-                        <option value="good_image">Good Image (Tator)</option>
-                        <option value="notes">Notes (Tator)</option>
-                        <option value="scientific_name">Scientific Name (Tator)</option>
-                        <option value="localization_type">Type (Tator)</option>
-                        <option value="video_sequence">Video Sequence</option>
                         <option>Phylum</option>
                         <option>Class</option>
                         <option>Order</option>
                         <option>Family</option>
                         <option>Genus</option>
                         <option>Species</option>
+                        <option>Annotator</option>
+                        <option value="comment">Comment (VARS)</option>
+                        <option value="concept">Concept (VARS)</option>
+                        <option value="good_image">Good Image (Tator)</option>
+                        <option value="id_certainty">ID Certainty (VARS)</option>
+                        <option value="notes">Notes (Tator)</option>
+                        <option value="scientific_name">Scientific Name (Tator)</option>
+                        <option value="localization_type">Type (Tator)</option>
+                        <option value="video_sequence">Video Sequence</option>
                     </select>
                     <span class="position-absolute dropdown-chev">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
@@ -331,8 +341,8 @@ export function updateHash() {
     if (filter['species']) {
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['species']?.toLowerCase() === filter['species'].toLowerCase().replaceAll('%20', ' '));
     }
-    if (filter['certainty']) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['identity_certainty']?.toLowerCase().includes(filter['certainty'].toLowerCase().replaceAll('%20', ' ')));
+    if (filter['id_certainty']) {
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['identity_certainty']?.toLowerCase().includes(filter['id_certainty'].toLowerCase().replaceAll('%20', ' ')));
     }
     if (filter['video_sequence']) {
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['video_sequence_name']?.toLowerCase().includes(filter['video_sequence'].toLowerCase().replaceAll('%20', ' ')));

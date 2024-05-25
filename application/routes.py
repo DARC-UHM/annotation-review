@@ -673,7 +673,7 @@ def get_external_review():
         flash('Please log in to Tator', 'info')
         return redirect('/')
     try:
-        tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
+        api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
     except tator.openapi.tator_openapi.exceptions.ApiException:
         flash('Please log in to Tator', 'info')
         return redirect('/')

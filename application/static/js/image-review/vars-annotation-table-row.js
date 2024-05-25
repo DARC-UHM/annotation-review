@@ -12,13 +12,6 @@ export const varsAnnotationTableRow = (annotation, externalComment) => {
             }
         }
     }
-    for (const association of annotation.associations) {
-        if (['guide-photo', 'upon'].includes(association.link_name)) {
-            annotation[association.link_name.replace('-', '_')] = association.to_concept;
-        } else if (['identity-certainty', 'identity-reference', 'comment'].includes(association.link_name)) {
-            annotation[association.link_name.replace('-', '_')] = association.link_value;
-        }
-    }
     return (`
         <tr>
             <td class="ps-5">
