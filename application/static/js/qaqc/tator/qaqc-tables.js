@@ -37,6 +37,43 @@ function updateHash() {
         $('#countLabel').html('Unique Taxa:&nbsp;&nbsp');
         $('#totalCount').html(Object.keys(uniqueTaxa).length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
         $('#subheader').html('Highlights taxa that have a box occur before the first dot or do not have both a box and a dot');
+
+        const url = new URL(window.location.href);
+        const deploymentList = url.searchParams.get('deploymentList').split(',');
+        const currentDeployment = url.searchParams.get('deployment');
+        const deploymentIndex = deploymentList.indexOf(currentDeployment);
+
+        // find previous and next deployments
+        let previousDeployment;
+        let nextDeployment;
+        if (deploymentIndex > 0) {
+            const prevUrl = new URL(window.location.href);
+            prevUrl.searchParams.set('deployment', deploymentList[deploymentIndex - 1]);
+            previousDeployment = deploymentList[deploymentIndex - 1];
+            $('#previousPageButton').text(`Prev: ${previousDeployment}`);
+            $('#previousPageButton').attr('href', prevUrl);
+        }
+        if (deploymentIndex < deploymentList.length - 1) {
+            const nextUrl = new URL(window.location.href);
+            nextUrl.searchParams.set('deployment', deploymentList[deploymentIndex + 1]);
+            nextDeployment = deploymentList[deploymentIndex + 1];
+            $('#nextPageButton').text(`Next: ${nextDeployment}`);
+            $('#nextPageButton').attr('href', nextUrl);
+        }
+
+        // redefine because we use a special url for this table
+        function returnToCheckList() {
+            const url = new URL(window.location.href);
+            const deploymentList = url.searchParams.get('deploymentList').split(',');
+            const newUrl = url.toString().split('?')[0].split('/');
+            newUrl.pop();
+            const sectionId = newUrl.pop();
+            const projectId = newUrl.pop();
+            window.location.href = `/tator/qaqc-checklist/${projectId}/${sectionId}?deployment=${deploymentList.join('&deployment=')}`;
+        }
+
+        window.returnToCheckList = returnToCheckList;
+
         $('#annotationTable').find('thead').html(`
             <tr>
                 <th scope="col">Scientific Name</th>
@@ -593,7 +630,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const url = new URL(window.location.href);
 
     for (const pair of url.searchParams.entries()) {
-        if (pair[0].includes('deployment')) {
+        if (pair[0] === 'deployment') {
             const param = pair[1].split(' ');
             deployments.push(param.pop());
         }
