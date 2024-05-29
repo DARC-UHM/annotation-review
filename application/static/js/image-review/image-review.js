@@ -7,6 +7,9 @@ const guidePhotoVals = ['1 best', '2 good', '3 okay', ''];
 const sequences = [];
 
 for (const annotation of annotations) {
+    if (!annotation.associations) {
+        continue;
+    }
     for (const association of annotation.associations) {
         if (['guide-photo', 'upon'].includes(association.link_name)) {
             annotation[association.link_name.replace('-', '_')] = association.to_concept;
