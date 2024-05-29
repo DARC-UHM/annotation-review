@@ -5,6 +5,7 @@ import requests
 import sys
 import tator
 
+from datetime import timezone
 from flask import session
 from io import BytesIO
 from pptx import Presentation
@@ -212,8 +213,19 @@ class TatorQaqcProcessor:
                         print(f'{TERM_RED}Unknown categorical abundance: {localization_dict["categorical_abundance"]}{TERM_NORMAL}')
             if get_timestamp:
                 if localization['media'] in session['media_timestamps'].keys():
+                    camera_bottom_arrival = datetime.strptime(
+                        self.bottom_times[self.deployment_media_dict[localization['media']]],
+                        '%Y-%m-%d %H:%M:%SZ'
+                    ).replace(tzinfo=timezone.utc)
                     video_start_timestamp = datetime.fromisoformat(session['media_timestamps'][localization['media']])
-                    localization_dict['timestamp'] = (video_start_timestamp + timedelta(seconds=localization['frame'] / 30)).strftime('%Y-%m-%d %H:%M:%SZ')
+                    observation_timestamp = video_start_timestamp + timedelta(seconds=localization['frame'] / 30)
+                    time_diff = observation_timestamp - camera_bottom_arrival
+                    localization_dict['timestamp'] = observation_timestamp.strftime('%Y-%m-%d %H:%M:%SZ')
+                    localization_dict['camera_seafloor_arrival'] = camera_bottom_arrival.strftime('%Y-%m-%d %H:%M:%SZ')
+                    localization_dict['animal_arrival'] = str(timedelta(
+                        days=time_diff.days,
+                        seconds=time_diff.seconds
+                    )) if observation_timestamp > camera_bottom_arrival else '00:00:00'
             if get_ctd and expedition_fieldbook:
                 localization_dict['do_temp_c'] = localization['attributes'].get('DO Temperature (celsius)')
                 localization_dict['do_concentration_salin_comp_mol_L'] = localization['attributes'].get('DO Concentration Salin Comp (mol per L)')
@@ -244,6 +256,8 @@ class TatorQaqcProcessor:
         localization_df = pd.DataFrame(formatted_localizations, columns=[
             'id',
             'timestamp',
+            'camera_seafloor_arrival',
+            'animal_arrival',
             'all_localizations',
             'type',
             'video_sequence_name',
@@ -299,6 +313,8 @@ class TatorQaqcProcessor:
         localization_df = localization_df.groupby(['media_id', 'frame', 'scientific_name', 'tentative_id', 'type']).agg({
             'id': 'first',
             'timestamp': 'first',
+            'camera_seafloor_arrival': 'first',
+            'animal_arrival': 'first',
             'all_localizations': collect_localizations,
             'count': 'sum',
             'attracted': 'first',
@@ -366,6 +382,8 @@ class TatorQaqcProcessor:
             self.final_records.append({
                 'observation_uuid': row['id'],
                 'timestamp': row['timestamp'],
+                'camera_seafloor_arrival': row['camera_seafloor_arrival'],
+                'animal_arrival': row['animal_arrival'],
                 'all_localizations': row['all_localizations'],
                 'media_id': row['media_id'],
                 'frame': row['frame'],

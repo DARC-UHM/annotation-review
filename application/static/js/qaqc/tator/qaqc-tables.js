@@ -300,6 +300,8 @@ function updateHash() {
                         ${sortKey=== 'timestamp' ? caretUpFill : sortKey=== 'timestamp-desc' ? caretDownFill : ''}
                     </div>
                 </th>
+                <th scope="col" style="cursor: default;">CameraSeafloorArrival</th>
+                <th scope="col" style="cursor: default;">AnimalArrival</th>
                 <th scope="col" onclick="setSort('count')" class="table-header-hover">
                     <div class="d-flex">
                         IndividualCount
@@ -427,6 +429,8 @@ function updateHash() {
                     <td>${annotation.subspecies || '-'}</td>
                     <td>${annotation.tentative_id || '-'}</td>
                     <td>${annotation.timestamp || '-'}</td>
+                    <td>${annotation.camera_seafloor_arrival || '-'}</td>
+                    <td>${annotation.animal_arrival || '-'}</td>
                     <td>${annotation.count || '-'}</td>
                     <td>${annotation.categorical_abundance || '-'}</td>
                     <td>${annotation.identification_remarks || '-'}</td>
@@ -472,6 +476,8 @@ function downloadSummaryTsv() {
         'Subspecies',
         'TentativeID',
         'ObservationTimestamp',
+        'CameraSeafloorArrival',
+        'AnimalArrival',
         'IndividualCount',
         'CategoricalAbundance',
         'IdentificationRemarks',
@@ -510,6 +516,8 @@ function downloadSummaryTsv() {
         annotation.subspecies,
         annotation.tentative_id,
         annotation.timestamp,
+        annotation.camera_seafloor_arrival,
+        annotation.animal_arrival,
         annotation.count,
         annotation.categorical_abundance,
         annotation.identification_remarks,
