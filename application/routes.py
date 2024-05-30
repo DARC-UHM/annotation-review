@@ -93,7 +93,7 @@ def check_tator_token():
         return {}, 400
     try:
         api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
-        print(session['tator_token'])
+        print(f'Your Tator token: {session["tator_token"]}')
         return {'username': api.whoami().username}, 200
     except tator.openapi.tator_openapi.exceptions.ApiException:
         return {}, 400
