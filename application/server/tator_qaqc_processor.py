@@ -1,4 +1,6 @@
 import json
+import math
+
 import pandas as pd
 import os
 import requests
@@ -696,19 +698,30 @@ class TatorQaqcProcessor:
 
     def get_tofa(self):
         """
-        Finds the time of first arrival for each unique scientific name/tentative ID combo per deployment.
+        Finds the time of first arrival for each unique scientific name/tentative ID combo per deployment. Also shows
+        species accumulation curve. Ignores non-attracted taxa.
         """
         self.fetch_start_times()
         self.records_of_interest = self.localizations
         self.process_records(get_timestamp=True, get_ctd=True)
         deployment_taxa = {}
         unique_taxa = {}
+        unique_taxa_first_seen = {}
+        bottom_time = None
+        latest_timestamp = datetime.fromtimestamp(0)  # to find the duration of the deployment
         for record in self.final_records:
             scientific_tentative = f'{record["scientific_name"]}{" (" + record["tentative_id"] + "?)" if record["tentative_id"] else ""}'
             observed_timestamp = datetime.strptime(record['timestamp'], '%Y-%m-%d %H:%M:%SZ')
             bottom_time = datetime.strptime(self.bottom_times[record['video_sequence_name']], '%Y-%m-%d %H:%M:%SZ')
             if record['count'] < 1 or record['attracted'] == 'Not Attracted':
                 continue
+            if observed_timestamp > latest_timestamp:
+                latest_timestamp = observed_timestamp
+            if scientific_tentative not in unique_taxa_first_seen.keys():
+                unique_taxa_first_seen[scientific_tentative] = observed_timestamp
+            else:
+                if observed_timestamp < unique_taxa_first_seen[scientific_tentative]:
+                    unique_taxa_first_seen[scientific_tentative] = observed_timestamp
             if scientific_tentative not in unique_taxa.keys():
                 unique_taxa[scientific_tentative] = {
                     'scientific_tentative': scientific_tentative,
@@ -745,7 +758,17 @@ class TatorQaqcProcessor:
             x['genus'] if x.get('genus') else '',
             x['species'] if x.get('species') else '',
         ))
-        self.final_records = {'deployments': deployment_taxa, 'unique_taxa': [taxa['scientific_tentative'] for taxa in unique_taxa_list]}
+        # rounding up to nearest hour
+        deployment_time = timedelta(hours=math.ceil((latest_timestamp - bottom_time).total_seconds() / 3600))
+        accumulation_data = []
+        for taxa in unique_taxa_list:
+            accumulation_data.append()
+        self.final_records = {
+            'deployments': deployment_taxa,
+            'unique_taxa': [taxa['scientific_tentative'] for taxa in unique_taxa_list],
+            'deployment_time': deployment_time
+        }
+        print(unique_taxa_first_seen)
 
     def get_summary(self):
         """
@@ -776,8 +799,8 @@ class TatorQaqcProcessor:
             image_data = BytesIO(response.content)
             left = top = Inches(1)
             slide.shapes.add_picture(image_data, left, top, height=Inches(5.5))
-            width = Inches(2)  # Adjust size as needed
-            height = Inches(1)  # Adjust size as needed
+            width = Inches(2)
+            height = Inches(1)
             # add text box
             text_box = slide.shapes.add_textbox(left, top, width, height)
             text_frame = text_box.text_frame
@@ -800,4 +823,3 @@ class TatorQaqcProcessor:
                 font.color.rgb = RGBColor(0xff, 0x0, 0x0)
                 font.italic = False
         return pres
-
