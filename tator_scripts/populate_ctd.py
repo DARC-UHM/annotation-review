@@ -107,17 +107,6 @@ def populate_ctd(project_id, section_id, deployment_name):
         print(f'{TERM_RED}No CTD CSV file found in Dropbox{TERM_NORMAL}')
         exit(1)
 
-    # ensure csv times are sequential
-    print('Checking for non-sequential timestamps...', end='')
-    sys.stdout.flush()
-    prev_timestamp = None
-    for i, row in df.iterrows():
-        if prev_timestamp is not None and row['Dropcam Timestamp (s)'] != prev_timestamp + 1:
-            non_sequential_timestamps += 1
-        prev_timestamp = row['Dropcam Timestamp (s)']
-
-    print(f'found {non_sequential_timestamps} non-sequential timestamps')
-
     # find the point at which the depths stop increasing
     bottom_row = None
     rolling_avg = df['Depth (meters)'].rolling(window=20).mean()

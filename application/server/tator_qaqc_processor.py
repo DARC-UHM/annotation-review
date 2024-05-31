@@ -72,7 +72,7 @@ class TatorQaqcProcessor:
                     if 'not observed' in media['attributes']['Arrival']:
                         arrival_frame = 0
                     else:
-                        arrival_frame = int(media['attributes']['Arrival'].split(' ')[0])
+                        arrival_frame = int(media['attributes']['Arrival'].strip().split(' ')[0])
                     self.bottom_times[deployment] = (video_start_timestamp + timedelta(seconds=arrival_frame / 30)).strftime('%Y-%m-%d %H:%M:%SZ')
                 if media['id'] not in session['media_timestamps'].keys():
                     if 'Start Time' in media['attributes'].keys():
