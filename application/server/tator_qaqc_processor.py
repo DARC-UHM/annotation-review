@@ -760,15 +760,15 @@ class TatorQaqcProcessor:
         ))
         # rounding up to nearest hour
         deployment_time = timedelta(hours=math.ceil((latest_timestamp - bottom_time).total_seconds() / 3600))
-        accumulation_data = []
-        for taxa in unique_taxa_list:
-            accumulation_data.append()
+        accumulation_data = []  # just a list of the number of unique taxa seen at each hour
+        for hour in range(1, deployment_time.seconds // 3600 + 1):
+            accumulation_data.append(len([taxa for taxa in unique_taxa_first_seen.values() if taxa < bottom_time + timedelta(hours=hour)]))
         self.final_records = {
             'deployments': deployment_taxa,
             'unique_taxa': [taxa['scientific_tentative'] for taxa in unique_taxa_list],
-            'deployment_time': deployment_time
+            'deployment_time': deployment_time.seconds // 3600,
+            'accumulation_data': accumulation_data,
         }
-        print(unique_taxa_first_seen)
 
     def get_summary(self):
         """
