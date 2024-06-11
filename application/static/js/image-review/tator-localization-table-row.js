@@ -248,7 +248,11 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                                         id="goodImage${localization.observation_uuid}"
                                         type="checkbox"
                                         ${localization.good_image ? 'checked' : ''}
-                                        onchange="updateGoodImage('${JSON.stringify(localization.all_localizations.map((loco) => loco.id))}', this.checked)"
+                                        onchange="updateGoodImage(
+                                            '${JSON.stringify(localization.all_localizations.map((loco) => loco.elemental_id))}',
+                                            this.checked,
+                                            localization.all_localizations[0].version
+                                        )"
                                     >
                                     <label for="goodImage${localization.observation_uuid}"></label>
                                 </div>
@@ -261,10 +265,11 @@ export const tatorLocalizationRow = (localization, externalComment) => {
     `);
 };
 
-async function updateGoodImage(localization_ids, checked) {
+async function updateGoodImage(localization_elemental_ids, checked, version) {
     const formData = new FormData();
-    for (const id of JSON.parse(localization_ids)) {
-        formData.append('localization_ids', id);
+    formData.append('version', version);
+    for (const elemental_id of JSON.parse(localization_elemental_ids)) {
+        formData.append('localization_elemental_ids', elemental_id);
     }
     formData.append('good_image', checked);
     const res = await fetch('/tator/localization/good-image', {

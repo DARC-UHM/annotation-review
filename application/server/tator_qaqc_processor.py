@@ -175,9 +175,10 @@ class TatorQaqcProcessor:
                 if not self.fetch_worms_phylogeny(scientific_name):
                     no_match_records.add(scientific_name)
             localization_dict = {
-                'id': localization['id'],
+                'elemental_id': localization['elemental_id'],
                 'all_localizations': {
-                    'id': localization['id'],
+                    'elemental_id': localization['elemental_id'],
+                    'version': localization['version'],
                     'type': localization['type'],
                     'points': [round(localization['x'], 5), round(localization['y'], 5)],
                     'dimensions': [localization['width'], localization['height']] if localization['type'] == 48 else None,
@@ -256,7 +257,7 @@ class TatorQaqcProcessor:
             return
 
         localization_df = pd.DataFrame(formatted_localizations, columns=[
-            'id',
+            'elemental_id',
             'timestamp',
             'camera_seafloor_arrival',
             'animal_arrival',
@@ -313,7 +314,7 @@ class TatorQaqcProcessor:
             return [item for item in items]
 
         localization_df = localization_df.groupby(['media_id', 'frame', 'scientific_name', 'tentative_id', 'type']).agg({
-            'id': 'first',
+            'elemental_id': 'first',
             'timestamp': 'first',
             'camera_seafloor_arrival': 'first',
             'animal_arrival': 'first',
@@ -382,7 +383,7 @@ class TatorQaqcProcessor:
 
         for index, row in localization_df.iterrows():
             self.final_records.append({
-                'observation_uuid': row['id'],
+                'observation_uuid': row['elemental_id'],
                 'timestamp': row['timestamp'],
                 'camera_seafloor_arrival': row['camera_seafloor_arrival'],
                 'animal_arrival': row['animal_arrival'],
@@ -636,14 +637,14 @@ class TatorQaqcProcessor:
                     first_box = unique_taxa[key]['first_box']
                     if not first_box or datetime.strptime(record['timestamp'], '%Y-%m-%d %H:%M:%SZ') < datetime.strptime(first_box, '%Y-%m-%d %H:%M:%SZ'):
                         unique_taxa[key]['first_box'] = record['timestamp']
-                        unique_taxa[key]['first_box_url'] = f'https://cloud.tator.io/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}&selected_entity={localization["id"]}'
+                        unique_taxa[key]['first_box_url'] = f'https://cloud.tator.io/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}&selected_entity={localization["elemental_id"]}'
                 elif localization['type'] == 49:
                     unique_taxa[key]['dot_count'] += 1
                     first_dot = unique_taxa[key]['first_dot']
                     observed_timestamp = datetime.strptime(record['timestamp'], '%Y-%m-%d %H:%M:%SZ')
                     if not first_dot or observed_timestamp < datetime.strptime(first_dot, '%Y-%m-%d %H:%M:%SZ'):
                         unique_taxa[key]['first_dot'] = record['timestamp']
-                        unique_taxa[key]['first_dot_url'] = f'https://cloud.tator.io/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}&selected_entity={localization["id"]}'
+                        unique_taxa[key]['first_dot_url'] = f'https://cloud.tator.io/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}&selected_entity={localization["elemental_id"]}'
         self.final_records = unique_taxa
 
     def get_max_n(self):

@@ -766,7 +766,7 @@ $(document).ready(()=> {
         $(this).find('#editIdentifiedBy').val(localization.identified_by);
         $(this).find('#editNotes').val(localization.notes);
         $(this).find('#editLocalizationIdType').val(JSON.stringify(localization.all_localizations.map((loc) => {
-            return { id: loc.id, type: loc.type };
+            return { elemental_id: loc.elemental_id, version: loc.version, type: loc.type };
         })));
         $(this).find('#baseUuid').val(localization.observation_uuid);
     });

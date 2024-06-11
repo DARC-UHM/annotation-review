@@ -452,8 +452,9 @@ def update_tator_localization():
             if localization['type'] == 49:  # point annotation, add cat abundance
                 this_attributes['Categorical Abundance'] = request.values.get('categorical_abundance') if request.values.get('categorical_abundance') else '--'
             api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
-            api.update_localization(
-                id=localization['id'],
+            api.update_localization_by_elemental_id(
+                version=localization['version'],
+                elemental_id=localization['elemental_id'],
                 localization_update=tator.models.LocalizationUpdate(
                     attributes=this_attributes,
                 )
@@ -466,12 +467,14 @@ def update_tator_localization():
 # update tator localization 'good image'
 @app.patch('/tator/localization/good-image')
 def update_tator_localization_image():
-    localization_ids = request.values.getlist('localization_ids')
+    localization_elemental_ids = request.values.getlist('localization_elemental_ids')
+    version = request.values.get('version')
     try:
-        for localization_id in localization_ids:
+        for elemental_id in localization_elemental_ids:
             api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
-            api.update_localization(
-                id=localization_id,
+            api.update_localization_by_elemental_id(
+                version=version,
+                elemental_id=elemental_id,
                 localization_update=tator.models.LocalizationUpdate(
                     attributes={
                         'Good Image': True if request.values.get('good_image') == 'true' else False,
@@ -758,13 +761,17 @@ def add_external_review():
             )
         else:  # Tator localization, update Tator notes
             api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
-            current_notes = api.get_localization(id=request.values.get('observation_uuid')).attributes.get('Notes', '').split('|')
+            current_notes = api.get_localization_by_elemental_id(
+                version=json.loads(request.values.get('all_localizations'))[0]['version'],
+                elemental_id=request.values.get('observation_uuid'),
+            ).attributes.get('Notes', '').split('|')
             current_notes = [note for note in current_notes if 'send to' not in note.lower()]  # get rid of 'send to expert' notes
             current_notes = [note for note in current_notes if 'added for review' not in note.lower()]  # get rid of old 'added for review' notes
             current_notes = '|'.join(current_notes)
             new_notes = f'{current_notes + "|" if current_notes else ""}Added for review: {", ".join(json.loads(request.values.get("reviewers")))}'
-            api.update_localization(
-                id=request.values.get('observation_uuid'),
+            api.update_localization_by_elemental_id(
+                version=json.loads(request.values.get('all_localizations'))[0]['version'],
+                elemental_id=request.values.get('observation_uuid'),
                 localization_update=tator.models.LocalizationUpdate(
                     attributes={'Notes': new_notes},
                 )
@@ -825,11 +832,15 @@ def delete_external_review():
     if delete_comment_res.status_code == 200:
         if request.values.get('tator') and request.values.get('tator') == 'true':  # tator localization
             api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
-            current_notes = api.get_localization(id=request.values.get('uuid')).attributes.get('Notes', '').split('|')
+            current_notes = api.get_localization_by_elemental_id(
+                version=request.values.get('tator_version'),
+                elemental_id=request.values.get('uuid'),
+            ).attributes.get('Notes', '').split('|')
             current_notes = [note for note in current_notes if 'send to' not in note.lower()]  # get rid of 'send to expert' notes
             current_notes = [note for note in current_notes if 'added for review' not in note.lower()]  # get rid of old 'added for review' notes
-            api.update_localization(
-                id=request.values.get('uuid'),
+            api.update_localization_by_elemental_id(
+                version=request.values.get('tator_version'),
+                elemental_id=request.values.get('uuid'),
                 localization_update=tator.models.LocalizationUpdate(
                     attributes={'Notes': '|'.join(current_notes)},
                 )

@@ -84,9 +84,10 @@ class TatorLocalizationProcessor:
                                     phylogeny[scientific_name]['aphia_id'] = record['AphiaID']
                                 break
             localization_dict = {
-                'id': localization['id'],
+                'elemental_id': localization['elemental_id'],
                 'all_localizations': {
-                    'id': localization['id'],
+                    'elemental_id': localization['elemental_id'],
+                    'version': localization['version'],
                     'type': localization['type'],
                     'points': [round(localization['x'], 5), round(localization['y'], 5)],
                     'dimensions': [localization['width'], localization['height']] if localization['type'] == 48 else None,
@@ -127,7 +128,7 @@ class TatorLocalizationProcessor:
             formatted_localizations.append(localization_dict)
 
         localization_df = pd.DataFrame(formatted_localizations, columns=[
-            'id',
+            'elemental_id',
             'all_localizations',
             'type',
             'video_sequence_name',
@@ -168,7 +169,7 @@ class TatorLocalizationProcessor:
             return [item for item in items]
 
         localization_df = localization_df.groupby(['media_id', 'frame', 'scientific_name', 'type']).agg({
-                'id': 'first',
+                'elemental_id': 'first',
                 'all_localizations': collect_localizations,
                 'count': 'sum',
                 'attracted': 'first',
@@ -223,7 +224,7 @@ class TatorLocalizationProcessor:
 
         for index, row in localization_df.iterrows():
             self.distilled_records.append({
-                'observation_uuid': row['id'],
+                'observation_uuid': row['elemental_id'],
                 'all_localizations': row['all_localizations'],
                 'media_id': row['media_id'],
                 'frame': row['frame'],

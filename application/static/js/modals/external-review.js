@@ -272,6 +272,7 @@ $(document).ready(() => {
     $('#deleteReviewModal').on('show.bs.modal', function (e) {
         const anno = $(e.relatedTarget).data('anno');
         $('#externalDeleteTator').val(anno.scientific_name != null && anno.scientific_name !== '');
+        $('#externalDeleteTatorVersion').val(anno.all_localizations ? anno.all_localizations[0].version : null);
         $('#externalDeleteUuid').val(anno.observation_uuid);
     });
 });
