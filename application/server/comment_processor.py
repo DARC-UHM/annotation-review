@@ -94,18 +94,24 @@ class CommentProcessor:
                             vars_comment = association['link_value']
             else:
                 # tator localization
-                annotation = next((loco for loco in localizations if loco['elemental_id'] == int(comment)), None)
-                concept_name = annotation['attributes']['Scientific Name']
-                media_id = annotation['media']
-                frame = annotation['frame']
-                if annotation is None or annotation['variant_deleted']:
+                annotation = next((loco for loco in localizations if loco['elemental_id'] == comment), None)
+                if annotation is None:
                     problem_comment = self.comments[comment]
-                    problem_comment['timestamp'] = f'Media ID: {media_id}, Frame: {frame}'
+                    problem_comment['timestamp'] = f'No timestamp available'
+                    print(f'{TERM_RED}ERROR: Could not find annotation with UUID {comment} in Tator ({problem_comment["sequence"]}, {problem_comment["timestamp"]}){TERM_NORMAL}')
+                    self.missing_records.append(problem_comment)
+                    continue
+                elif annotation['variant_deleted']:
+                    problem_comment = self.comments[comment]
+                    problem_comment['timestamp'] = f'Media ID: {annotation["media"]}, Frame: {annotation["frame"]}'
                     print(f'{TERM_RED}ERROR: Could not find annotation with UUID {comment} in Tator ({problem_comment["sequence"]}, {problem_comment["timestamp"]}){TERM_NORMAL}')
                     self.missing_records.append(problem_comment)
                     continue
                 if annotation['attributes'].get('Good Image'):
                     good_image = True
+                concept_name = annotation['attributes']['Scientific Name']
+                media_id = annotation['media']
+                frame = annotation['frame']
             if concept_name not in phylogeny.keys():
                 # get the phylogeny from VARS kb
                 with requests.get(url=f'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/{concept_name}') \
