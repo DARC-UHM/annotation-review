@@ -403,8 +403,11 @@ def tator_frame(media_id, frame):
         token = session['tator_token']
     else:
         token = request.args.get('token')
+    url = f'{app.config.get("TATOR_URL")}/rest/GetFrame/{media_id}?frames={frame}'
+    if request.values.get('preview'):
+        url += '&quality=650'
     res = requests.get(
-        url=f'{app.config.get("TATOR_URL")}/rest/GetFrame/{media_id}?frames={frame}',
+        url=url,
         headers={'Authorization': f'Token {token}'}
     )
     if res.status_code == 200:

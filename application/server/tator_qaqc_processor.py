@@ -177,6 +177,7 @@ class TatorQaqcProcessor:
             localization_dict = {
                 'elemental_id': localization['elemental_id'],
                 'all_localizations': {
+                    'id': localization['id'],
                     'elemental_id': localization['elemental_id'],
                     'version': localization['version'],
                     'type': localization['type'],

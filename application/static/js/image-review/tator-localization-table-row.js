@@ -1,6 +1,7 @@
 import { updateFlashMessages } from '../util/updateFlashMessages.js';
 
 export const tatorLocalizationRow = (localization, externalComment) => {
+    const previewFrameUrl = `${localization.frame_url}?preview=true`;
     let localizationBoxId = null;
     for (const loco of localization.all_localizations) {
         if (loco.type === 48) {
@@ -217,11 +218,12 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                         style="width: 580px;"
                     >
                         <img
-                            src="${localization.frame_url || localization.image_url}"
+                            id="${localization.observation_uuid}_img"
+                            src="${previewFrameUrl || localization.image_url}"
                             style="width: 580px;"
                             alt="${localization.scientific_name}"
-                            onmouseover="if (!${localizationBoxId}) return; this.src='/tator-localization/${localizationBoxId}'; document.getElementById('${localization.observation_uuid}_overlay').style.display = 'none';"
-                            onmouseout="this.src='${localization.frame_url || localization.image_url}'; document.getElementById('${localization.observation_uuid}_overlay').style.display = 'block';"
+                            onmouseover="mouseOver('${localization.observation_uuid}', '${localizationBoxId}')"
+                            onmouseout="mouseOut('${localization.observation_uuid}', '${previewFrameUrl}', '${localization.image_url}')"
                         />
                         <div id="${localization.observation_uuid}_overlay">
                         ${localization.all_localizations.map((loco, index) => {
@@ -233,6 +235,9 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                             }
                             return `<span class="position-absolute tator-dot" style="top: ${loco.points[1] * 100}%; left: ${loco.points[0] * 100}%;"></span>`;
                         }).join('')}
+                        </div>
+                        <div class="tator-loader-container">
+                            <div id="${localization.observation_uuid}_loading" class="tator-loader"></div>
                         </div>
                     </div>
                 </a>
@@ -280,3 +285,28 @@ async function updateGoodImage(localization_elemental_ids, version, checked) {
 }
 
 window.updateGoodImage = updateGoodImage;
+
+function mouseOver(uuid, boxId) {
+    if (boxId === 'null') return;
+
+    const mainImage = $(`#${uuid}_img`);
+    const newImageUrl = `/tator-localization/${boxId}`;
+    const newImage = new Image();
+
+    $(`#${uuid}_loading`).show();
+    newImage.src = newImageUrl;
+    newImage.onload = () => {
+        mainImage.attr('src', newImageUrl);
+        $(`#${uuid}_overlay`).hide();
+        $(`#${uuid}_loading`).hide();
+    };
+}
+
+window.mouseOver = mouseOver;
+
+function mouseOut(uuid, frameUrl, imageUrl) {
+    $(`#${uuid}_img`).attr('src', frameUrl !== 'null' ? frameUrl : imageUrl);
+    $(`#${uuid}_overlay`).show();
+}
+
+window.mouseOut = mouseOut;
