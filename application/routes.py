@@ -864,7 +864,9 @@ def delete_external_review():
 def sync_external_ctd():
     updated_ctd = {}
     sequences = {}
-    missing_ctd_total = 0
+    sequences_missing_ctd = set()
+    num_missing_ctd = 0
+    num_updated_ctd = 0
     try:
         all_comments_res = requests.get(
             url=f'{app.config.get("DARC_REVIEW_URL")}/comment/all',
@@ -876,6 +878,10 @@ def sync_external_ctd():
         return redirect('/')
     comments = all_comments_res.json()
     for key, val in comments.items():
+        if 'scientific_name' in val.keys():
+            continue  # skip tator comments
+        if 'depth' in val.keys():
+            continue  # skip comments that already have populated ctd
         if val['sequence'] not in sequences.keys():
             sequences[val['sequence']] = [key]
         else:
@@ -886,28 +892,47 @@ def sync_external_ctd():
             for annotation in response['annotations']:
                 if annotation['observation_uuid'] in sequences[sequence]:
                     if 'ancillary_data' in annotation.keys():
+                        depth = None
+                        lat = None
+                        long = None
+                        temperature = None
+                        oxygen_ml_l = None
+                        for key in annotation['ancillary_data'].keys():
+                            if key == 'depth_meters':
+                                depth = int(annotation['ancillary_data']['depth_meters'])
+                            elif key == 'latitude':
+                                lat = round(annotation['ancillary_data']['latitude'], 3)
+                            elif key == 'longitude':
+                                long = round(annotation['ancillary_data']['longitude'], 3)
+                            elif key == 'temperature_celsius':
+                                temperature = round(annotation['ancillary_data']['temperature_celsius'], 2)
+                            elif key == 'oxygen_ml_l':
+                                oxygen_ml_l = round(annotation['ancillary_data'][key], 3)
                         updated_ctd[annotation['observation_uuid']] = {
-                            'depth': round(annotation['ancillary_data']['depth_meters']) if 'depth_meters' in annotation['ancillary_data'].keys() else None,
-                            'lat': round(annotation['ancillary_data']['latitude'], 3) if 'latitude' in annotation['ancillary_data'].keys() else None,
-                            'long': round(annotation['ancillary_data']['longitude'], 3) if 'longitude' in annotation['ancillary_data'].keys() else None,
-                            'temperature': round(annotation['ancillary_data']['temperature_celsius'], 2) if 'temperature_celsius' in annotation['ancillary_data'].keys() else None,
-                            'oxygen_ml_l': round(annotation['ancillary_data']['oxygen_ml_l'], 3) if 'oxygen_ml_l' in annotation['ancillary_data'].keys() else None,
+                            'depth': depth,
+                            'lat': lat,
+                            'long': long,
+                            'temperature': temperature,
+                            'oxygen_ml_l': oxygen_ml_l,
                         }
+                        num_updated_ctd += 1
                     else:
-                        missing_ctd_total += 1
+                        num_missing_ctd += 1
+                        sequences_missing_ctd.add(sequence)
     sync_res = requests.put(
         url=f'{app.config.get("DARC_REVIEW_URL")}/sync-ctd',
         headers=app.config.get('DARC_REVIEW_HEADERS'),
         data=json.dumps(updated_ctd),
     )
     if sync_res.status_code == 200:
-        msg = 'CTD synced'
-        if missing_ctd_total > 0:
-            msg += f' - still missing CTD for {missing_ctd_total} annotation{"s" if missing_ctd_total > 1 else ""}'
+        msg = f'CTD added for {num_updated_ctd} record{"s" if num_missing_ctd > 1 or num_missing_ctd == 0 else ""}'
+        if num_missing_ctd > 0:
+            msg += f' - still missing for {num_missing_ctd} record{"s" if num_missing_ctd > 1 else ""} from dives: '
+            msg += ', '.join(sorted(list(sequences_missing_ctd)))
         flash(msg, 'success')
     else:
         flash('Unable to sync CTD - please try again', 'danger')
-    return redirect('/external-review')
+    return redirect('/external-review?unread=true')
 
 
 # displays information about all the reviewers in the hurl db

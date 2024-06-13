@@ -662,6 +662,10 @@ document.addEventListener('DOMContentLoaded', function(event) {
             $('#load-overlay').removeClass('loader-bg-hidden');
             $('#load-overlay').addClass('loader-bg');
         });
+        $('#syncCTD').on('click', () => {
+            $('#load-overlay').removeClass('loader-bg-hidden');
+            $('#load-overlay').addClass('loader-bg');
+        });
         if (unread) {
             $('#externalUnreadAnchor').css('color', 'white');
         } else if (read) {
