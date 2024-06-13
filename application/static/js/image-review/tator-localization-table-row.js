@@ -1,7 +1,7 @@
 import { updateFlashMessages } from '../util/updateFlashMessages.js';
 
 export const tatorLocalizationRow = (localization, externalComment) => {
-    const previewFrameUrl = `${localization.frame_url}?preview=true`;
+    const previewFrameUrl = localization.frame_url ? `${localization.frame_url}?preview=true` : localization.image_url;
     let localizationBoxId = null;
     for (const loco of localization.all_localizations) {
         if (loco.type === 48) {
@@ -219,11 +219,11 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                     >
                         <img
                             id="${localization.observation_uuid}_img"
-                            src="${previewFrameUrl || localization.image_url}"
+                            src="${previewFrameUrl}"
                             style="width: 580px;"
                             alt="${localization.scientific_name}"
                             onmouseover="mouseOver('${localization.observation_uuid}', '${localizationBoxId}')"
-                            onmouseout="mouseOut('${localization.observation_uuid}', '${previewFrameUrl}', '${localization.image_url}')"
+                            onmouseout="mouseOut('${localization.observation_uuid}', '${previewFrameUrl}')"
                         />
                         <div id="${localization.observation_uuid}_overlay">
                         ${localization.all_localizations.map((loco, index) => {
@@ -304,8 +304,8 @@ function mouseOver(uuid, boxId) {
 
 window.mouseOver = mouseOver;
 
-function mouseOut(uuid, frameUrl, imageUrl) {
-    $(`#${uuid}_img`).attr('src', frameUrl !== 'null' ? frameUrl : imageUrl);
+function mouseOut(uuid, frameUrl) {
+    $(`#${uuid}_img`).attr('src', frameUrl);
     $(`#${uuid}_overlay`).show();
 }
 
