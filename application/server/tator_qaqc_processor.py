@@ -69,12 +69,17 @@ class TatorQaqcProcessor:
                 }
             )
             for media in res.json():
-                if media['attributes']['Arrival']:
+                if media['attributes']['Arrival'] and media['attributes']['Arrival'].strip() != '':
                     video_start_timestamp = datetime.fromisoformat(media['attributes']['Start Time'])
                     if 'not observed' in media['attributes']['Arrival']:
                         arrival_frame = 0
                     else:
-                        arrival_frame = int(media['attributes']['Arrival'].strip().split(' ')[0])
+                        try:
+                            arrival_frame = int(media['attributes']['Arrival'].strip().split(' ')[0])
+                        except ValueError:
+                            print(f'\n{TERM_RED}Error:{TERM_NORMAL} Could not parse Arrival value for {media["name"]}')
+                            print(f'Arrival value: "{media["attributes"]["Arrival"]}"')
+                            raise ValueError
                     self.bottom_times[deployment] = (video_start_timestamp + timedelta(seconds=arrival_frame / 30)).strftime('%Y-%m-%d %H:%M:%SZ')
                 if media['id'] not in session['media_timestamps'].keys():
                     if 'Start Time' in media['attributes'].keys():
