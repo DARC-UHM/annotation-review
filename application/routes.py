@@ -765,7 +765,7 @@ def add_external_review():
         else:  # Tator localization, update Tator notes
             api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
             current_notes = api.get_localization_by_elemental_id(
-                version=json.loads(request.values.get('all_localizations'))[0]['version'],
+                version=json.loads(request.values.get('all_localizations'))[0].get('version', 45),
                 elemental_id=request.values.get('observation_uuid'),
             ).attributes.get('Notes', '').split('|')
             current_notes = [note for note in current_notes if 'send to' not in note.lower()]  # get rid of 'send to expert' notes
@@ -773,7 +773,7 @@ def add_external_review():
             current_notes = '|'.join(current_notes)
             new_notes = f'{current_notes + "|" if current_notes else ""}Added for review: {", ".join(json.loads(request.values.get("reviewers")))}'
             api.update_localization_by_elemental_id(
-                version=json.loads(request.values.get('all_localizations'))[0]['version'],
+                version=json.loads(request.values.get('all_localizations'))[0].get('version', 45),
                 elemental_id=request.values.get('observation_uuid'),
                 localization_update=tator.models.LocalizationUpdate(
                     attributes={'Notes': new_notes},

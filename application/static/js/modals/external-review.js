@@ -251,7 +251,7 @@ $(document).ready(() => {
         $('#externalScientificName').val(scientificName);
         $('#externalTatorOverlay').val(JSON.stringify(currentAnnotation.all_localizations));
         $('#externalTimestamp').val(currentAnnotation.recorded_timestamp);
-        $('#externalImageUrl').val(currentAnnotation.image_url || currentAnnotation.frame_url);
+        $('#externalImageUrl').val(currentAnnotation.frame_url || currentAnnotation.image_url);
         $('#externalVideoUrl').val(currentAnnotation.video_url);
         $('#externalAnnotator').val(currentAnnotation.annotator);
         $('#externalIdRef').val(currentAnnotation.id_reference);
