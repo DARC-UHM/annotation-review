@@ -239,7 +239,7 @@ class TatorQaqcProcessor:
                 localization_dict['do_temp_c'] = localization['attributes'].get('DO Temperature (celsius)')
                 localization_dict['do_concentration_salin_comp_mol_L'] = localization['attributes'].get('DO Concentration Salin Comp (mol per L)')
                 deployment_name = self.deployment_media_dict[localization['media']]
-                deployment_ctd = next((x for x in expedition_fieldbook if x['deployment_name'] == deployment_name), None)
+                deployment_ctd = next((x for x in expedition_fieldbook if x['deployment_name'] == deployment_name.replace('-', '_')), None)
                 if deployment_ctd:
                     localization_dict['lat'] = deployment_ctd['lat']
                     localization_dict['long'] = deployment_ctd['long']
