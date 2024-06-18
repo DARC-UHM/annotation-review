@@ -218,6 +218,8 @@ class TatorQaqcProcessor:
                         localization_dict['count'] = 75
                     case '100-999':
                         localization_dict['count'] = 500
+                    case '1000+':
+                        localization_dict['count'] = 1000
                     case _:
                         print(f'{TERM_RED}Unknown categorical abundance: {localization_dict["categorical_abundance"]}{TERM_NORMAL}')
             if get_timestamp:

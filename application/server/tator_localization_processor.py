@@ -121,6 +121,8 @@ class TatorLocalizationProcessor:
                         localization_dict['count'] = 75
                     case '100-999':
                         localization_dict['count'] = 500
+                    case '1000+':
+                        localization_dict['count'] = 1000
                     case _:
                         print(f'Unknown categorical abundance: {localization_dict["categorical_abundance"]}')
             if scientific_name in phylogeny.keys():
