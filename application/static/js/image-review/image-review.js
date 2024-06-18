@@ -523,17 +523,16 @@ async function updateAnnotation() {
             flashString += `${flashString.length ? ', d' : 'D'}eleted ${(deletes).join(', ')}`;
         }
         updateFlashMessages(flashString, 'success');
-        console.log(flashString)
         const res = await fetch(`/current-annotation/${formData.get('observation_uuid')}`);
         const updatedAnnotation = await res.json();
         const index = annotations.findIndex((anno) => anno.observation_uuid === formData.get('observation_uuid'));
         annotations[index].concept = updatedAnnotation.concept;
         annotations[index].associations = updatedAnnotation.associations;
-        annotations[index].upon = null;
-        annotations[index].guide_photo = null;
-        annotations[index].identity_certainty = null;
-        annotations[index].identity_reference = null;
-        annotations[index].comment = null;
+        annotations[index].upon = updatedAnnotation.associations.find((association) => association.link_name === 'upon')?.to_concept;
+        annotations[index].guide_photo = updatedAnnotation.associations.find((association) => association.link_name === 'guide-photo')?.to_concept;
+        annotations[index].identity_certainty = updatedAnnotation.associations.find((association) => association.link_name === 'identity-certainty')?.link_value;
+        annotations[index].identity_reference = updatedAnnotation.associations.find((association) => association.link_name === 'identity-reference')?.link_value;
+        annotations[index].comment = updatedAnnotation.associations.find((association) => association.link_name === 'comment')?.link_value;
         updateHash();
     }
     $('#load-overlay').addClass('loader-bg-hidden');

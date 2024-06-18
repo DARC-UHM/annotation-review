@@ -1009,8 +1009,7 @@ def get_current_associations(observation_uuid):
     res = requests.get(url=f'{app.config.get("HURLSTOR_URL")}:8082/anno/v1/annotations/{observation_uuid}')
     if res.status_code != 200:
         return {}, res.status_code
-    current_annotation = res.json()
-    return current_annotation, 200
+    return res.json(), 200
 
 
 # updates annotation with new concept name
