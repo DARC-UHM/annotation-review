@@ -801,13 +801,17 @@ class TatorQaqcProcessor:
         for record in self.final_records:
             slide = pres.slides.add_slide(image_slide_layout)
             # add image
-            response = requests.get(f'{app.config.get("LOCAL_APP_URL")}/tator-localization/{record["observation_uuid"]}?token={session["tator_token"]}')
+            localization_id = record['all_localizations'][0]['id']
+            response = requests.get(f'{app.config.get("LOCAL_APP_URL")}/tator-localization/{localization_id}?token={session["tator_token"]}')
             if response.status_code != 200:
                 print(f'Error fetching image for record {record["observation_uuid"]}')
                 continue
             image_data = BytesIO(response.content)
             left = top = Inches(1)
-            slide.shapes.add_picture(image_data, left, top, height=Inches(5.5))
+            picture = slide.shapes.add_picture(image_data, left, top, height=Inches(5.5))
+            line = picture.line
+            line.color.rgb = RGBColor(0, 0, 0)
+            line.width = Pt(1.5)
             width = Inches(2)
             height = Inches(1)
             # add text box
