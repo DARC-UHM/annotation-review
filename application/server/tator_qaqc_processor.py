@@ -12,6 +12,7 @@ from flask import session
 from io import BytesIO
 from pptx import Presentation
 from pptx.dml.color import RGBColor
+from pptx.enum.text import PP_ALIGN
 from pptx.util import Inches, Pt
 
 from .constants import KNOWN_ANNOTATORS
@@ -798,41 +799,61 @@ class TatorQaqcProcessor:
         pres = Presentation()
         image_slide_layout = pres.slide_layouts[6]
 
-        for record in self.final_records:
+        i = 0
+        while i < len(self.final_records):
             slide = pres.slides.add_slide(image_slide_layout)
-            # add image
-            localization_id = record['all_localizations'][0]['id']
-            response = requests.get(f'{app.config.get("LOCAL_APP_URL")}/tator-localization/{localization_id}?token={session["tator_token"]}')
-            if response.status_code != 200:
-                print(f'Error fetching image for record {record["observation_uuid"]}')
-                continue
-            image_data = BytesIO(response.content)
-            left = top = Inches(1)
-            picture = slide.shapes.add_picture(image_data, left, top, height=Inches(5.5))
-            line = picture.line
-            line.color.rgb = RGBColor(0, 0, 0)
-            line.width = Pt(1.5)
-            width = Inches(2)
-            height = Inches(1)
-            # add text box
-            text_box = slide.shapes.add_textbox(left, top, width, height)
-            text_frame = text_box.text_frame
-            paragraph = text_frame.paragraphs[0]
-            run = paragraph.add_run()
-            run.text = f'{record["scientific_name"]}{" (" + record["tentative_id"] + "?)" if record.get("tentative_id") else ""}'
-            font = run.font
-            font.name = 'Arial'
-            font.size = Pt(18)
-            font.color.rgb = RGBColor(0xff, 0xff, 0xff)
-            font.italic = True
-            if record['attracted'] == 'Not Attracted':
-                text_frame.add_paragraph()
-                paragraph = text_frame.paragraphs[1]
-                run_2 = paragraph.add_run()
-                run_2.text = 'NOT ATTRACTED'
-                font = run_2.font
+            current_phylum = self.final_records[i]['phylum']
+            phylum_text_box = slide.shapes.add_textbox(Inches(0.5), Inches(0.5), Inches(9), Inches(0.5))
+            phylum_text_frame = phylum_text_box.text_frame
+            phylum_paragraph = phylum_text_frame.paragraphs[0]
+            phylum_paragraph.alignment = PP_ALIGN.CENTER
+            phylum_run = phylum_paragraph.add_run()
+            phylum_run.text = ' '.join(list(current_phylum.upper()))
+            phylum_font = phylum_run.font
+            phylum_font.name = 'Arial'
+            phylum_font.size = Pt(32)
+            phylum_font.color.rgb = RGBColor(0x0, 0x0, 0x0)
+            for j in range(4):
+                # add four images to slide
+                localization = self.final_records[i]
+                if localization['phylum'] != current_phylum:
+                    break
+                localization_id = localization['all_localizations'][0]['id']
+                response = requests.get(f'{app.config.get("LOCAL_APP_URL")}/tator-localization/{localization_id}?token={session["tator_token"]}')
+                if response.status_code != 200:
+                    print(f'Error fetching image for record {localization["observation_uuid"]}')
+                    continue
+                image_data = BytesIO(response.content)
+                top = Inches(1.25 if j < 2 else 4.5)
+                left = Inches(1 if j % 2 == 0 else 4.5)
+                picture = slide.shapes.add_picture(image_data, left, top, height=Inches(3.75))
+                line = picture.line
+                line.color.rgb = RGBColor(0, 0, 0)
+                line.width = Pt(1.5)
+                width = Inches(2)
+                height = Inches(1)
+                # add text box
+                text_box = slide.shapes.add_textbox(left, top, width, height)
+                text_frame = text_box.text_frame
+                paragraph = text_frame.paragraphs[0]
+                run = paragraph.add_run()
+                run.text = f'{localization["scientific_name"]}{" (" + localization["tentative_id"] + "?)" if localization.get("tentative_id") else ""}'
+                font = run.font
                 font.name = 'Arial'
                 font.size = Pt(18)
-                font.color.rgb = RGBColor(0xff, 0x0, 0x0)
-                font.italic = False
+                font.color.rgb = RGBColor(0xff, 0xff, 0xff)
+                font.italic = True
+                if localization['attracted'] == 'Not Attracted':
+                    text_frame.add_paragraph()
+                    paragraph = text_frame.paragraphs[1]
+                    run_2 = paragraph.add_run()
+                    run_2.text = 'NOT ATTRACTED'
+                    font = run_2.font
+                    font.name = 'Arial'
+                    font.size = Pt(18)
+                    font.color.rgb = RGBColor(0xff, 0x0, 0x0)
+                    font.italic = False
+                i += 1
+                if i >= len(self.final_records):
+                    break
         return pres
