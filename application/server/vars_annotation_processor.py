@@ -193,7 +193,8 @@ class VarsAnnotationProcessor:
 
             if concept_name in self.phylogeny.keys():
                 for key in self.phylogeny[concept_name].keys():
-                    annotation_dict[key] = self.phylogeny[concept_name][key]
+                    # split to account for worms 'Phylum (Division)' case
+                    annotation_dict[key.split(' ')[0]] = self.phylogeny[concept_name][key]
             formatted_records.append(annotation_dict)
         return formatted_records
 

@@ -171,7 +171,8 @@ class CommentProcessor:
             }
             if concept_name in phylogeny.keys():
                 for key in phylogeny[concept_name].keys():
-                    comment_dict[key] = phylogeny[concept_name][key]
+                    # split to account for worms 'Phylum (Division)' case
+                    comment_dict[key.split(' ')[0]] = phylogeny[concept_name][key]
             formatted_comments.append(comment_dict)
 
         # add to dataframe for sorting

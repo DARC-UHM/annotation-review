@@ -127,7 +127,8 @@ class TatorLocalizationProcessor:
                         print(f'Unknown categorical abundance: {localization_dict["categorical_abundance"]}')
             if scientific_name in phylogeny.keys():
                 for key in phylogeny[scientific_name].keys():
-                    localization_dict[key] = phylogeny[scientific_name][key]
+                    # split to account for worms 'Phylum (Division)' case
+                    localization_dict[key.split(' ')[0]] = phylogeny[scientific_name][key]
             formatted_localizations.append(localization_dict)
 
         localization_df = pd.DataFrame(formatted_localizations, columns=[

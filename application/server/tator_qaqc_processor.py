@@ -256,7 +256,8 @@ class TatorQaqcProcessor:
                 localization_dict['substrate_notes'] = deployment_substrates[self.deployment_media_dict[localization['media']]]['Substrate Notes']
             if scientific_name in self.phylogeny.keys():
                 for key in self.phylogeny[scientific_name].keys():
-                    localization_dict[key] = self.phylogeny[scientific_name][key]
+                    # split to account for worms 'Phylum (Division)' case
+                    localization_dict[key.split(' ')[0]] = self.phylogeny[scientific_name][key]
             formatted_localizations.append(localization_dict)
 
         self.save_phylogeny()
@@ -802,7 +803,9 @@ class TatorQaqcProcessor:
         i = 0
         while i < len(self.final_records):
             slide = pres.slides.add_slide(image_slide_layout)
-            current_phylum = self.final_records[i]['phylum']
+            current_phylum = self.final_records[i].get('phylum')
+            if current_phylum is None:
+                current_phylum = 'UNKNOWN PHYLUM'
             phylum_text_box = slide.shapes.add_textbox(Inches(0.5), Inches(0.5), Inches(9), Inches(0.5))
             phylum_text_frame = phylum_text_box.text_frame
             phylum_paragraph = phylum_text_frame.paragraphs[0]
@@ -812,11 +815,11 @@ class TatorQaqcProcessor:
             phylum_font = phylum_run.font
             phylum_font.name = 'Arial'
             phylum_font.size = Pt(32)
-            phylum_font.color.rgb = RGBColor(0x0, 0x0, 0x0)
+            phylum_font.color.rgb = RGBColor(0, 0, 0)
             for j in range(4):
                 # add four images to slide
                 localization = self.final_records[i]
-                if localization['phylum'] != current_phylum:
+                if localization['phylum'] != current_phylum and current_phylum != 'UNKNOWN PHYLUM':
                     break
                 localization_id = localization['all_localizations'][0]['id']
                 response = requests.get(f'{app.config.get("LOCAL_APP_URL")}/tator-localization/{localization_id}?token={session["tator_token"]}')
@@ -824,15 +827,15 @@ class TatorQaqcProcessor:
                     print(f'Error fetching image for record {localization["observation_uuid"]}')
                     continue
                 image_data = BytesIO(response.content)
-                top = Inches(1.25 if j < 2 else 4.5)
-                left = Inches(1 if j % 2 == 0 else 4.5)
-                picture = slide.shapes.add_picture(image_data, left, top, height=Inches(3.75))
+                top = Inches(1.5 if j < 2 else 4)
+                left = Inches(1 if j % 2 == 0 else 5)
+                picture = slide.shapes.add_picture(image_data, left, top, height=Inches(2.5))
                 line = picture.line
                 line.color.rgb = RGBColor(0, 0, 0)
                 line.width = Pt(1.5)
+                # add text box
                 width = Inches(2)
                 height = Inches(1)
-                # add text box
                 text_box = slide.shapes.add_textbox(left, top, width, height)
                 text_frame = text_box.text_frame
                 paragraph = text_frame.paragraphs[0]
