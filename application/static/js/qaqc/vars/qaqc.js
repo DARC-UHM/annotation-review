@@ -529,12 +529,7 @@ async function updateConceptName(uuid) {
     const formData = new FormData();
     formData.append('observation_uuid', uuid);
     formData.append('concept', $('#editConceptName').val());
-    formData.append('identity-certainty', ''); // these blank values are added because that's how the
-    formData.append('identity-reference', ''); // logic for the update anno function is set up and i
-    formData.append('upon', '');               // don't feel like creating a new route/function just
-    formData.append('comment', '');            // for updating the concept name :)
-    formData.append('guide-photo', '');
-    const res = await fetch('/vars/annotation', {
+    const res = await fetch('/vars/annotation-concept', {
         method: 'PATCH',
         body: formData,
     });

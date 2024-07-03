@@ -92,7 +92,10 @@ def check_tator_token():
     if 'tator_token' not in session.keys():
         return {}, 400
     try:
-        api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
+        api = tator.get_api(
+            host=app.config.get('TATOR_URL'),
+            token=session['tator_token'],
+        )
         print(f'Your Tator token: {session["tator_token"]}')
         return {'username': api.whoami().username}, 200
     except tator.openapi.tator_openapi.exceptions.ApiException:
@@ -112,7 +115,7 @@ def tator_projects():
     try:
         project_list = tator.get_api(
             host=app.config.get('TATOR_URL'),
-            token=session['tator_token'],
+            token=session.get('tator_token'),
         ).get_project_list()
         return [{'id': project.id, 'name': project.name} for project in project_list], 200
     except tator.openapi.tator_openapi.exceptions.ApiException:
@@ -125,7 +128,7 @@ def tator_sections(project_id):
     try:
         section_list = tator.get_api(
             host=app.config.get('TATOR_URL'),
-            token=session['tator_token'],
+            token=session.get('tator_token'),
         ).get_section_list(project_id)
         return [{'id': section.id, 'name': section.name} for section in section_list], 200
     except tator.openapi.tator_openapi.exceptions.ApiException:
@@ -144,7 +147,7 @@ def load_media(project_id, section_id):
             url=f'https://cloud.tator.io/rest/Medias/{project_id}?section={section_id}',
             headers={
                 'Content-Type': 'application/json',
-                'Authorization': f'Token {session["tator_token"]}',
+                'Authorization': f'Token {session.get("tator_token")}',
             })
         if res.status_code != 200:
             return {}, res.status_code
@@ -178,7 +181,10 @@ def tator_image_review(project_id, section_id):
     if 'tator_token' not in session.keys():
         return redirect('/')
     try:
-        api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
+        api = tator.get_api(
+            host=app.config.get('TATOR_URL'),
+            token=session['tator_token'],
+        )
         localization_processor = TatorLocalizationProcessor(
             project_id=project_id,
             section_id=section_id,
@@ -203,8 +209,8 @@ def tator_image_review(project_id, section_id):
     data = {
         'annotations': localization_processor.distilled_records,
         'title': localization_processor.section_name,
-        'concepts': session['vars_concepts'],
-        'reviewers': session['reviewers'],
+        'concepts': session.get('vars_concepts', []),
+        'reviewers': session.get('reviewers', []),
         'comments': comments,
     }
     return render_template('image-review/image-review.html', data=data)
@@ -217,7 +223,10 @@ def tator_qaqc_checklist(project_id, section_id):
         flash('Please log in to Tator', 'info')
         return redirect('/')
     try:
-        api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
+        api = tator.get_api(
+            host=app.config.get('TATOR_URL'),
+            token=session['tator_token'],
+        )
         section_name = api.get_section(id=section_id).name
     except tator.openapi.tator_openapi.exceptions.ApiException:
         flash('Please log in to Tator', 'info')
@@ -292,7 +301,10 @@ def tator_qaqc(project_id, section_id, check):
         flash('Please log in to Tator', 'info')
         return redirect('/')
     try:
-        api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
+        api = tator.get_api(
+            host=app.config.get('TATOR_URL'),
+            token=session['tator_token'],
+        )
     except tator.openapi.tator_openapi.exceptions.ApiException:
         flash('Please log in to Tator', 'info')
         return redirect('/')
@@ -308,10 +320,10 @@ def tator_qaqc(project_id, section_id, check):
     except requests.exceptions.ConnectionError:
         print('\nERROR: unable to connect to external review server\n')
     data = {
-        'concepts': session['vars_concepts'],
+        'concepts': session.get('vars_concepts', []),
         'title': check.replace('-', ' ').title(),
         'comments': comments,
-        'reviewers': session['reviewers'],
+        'reviewers': session.get('reviewers', []),
     }
     if check == 'media-attributes':
         # the one case where we don't want to initialize a TatorQaqcProcessor (no need to fetch localizations)
@@ -454,7 +466,10 @@ def update_tator_localization():
             this_attributes = attributes.copy()
             if localization['type'] == 49:  # point annotation, add cat abundance
                 this_attributes['Categorical Abundance'] = request.values.get('categorical_abundance') if request.values.get('categorical_abundance') else '--'
-            api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
+            api = tator.get_api(
+                host=app.config.get('TATOR_URL'),
+                token=session.get('tator_token'),
+            )
             api.update_localization_by_elemental_id(
                 version=localization['version'],
                 elemental_id=localization['elemental_id'],
@@ -474,7 +489,10 @@ def update_tator_localization_image():
     version = request.values.get('version')
     try:
         for elemental_id in localization_elemental_ids:
-            api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
+            api = tator.get_api(
+                host=app.config.get('TATOR_URL'),
+                token=session.get('tator_token'),
+            )
             api.update_localization_by_elemental_id(
                 version=version,
                 elemental_id=elemental_id,
@@ -502,7 +520,7 @@ def view_images():
                 headers=app.config.get('DARC_REVIEW_HEADERS'),
             ) as res:
                 comments = comments | res.json()  # merge dicts
-            if sequence not in session['vars_video_sequences']:
+            if sequence not in session.get('vars_video_sequences', []):
                 return render_template('not-found.html', err='dive'), 404
     except requests.exceptions.ConnectionError:
         print('\nERROR: unable to connect to external review server\n')
@@ -514,8 +532,8 @@ def view_images():
     data = {
         'annotations': image_loader.final_records,
         'title': image_loader.vessel_name,
-        'concepts': session['vars_concepts'],
-        'reviewers': session['reviewers'],
+        'concepts': session.get('vars_concepts', []),
+        'reviewers': session.get('reviewers', []),
         'comments': comments,
     }
     return render_template('image-review/image-review.html', data=data)
@@ -603,7 +621,7 @@ def vars_qaqc(check):
     sequences = request.args.getlist('sequence')
     qaqc_annos = VarsQaqcProcessor(sequences)
     data = {
-        'concepts': session['vars_concepts'],
+        'concepts': session.get('vars_concepts', []),
         'title': check.replace('-', ' ').title(),
     }
     match check:
@@ -679,7 +697,10 @@ def get_external_review():
         flash('Please log in to Tator', 'info')
         return redirect('/')
     try:
-        api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
+        api = tator.get_api(
+            host=app.config.get('TATOR_URL'),
+            token=session['tator_token'],
+        )
     except tator.openapi.tator_openapi.exceptions.ApiException:
         flash('Please log in to Tator', 'info')
         return redirect('/')
@@ -740,8 +761,8 @@ def get_external_review():
     data = {
         'annotations': comment_loader.distilled_records,
         'title': f'External Review {"(" + request.args.get("reviewer") + ")" if request.args.get("reviewer") else ""}',
-        'concepts': session['vars_concepts'],
-        'reviewers': session['reviewers'],
+        'concepts': session.get('vars_concepts', []),
+        'reviewers': session.get('reviewers', []),
         'comments': comments,
         'missing_records': comment_loader.missing_records,
         'unread_comment_count': unread_comments,
@@ -763,7 +784,10 @@ def add_external_review():
                 client_secret=app.config.get('ANNOSAURUS_CLIENT_SECRET')
             )
         else:  # Tator localization, update Tator notes
-            api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
+            api = tator.get_api(
+                host=app.config.get('TATOR_URL'),
+                token=session.get('tator_token'),
+            )
             current_notes = api.get_localization_by_elemental_id(
                 version=json.loads(request.values.get('all_localizations'))[0].get('version', 45),
                 elemental_id=request.values.get('observation_uuid'),
@@ -801,7 +825,7 @@ def add_external_review():
     image_binary = None
     if request.values.get('scientific_name'):  # tator localization
         # get image so we can post to review server
-        image_res = requests.get(url=f'{app.config.get("LOCAL_APP_URL")}/{data["image_url"]}?token={session["tator_token"]}')
+        image_res = requests.get(url=f'{app.config.get("LOCAL_APP_URL")}/{data["image_url"]}?token={session.get("tator_token")}')
         if image_res.status_code == 200:
             image_binary = BytesIO(image_res.content)
         else:
@@ -834,7 +858,10 @@ def delete_external_review():
     )
     if delete_comment_res.status_code == 200:
         if request.values.get('tator') and request.values.get('tator') == 'true':  # tator localization
-            api = tator.get_api(host=app.config.get('TATOR_URL'), token=session['tator_token'])
+            api = tator.get_api(
+                host=app.config.get('TATOR_URL'),
+                token=session.get('tator_token'),
+            )
             current_notes = api.get_localization_by_elemental_id(
                 version=request.values.get('tator_version'),
                 elemental_id=request.values.get('uuid'),
@@ -938,7 +965,7 @@ def sync_external_ctd():
 # displays information about all the reviewers in the hurl db
 @app.get('/reviewers')
 def reviewers():
-    return render_template('external-reviewers.html', reviewers=session['reviewers'])
+    return render_template('external-reviewers.html', reviewers=session.get('reviewers'))
 
 
 # create or update a reviewer's information
