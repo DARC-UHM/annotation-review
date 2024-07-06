@@ -377,6 +377,9 @@ def tator_qaqc(project_id, section_id, check):
         case 'notes-and-remarks':
             qaqc_annos.get_all_notes_and_remarks()
             data['page_title'] = 'Records with notes and/or remarks'
+        case 're-examined':
+            qaqc_annos.get_re_examined()
+            data['page_title'] = 'Records marked "to be re-examined"'
         case 'unique-taxa':
             qaqc_annos.get_unique_taxa()
             data['page_title'] = 'All unique taxa'

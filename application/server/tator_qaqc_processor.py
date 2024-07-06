@@ -618,6 +618,15 @@ class TatorQaqcProcessor:
                 self.records_of_interest.append(localization)
         self.process_records()
 
+    def get_re_examined(self):
+        """
+        Finds all records that have a reason of "to be re-examined"
+        """
+        for localization in self.localizations:
+            if localization['attributes']['Reason'] == 'To be re-examined':
+                self.records_of_interest.append(localization)
+        self.process_records()
+
     def get_unique_taxa(self):
         """
         Finds every unique scientific name/tentative ID combo and box/dot info.
