@@ -149,6 +149,7 @@ function showAddFilter() {
             addFilter();
         }
     });
+    $('#imageFilterEntry').focus();
 }
 
 window.showAddFilter = showAddFilter;
@@ -692,7 +693,10 @@ document.addEventListener('DOMContentLoaded', function(event) {
         $('#totalPageNumBottom').html(pageCount);
     });
 
-    $('#imageFilterSelect').on('change', () => $('#imageFilterEntry').attr('placeholder', `Enter ${$('#imageFilterSelect').val().toLowerCase().replaceAll('_', ' ')}`));
+    $('#imageFilterSelect').on('change', () => {
+        $('#imageFilterEntry').attr('placeholder', `Enter ${$('#imageFilterSelect').val().toLowerCase().replaceAll('_', ' ')}`)
+        $('#imageFilterEntry').focus();
+    });
 
     $('#sortSelect').on('change', () => {
         const hashList = window.location.hash.substring(1).split('&');

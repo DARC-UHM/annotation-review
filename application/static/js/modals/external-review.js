@@ -237,7 +237,7 @@ $(document).ready(() => {
             // tator annotation
             currentAnnotation.video_url = `https://hurlstor.soest.hawaii.edu:5000/video?link=/tator-video/${currentAnnotation.media_id}&time=${Math.round(currentAnnotation.frame / 30)}`;
             // just assume that all records with the same scientific name in the same clip are the same individual
-            currentAnnotation.id_reference = `${currentAnnotation.media_id}:${scientificName}`;
+            currentAnnotation.id_reference = `${currentAnnotation.media_id}:${currentAnnotation.scientific_name}`;
         }
         $('#externalModalSubmitButton').prop('disabled', true);
         addReviewer(null);
