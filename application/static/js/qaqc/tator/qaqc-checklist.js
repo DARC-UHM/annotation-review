@@ -78,6 +78,8 @@ document.addEventListener('DOMContentLoaded',  (event) => {
     $('#tentativeIdAnchor').on('click', () => showLoader());
     $('#notesRemarksAnchor').attr('href', `/tator/qaqc/${projectId}/${sectionId}/notes-and-remarks?deployment=${deployments.join('&deployment=')}`);
     $('#notesRemarksAnchor').on('click', () => showLoader());
+    $('#reExaminedAnchor').attr('href', `/tator/qaqc/${projectId}/${sectionId}/re-examined?deployment=${deployments.join('&deployment=')}`);
+    $('#reExaminedAnchor').on('click', () => showLoader());
     $('#uniqueTaxaAnchor').attr('href', `/tator/qaqc/${projectId}/${sectionId}/unique-taxa?deployment=${deployments[0]}&deploymentList=${deployments.join(',')}`);
     $('#uniqueTaxaAnchor').on('click', () => showLoader());
     $('#mediaAttributesAnchor').attr('href', `/tator/qaqc/${projectId}/${sectionId}/media-attributes?deployment=${deployments.join('&deployment=')}`);
