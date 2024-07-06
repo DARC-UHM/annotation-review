@@ -233,12 +233,8 @@ $(document).ready(() => {
 
     $('#externalReviewModal').on('show.bs.modal', (e) => {
         currentAnnotation = $(e.relatedTarget).data('anno');
-        let scientificName = currentAnnotation.scientific_name;
-        if (scientificName && scientificName !== '') {
-            // tator localization
-            if (currentAnnotation.tentative_id && currentAnnotation.tentative_id !== '') {
-                scientificName += ` (${currentAnnotation.tentative_id}?)`;
-            }
+        if (currentAnnotation.all_localizations && currentAnnotation.all_localizations !== '') {
+            // tator annotation
             currentAnnotation.video_url = `https://hurlstor.soest.hawaii.edu:5000/video?link=/tator-video/${currentAnnotation.media_id}&time=${Math.round(currentAnnotation.frame / 30)}`;
             // just assume that all records with the same scientific name in the same clip are the same individual
             currentAnnotation.id_reference = `${currentAnnotation.media_id}:${scientificName}`;
@@ -248,10 +244,9 @@ $(document).ready(() => {
         $('#externalObservationUuid').val(currentAnnotation.observation_uuid);
         $('#externalSequence').val(currentAnnotation.video_sequence_name);
         $('#externalSectionId').val(currentAnnotation.section_id);
-        $('#externalScientificName').val(scientificName);
         $('#externalTatorOverlay').val(JSON.stringify(currentAnnotation.all_localizations));
         $('#externalTimestamp').val(currentAnnotation.recorded_timestamp);
-        $('#externalImageUrl').val(currentAnnotation.frame_url || currentAnnotation.image_url);
+        $('#externalImageUrl').val(currentAnnotation.frame_url ? null : currentAnnotation.image_url);
         $('#externalVideoUrl').val(currentAnnotation.video_url);
         $('#externalAnnotator').val(currentAnnotation.annotator);
         $('#externalIdRef').val(currentAnnotation.id_reference);
@@ -271,7 +266,7 @@ $(document).ready(() => {
 
     $('#deleteReviewModal').on('show.bs.modal', function (e) {
         const anno = $(e.relatedTarget).data('anno');
-        $('#externalDeleteTator').val(anno.scientific_name != null && anno.scientific_name !== '');
+        $('#externalDeleteTator').val(anno.all_localizations != null && anno.all_localizations !== '');
         $('#externalDeleteTatorVersion').val(anno.all_localizations ? anno.all_localizations[0].version : null);
         $('#externalDeleteUuid').val(anno.observation_uuid);
     });

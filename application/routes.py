@@ -779,7 +779,7 @@ def get_external_review():
 @app.post('/external-review')
 def add_external_review():
     def add_vars_or_tator_comment(status_code):
-        if not request.values.get('scientific_name'):  # VARS annotation, update VARS comment
+        if not request.values.get('all_localizations'):  # VARS annotation, update VARS comment
             annosaurus = Annosaurus(app.config.get('ANNOSAURUS_URL'))
             annosaurus.update_annotation_comment(
                 observation_uuid=request.values.get('observation_uuid'),
@@ -809,14 +809,13 @@ def add_external_review():
         return {}, status_code
     data = {
         'uuid': request.values.get('observation_uuid'),
-        'scientific_name': request.values.get('scientific_name'),
         'all_localizations': request.values.get('all_localizations'),
         'id_reference': request.values.get('id_reference'),
         'section_id': request.values.get('section_id'),
         'sequence': request.values.get('sequence'),
         'timestamp': request.values.get('timestamp'),
-        'image_url': request.values.get('image_url'),
         'reviewers': request.values.get('reviewers'),
+        'image_url': request.values.get('image_url'),
         'video_url': request.values.get('video_url'),
         'annotator': request.values.get('annotator'),
         'depth': request.values.get('depth'),
@@ -825,17 +824,8 @@ def add_external_review():
         'temperature': request.values.get('temperature'),
         'oxygen_ml_l': request.values.get('oxygen_ml_l'),
     }
-    image_binary = None
-    if request.values.get('scientific_name'):  # tator localization
-        # get image so we can post to review server
-        image_res = requests.get(url=f'{app.config.get("LOCAL_APP_URL")}/{data["image_url"]}?token={session.get("tator_token")}')
-        if image_res.status_code == 200:
-            image_binary = BytesIO(image_res.content)
-        else:
-            return {500: 'Could not get image'}, 500
     with requests.post(
             url=f'{app.config.get("DARC_REVIEW_URL")}/comment',
-            files={'image': (f'{data["uuid"]}.png', image_binary, 'image/png')} if request.values.get('scientific_name') else None,
             headers=app.config.get('DARC_REVIEW_HEADERS'),
             data=data,
     ) as post_comment_res:
@@ -908,7 +898,7 @@ def sync_external_ctd():
         return redirect('/')
     comments = all_comments_res.json()
     for key, val in comments.items():
-        if 'scientific_name' in val.keys():
+        if 'all_localizations' in val.keys():
             continue  # skip tator comments
         if 'depth' in val.keys():
             continue  # skip comments that already have populated ctd

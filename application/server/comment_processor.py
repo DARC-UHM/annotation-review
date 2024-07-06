@@ -42,7 +42,7 @@ class CommentProcessor:
         media_ids = set()
         localizations = []
         for comment in self.comments:
-            if 'scientific_name' in self.comments[comment].keys() and self.comments[comment]['scientific_name'] is not None:
+            if 'all_localizations' in self.comments[comment].keys() and self.comments[comment]['all_localizations'] is not None:
                 # get the media id from the video url (not stored as its own field)
                 media_id = self.comments[comment]['video_url'].split('/')[-1].split('&')[0]
                 media_ids.add(media_id)
@@ -68,9 +68,9 @@ class CommentProcessor:
             media_id = None
             frame = None
 
-            if 'scientific_name' not in self.comments[comment].keys()\
-                    or self.comments[comment]['scientific_name'] is None\
-                    or self.comments[comment]['scientific_name'] == '':
+            if 'all_localizations' not in self.comments[comment].keys()\
+                    or self.comments[comment]['all_localizations'] is None\
+                    or self.comments[comment]['all_localizations'] == '':
                 # vars annotation
                 try:
                     annotation = requests.get(url=f'{os.environ.get("ANNOSAURUS_URL")}/annotations/{comment}').json()
@@ -138,7 +138,7 @@ class CommentProcessor:
             comment_dict = {
                 'observation_uuid': comment,
                 'concept': concept_name,
-                'scientific_name': concept_name if 'scientific_name' in self.comments[comment].keys() else None,
+                'scientific_name': concept_name if 'all_localizations' in self.comments[comment].keys() else None,
                 'associations': annotation.get('associations'),
                 'all_localizations': json.loads(self.comments[comment].get('all_localizations')) if self.comments[comment].get('all_localizations') else None,
                 'attracted': annotation['attributes'].get('Attracted') if annotation.get('attributes') else None,
