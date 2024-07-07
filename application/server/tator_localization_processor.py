@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 import pandas as pd
@@ -197,13 +198,13 @@ class TatorLocalizationProcessor:
                     camera_bottom_arrival = datetime.strptime(
                         self.bottom_times[self.deployment_media_dict[localization['media']]],
                         '%Y-%m-%d %H:%M:%SZ'
-                    ).replace(tzinfo=timezone.utc)
+                    ).replace(tzinfo=datetime.timezone.utc)
                     video_start_timestamp = datetime.fromisoformat(session['media_timestamps'][localization['media']])
-                    observation_timestamp = video_start_timestamp + timedelta(seconds=localization['frame'] / 30)
+                    observation_timestamp = video_start_timestamp + datetime.timedelta(seconds=localization['frame'] / 30)
                     time_diff = observation_timestamp - camera_bottom_arrival
                     localization_dict['timestamp'] = observation_timestamp.strftime('%Y-%m-%d %H:%M:%SZ')
                     localization_dict['camera_seafloor_arrival'] = camera_bottom_arrival.strftime('%Y-%m-%d %H:%M:%SZ')
-                    localization_dict['animal_arrival'] = str(timedelta(
+                    localization_dict['animal_arrival'] = str(datetime.timedelta(
                         days=time_diff.days,
                         seconds=time_diff.seconds
                     )) if observation_timestamp > camera_bottom_arrival else '00:00:00'
@@ -271,15 +272,10 @@ class TatorLocalizationProcessor:
             'relief',
             'substrate_notes',
             'phylum',
-            'subphylum',
-            'superclass',
             'class',
             'subclass',
-            'superorder',
             'order',
             'suborder',
-            'infraorder',
-            'superfamily',
             'family',
             'subfamily',
             'genus',
@@ -324,15 +320,10 @@ class TatorLocalizationProcessor:
             'relief': 'first',
             'substrate_notes': 'first',
             'phylum': 'first',
-            'subphylum': 'first',
-            'superclass': 'first',
             'class': 'first',
             'subclass': 'first',
-            'superorder': 'first',
             'order': 'first',
             'suborder': 'first',
-            'infraorder': 'first',
-            'superfamily': 'first',
             'family': 'first',
             'subfamily': 'first',
             'genus': 'first',
@@ -344,15 +335,10 @@ class TatorLocalizationProcessor:
 
         localization_df = localization_df.sort_values(by=[
             'phylum',
-            'subphylum',
-            'superclass',
             'class',
             'subclass',
-            'superorder',
             'order',
             'suborder',
-            'infraorder',
-            'superfamily',
             'family',
             'subfamily',
             'genus',
@@ -399,20 +385,16 @@ class TatorLocalizationProcessor:
                 'relief': row['relief'],
                 'substrate_notes': row['substrate_notes'],
                 'phylum': row['phylum'],
-                'subphylum': row['subphylum'],
-                'superclass': row['superclass'],
                 'class': row['class'],
                 'subclass': row['subclass'],
-                'superorder': row['superorder'],
                 'order': row['order'],
                 'suborder': row['suborder'],
-                'infraorder': row['infraorder'],
-                'superfamily': row['superfamily'],
                 'family': row['family'],
                 'subfamily': row['subfamily'],
                 'genus': row['genus'],
                 'subgenus': row['subgenus'],
                 'species': row['species'],
+                'subspecies': row['subspecies'],
                 'aphia_id': row['aphia_id'],
             })
 

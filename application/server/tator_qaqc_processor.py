@@ -1,11 +1,9 @@
+import datetime
 import math
-import os
-import pandas as pd
 import requests
 import sys
 import tator
 
-from datetime import timezone
 from flask import session
 from io import BytesIO
 from pptx import Presentation
@@ -65,7 +63,7 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
                             print(f'\n{TERM_RED}Error:{TERM_NORMAL} Could not parse Arrival value for {media["name"]}')
                             print(f'Arrival value: "{media["attributes"]["Arrival"]}"')
                             raise ValueError
-                    self.bottom_times[deployment] = (video_start_timestamp + timedelta(seconds=arrival_frame / 30)).strftime('%Y-%m-%d %H:%M:%SZ')
+                    self.bottom_times[deployment] = (video_start_timestamp + datetime.timedelta(seconds=arrival_frame / 30)).strftime('%Y-%m-%d %H:%M:%SZ')
                 if media['id'] not in session['media_timestamps'].keys():
                     if 'Start Time' in media['attributes'].keys():
                         session['media_timestamps'][media['id']] = media['attributes']['Start Time']
@@ -405,10 +403,10 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
             x['species'] if x.get('species') else '',
         ))
         # rounding up to nearest hour
-        deployment_time = timedelta(hours=math.ceil((latest_timestamp - bottom_time).total_seconds() / 3600))
+        deployment_time = datetime.timedelta(hours=math.ceil((latest_timestamp - bottom_time).total_seconds() / 3600))
         accumulation_data = []  # just a list of the number of unique taxa seen at each hour
         for hour in range(1, deployment_time.seconds // 3600 + 1):
-            accumulation_data.append(len([taxa for taxa in unique_taxa_first_seen.values() if taxa < bottom_time + timedelta(hours=hour)]))
+            accumulation_data.append(len([taxa for taxa in unique_taxa_first_seen.values() if taxa < bottom_time + datetime.timedelta(hours=hour)]))
         self.final_records = {
             'deployments': deployment_taxa,
             'unique_taxa': [taxa['scientific_tentative'] for taxa in unique_taxa_list],
