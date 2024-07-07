@@ -12,9 +12,7 @@ from pptx.enum.text import PP_ALIGN
 from pptx.util import Inches, Pt
 
 from .tator_localization_processor import TatorLocalizationProcessor
-
-TERM_RED = '\033[1;31;48m'
-TERM_NORMAL = '\033[1;37;0m'
+from .constants import TERM_NORMAL, TERM_RED
 
 
 class TatorQaqcProcessor(TatorLocalizationProcessor):

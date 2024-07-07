@@ -7,11 +7,9 @@ import sys
 import tator
 
 from flask import session
-from .constants import KNOWN_ANNOTATORS
+from .constants import KNOWN_ANNOTATORS, TERM_RED, TERM_NORMAL
 from .functions import flatten_taxa_tree
 
-TERM_RED = '\033[1;31;48m'
-TERM_NORMAL = '\033[1;37;0m'
 WORMS_REST_URL = 'https://www.marinespecies.org/rest'
 TATOR_REST_URL = 'https://cloud.tator.io/rest'
 

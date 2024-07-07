@@ -8,10 +8,7 @@ from flask import session
 from json import JSONDecodeError
 
 from .functions import *
-
-TERM_RED = '\033[1;31;48m'
-TERM_YELLOW = '\033[1;93m'
-TERM_NORMAL = '\033[1;37;0m'
+from .constants import TERM_RED, TERM_YELLOW, TERM_NORMAL
 
 
 class CommentProcessor:

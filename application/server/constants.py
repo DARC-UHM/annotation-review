@@ -6,3 +6,6 @@ KNOWN_ANNOTATORS = {
     433: 'Aaron Judah',
     491: 'Harold Carlson',
 }
+TERM_RED = '\033[1;31;48m'
+TERM_YELLOW = '\033[1;93m'
+TERM_NORMAL = '\033[1;37;0m'

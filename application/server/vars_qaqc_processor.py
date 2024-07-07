@@ -4,10 +4,6 @@ import sys
 from .functions import *
 from .vars_annotation_processor import VarsAnnotationProcessor
 
-TERM_RED = '\033[1;31;48m'
-TERM_YELLOW = '\033[1;93m'
-TERM_NORMAL = '\033[1;37;0m'
-
 
 class VarsQaqcProcessor(VarsAnnotationProcessor):
     """
