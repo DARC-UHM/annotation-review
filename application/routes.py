@@ -191,6 +191,9 @@ def tator_image_review(project_id, section_id):
             api=api,
             deployment_list=request.args.getlist('deployment')
         )
+        localization_processor.fetch_localizations()
+        localization_processor.load_phylogeny()
+        localization_processor.process_records()
     except tator.openapi.tator_openapi.exceptions.ApiException:
         flash('Please log in to Tator', 'info')
         return redirect('/')
@@ -207,7 +210,7 @@ def tator_image_review(project_id, section_id):
     except requests.exceptions.ConnectionError:
         print('\nERROR: unable to connect to external review server\n')
     data = {
-        'annotations': localization_processor.distilled_records,
+        'annotations': localization_processor.final_records,
         'title': localization_processor.section_name,
         'concepts': session.get('vars_concepts', []),
         'reviewers': session.get('reviewers', []),
@@ -350,6 +353,8 @@ def tator_qaqc(project_id, section_id, check):
         deployment_list=request.args.getlist('deployment'),
         darc_review_url=app.config.get('DARC_REVIEW_URL'),
     )
+    qaqc_annos.fetch_localizations()
+    qaqc_annos.load_phylogeny()
     match check:
         case 'names-accepted':
             qaqc_annos.check_names_accepted()

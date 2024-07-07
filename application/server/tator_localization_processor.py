@@ -39,15 +39,15 @@ class TatorLocalizationProcessor:
         self.final_records = []  # final list formatted for review page
         self.deployment_media_dict = {}  # dict of all relevant media ids and their dep names
         self.bottom_times = {deployment: '' for deployment in deployment_list}
-        self.phylogeny = self.load_phylogeny()
+        self.phylogeny = {}
         self.section_name = self.api.get_section(section_id).name
 
     def load_phylogeny(self):
         try:
             with open(os.path.join('cache', 'phylogeny.json'), 'r') as f:
-                return json.load(f)
+                self.phylogeny = json.load(f)
         except FileNotFoundError:
-            return {}
+            self.phylogeny = {}
 
     def save_phylogeny(self):
         try:
@@ -142,7 +142,6 @@ class TatorLocalizationProcessor:
                     stop=1,
                 )[0].attributes
 
-
         for localization in self.localizations:
             if localization['type'] not in [48, 49]:  # we only care about boxes and dots
                 continue
@@ -195,11 +194,11 @@ class TatorLocalizationProcessor:
                         print(f'{TERM_RED}Unknown categorical abundance: {localization_dict["categorical_abundance"]}{TERM_NORMAL}')
             if get_timestamp:
                 if localization['media'] in session['media_timestamps'].keys():
-                    camera_bottom_arrival = datetime.strptime(
+                    camera_bottom_arrival = datetime.datetime.strptime(
                         self.bottom_times[self.deployment_media_dict[localization['media']]],
                         '%Y-%m-%d %H:%M:%SZ'
                     ).replace(tzinfo=datetime.timezone.utc)
-                    video_start_timestamp = datetime.fromisoformat(session['media_timestamps'][localization['media']])
+                    video_start_timestamp = datetime.datetime.fromisoformat(session['media_timestamps'][localization['media']])
                     observation_timestamp = video_start_timestamp + datetime.timedelta(seconds=localization['frame'] / 30)
                     time_diff = observation_timestamp - camera_bottom_arrival
                     localization_dict['timestamp'] = observation_timestamp.strftime('%Y-%m-%d %H:%M:%SZ')
@@ -229,8 +228,6 @@ class TatorLocalizationProcessor:
                     # split to account for worms 'Phylum (Division)' case
                     localization_dict[key.split(' ')[0]] = self.phylogeny[scientific_name][key]
             formatted_localizations.append(localization_dict)
-
-        self.save_phylogeny()
 
         if not formatted_localizations:
             print('no records to process!')
@@ -302,7 +299,6 @@ class TatorLocalizationProcessor:
             'notes': 'first',
             'qualifier': 'first',
             'reason': 'first',
-            'tentative_id': 'first',
             'good_image': 'first',
             'video_sequence_name': 'first',
             'annotator': 'first',
@@ -397,5 +393,5 @@ class TatorLocalizationProcessor:
                 'subspecies': row['subspecies'],
                 'aphia_id': row['aphia_id'],
             })
-
-        print('Processed!')
+        self.save_phylogeny()
+        print('processed!')
