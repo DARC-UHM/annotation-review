@@ -89,8 +89,8 @@ class Annosaurus(JWTAuthentication):
             data=association,
             headers=self._auth_header(jwt),
         )
-        print(association)
-        print(res.text)
+        # print(association)
+        # print(res.text)
         return {'status': res.status_code, 'json': res.json()}
 
     def update_association(self,
