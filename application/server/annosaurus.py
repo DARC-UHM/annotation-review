@@ -80,11 +80,15 @@ class Annosaurus(JWTAuthentication):
             raise ValueError('association dict missing key "link_name"')
         jwt = self.authorize(client_secret, jwt)
         association['observation_uuid'] = observation_uuid
+        if "link_value" not in association or association["link_value"] is None:
+            association["link_value"] = "nil"
         res = requests.post(
             url=f'{self.base_url}/associations',
             data=association,
             headers=self._auth_header(jwt),
         )
+        # print(association)
+        # print(res.text)
         return {'status': res.status_code, 'json': res.json()}
 
     def update_association(self,

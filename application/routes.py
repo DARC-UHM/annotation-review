@@ -53,7 +53,7 @@ def index():
         with requests.get(url=f'{app.config.get("HURLSTOR_URL")}:8084/v1/videosequences/names') as sequences_res:
             session['vars_video_sequences'] = sequences_res.json()
         # get concept list from vars (for input validation)
-        with requests.get(url=f'{app.config.get("HURLSTOR_URL")}:8083/v1/concept') as concept_res:
+        with requests.get(url=f'{app.config.get("HURLSTOR_URL")}:8083/kb/v1/concept') as concept_res:
             session['vars_concepts'] = concept_res.json()
     except requests.exceptions.ConnectionError:
         print('\nERROR: unable to connect to VARS\n')
@@ -1033,7 +1033,7 @@ def delete_reviewer(name):
 # get an updated VARS annotation
 @app.get('/current-annotation/<observation_uuid>')
 def get_current_associations(observation_uuid):
-    res = requests.get(url=f'{app.config.get("HURLSTOR_URL")}:8082/anno/v1/annotations/{observation_uuid}')
+    res = requests.get(url=f'{app.config.get("HURLSTOR_URL")}:8082/v1/annotations/{observation_uuid}')
     if res.status_code != 200:
         return {}, res.status_code
     return res.json(), 200
