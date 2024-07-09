@@ -160,7 +160,12 @@ class TestAnnosaurus:
             jwt='jwt',
         )
         assert created['status'] == 201
-        assert created['json'] == {'link_name': 'test', 'to_concept': 'test', 'uuid': 'new_uuid'}
+        assert created['json'] == {
+            'link_name': 'test',
+            'link_value': 'nil',
+            'to_concept': 'test',
+            'uuid': 'new_uuid',
+        }
 
     def test_create_association_missing_link_value(self):
         anno = Annosaurus('http://localhost:test')
