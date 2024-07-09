@@ -14,6 +14,8 @@ from application.server.vars_qaqc_processor import VarsQaqcProcessor
 from application.server.tator_localization_processor import TatorLocalizationProcessor
 from application.server.annosaurus import *
 
+import traceback
+
 
 @app.route('/favicon.ico')
 def favicon():
@@ -48,10 +50,10 @@ def index():
         session['reviewers'] = []
     try:
         # get list of sequences from vars
-        with requests.get(url=f'{app.config.get("HURLSTOR_URL")}:8084/vam/v1/videosequences/names') as sequences_res:
+        with requests.get(url=f'{app.config.get("HURLSTOR_URL")}:8084/v1/videosequences/names') as sequences_res:
             session['vars_video_sequences'] = sequences_res.json()
         # get concept list from vars (for input validation)
-        with requests.get(url=f'{app.config.get("HURLSTOR_URL")}:8083/kb/v1/concept') as concept_res:
+        with requests.get(url=f'{app.config.get("HURLSTOR_URL")}:8083/v1/concept') as concept_res:
             session['vars_concepts'] = concept_res.json()
     except requests.exceptions.ConnectionError:
         print('\nERROR: unable to connect to VARS\n')
@@ -1161,4 +1163,5 @@ def server_error(e):
     error = f'{type(e).__name__}: {e}'
     print('\nApplication error 😔')
     print(error)
+    print(traceback.format_exc())
     return render_template('error.html', err=error), 500
