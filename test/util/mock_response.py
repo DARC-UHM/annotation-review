@@ -12,8 +12,8 @@ class MockResponse:
                 return ex_23060001
             case 'http://hurlstor.soest.hawaii.edu:8086/query/dive/Deep%20Discoverer%2023060002':
                 return ex_23060002
-            case 'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/Pomacentridae':
+            case 'http://hurlstor.soest.hawaii.edu:8083/v1/phylogeny/up/Pomacentridae':
                 return pomacentridae
-            case 'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/Hydroidolina':
+            case 'http://hurlstor.soest.hawaii.edu:8083/v1/phylogeny/up/Hydroidolina':
                 return hydroidolina
         return {}

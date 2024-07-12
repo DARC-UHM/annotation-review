@@ -53,7 +53,7 @@ def index():
         with requests.get(url=f'{app.config.get("HURLSTOR_URL")}:8084/v1/videosequences/names') as sequences_res:
             session['vars_video_sequences'] = sequences_res.json()
         # get concept list from vars (for input validation)
-        with requests.get(url=f'{app.config.get("HURLSTOR_URL")}:8083/kb/v1/concept') as concept_res:
+        with requests.get(url=f'{app.config.get("HURLSTOR_URL")}:8083/v1/concept') as concept_res:
             session['vars_concepts'] = concept_res.json()
     except requests.exceptions.ConnectionError:
         print('\nERROR: unable to connect to VARS\n')

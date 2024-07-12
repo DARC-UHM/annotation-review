@@ -111,7 +111,7 @@ class CommentProcessor:
                 frame = annotation['frame']
             if concept_name not in phylogeny.keys():
                 # get the phylogeny from VARS kb
-                with requests.get(url=f'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/{concept_name}') \
+                with requests.get(url=f'http://hurlstor.soest.hawaii.edu:8083/v1/phylogeny/up/{concept_name}') \
                         as vars_tax_res:
                     if vars_tax_res.status_code == 200:
                         # this get us to phylum
