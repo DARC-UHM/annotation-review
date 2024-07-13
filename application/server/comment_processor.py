@@ -69,14 +69,15 @@ class CommentProcessor:
                     or self.comments[comment]['all_localizations'] is None\
                     or self.comments[comment]['all_localizations'] == '':
                 # vars annotation
+                vars_res = requests.get(url=f'{os.environ.get("ANNOSAURUS_URL")}/annotations/{comment}')
                 try:
-                    annotation = requests.get(url=f'{os.environ.get("ANNOSAURUS_URL")}/annotations/{comment}').json()
-                except JSONDecodeError:
+                    annotation = vars_res.json()
+                    concept_name = annotation['concept']
+                except (JSONDecodeError, KeyError):
                     problem_comment = self.comments[comment]
                     print(f'{TERM_RED}ERROR: Could not find annotation with UUID {comment} in VARS ({problem_comment["sequence"]}, {problem_comment["timestamp"]}){TERM_NORMAL}')
                     self.missing_records.append(problem_comment)
                     continue
-                concept_name = annotation['concept']
                 if annotation.get('associations'):
                     for association in annotation['associations']:
                         if association['link_name'] == 'identity-certainty':
