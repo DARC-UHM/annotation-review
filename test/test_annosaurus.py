@@ -185,7 +185,11 @@ class TestAnnosaurus:
             jwt='jwt',
         )
         assert updated['status'] == 200
-        assert updated['json'] == {'link_name': 'test', 'to_concept': 'test', 'uuid': 'abc123'}
+        assert updated['json'] == {
+            'link_name': 'test',
+            'to_concept': 'test',
+            'uuid': 'abc123',
+        }
 
     @patch('requests.delete', side_effect=mocked_requests_delete)
     def test_delete_association(self, _):
@@ -234,6 +238,7 @@ class TestAnnosaurus:
         assert created['json'] == {
             'link_name': 'comment',
             'link_value': 'Added for review: Test Reviewer',
+            'to_concept': 'self',
             'uuid': 'new_uuid'
         }
 
@@ -250,6 +255,7 @@ class TestAnnosaurus:
         assert created['json'] == {
             'link_name': 'comment',
             'link_value': 'Added for review: Test Reviewer, Ronald McDonald',
+            'to_concept': 'self',
             'uuid': 'new_uuid'
         }
 
