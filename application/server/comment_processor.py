@@ -154,7 +154,7 @@ class CommentProcessor:
                 'media_id': media_id,
                 'frame': frame,
                 'comment': vars_comment,
-                'image_url': self.comments[comment]['image_url'],
+                'image_url': self.comments[comment].get('image_url'),
                 'frame_url': f'/tator/frame/{media_id}/{frame}',
                 'video_url': self.comments[comment].get('video_url'),
                 'upon': upon,
