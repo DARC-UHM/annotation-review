@@ -49,6 +49,9 @@ with open(CSV_FILE, newline='') as file:
                 'Authorization': f'Token {os.getenv("TATOR_TOKEN")}',
             }
         )
+        if res.status_code != 200:
+            print(f'Error getting media ids: {res.json()["message"]}')
+            exit(1)
         media_ids = [media['id'] for media in res.json()]
         print(f'Found {len(media_ids)} media files')
         # update attributes for each media id

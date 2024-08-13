@@ -50,7 +50,7 @@ def populate_ctd(project_id, section_id, deployment_name):
             'Authorization': f'Token {TATOR_TOKEN}',
         })
     if res.status_code != 200:
-        print(f'\n{TERM_RED}Error fetching localizations: {res.json()}{TERM_NORMAL}')
+        print(f'\n{TERM_RED}Error fetching localizations: {res.json()["message"]}{TERM_NORMAL}')
         exit(1)
     for media in res.json():
         if not media['attributes'].get('Start Time'):
