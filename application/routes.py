@@ -1,6 +1,7 @@
 import base64
 import tator
 import sys
+import traceback
 
 from io import BytesIO
 from flask import render_template, request, redirect, flash, session, Response, send_file
@@ -13,8 +14,6 @@ from application.server.tator_qaqc_processor import TatorQaqcProcessor
 from application.server.vars_qaqc_processor import VarsQaqcProcessor
 from application.server.tator_localization_processor import TatorLocalizationProcessor
 from application.server.annosaurus import *
-
-import traceback
 
 
 @app.route('/favicon.ico')
@@ -30,14 +29,14 @@ def index():
     try:
         # get list of reviewers from external review db
         with requests.get(
-                url=f'{app.config.get("DARC_REVIEW_URL")}/reviewer/all',
-                headers=app.config.get('DARC_REVIEW_HEADERS'),
+            url=f'{app.config.get("DARC_REVIEW_URL")}/reviewer/all',
+            headers=app.config.get('DARC_REVIEW_HEADERS'),
         ) as reviewers_res:
             session['reviewers'] = reviewers_res.json()
         # get stats from external review db
         with requests.get(
-                url=f'{app.config.get("DARC_REVIEW_URL")}/stats',
-                headers=app.config.get('DARC_REVIEW_HEADERS'),
+            url=f'{app.config.get("DARC_REVIEW_URL")}/stats',
+            headers=app.config.get('DARC_REVIEW_HEADERS'),
         ) as stats_res:
             stats_json = stats_res.json()
             unread_comments = stats_json['unread_comments']
@@ -74,13 +73,13 @@ def index():
 @app.post('/tator/login')
 def tator_login():
     res = requests.post(
-            url=f'{app.config.get("TATOR_URL")}/rest/Token',
-            headers={'Content-Type': 'application/json'},
-            data=json.dumps({
-                'username': request.values.get('username'),
-                'password': request.values.get('password'),
-                'refresh': True,
-            }),
+        url=f'{app.config.get("TATOR_URL")}/rest/Token',
+        headers={'Content-Type': 'application/json'},
+        data=json.dumps({
+            'username': request.values.get('username'),
+            'password': request.values.get('password'),
+            'refresh': True,
+        }),
     )
     if res.status_code == 201:
         session['tator_token'] = res.json()['token']
@@ -677,6 +676,9 @@ def vars_qaqc(check):
         case 'host-associate-time-diff':
             qaqc_annos.find_long_host_associate_time_diff()
             data['page_title'] = 'Records where "upon" occurred more than one minute ago or cannot be found'
+        case 'number-of-bounding-boxes':
+            qaqc_annos.find_num_bounding_boxes()
+            data['page_title'] = 'Number of bounding boxes for each unique concept'
         case 'unique-fields':
             qaqc_annos.find_unique_fields()
             data['unique_list'] = qaqc_annos.final_records

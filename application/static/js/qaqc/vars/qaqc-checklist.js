@@ -92,6 +92,8 @@ document.addEventListener('DOMContentLoaded',  (event) => {
     $('#expectedAssociationAnchor').on('click', () => showLoader());
     $('#timeDiffHostUponAnchor').attr('href', `/vars/qaqc/host-associate-time-diff?sequence=${sequences.join('&sequence=')}`);
     $('#timeDiffHostUponAnchor').on('click', () => showLoader());
+    $('#boundingBoxesAnchor').attr('href', `/vars/qaqc/number-of-bounding-boxes?sequence=${sequences.join('&sequence=')}`);
+    $('#boundingBoxesAnchor').on('click', () => showLoader());
     $('#uniqueFieldsAnchor').attr('href', `/vars/qaqc/unique-fields?sequence=${sequences.join('&sequence=')}#unique=concept-names`);
     $('#uniqueFieldsAnchor').on('click', () => showLoader());
 

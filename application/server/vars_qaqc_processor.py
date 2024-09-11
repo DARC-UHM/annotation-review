@@ -440,6 +440,17 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
             next((x for x in self.final_records if x['observation_uuid'] == uuid), None)['status'] = \
                 f'Host not found in previous records'
 
+    def find_num_bounding_boxes(self):
+        bounding_box_counts = {}
+        for name in self.sequence_names:
+            for annotation in self.fetch_annotations(name):
+                if annotation['concept'] not in bounding_box_counts.keys():
+                    bounding_box_counts[annotation['concept']] = 0
+                if get_association(annotation, 'bounding box'):
+                    bounding_box_counts[annotation['concept']] += 1
+        print(bounding_box_counts)
+        self.final_records.append({'bounding-boxes': bounding_box_counts})
+
     def find_unique_fields(self):
         def load_dict(field_name, unique_dict, individual_count):
             if field_name not in unique_dict.keys():
