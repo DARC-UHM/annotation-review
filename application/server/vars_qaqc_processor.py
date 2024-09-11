@@ -442,14 +442,26 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
 
     def find_num_bounding_boxes(self):
         bounding_box_counts = {}
+        total_count_annos = 0
+        total_count_boxes = 0
         for name in self.sequence_names:
             for annotation in self.fetch_annotations(name):
+                total_count_annos += 1
                 if annotation['concept'] not in bounding_box_counts.keys():
-                    bounding_box_counts[annotation['concept']] = 0
+                    bounding_box_counts[annotation['concept']] = {
+                        'boxes': 0,
+                        'annos': 0,
+                    }
+                bounding_box_counts[annotation['concept']]['annos'] += 1
                 if get_association(annotation, 'bounding box'):
-                    bounding_box_counts[annotation['concept']] += 1
-        print(bounding_box_counts)
-        self.final_records.append({'bounding-boxes': bounding_box_counts})
+                    total_count_boxes += 1
+                    bounding_box_counts[annotation['concept']]['boxes'] += 1
+        sorted_box_counts = dict(sorted(bounding_box_counts.items()))
+        self.final_records.append({
+            'total_count_annos': total_count_annos,
+            'total_count_boxes': total_count_boxes,
+            'bounding_box_counts': sorted_box_counts,
+        })
 
     def find_unique_fields(self):
         def load_dict(field_name, unique_dict, individual_count):

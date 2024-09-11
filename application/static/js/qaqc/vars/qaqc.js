@@ -170,6 +170,41 @@ function updateHash() {
         }
     }
 
+    if (title === 'Number Of Bounding Boxes') {
+        // special case
+        const boundingBoxInfo = annotationsToDisplay[0];
+        $('#annotationCount').html(boundingBoxInfo.total_count_annos);
+        $('#sortSelector').empty();
+        $('#sortSelector').html(`Total Boxes:&nbsp;&nbsp;<span style="font-weight: 600;">${boundingBoxInfo.total_count_boxes}</span>`);
+        $('#annotationTable').append(`
+            <thead>
+                <tr>
+                    <th class="text-start">Concept</th>
+                    <th class="text-start">Annotation Count</th>
+                    <th class="text-start">Box Count</th>
+                </tr>
+            </thead>
+        `);
+        Object.keys(boundingBoxInfo.bounding_box_counts).forEach((concept) => {
+            if (concept === 'none') {
+                return;
+            }
+            const boxCount = boundingBoxInfo.bounding_box_counts[concept].boxes;
+            $('#annotationTable').find('tbody').append(`
+                <tr>
+                    <td>${concept}</td>
+                    <td>${boundingBoxInfo.bounding_box_counts[concept].annos}</td>
+                    <td
+                        style="color: ${boxCount === 0 ? 'red; font-weight: bold;' : boxCount > 10 ? 'yellow; font-weight: bold;' : ''}"
+                    >
+                        ${boxCount}
+                    </td>
+                </tr>
+            `);
+        });
+        return;
+    }
+
     annotationsToDisplay.forEach((annotation, index) => {
         let occurrenceRemarks = 'N/A';
         // get occurrence remarks
@@ -190,11 +225,11 @@ function updateHash() {
                 <div style="font-weight: 500; font-size: 18px;">${annotation.concept}</div>
                 <div class="small">${annotation.recorded_timestamp}<br>${annotation.video_sequence_name}<br>${annotation.annotator}</div>
                 <div class="small">Remarks: ${occurrenceRemarks}</div>
-                <button 
-                    type="button" 
-                    data-bs-toggle="modal" 
-                    data-anno='${ JSON.stringify(annotation) }' 
-                    data-bs-target="#editModal" 
+                <button
+                    type="button"
+                    data-bs-toggle="modal"
+                    data-anno='${ JSON.stringify(annotation) }'
+                    data-bs-target="#editModal"
                     class="editButton small">Edit annotation
                 </button>
             </td>
@@ -202,7 +237,7 @@ function updateHash() {
             <td class="text-center small" style="width: 20%">
                 <div class="mb-2">
                     ${annotation.image_url
-                        ? `<a href="${annotation.image_url}" target="_blank"><img src="${annotation.image_url}" style="width: 200px;"/></a><br>` 
+                        ? `<a href="${annotation.image_url}" target="_blank"><img src="${annotation.image_url}" style="width: 200px;"/></a><br>`
                         : `<div class="text=center pt-5 m-auto" style="width: 200px; height: 110px; background: #1e2125; color: #9f9f9f;">No image</div>`
                     }
                 </div>
@@ -661,16 +696,17 @@ function loadModal(annotationData) {
     conceptNameField.on('change', () => validateName(conceptNameField.val(), $('#qaqcUpdateConceptButton')));
 
     sortedAssociations.forEach((ass, index) => {
+        const linkName = ass.link_name.replace(' ', '_');
         $('#editModalFields').append(`
             <div class="row pb-2">
                 <div class="col-4 ms-4 ps-4 my-auto modal-label">
                     ${ass.link_name}:
                 </div>
                 <div class="col-5">
-                    <input type="text" id="${ass.link_name}-${index}" class="modal-text-qaqc">
+                    <input type="text" id="${linkName}-${index}" class="modal-text-qaqc">
                 </div>
                 <div class="col-2 d-flex justify-content-end">
-                    <button id="button${ass.link_name}-${index}" type="button" class="qaqcCheckButton" onclick="updateAssociation('${ass.uuid}', '${ass.link_name}', '${ass.link_name}-${index}')" disabled>
+                    <button id="button${linkName}-${index}" type="button" class="qaqcCheckButton" onclick="updateAssociation('${ass.uuid}', '${ass.link_name}', '${linkName}-${index}')" disabled>
                         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-check" viewBox="0 0 16 16">
                             <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
                         </svg>
@@ -683,13 +719,13 @@ function loadModal(annotationData) {
                 </div>
             </div>
         `);
-        const field = $(`#${ass.link_name}-${index}`);
-        const button = $(`#button${ass.link_name}-${index}`);
-        if (toConcepts.includes(ass.link_name)) {
+        const field = $(`#${linkName}-${index}`);
+        const button = $(`#button${linkName}-${index}`);
+        if (toConcepts.includes(linkName)) {
             field.val(ass.to_concept);
             field.on('input', () => validateName(field.val(), button));
             field.on('change', () => validateName(field.val(), button));
-            autocomplete($(`#${ass.link_name}-${index}`), allConcepts);
+            autocomplete($(`#${linkName}-${index}`), allConcepts);
         } else {
             field.val(ass.link_value);
             field.on('input', () => button.prop('disabled', field.val() <= 0));
