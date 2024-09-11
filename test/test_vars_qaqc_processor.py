@@ -268,6 +268,19 @@ class TestVarsQaqcProcessor:
         ]
 
     @patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_num_bounding_boxes(self, _):
+        qaqc_processor = VarsQaqcProcessor(['Deep Discoverer 23060001'])
+        qaqc_processor.find_num_bounding_boxes()
+        assert qaqc_processor.final_records == [{
+            'bounding_box_counts': {
+                'Pomacentridae': {'annos': 5, 'boxes': 1},
+                'none': {'annos': 1, 'boxes': 0}
+            },
+            'total_count_annos': 6,
+            'total_count_boxes': 1,
+        }]
+
+    @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_unique_fields(self, _):
         qaqc_processor = VarsQaqcProcessor(['Deep Discoverer 23060001'])
         qaqc_processor.find_unique_fields()

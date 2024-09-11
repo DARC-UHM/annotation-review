@@ -33,6 +33,13 @@ ex_23060001 = {
                     'link_value': '12',
                     'mime_type': 'text/plain'
                 },
+                {
+                    "uuid": "c9567180-61e2-49bf-acfe-59a27353f591",
+                    "link_name": "bounding box",
+                    "to_concept": "self",
+                    "link_value": "{\"x\":520,\"y\":430,\"width\":517,\"height\":402,\"generator\":\"VARS Annotation\"}",
+                    "mime_type": "application/json"
+                },
             ],
             'image_references': [
                 {
