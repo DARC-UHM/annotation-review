@@ -35,8 +35,6 @@ TERM_NORMAL = '\033[1;37;0m'
 
 
 def populate_ctd(project_id, section_id, deployment_name):
-    non_sequential_timestamps = 0
-
     # get list of media ids in deployment
     print(f'Fetching media IDs for deployment {deployment_name}...', end='')
     sys.stdout.flush()
@@ -228,6 +226,7 @@ def populate_ctd(project_id, section_id, deployment_name):
                 'attributes': {
                     'DO Temperature (celsius)': do_temp,
                     'DO Concentration Salin Comp (mol per L)': do_concentration,
+                    'Depth': depth,
                 }
             },
         )
@@ -241,19 +240,21 @@ dotenv.load_dotenv()
 TATOR_TOKEN = os.getenv('TATOR_TOKEN')
 
 if __name__ == '__main__':
-    if len(sys.argv) != 3 and len(sys.argv) != 4:
-        print('Usage: python load_video_start_times.py <project_id> <section_id> <OPTIONAL:deployment_name>')
+    if len(sys.argv) != 4:
+        print('Usage: python load_video_start_times.py <project_id> <section_id> <deployment_name>')
         sys.exit()
+    populate_ctd(project_id=sys.argv[1], section_id=sys.argv[2], deployment_name=sys.argv[3])
+    os.system('say "Deployment CTD synced."')
 
-    if len(sys.argv) == 4:
-        # only do one deployment
-        populate_ctd(project_id=sys.argv[1], section_id=sys.argv[2], deployment_name=sys.argv[3])
-        os.system('say "Deployment CTD synced."')
-    else:
-        # entire expedition
-        for i in range(2, 59):  # todo update for each expedition
-            populate_ctd(project_id=sys.argv[1], section_id=sys.argv[2], deployment_name=f'PLW_dscm_{i:02d}')
-        os.system('say "Expedition CTD synced."')
+    # if len(sys.argv) == 4:
+    #     # only do one deployment
+    #     populate_ctd(project_id=sys.argv[1], section_id=sys.argv[2], deployment_name=sys.argv[3])
+    #     os.system('say "Deployment CTD synced."')
+    # else:
+    #     # entire expedition
+    #     for i in range(2, 59):
+    #         populate_ctd(project_id=sys.argv[1], section_id=sys.argv[2], deployment_name=f'PLW_dscm_{i:02d}')
+    #     os.system('say "Expedition CTD synced."')
 
     print('Done!')
 

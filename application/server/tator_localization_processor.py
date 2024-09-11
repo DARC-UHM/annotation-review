@@ -208,12 +208,12 @@ class TatorLocalizationProcessor:
             if get_ctd and expedition_fieldbook:
                 localization_dict['do_temp_c'] = localization['attributes'].get('DO Temperature (celsius)')
                 localization_dict['do_concentration_salin_comp_mol_L'] = localization['attributes'].get('DO Concentration Salin Comp (mol per L)')
+                localization_dict['depth_m'] = localization['attributes'].get('Depth')
                 deployment_name = self.deployment_media_dict[localization['media']]
                 deployment_ctd = next((x for x in expedition_fieldbook if x['deployment_name'] == deployment_name.replace('-', '_')), None)
                 if deployment_ctd:
                     localization_dict['lat'] = deployment_ctd['lat']
                     localization_dict['long'] = deployment_ctd['long']
-                    localization_dict['depth_m'] = deployment_ctd['depth_m']
                     localization_dict['bait_type'] = deployment_ctd['bait_type']
             if get_substrates and deployment_substrates:
                 localization_dict['primary_substrate'] = deployment_substrates[self.deployment_media_dict[localization['media']]]['Primary Substrate']
