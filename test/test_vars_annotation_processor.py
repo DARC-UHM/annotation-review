@@ -15,6 +15,7 @@ class TestVarsAnnotationProcessor:
         annotation_processor = VarsAnnotationProcessor(['Deep Discoverer 23060001'])
         assert annotation_processor.vessel_name == 'Deep Discoverer'
         assert annotation_processor.sequence_names == ['Deep Discoverer 23060001']
+        assert annotation_processor.highest_id_ref == 0
         assert annotation_processor.phylogeny == {}
         assert annotation_processor.working_records == []
         assert annotation_processor.final_records == []
@@ -240,3 +241,11 @@ class TestVarsAnnotationProcessor:
             },
 
         ]
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_highest_id_refs(self, mock_get):
+        annotation_processor = VarsAnnotationProcessor(['Deep Discoverer 23060001'])
+        sequence_videos = []
+        annotation_processor.fetch_media(annotation_processor.sequence_names[0], sequence_videos)
+        annotation_processor.process_working_records(sequence_videos)
+        assert annotation_processor.highest_id_ref == 13
