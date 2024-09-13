@@ -7,6 +7,7 @@ const toConcepts = ['s1', 's2', 'upon', 'size', 'guide-photo', 'habitat', 'megah
 let annotationsToDisplay = annotations;
 let workingAnnotationUuid = '';
 let associationToDeleteUuid = '';
+let filterRemarks = false;
 
 function returnToCheckList() {
     const url = window.location.href;
@@ -87,6 +88,13 @@ const filterAndSort = (list, key) => {
     return filtered.concat(list.filter((anno) => !anno[key]));
 }
 
+function filterRemarksClick(checked) {
+    filterRemarks = !!checked;
+    updateHash();
+}
+
+window.filterRemarksClick = filterRemarksClick;
+
 function updateHash() {
     const hash = window.location.hash.slice(1);
 
@@ -94,6 +102,20 @@ function updateHash() {
 
     if (hash.length) {
         sortBy(hash.split('=')[1]);
+    }
+
+    if (filterRemarks) {
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => {
+            let inWaterColumn = false;
+            anno.associations.forEach((ass) => {
+                if (ass.link_name === 'occurrence-remark') {
+                    if (ass.link_value.includes('in water column')) {
+                        inWaterColumn = true;
+                    }
+                }
+            });
+            return !inWaterColumn;
+        });
     }
 
     if (!annotationsToDisplay.length) {
@@ -336,6 +358,7 @@ function updateHash() {
                 break;
             }
             case 'Missing Upon': {
+                $(`#filterRemarks`).show();
                 $(`#problemsDiv${index}`).append(`
                     <table id="associationTable${index}" class="w-100 associationTable">
                         <thead><tr><th>Link Name</th><th>To Concept</th></tr></thead>
