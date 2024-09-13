@@ -19,6 +19,7 @@ class VarsAnnotationProcessor:
         self.phylogeny = {}
         self.working_records = []  # all of the annotations that have images
         self.final_records = []    # the final list of annotations
+        self.highest_id_ref = 0
         temp_name = sequence_names[0].split()
         temp_name.pop()
         self.vessel_name = ' '.join(temp_name)
@@ -156,6 +157,9 @@ class VarsAnnotationProcessor:
                 for association in record['associations']:
                     if association['link_name'] == 'identity-reference':
                         identity_reference = association['link_value']
+                        if int(identity_reference) > self.highest_id_ref:
+                            self.highest_id_ref = int(identity_reference)
+                        break
 
             if record.get('ancillary_data'):
                 for key in record['ancillary_data'].keys():

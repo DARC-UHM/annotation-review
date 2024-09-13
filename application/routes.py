@@ -540,6 +540,7 @@ def view_images():
         return render_template('not-found.html', err='pics'), 404
     data = {
         'annotations': image_loader.final_records,
+        'highest_id_ref': image_loader.highest_id_ref,
         'title': image_loader.vessel_name,
         'concepts': session.get('vars_concepts', []),
         'reviewers': session.get('reviewers', []),
