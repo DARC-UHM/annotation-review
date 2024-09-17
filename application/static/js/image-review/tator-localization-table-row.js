@@ -47,11 +47,11 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                                         : attractedConcepts[localization.scientific_name] === 1 ? '(Expected attracted)'
                                             : attractedConcepts[localization.scientific_name] === 2 ? '(Expected either)'
                                                 : '(Unknown - not in list)'
-                                    }` 
+                                    }`
                                 : ''
                             }
                         </span><br>
-                        
+
                     </div>
                 </div>
                 <div class="row" style="${localization.problems?.includes('Qualifier') ? 'color: yellow;' : ''}">
@@ -136,7 +136,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                             </div>
                             <div class="col values">
                                 ${externalComment.reviewer_comments.map(item => {
-                                    return item.comment 
+                                    return item.comment
                                         ? `
                                             ${item.comment.length
                                                 ? `
@@ -156,15 +156,15 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                                 }).join('')}
                             </div>
                         </div>
-                    ` : '' 
+                    ` : ''
                 }
                 <div class="row mt-2">
                     <div class="col-4">
-                        <button 
-                            type="button" 
-                            data-bs-toggle="modal" 
-                            data-anno='${ JSON.stringify(localization) }' 
-                            data-bs-target="#editTatorLocalizationModal" 
+                        <button
+                            type="button"
+                            data-bs-toggle="modal"
+                            data-anno='${ JSON.stringify(localization) }'
+                            data-bs-target="#editTatorLocalizationModal"
                             class="editButton">
                                 Edit annotation
                         </button>
@@ -179,30 +179,30 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                     </div>
                     <div class="col values">
                         ${ externalComment ? (
-                            `<button 
-                                type="button" 
-                                data-bs-toggle="modal" 
+                            `<button
+                                type="button"
+                                data-bs-toggle="modal"
                                 data-anno='${ JSON.stringify(localization) }'
-                                data-bs-target="#externalReviewModal" 
-                                class="editButton" 
+                                data-bs-target="#externalReviewModal"
+                                class="editButton"
                                 onclick="updateReviewerName('${localization.observation_uuid}')">
                                     Change reviewer
                             </button>
                             <br>
-                            <button 
-                                type="button" 
-                                data-bs-toggle="modal" 
+                            <button
+                                type="button"
+                                data-bs-toggle="modal"
                                 data-anno='${JSON.stringify(localization)}'
-                                data-bs-target="#deleteReviewModal" 
+                                data-bs-target="#deleteReviewModal"
                                 class="editButton">
                                     Delete from external review
                             </button>`
                         ) : (
-                            `<button 
-                                type="button" 
-                                data-bs-toggle="modal" 
-                                data-anno='${ JSON.stringify(localization) }' 
-                                data-bs-target="#externalReviewModal" 
+                            `<button
+                                type="button"
+                                data-bs-toggle="modal"
+                                data-anno='${ JSON.stringify(localization) }'
+                                data-bs-target="#externalReviewModal"
                                 class="editButton">
                                     Add to external review
                             </button>`

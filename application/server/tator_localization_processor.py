@@ -283,6 +283,9 @@ class TatorLocalizationProcessor:
         def collect_localizations(items):
             return [item for item in items]
 
+        def first_if_all_same(series):
+            return series.iloc[0] if len(series.unique()) == 1 else f'Non-uniform values across dots: {series.unique()}'.replace("'", '"')
+
         localization_df = localization_df.groupby(['media_id', 'frame', 'scientific_name', 'tentative_id', 'type']).agg({
             'elemental_id': 'first',
             'timestamp': 'first',
@@ -290,13 +293,13 @@ class TatorLocalizationProcessor:
             'animal_arrival': 'first',
             'all_localizations': collect_localizations,
             'count': 'sum',
-            'attracted': 'first',
-            'categorical_abundance': 'first',
-            'identification_remarks': 'first',
-            'identified_by': 'first',
-            'notes': 'first',
-            'qualifier': 'first',
-            'reason': 'first',
+            'attracted': first_if_all_same,
+            'categorical_abundance': first_if_all_same,
+            'identification_remarks': first_if_all_same,
+            'identified_by': first_if_all_same,
+            'notes': first_if_all_same,
+            'qualifier': first_if_all_same,
+            'reason': first_if_all_same,
             'good_image': 'first',
             'video_sequence_name': 'first',
             'annotator': 'first',
