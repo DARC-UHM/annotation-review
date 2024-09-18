@@ -270,7 +270,7 @@ $('#index').on('click', checkSequence);
 
 document.addEventListener('DOMContentLoaded', async () => {
     autocomplete($('#sequence1'), sequences);
-    if (localStorage.getItem('annotationPlatform') === 'Tator') {
+    if (localStorage.getItem('annotationPlatform') === 'Tator' || window.location.search.includes('login=tator')) {
         await showTatorForm();
     }
 });

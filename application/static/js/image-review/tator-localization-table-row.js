@@ -247,7 +247,11 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                     `) : (`
                         <div class="d-flex" style="width: 580px; height: 300px; background: #191d24;">
                             <div class="m-auto">
-                                Not logged in to Tator - log in to see image and details
+                                Not logged in to Tator -
+                                <a href="${window.location.origin}?login=tator" class="aquaLink">
+                                    log in
+                                </a>
+                                to see image and details
                             </div>
                         </div>
                     `)
