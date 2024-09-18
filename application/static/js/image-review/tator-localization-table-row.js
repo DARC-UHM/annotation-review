@@ -165,8 +165,9 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                             data-bs-toggle="modal"
                             data-anno='${ JSON.stringify(localization) }'
                             data-bs-target="#editTatorLocalizationModal"
-                            class="editButton">
-                                Edit annotation
+                            class="editButton"
+                        >
+                            Edit annotation
                         </button>
                         <br>
                         <a
@@ -211,37 +212,47 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                 </div>
             </td>
             <td class="text-center" style="width: 50%;">
-                <a href="${localization.frame_url || localization.image_url}" target="_blank">
-                    <div
-                        id="${localization.observation_uuid}_image"
-                        class="position-relative"
-                        style="width: 580px;"
-                    >
-                        <img
-                            id="${localization.observation_uuid}_img"
-                            src="${previewFrameUrl}"
-                            style="width: 580px;"
-                            alt="${localization.scientific_name}"
-                            onmouseover="mouseOver('${localization.observation_uuid}', '${localizationBoxId}')"
-                            onmouseout="mouseOut('${localization.observation_uuid}', '${previewFrameUrl}')"
-                        />
-                        <div id="${localization.observation_uuid}_overlay">
-                        ${localization.all_localizations.map((loco, index) => {
-                            if (loco.type === 48) { // 48 is a box
-                                return `<span
-                                            class="position-absolute tator-box"
-                                            style="top: ${loco.points[1] * 100}%; left: ${loco.points[0] * 100}%; width: ${loco.dimensions[0] * 100}%; height: ${loco.dimensions[1] * 100}%;"
-                                        ></span>`;
-                            }
-                            return `<span class="position-absolute tator-dot" style="top: ${loco.points[1] * 100}%; left: ${loco.points[0] * 100}%;"></span>`;
-                        }).join('')}
+                ${localization.scientific_name
+                    ? (`
+                        <a href="${localization.frame_url || localization.image_url}" target="_blank">
+                            <div
+                                id="${localization.observation_uuid}_image"
+                                class="position-relative"
+                                style="width: 580px;"
+                            >
+                                <img
+                                    id="${localization.observation_uuid}_img"
+                                    src="${previewFrameUrl}"
+                                    style="width: 580px;"
+                                    alt="${localization.scientific_name}"
+                                    onmouseover="mouseOver('${localization.observation_uuid}', '${localizationBoxId}')"
+                                    onmouseout="mouseOut('${localization.observation_uuid}', '${previewFrameUrl}')"
+                                />
+                                <div id="${localization.observation_uuid}_overlay">
+                                ${localization.all_localizations.map((loco, index) => {
+                                    if (loco.type === 48) { // 48 is a box
+                                        return `<span
+                                                    class="position-absolute tator-box"
+                                                    style="top: ${loco.points[1] * 100}%; left: ${loco.points[0] * 100}%; width: ${loco.dimensions[0] * 100}%; height: ${loco.dimensions[1] * 100}%;"
+                                                ></span>`;
+                                    }
+                                    return `<span class="position-absolute tator-dot" style="top: ${loco.points[1] * 100}%; left: ${loco.points[0] * 100}%;"></span>`;
+                                }).join('')}
+                                </div>
+                                <div class="tator-loader-container">
+                                    <div id="${localization.observation_uuid}_loading" class="tator-loader"></div>
+                                </div>
+                            </div>
+                        </a>
+                    `) : (`
+                        <div class="d-flex" style="width: 580px; height: 300px; background: #191d24;">
+                            <div class="m-auto">
+                                Not logged in to Tator - log in to see image and details
+                            </div>
                         </div>
-                        <div class="tator-loader-container">
-                            <div id="${localization.observation_uuid}_loading" class="tator-loader"></div>
-                        </div>
-                    </div>
-                </a>
-                ${localization.all_localizations[0].type === 48
+                    `)
+                }
+                ${localization.all_localizations[0].type === 48 && localization.scientific_name
                     ? `
                         <div class="mt-2 small d-flex justify-content-center">
                             <div class="my-auto">

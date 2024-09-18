@@ -706,17 +706,15 @@ def get_external_review():
     unread_comments = 0
     read_comments = 0
     total_comments = 0
-    if 'tator_token' not in session.keys():
-        flash('Please log in to Tator', 'info')
-        return redirect('/')
-    try:
-        api = tator.get_api(
-            host=app.config.get('TATOR_URL'),
-            token=session['tator_token'],
-        )
-    except tator.openapi.tator_openapi.exceptions.ApiException:
-        flash('Please log in to Tator', 'info')
-        return redirect('/')
+    if 'tator_token' in session.keys():
+        try:
+            api = tator.get_api(
+                host=app.config.get('TATOR_URL'),
+                token=session['tator_token'],
+            )
+        except tator.openapi.tator_openapi.exceptions.ApiException:
+            flash('Error connecting to Tator', 'danger')
+            return redirect('/')
     try:
         print('Fetching external comments...', end='')
         sys.stdout.flush()
