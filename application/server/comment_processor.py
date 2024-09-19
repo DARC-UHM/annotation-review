@@ -65,6 +65,7 @@ class CommentProcessor:
             good_image = False
             media_id = None
             frame = None
+            depth = None
 
             if 'all_localizations' not in self.comments[comment].keys()\
                     or self.comments[comment]['all_localizations'] is None\
@@ -91,6 +92,11 @@ class CommentProcessor:
                             upon = association['to_concept']
                         elif association['link_name'] == 'comment':
                             vars_comment = association['link_value']
+                if annotation.get('ancillary_data'):
+                    # get ctd
+                    for ancillary_data in annotation['ancillary_data']:
+                        if ancillary_data == 'depth_meters':
+                            depth = annotation['ancillary_data']['depth_meters']
             else:
                 # tator localization
                 if session.get('tator_token'):
@@ -166,11 +172,7 @@ class CommentProcessor:
                 'recorded_timestamp': parse_datetime(annotation['recorded_timestamp']).strftime('%d %b %y %H:%M:%S UTC') if 'recorded_timestamp' in annotation.keys() else None,
                 'video_sequence_name': self.comments[comment]['sequence'],
                 'annotator': format_annotator(annotation['observer']) if 'observer' in annotation.keys() else self.comments[comment]['annotator'],
-                'depth': self.comments[comment].get('depth'),
-                'lat': self.comments[comment].get('lat'),
-                'long': self.comments[comment].get('long'),
-                'temperature': self.comments[comment].get('temperature'),
-                'oxygen_ml_l': self.comments[comment].get('oxygen_ml_l'),
+                'depth': depth,
             }
             if concept_name in phylogeny.keys():
                 for key in phylogeny[concept_name].keys():
@@ -208,10 +210,6 @@ class CommentProcessor:
             'video_sequence_name',
             'annotator',
             'depth',
-            'lat',
-            'long',
-            'temperature',
-            'oxygen_ml_l',
             'phylum',
             'subphylum',
             'superclass',
@@ -265,10 +263,6 @@ class CommentProcessor:
                 'tentative_id': row['tentative_id'],
                 'annotator': row['annotator'],
                 'depth': row['depth'],
-                'lat': row['lat'],
-                'long': row['long'],
-                'temperature': row['temperature'],
-                'oxygen_ml_l': row['oxygen_ml_l'],
                 'phylum': row['phylum'],
                 'class': row['class'],
                 'order': row['order'],

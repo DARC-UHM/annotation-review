@@ -186,10 +186,6 @@ class VarsAnnotationProcessor:
                 'annotator': format_annotator(record['observer']),
                 'activity': record['activity'] if 'activity' in record.keys() else None,
                 'depth': depth,
-                'lat': lat,
-                'long': long,
-                'temperature': temperature,
-                'oxygen_ml_l': oxygen_ml_l,
             }
 
             if concept_name in self.phylogeny.keys():
@@ -216,10 +212,6 @@ class VarsAnnotationProcessor:
             'annotator',
             'activity',
             'depth',
-            'lat',
-            'long',
-            'temperature',
-            'oxygen_ml_l',
             'phylum',
             'subphylum',
             'superclass',
@@ -266,10 +258,6 @@ class VarsAnnotationProcessor:
                 'activity': row['activity'],
                 'annotator': row['annotator'],
                 'depth': row['depth'],
-                'lat': row['lat'],
-                'long': row['long'],
-                'temperature': row['temperature'],
-                'oxygen_ml_l': row['oxygen_ml_l'],
                 'phylum': row['phylum'],
                 'class': row['class'],
                 'order': row['order'],
