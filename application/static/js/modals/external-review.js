@@ -13,6 +13,7 @@ function addReviewer(reviewerName) {
     }
     const phylum = currentAnnotation.phylum?.toLowerCase() || null;
     const recommendedReviewers = phylum ? reviewers.filter((obj) => obj.phylum.toLowerCase().includes(phylum)) : reviewers;
+    recommendedReviewers.sort((a, b) => a.name.localeCompare(b.name));
     const thisReviewerIndex = ++reviewerIndex;
 
     totalReviewers++;
