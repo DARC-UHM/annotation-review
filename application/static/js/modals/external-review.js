@@ -251,11 +251,6 @@ $(document).ready(() => {
         $('#externalVideoUrl').val(currentAnnotation.video_url);
         $('#externalAnnotator').val(currentAnnotation.annotator);
         $('#externalIdRef').val(currentAnnotation.id_reference);
-        $('#externalLat').val(currentAnnotation.lat);
-        $('#externalLong').val(currentAnnotation.long);
-        $('#externalDepth').val(currentAnnotation.depth);
-        $('#externalTemperature').val(currentAnnotation.temperature);
-        $('#externalOxygen').val(currentAnnotation.oxygen_ml_l);
     });
 
     $('#externalReviewModal').on('hide.bs.modal', () => {
