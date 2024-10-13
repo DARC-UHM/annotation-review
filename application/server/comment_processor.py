@@ -79,6 +79,7 @@ class CommentProcessor:
                 vars_res = requests.get(url=f'{os.environ.get("ANNOSAURUS_URL")}/annotations/{comment}')
                 try:
                     annotation = vars_res.json()
+                    concept_name = annotation['concept']
                 except (JSONDecodeError, KeyError):
                     problem_comment = self.comments[comment]
                     print(f'{TERM_RED}ERROR: Could not find annotation with UUID {comment} in VARS ({problem_comment["sequence"]}, {problem_comment["timestamp"]}){TERM_NORMAL}')
@@ -101,8 +102,7 @@ class CommentProcessor:
                     for ancillary_data in annotation['ancillary_data']:
                         if ancillary_data == 'depth_meters':
                             depth = annotation['ancillary_data']['depth_meters']
-                concept_name = annotation['concept']
-                comment_dict['concept'] = annotation['concept']
+                comment_dict['concept'] = concept_name
                 comment_dict['recorded_timestamp'] = parse_datetime(annotation['recorded_timestamp']).strftime('%d %b %y %H:%M:%S UTC') if 'recorded_timestamp' in annotation.keys() else None
                 comment_dict['annotator'] = format_annotator(annotation['observer']) if 'observer' in annotation.keys() else self.comments[comment]['annotator']
                 comment_dict['associations'] = annotation.get('associations')
