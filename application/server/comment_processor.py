@@ -1,6 +1,7 @@
 import json
 import os
 import pandas as pd
+import numpy as np
 import requests
 import sys
 
@@ -151,6 +152,7 @@ class CommentProcessor:
                         comment_dict['tentative_id'] = annotation['attributes'].get('Tentative ID')
                 else:
                     annotation = {}
+                    comment_dict['all_localizations'] = [{}]
             if concept_name and concept_name not in phylogeny.keys() and concept_name not in self.no_match_records:
                 # get the phylogeny from VARS kb
                 with requests.get(url=f'http://hurlstor.soest.hawaii.edu:8083/v1/phylogeny/up/{concept_name}') \
@@ -245,7 +247,7 @@ class CommentProcessor:
             'identity_certainty',
             'recorded_timestamp'
         ])
-        annotation_df = annotation_df.replace({pd.NA: None})
+        annotation_df = annotation_df.replace({pd.NA: None, np.nan: None})
         temp_record_list = annotation_df.to_dict(orient='records')
         for record in temp_record_list:
             anno_dict = {}
