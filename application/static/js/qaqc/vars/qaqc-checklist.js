@@ -34,6 +34,8 @@ document.addEventListener('DOMContentLoaded',  (event) => {
     $('#annotationCount').html(formattedNumber(annotationCount));
     $('#individualCount').html(formattedNumber(individualCount));
     $('#quickCheckTotalRecords').html(formattedNumber(annotationCount));
+    $('#trueLocalizationCount').html(formattedNumber(trueLocalizationCount));
+    $('#groupLocalizationCount').html(formattedNumber(groupLocalizationCount));
 
     if (!annotationCount) {
         $('#404').show();

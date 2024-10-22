@@ -555,6 +555,8 @@ def vars_qaqc_checklist():
     sequences = request.args.getlist('sequence')
     annotation_count = 0
     individual_count = 0
+    true_localization_count = 0  # number of bounding box associations in dive
+    group_localization_count = 0  # number of annotations marked 'group: localization'
     identity_references = set()
     with requests.get(
         url=f'{app.config.get("DARC_REVIEW_URL")}/vars-qaqc-checklist/{"&".join(request.args.getlist("sequence"))}',
@@ -565,11 +567,16 @@ def vars_qaqc_checklist():
         else:
             print('ERROR: Unable to get QAQC checklist from external review server')
             checklist = {}
+    # get counts
     for sequence in sequences:
         with requests.get(f'{app.config.get("HURLSTOR_URL")}:8086/query/dive/{sequence.replace(" ", "%20")}') as r:
             annotation_count += len(r.json()['annotations'])
             for annotation in r.json()['annotations']:
                 if annotation['concept'][0].islower():  # ignore non-taxonomic concepts
+                    continue
+                if annotation.get('group') == 'localization':
+                    true_localization_count += 1
+                    group_localization_count += 1
                     continue
                 id_ref = None
                 cat_abundance = None
@@ -581,6 +588,8 @@ def vars_qaqc_checklist():
                         cat_abundance = association['link_value']
                     elif association['link_name'] == 'population-quantity':
                         pop_quantity = association['link_value']
+                    elif association['link_name'] == 'bounding box':
+                        true_localization_count += 1
                 if id_ref:
                     if id_ref in identity_references:
                         continue
@@ -605,6 +614,8 @@ def vars_qaqc_checklist():
         'qaqc/vars/qaqc-checklist.html',
         annotation_count=annotation_count,
         individual_count=individual_count,
+        true_localization_count=true_localization_count,
+        group_localization_count=group_localization_count,
         checklist=checklist,
     )
 
