@@ -1,3 +1,5 @@
+import { formattedNumber } from '../../util/formattedNumber.js';
+
 const deployments = [];
 
 const caretDownFill = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-down-fill ms-1 pt-1" viewBox="0 0 16 16">
@@ -35,7 +37,7 @@ function updateHash() {
         // unique taxa table
         $('#downloadTsvButton').hide();
         $('#countLabel').html('Unique Taxa:&nbsp;&nbsp');
-        $('#totalCount').html(Object.keys(uniqueTaxa).length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+        $('#totalCount').html(formattedNumber(Object.keys(uniqueTaxa).length));
         $('#subheader').html('Highlights taxa that have a box occur before the first dot or do not have both a box and a dot');
 
         const url = new URL(window.location.href);
@@ -141,11 +143,11 @@ function updateHash() {
             }
         }
         $('#countLabel').html('Total Media:&nbsp;&nbsp');
-        $('#totalCount').html(totalMedia.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+        $('#totalCount').html(formattedNumber(totalMedia));
     } else if (Object.keys(maxN).length) {
         // max n table
         $('#countLabel').html('Unique Taxa:&nbsp;&nbsp');
-        $('#totalCount').html(Object.keys(maxN.unique_taxa).length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+        $('#totalCount').html(formattedNumber(Object.keys(maxN.unique_taxa).length));
         $('#downloadTsvButton').show();
         $('#downloadTsvButton').on('click', () => {
             downloadMaxNTsv();
@@ -176,7 +178,7 @@ function updateHash() {
     } else if (Object.keys(tofa).length) {
         // tofa table
         $('#countLabel').html('Unique Taxa:&nbsp;&nbsp');
-        $('#totalCount').html(Object.keys(tofa.unique_taxa).length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+        $('#totalCount').html(formattedNumber(Object.keys(tofa.unique_taxa).length));
         $('#downloadTsvButton').show();
         $('#downloadTsvButton').on('click', () => {
             downloadTofaTsv();

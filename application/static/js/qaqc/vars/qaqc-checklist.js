@@ -1,4 +1,5 @@
 import { updateCheckbox } from '../qaqcCheckboxes.js';
+import { formattedNumber } from '../../util/formattedNumber.js';
 
 function updateTaskCount() {
     const tasksComplete = Object.values(checklist).reduce((accumulator, currentValue) => currentValue === 2 ? accumulator + 1 : accumulator, 0);
@@ -30,9 +31,9 @@ document.addEventListener('DOMContentLoaded',  (event) => {
     $('#vesselName').html(vesselName);
     $('#sequenceList').html(sequences.map((seq) => seq.split(' ').slice(-1)).join(', '));
 
-    $('#annotationCount').html(annotationCount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-    $('#individualCount').html(individualCount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-    $('#quickCheckTotalRecords').html(annotationCount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+    $('#annotationCount').html(formattedNumber(annotationCount));
+    $('#individualCount').html(formattedNumber(individualCount));
+    $('#quickCheckTotalRecords').html(formattedNumber(annotationCount));
 
     if (!annotationCount) {
         $('#404').show();
@@ -106,7 +107,7 @@ document.addEventListener('DOMContentLoaded',  (event) => {
         const json = await res.json();
         $('#load-overlay').removeClass('loader-bg');
         $('#load-overlay').addClass('loader-bg-hidden');
-        $('#quickCheckNumProblemRecords').html(json.num_records.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+        $('#quickCheckNumProblemRecords').html(formattedNumber(json.num_records));
         $('#quickCheckSeeDetailsBtn').on('click', () => {
             $('#load-overlay').removeClass('loader-bg-hidden');
             $('#load-overlay').addClass('loader-bg');

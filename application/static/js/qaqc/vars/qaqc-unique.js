@@ -1,6 +1,6 @@
-const sequences = [];
+import { formattedNumber } from '../../util/formattedNumber.js';
 
-const formattedNumber = (number) => number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+const sequences = [];
 
 function returnToCheckList() {
     const url = window.location.href;

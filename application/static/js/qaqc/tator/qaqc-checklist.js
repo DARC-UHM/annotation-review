@@ -1,4 +1,5 @@
 import { updateCheckbox } from '../qaqcCheckboxes.js';
+import { formattedNumber } from '../../util/formattedNumber.js';
 
 function updateTaskCount() {
     const tasksComplete = Object.values(checklist).reduce((accumulator, currentValue) => currentValue === 2 ? accumulator + 1 : accumulator, 0);
@@ -27,8 +28,8 @@ document.addEventListener('DOMContentLoaded',  (event) => {
 
     $('#deploymentList').html(deployments.map((seq) => seq.split(' ').slice(-1)).join(', '));
 
-    $('#localizationCount').html(localizationCount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-    $('#individualCount').html(individualCount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+    $('#localizationCount').html(formattedNumber(localizationCount));
+    $('#individualCount').html(formattedNumber(individualCount));
 
     if (!localizationCount) {
         $('#404').show();
