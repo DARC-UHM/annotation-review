@@ -1,5 +1,6 @@
 import { updateFlashMessages } from '../../util/updateFlashMessages.js';
 import { autocomplete } from '../../util/autocomplete.js';
+import { formattedNumber } from '../../util/formattedNumber.js';
 
 const sequences = [];
 const toConcepts = ['s1', 's2', 'upon', 'size', 'guide-photo', 'habitat', 'megahabitat', 'sampled-by'];
@@ -124,7 +125,7 @@ function updateHash() {
         $('#404').hide();
     }
 
-    $('#annotationCount').html(annotationsToDisplay.length);
+    $('#annotationCount').html(formattedNumber(annotationsToDisplay.length));
     $('#annotationTable').empty();
     $('#annotationTable').append('<tbody class="text-start"></tbody>');
 
@@ -195,9 +196,17 @@ function updateHash() {
     if (title === 'Number Of Bounding Boxes') {
         // special case
         const boundingBoxInfo = annotationsToDisplay[0];
-        $('#annotationCount').html(boundingBoxInfo.total_count_annos);
+        $('#annotationCount').html(formattedNumber(boundingBoxInfo.total_count_annos));
         $('#sortSelector').empty();
-        $('#sortSelector').html(`Total Boxes:&nbsp;&nbsp;<span style="font-weight: 600;">${boundingBoxInfo.total_count_boxes}</span>`);
+        $('#sortSelector').html(`
+            Total Boxes:&nbsp;
+            <span
+                style="font-weight: 600;"
+                title="Unlike the number on the previous page, this count DOES include lowercase concepts"
+            >
+                ${formattedNumber(boundingBoxInfo.total_count_boxes)}
+            </span>
+        `);
         $('#annotationTable').append(`
             <thead>
                 <tr>
