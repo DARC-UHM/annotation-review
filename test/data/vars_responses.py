@@ -462,6 +462,7 @@ ex_23060002 = {
             'imaged_moment_uuid': 'edd0673a-84a8-4e80-126c-11aa9597e81e',
             'elapsed_time_millis': 3725393,
             'recorded_timestamp': '2023-08-25T20:52:05.393Z',
+            'group': 'ROV',
             'activity': 'cruise',
             'associations': [
                 {
@@ -522,6 +523,7 @@ ex_23060002 = {
             'imaged_moment_uuid': '13e84950-60be-408a-6066-88f24898e81e',
             'elapsed_time_millis': 4543805,
             'recorded_timestamp': '2023-08-25T21:05:43.805Z',
+            'group': 'ROV',
             'activity': 'cruise',
             'associations': [
                 {

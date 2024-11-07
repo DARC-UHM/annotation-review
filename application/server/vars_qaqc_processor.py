@@ -42,6 +42,8 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
         """
         for name in self.sequence_names:
             for annotation in self.fetch_annotations(name):
+                if annotation.get('group') == 'localization':
+                    continue
                 # get list of associations
                 association_set = set()
                 duplicate_associations = False
@@ -63,7 +65,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
         """
         for name in self.sequence_names:
             for annotation in self.fetch_annotations(name):
-                if annotation['concept'] == 'none':
+                if annotation['concept'] == 'none' or annotation.get('group') == 'localization':
                     continue
                 s1 = get_association(annotation, 's1')
                 if not s1:
@@ -76,6 +78,8 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
         """
         for name in self.sequence_names:
             for annotation in self.fetch_annotations(name):
+                if annotation.get('group') == 'localization':
+                    continue
                 s2s = []
                 s1 = ''
                 for association in annotation['associations']:
@@ -93,6 +97,8 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
         """
         for name in self.sequence_names:
             for annotation in self.fetch_annotations(name):
+                if annotation.get('group') == 'localization':
+                    continue
                 duplicate_s2s = False
                 s2_set = set()
                 for association in annotation['associations']:
@@ -113,6 +119,8 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
         """
         for name in self.sequence_names:
             for annotation in self.fetch_annotations(name):
+                if annotation.get('group') == 'localization':
+                    continue
                 upon = None
                 missing_upon = False
                 for association in annotation['associations']:
@@ -182,7 +190,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
         """
         for name in self.sequence_names:
             for annotation in self.fetch_annotations(name):
-                if annotation['concept'] == 'none':
+                if annotation['concept'] == 'none' or annotation.get('group') == 'localization':
                     continue
                 if not get_association(annotation, 'upon'):
                     self.working_records.append(annotation)
@@ -195,6 +203,8 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
         num_records_missing = 0
         for name in self.sequence_names:
             for annotation in self.fetch_annotations(name):
+                if annotation.get('group') == 'localization':
+                    continue
                 if 'ancillary_data' not in annotation.keys():
                     num_records_missing += 1
         return num_records_missing
@@ -205,6 +215,8 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
         """
         for name in self.sequence_names:
             for annotation in self.fetch_annotations(name):
+                if annotation.get('group') == 'localization':
+                    continue
                 if 'ancillary_data' not in annotation.keys():
                     self.working_records.append(annotation)
         self.sort_records(self.process_working_records(self.videos))
@@ -217,6 +229,8 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
             id_ref_names = {}  # dict of {id_ref: {name_1, name_2}} to check for more than one name
             id_ref_annotations = {}  # dict of all annotations per id_ref: {id_ref: [annotation_1, annotation_2]}
             for annotation in self.fetch_annotations(name):
+                if annotation.get('group') == 'localization':
+                    continue
                 for association in annotation['associations']:
                     if association['link_name'] == 'identity-reference':
                         if association['link_value'] not in id_ref_names.keys():
@@ -240,6 +254,8 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
             id_ref_associations = {}  # dict of {id_ref: {ass_1_name: ass_1_val, ass_2_name: ass_2_val}}
             id_ref_annotations = {}  # dict of all annotations per id_ref: {id_ref: [annotation_1, annotation_2]}
             for annotation in self.fetch_annotations(name):
+                if annotation.get('group') == 'localization':
+                    continue
                 id_ref = get_association(annotation, 'identity-reference')
                 if id_ref:
                     current_id_ref = id_ref['link_value']
@@ -309,6 +325,8 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
         """
         for name in self.sequence_names:
             for annotation in self.fetch_annotations(name):
+                if annotation.get('group') == 'localization':
+                    continue
                 for association in annotation['associations']:
                     if association['link_value'] == "" and association['to_concept'] == 'self':
                         self.working_records.append(annotation)
@@ -320,6 +338,8 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
         """
         for name in self.sequence_names:
             for annotation in self.fetch_annotations(name):
+                if annotation.get('group') == 'localization':
+                    continue
                 upon = get_association(annotation, 'upon')
                 if upon and upon['to_concept'] == annotation['concept']:
                     self.working_records.append(annotation)
@@ -366,6 +386,8 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
         concepts = ['Hydroidolina']
         for name in self.sequence_names:
             for annotation in self.fetch_annotations(name):
+                if annotation.get('group') == 'localization':
+                    continue
                 self.working_records.append(annotation)
         self.sort_records(self.process_working_records(self.videos))
         temp_records = self.final_records
