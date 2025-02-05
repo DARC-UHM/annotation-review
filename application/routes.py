@@ -32,14 +32,12 @@ def index():
         with requests.get(
             url=f'{app.config.get("DARC_REVIEW_URL")}/reviewer/all',
             headers=app.config.get('DARC_REVIEW_HEADERS'),
-            verify=False,
         ) as reviewers_res:
             session['reviewers'] = reviewers_res.json()
         # get stats from external review db
         with requests.get(
             url=f'{app.config.get("DARC_REVIEW_URL")}/stats',
             headers=app.config.get('DARC_REVIEW_HEADERS'),
-            verify=False,
         ) as stats_res:
             stats_json = stats_res.json()
             unread_comments = stats_json['unread_comments']
@@ -209,7 +207,6 @@ def tator_image_review(project_id, section_id):
             with requests.get(
                 url=f'{app.config.get("DARC_REVIEW_URL")}/comment/sequence/{deployment.replace("-", "_")}',
                 headers=app.config.get('DARC_REVIEW_HEADERS'),
-                verify=False,
             ) as res:
                 comments = comments | res.json()  # merge dicts
     except requests.exceptions.ConnectionError:
@@ -247,7 +244,6 @@ def tator_qaqc_checklist(project_id, section_id):
     with requests.get(
         url=f'{app.config.get("DARC_REVIEW_URL")}/tator-qaqc-checklist/{"&".join(request.args.getlist("deployment"))}',
         headers=app.config.get('DARC_REVIEW_HEADERS'),
-        verify=False,
     ) as checklist_res:
         if checklist_res.status_code == 200:
             checklist = checklist_res.json()
@@ -299,7 +295,6 @@ def patch_tator_qaqc_checklist():
         url=f'{app.config.get("DARC_REVIEW_URL")}/tator-qaqc-checklist/{deployments}',
         headers=app.config.get('DARC_REVIEW_HEADERS'),
         json=req_json,
-        verify=False,
     )
     return res.json(), res.status_code
 
@@ -325,7 +320,6 @@ def tator_qaqc(project_id, section_id, check):
             with requests.get(
                 url=f'{app.config.get("DARC_REVIEW_URL")}/comment/sequence/{deployment}',
                 headers=app.config.get('DARC_REVIEW_HEADERS'),
-                verify=False,
             ) as res:
                 comments = comments | res.json()  # merge dicts
     except requests.exceptions.ConnectionError:
@@ -374,10 +368,7 @@ def tator_qaqc(project_id, section_id, check):
             qaqc_annos.check_stet_reason()
             data['page_title'] = 'Records with a qualifier of \'stet\' missing \'Reason\''
         case 'attracted-not-attracted':
-            attracted_concepts = requests.get(
-                url=f'{app.config.get("DARC_REVIEW_URL")}/attracted',
-                verify=False,
-            ).json()
+            attracted_concepts = requests.get(url=f'{app.config.get("DARC_REVIEW_URL")}/attracted').json()
             qaqc_annos.check_attracted_not_attracted(attracted_concepts)
             data['page_title'] = 'Attracted/not attracted match expected taxa list'
             data['attracted_concepts'] = attracted_concepts
@@ -537,7 +528,6 @@ def view_images():
             with requests.get(
                 url=f'{app.config.get("DARC_REVIEW_URL")}/comment/sequence/{sequence}',
                 headers=app.config.get('DARC_REVIEW_HEADERS'),
-                verify=False,
             ) as res:
                 comments = comments | res.json()  # merge dicts
             if sequence not in session.get('vars_video_sequences', []):
@@ -572,7 +562,6 @@ def vars_qaqc_checklist():
     with requests.get(
         url=f'{app.config.get("DARC_REVIEW_URL")}/vars-qaqc-checklist/{"&".join(request.args.getlist("sequence"))}',
         headers=app.config.get('DARC_REVIEW_HEADERS'),
-        verify=False,
     ) as checklist_res:
         if checklist_res.status_code == 200:
             checklist = checklist_res.json()
@@ -644,7 +633,6 @@ def patch_vars_qaqc_checklist():
         url=f'{app.config.get("DARC_REVIEW_URL")}/vars-qaqc-checklist/{sequences}',
         headers=app.config.get('DARC_REVIEW_HEADERS'),
         json=req_json,
-        verify=False,
     )
     return res.json(), res.status_code
 
@@ -745,7 +733,6 @@ def get_external_review():
         with requests.get(
                 url=f'{app.config.get("DARC_REVIEW_URL")}/stats',
                 headers=app.config.get('DARC_REVIEW_HEADERS'),
-                verify=False,
         ) as stats_res:
             stats_json = stats_res.json()
             unread_comments = stats_json['unread_comments']
@@ -761,7 +748,6 @@ def get_external_review():
             comments_res = requests.get(
                 url=f'{app.config.get("DARC_REVIEW_URL")}/comment/reviewer/{request.args.get("reviewer")}{query}',
                 headers=app.config.get('DARC_REVIEW_HEADERS'),
-                verify=False,
             )
             comments_json = comments_res.json()
             comments = comments_json['comments']
@@ -772,21 +758,18 @@ def get_external_review():
             unread_comments_res = requests.get(
                 url=f'{app.config.get("DARC_REVIEW_URL")}/comment/unread',
                 headers=app.config.get('DARC_REVIEW_HEADERS'),
-                verify=False,
             )
             comments = unread_comments_res.json()
         elif request.args.get('read'):
             read_comments_res = requests.get(
                 url=f'{app.config.get("DARC_REVIEW_URL")}/comment/read',
                 headers=app.config.get('DARC_REVIEW_HEADERS'),
-                verify=False,
             )
             comments = read_comments_res.json()
         else:
             all_comments_res = requests.get(
                 url=f'{app.config.get("DARC_REVIEW_URL")}/comment/all',
                 headers=app.config.get('DARC_REVIEW_HEADERS'),
-                verify=False,
             )
             comments = all_comments_res.json()
         print('fetched!')
@@ -865,14 +848,12 @@ def add_external_review():
             url=f'{app.config.get("DARC_REVIEW_URL")}/comment',
             headers=app.config.get('DARC_REVIEW_HEADERS'),
             data=data,
-            verify=False,
     ) as post_comment_res:
         if post_comment_res.status_code == 409:  # comment already exists in the db, update record
             put_comment_res = requests.put(
                 url=f'{app.config.get("DARC_REVIEW_URL")}/comment/reviewers/{data["uuid"]}',
                 headers=app.config.get('DARC_REVIEW_HEADERS'),
                 data=data,
-                verify=False,
             )
             if put_comment_res.status_code == 200:
                 return add_vars_or_tator_comment(200)
@@ -887,7 +868,6 @@ def delete_external_review():
     delete_comment_res = requests.delete(
         url=f'{app.config.get("DARC_REVIEW_URL")}/comment/{request.values.get("uuid")}',
         headers=app.config.get('DARC_REVIEW_HEADERS'),
-        verify=False,
     )
     if delete_comment_res.status_code == 200:
         if request.values.get('tator') and request.values.get('tator') == 'true':  # tator localization
@@ -941,7 +921,6 @@ def update_reviewer_info():
         url=f'{app.config.get("DARC_REVIEW_URL")}/reviewer/{name}',
         headers=app.config.get('DARC_REVIEW_HEADERS'),
         data=data,
-        verify=False,
     )
     if patch_reviewer_res.status_code == 404:
         data['name'] = data['new_name']
@@ -949,7 +928,6 @@ def update_reviewer_info():
             url=f'{app.config.get("DARC_REVIEW_URL")}/reviewer',
             headers=app.config.get('DARC_REVIEW_HEADERS'),
             data=data,
-            verify=False,
         )
         if post_reviewer_res.status_code == 201:
             success = True
@@ -965,7 +943,6 @@ def update_reviewer_info():
         with requests.get(
             url=f'{app.config.get("DARC_REVIEW_URL")}/reviewer/all',
             headers=app.config.get('DARC_REVIEW_HEADERS'),
-            verify=False,
         ) as all_reviewers_res:
             session['reviewers'] = all_reviewers_res.json()
     return redirect('/reviewers')
@@ -977,14 +954,12 @@ def delete_reviewer(name):
     delete_reviewer_res = requests.delete(
         url=f'{app.config.get("DARC_REVIEW_URL")}/reviewer/{name}',
         headers=app.config.get('DARC_REVIEW_HEADERS'),
-        verify=False,
     )
     if delete_reviewer_res.status_code == 200:
         flash('Successfully deleted reviewer', 'success')
         with requests.get(
             url=f'{app.config.get("DARC_REVIEW_URL")}/reviewer/all',
             headers=app.config.get('DARC_REVIEW_HEADERS'),
-            verify=False,
         ) as res:
             session['reviewers'] = res.json()
     else:
@@ -1070,7 +1045,6 @@ def add_attracted():
             'scientific_name': request.values.get('concept'),
             'attracted': request.values.get('attracted'),
         },
-        verify=False,
     )
     if res.status_code == 201:
         flash(f'Added {request.values.get("concept")}', 'success')
@@ -1085,8 +1059,7 @@ def update_attracted(concept):
         headers=app.config.get('DARC_REVIEW_HEADERS'),
         data={
             'attracted': request.values.get('attracted'),
-        },
-        verify=False,
+        }
     )
     if res.status_code == 200:
         flash(f'Updated {concept}', 'success')
@@ -1099,7 +1072,6 @@ def delete_attracted(concept):
     res = requests.delete(
         url=f'{app.config.get("DARC_REVIEW_URL")}/attracted/{concept}',
         headers=app.config.get('DARC_REVIEW_HEADERS'),
-        verify=False,
     )
     if res.status_code == 200:
         flash(f'Deleted {concept}', 'success')
@@ -1119,10 +1091,7 @@ def video():
 
 @app.get('/attracted-list')
 def attracted_list():
-    res = requests.get(
-        url=f'{app.config.get("DARC_REVIEW_URL")}/attracted',
-        verify=False,
-    )
+    res = requests.get(url=f'{app.config.get("DARC_REVIEW_URL")}/attracted')
     return render_template('qaqc/tator/attracted-list.html', attracted_concepts=res.json()), 200
 
 
