@@ -46,6 +46,7 @@ res = requests.post(
         'deployments': deployments,
     },
     headers={'API-Key': os.getenv('DARC_REVIEW_API_KEY')},
+    verify=False,
 )
 
 print(res.status_code)
