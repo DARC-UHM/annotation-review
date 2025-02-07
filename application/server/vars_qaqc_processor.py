@@ -153,13 +153,17 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
             # loop through all annotations, add ones with same timestamp to dict
             i = 0
             while i < len(sorted_annotations) - 2:
+                if sorted_annotations[i].get('group') == 'localization':
+                    i += 1
+                    continue
                 base_timestamp = sorted_annotations[i]['recorded_timestamp'][:19]
                 if sorted_annotations[i + 1]['recorded_timestamp'][:19] == base_timestamp:
                     indices_to_skip = 0
                     annotations_with_same_timestamp[base_timestamp] = [sorted_annotations[i]]
                     j = i + 1
                     while sorted_annotations[j]['recorded_timestamp'][:19] == base_timestamp:
-                        annotations_with_same_timestamp[base_timestamp].append(sorted_annotations[j])
+                        if sorted_annotations[j].get('group') != 'localization':
+                            annotations_with_same_timestamp[base_timestamp].append(sorted_annotations[j])
                         indices_to_skip += 1
                         j += 1
                     i += indices_to_skip
