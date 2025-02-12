@@ -14,7 +14,7 @@ To run this script, you must have a .env file in the root of the repository with
     - DROPBOX_FOLDER_PATH: Path to the folder in Dropbox containing the deployment's video files
     - TATOR_TOKEN: Tator API token
 
-Usage: python populate_ctd.py <project_id> <section_id> <deployment_name>
+Usage: python populate_ctd.py <project_id> <section_id> <deployment_name> [--use-underscore-folder-names]
 """
 
 import dotenv
@@ -33,7 +33,7 @@ TERM_YELLOW = '\033[1;93m'
 TERM_NORMAL = '\033[1;37;0m'
 
 
-def populate_ctd(project_id, section_id, deployment_name):
+def populate_ctd(project_id, section_id, deployment_name, use_underscore_names):
     # get list of media ids in deployment
     print(f'Fetching media IDs for deployment {deployment_name} from Tator...', end='')
     sys.stdout.flush()
@@ -64,7 +64,7 @@ def populate_ctd(project_id, section_id, deployment_name):
     print(f'fetched {len(media_ids)} media IDs!')
 
     if bottom_time is None:
-        print(f'{TERM_RED}No media with arrival time found{TERM_NORMAL}')
+        print(f'{TERM_RED}No media with "arrival time" found in Tator for this deployment{TERM_NORMAL}')
         exit(1)
 
     # get all localizations in deployment
@@ -89,7 +89,7 @@ def populate_ctd(project_id, section_id, deployment_name):
     dbx = dropbox.Dropbox(os.getenv('DROPBOX_ACCESS_TOKEN'))  # create a Dropbox client instance
     path = None
     df = None
-    folder_path = f'{os.getenv("DROPBOX_FOLDER_PATH")}/{deployment_name}/Sensor'
+    folder_path = f'{os.getenv("DROPBOX_FOLDER_PATH")}/{deployment_name if use_underscore_names else deployment_name.replace("_", "-")}/Sensor'
     try:
         # get the folder metadata
         folder_metadata = dbx.files_list_folder(folder_path)
@@ -103,7 +103,9 @@ def populate_ctd(project_id, section_id, deployment_name):
                 df = pd.read_csv(res.raw)
                 break
     except dropbox.exceptions.ApiError as e:
-        print(f'{TERM_RED}Error connecting to Dropbox: {e}{TERM_NORMAL}')
+        print(f'\n{TERM_RED}Error connecting to Dropbox: {e}{TERM_NORMAL}')
+        print(f'Tried looking for CSV sensor file in folder: {folder_path}')
+        print('Is this the correct folder path?')
         exit(1)
 
     if df is None:
@@ -258,9 +260,21 @@ dotenv.load_dotenv()
 TATOR_TOKEN = os.getenv('TATOR_TOKEN')
 
 if __name__ == '__main__':
-    if len(sys.argv) != 4:
-        print('Usage: python load_video_start_times.py <project_id> <section_id> <deployment_name>')
+    if len(sys.argv) not in [4, 5]:
+        print('Usage: python populate_ctd.py <project_id> <section_id> <deployment_name> [--use-underscore-folder-names]')
         sys.exit()
-    populate_ctd(project_id=sys.argv[1], section_id=sys.argv[2], deployment_name=sys.argv[3])
+    if len(sys.argv) == 5 and sys.argv[4] == '--use-underscore-folder-names':
+        print('Using old Dropbox folder naming format (underscores)')
+        use_underscore_names = True
+    else:
+        print('Using new Dropbox folder naming format (replacing underscores with dashes)')
+        print('To use old Dropbox folder naming format, append "--use-underscore-folder-names" to command')
+        use_underscore_names = False
+    populate_ctd(
+        project_id=sys.argv[1],
+        section_id=sys.argv[2],
+        deployment_name=sys.argv[3],
+        use_underscore_names=use_underscore_names,
+    )
     os.system('say "Deployment CTD synced."')
     print('Done!')
