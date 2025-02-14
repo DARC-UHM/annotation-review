@@ -17,9 +17,14 @@
                     <div style="font-weight: 600;">QA/QC Checklist</div>
                 </div>
                 <div class="col text-end mt-auto small">
-                    <span>Total Annotations:&nbsp;&nbsp<span id="annotationCount" style="font-weight: 600;"></span></span><br>
-                    <span>Total Individuals:&nbsp;&nbsp~<span id="individualCount" style="font-weight: 600;"></span></span><br>
-                    <span>Checks Complete: &nbsp<span style="font-weight: 600;"><span id="tasksComplete">0</span> / <span>15</span></span></span>
+                    <span>Annotations:&nbsp;&nbsp<span id="annotationCount" style="font-weight: 600;"></span></span><br>
+                    <span>Individuals:&nbsp;&nbsp~<span id="individualCount" style="font-weight: 600;"></span></span><br>
+                    <span>Localizations:&nbsp;
+                        <span id="groupLocalizationCount" style="font-weight: 600;" title="Number of annotations in the 'localization' group"></span>
+                        (<span id="trueLocalizationCount" style="font-weight: 600;" title="Number of 'bounding box' associations"></span>)
+                    </span>
+                    <br>
+                    <span>Checks Complete: &nbsp<span style="font-weight: 600;"><span id="tasksComplete">0</span> / <span>16</span></span></span>
                 </div>
 
             </div>
@@ -88,6 +93,10 @@
                             <td id="timeDiffHostUponCheckbox" class="qaqcCheckbox"></td>
                         </tr>
                         <tr>
+                            <td><a id="boundingBoxesAnchor" class="aquaLink">Review number of bounding boxes for each unique concept</a></td>
+                            <td id="boundingBoxesCheckbox" class="qaqcCheckbox"></td>
+                        </tr>
+                        <tr>
                             <td><a id="uniqueFieldsAnchor" class="aquaLink">Review all unique fields (concept names, comments, condition comments, etc)</a></td>
                             <td id="uniqueFieldsCheckbox" class="qaqcCheckbox"></td>
                         </tr>
@@ -126,6 +135,8 @@
     <script>
         const annotationCount = {{ annotation_count }};
         const individualCount = {{ individual_count }};
+        const trueLocalizationCount = {{ true_localization_count }};
+        const groupLocalizationCount = {{ group_localization_count }};
         const checklist = {{ checklist|safe }};
     </script>
     <script type="module" src="/static/js/qaqc/vars/qaqc-checklist.js"></script>

@@ -1,6 +1,7 @@
 import { updateFlashMessages } from '../util/updateFlashMessages.js';
 
 export const tatorLocalizationRow = (localization, externalComment) => {
+    const previewFrameUrl = localization.frame_url ? `${localization.frame_url}?preview=true` : localization.image_url;
     let localizationBoxId = null;
     for (const loco of localization.all_localizations) {
         if (loco.type === 48) {
@@ -46,11 +47,11 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                                         : attractedConcepts[localization.scientific_name] === 1 ? '(Expected attracted)'
                                             : attractedConcepts[localization.scientific_name] === 2 ? '(Expected either)'
                                                 : '(Unknown - not in list)'
-                                    }` 
+                                    }`
                                 : ''
                             }
                         </span><br>
-                        
+
                     </div>
                 </div>
                 <div class="row" style="${localization.problems?.includes('Qualifier') ? 'color: yellow;' : ''}">
@@ -135,7 +136,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                             </div>
                             <div class="col values">
                                 ${externalComment.reviewer_comments.map(item => {
-                                    return item.comment 
+                                    return item.comment
                                         ? `
                                             ${item.comment.length
                                                 ? `
@@ -155,17 +156,18 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                                 }).join('')}
                             </div>
                         </div>
-                    ` : '' 
+                    ` : ''
                 }
                 <div class="row mt-2">
                     <div class="col-4">
-                        <button 
-                            type="button" 
-                            data-bs-toggle="modal" 
-                            data-anno='${ JSON.stringify(localization) }' 
-                            data-bs-target="#editTatorLocalizationModal" 
-                            class="editButton">
-                                Edit annotation
+                        <button
+                            type="button"
+                            data-bs-toggle="modal"
+                            data-anno='${ JSON.stringify(localization) }'
+                            data-bs-target="#editTatorLocalizationModal"
+                            class="editButton"
+                        >
+                            Edit annotation
                         </button>
                         <br>
                         <a
@@ -178,30 +180,30 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                     </div>
                     <div class="col values">
                         ${ externalComment ? (
-                            `<button 
-                                type="button" 
-                                data-bs-toggle="modal" 
+                            `<button
+                                type="button"
+                                data-bs-toggle="modal"
                                 data-anno='${ JSON.stringify(localization) }'
-                                data-bs-target="#externalReviewModal" 
-                                class="editButton" 
+                                data-bs-target="#externalReviewModal"
+                                class="editButton"
                                 onclick="updateReviewerName('${localization.observation_uuid}')">
                                     Change reviewer
                             </button>
                             <br>
-                            <button 
-                                type="button" 
-                                data-bs-toggle="modal" 
+                            <button
+                                type="button"
+                                data-bs-toggle="modal"
                                 data-anno='${JSON.stringify(localization)}'
-                                data-bs-target="#deleteReviewModal" 
+                                data-bs-target="#deleteReviewModal"
                                 class="editButton">
                                     Delete from external review
                             </button>`
                         ) : (
-                            `<button 
-                                type="button" 
-                                data-bs-toggle="modal" 
-                                data-anno='${ JSON.stringify(localization) }' 
-                                data-bs-target="#externalReviewModal" 
+                            `<button
+                                type="button"
+                                data-bs-toggle="modal"
+                                data-anno='${ JSON.stringify(localization) }'
+                                data-bs-target="#externalReviewModal"
                                 class="editButton">
                                     Add to external review
                             </button>`
@@ -210,33 +212,51 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                 </div>
             </td>
             <td class="text-center" style="width: 50%;">
-                <a href="${localization.frame_url || localization.image_url}" target="_blank">
-                    <div
-                        id="${localization.observation_uuid}_image"
-                        class="position-relative"
-                        style="width: 580px;"
-                    >
-                        <img
-                            src="${localization.frame_url || localization.image_url}"
-                            style="width: 580px;"
-                            alt="${localization.scientific_name}"
-                            onmouseover="if (!${localizationBoxId}) return; this.src='/tator-localization/${localizationBoxId}'; document.getElementById('${localization.observation_uuid}_overlay').style.display = 'none';"
-                            onmouseout="this.src='${localization.frame_url || localization.image_url}'; document.getElementById('${localization.observation_uuid}_overlay').style.display = 'block';"
-                        />
-                        <div id="${localization.observation_uuid}_overlay">
-                        ${localization.all_localizations.map((loco, index) => {
-                            if (loco.type === 48) { // 48 is a box
-                                return `<span
-                                            class="position-absolute tator-box"
-                                            style="top: ${loco.points[1] * 100}%; left: ${loco.points[0] * 100}%; width: ${loco.dimensions[0] * 100}%; height: ${loco.dimensions[1] * 100}%;"
-                                        ></span>`;
-                            }
-                            return `<span class="position-absolute tator-dot" style="top: ${loco.points[1] * 100}%; left: ${loco.points[0] * 100}%;"></span>`;
-                        }).join('')}
+                ${localization.scientific_name
+                    ? (`
+                        <a href="${localization.frame_url || localization.image_url}" target="_blank">
+                            <div
+                                id="${localization.observation_uuid}_image"
+                                class="position-relative"
+                                style="width: 580px;"
+                            >
+                                <img
+                                    id="${localization.observation_uuid}_img"
+                                    src="${previewFrameUrl}"
+                                    style="width: 580px;"
+                                    alt="${localization.scientific_name}"
+                                    onmouseover="mouseOver('${localization.observation_uuid}', '${localizationBoxId}')"
+                                    onmouseout="mouseOut('${localization.observation_uuid}', '${previewFrameUrl}')"
+                                />
+                                <div id="${localization.observation_uuid}_overlay">
+                                ${localization.all_localizations.map((loco, index) => {
+                                    if (loco.type === 48) { // 48 is a box
+                                        return `<span
+                                                    class="position-absolute tator-box"
+                                                    style="top: ${loco.points[1] * 100}%; left: ${loco.points[0] * 100}%; width: ${loco.dimensions[0] * 100}%; height: ${loco.dimensions[1] * 100}%;"
+                                                ></span>`;
+                                    }
+                                    return `<span class="position-absolute tator-dot" style="top: ${loco.points[1] * 100}%; left: ${loco.points[0] * 100}%;"></span>`;
+                                }).join('')}
+                                </div>
+                                <div class="tator-loader-container">
+                                    <div id="${localization.observation_uuid}_loading" class="tator-loader"></div>
+                                </div>
+                            </div>
+                        </a>
+                    `) : (`
+                        <div class="d-flex" style="width: 580px; height: 300px; background: #191d24;">
+                            <div class="m-auto">
+                                Not logged in to Tator -
+                                <a href="${window.location.origin}?login=tator" class="aquaLink">
+                                    log in
+                                </a>
+                                to see image and details
+                            </div>
                         </div>
-                    </div>
-                </a>
-                ${localization.all_localizations[0].type === 48
+                    `)
+                }
+                ${localization.all_localizations[0].type === 48 && localization.scientific_name
                     ? `
                         <div class="mt-2 small d-flex justify-content-center">
                             <div class="my-auto">
@@ -248,7 +268,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                                         id="goodImage${localization.observation_uuid}"
                                         type="checkbox"
                                         ${localization.good_image ? 'checked' : ''}
-                                        onchange="updateGoodImage('${JSON.stringify(localization.all_localizations.map((loco) => loco.id))}', this.checked)"
+                                        onchange="updateGoodImage('${JSON.stringify(localization.all_localizations.map((loco) => loco.elemental_id)).replaceAll('"', '*')}', '${localization.all_localizations[0].version}', this.checked)"
                                     >
                                     <label for="goodImage${localization.observation_uuid}"></label>
                                 </div>
@@ -261,10 +281,11 @@ export const tatorLocalizationRow = (localization, externalComment) => {
     `);
 };
 
-async function updateGoodImage(localization_ids, checked) {
+async function updateGoodImage(localization_elemental_ids, version, checked) {
     const formData = new FormData();
-    for (const id of JSON.parse(localization_ids)) {
-        formData.append('localization_ids', id);
+    formData.append('version', version);
+    for (const elemental_id of JSON.parse(localization_elemental_ids.replaceAll('*', '"'))) {
+        formData.append('localization_elemental_ids', elemental_id);
     }
     formData.append('good_image', checked);
     const res = await fetch('/tator/localization/good-image', {
@@ -279,3 +300,28 @@ async function updateGoodImage(localization_ids, checked) {
 }
 
 window.updateGoodImage = updateGoodImage;
+
+function mouseOver(uuid, boxId) {
+    if (boxId === 'null') return;
+
+    const mainImage = $(`#${uuid}_img`);
+    const newImageUrl = `/tator-localization/${boxId}`;
+    const newImage = new Image();
+
+    $(`#${uuid}_loading`).show();
+    newImage.src = newImageUrl;
+    newImage.onload = () => {
+        mainImage.attr('src', newImageUrl);
+        $(`#${uuid}_overlay`).hide();
+        $(`#${uuid}_loading`).hide();
+    };
+}
+
+window.mouseOver = mouseOver;
+
+function mouseOut(uuid, frameUrl) {
+    $(`#${uuid}_img`).attr('src', frameUrl);
+    $(`#${uuid}_overlay`).show();
+}
+
+window.mouseOut = mouseOut;

@@ -1,4 +1,5 @@
 import { updateCheckbox } from '../qaqcCheckboxes.js';
+import { formattedNumber } from '../../util/formattedNumber.js';
 
 function updateTaskCount() {
     const tasksComplete = Object.values(checklist).reduce((accumulator, currentValue) => currentValue === 2 ? accumulator + 1 : accumulator, 0);
@@ -27,8 +28,8 @@ document.addEventListener('DOMContentLoaded',  (event) => {
 
     $('#deploymentList').html(deployments.map((seq) => seq.split(' ').slice(-1)).join(', '));
 
-    $('#localizationCount').html(localizationCount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-    $('#individualCount').html(individualCount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+    $('#localizationCount').html(formattedNumber(localizationCount));
+    $('#individualCount').html(formattedNumber(individualCount));
 
     if (!localizationCount) {
         $('#404').show();
@@ -78,6 +79,8 @@ document.addEventListener('DOMContentLoaded',  (event) => {
     $('#tentativeIdAnchor').on('click', () => showLoader());
     $('#notesRemarksAnchor').attr('href', `/tator/qaqc/${projectId}/${sectionId}/notes-and-remarks?deployment=${deployments.join('&deployment=')}`);
     $('#notesRemarksAnchor').on('click', () => showLoader());
+    $('#reExaminedAnchor').attr('href', `/tator/qaqc/${projectId}/${sectionId}/re-examined?deployment=${deployments.join('&deployment=')}`);
+    $('#reExaminedAnchor').on('click', () => showLoader());
     $('#uniqueTaxaAnchor').attr('href', `/tator/qaqc/${projectId}/${sectionId}/unique-taxa?deployment=${deployments[0]}&deploymentList=${deployments.join(',')}`);
     $('#uniqueTaxaAnchor').on('click', () => showLoader());
     $('#mediaAttributesAnchor').attr('href', `/tator/qaqc/${projectId}/${sectionId}/media-attributes?deployment=${deployments.join('&deployment=')}`);

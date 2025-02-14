@@ -5,10 +5,7 @@ import requests
 import sys
 
 from .functions import *
-
-TERM_RED = '\033[1;31;48m'
-TERM_YELLOW = '\033[1;93m'
-TERM_NORMAL = '\033[1;37;0m'
+from .constants import TERM_RED, TERM_YELLOW, TERM_NORMAL
 
 
 class VarsAnnotationProcessor:
@@ -22,6 +19,7 @@ class VarsAnnotationProcessor:
         self.phylogeny = {}
         self.working_records = []  # all of the annotations that have images
         self.final_records = []    # the final list of annotations
+        self.highest_id_ref = 0
         temp_name = sequence_names[0].split()
         temp_name.pop()
         self.vessel_name = ' '.join(temp_name)
@@ -81,7 +79,7 @@ class VarsAnnotationProcessor:
         """
         Fetches phylogeny for given concept from the VARS knowledge base.
         """
-        vars_tax_res = requests.get(url=f'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/{concept_name}')
+        vars_tax_res = requests.get(url=f'http://hurlstor.soest.hawaii.edu:8083/v1/phylogeny/up/{concept_name.replace("/", "%2F")}')
         if vars_tax_res.status_code == 200:
             try:
                 # this get us to phylum
@@ -159,6 +157,9 @@ class VarsAnnotationProcessor:
                 for association in record['associations']:
                     if association['link_name'] == 'identity-reference':
                         identity_reference = association['link_value']
+                        if int(identity_reference) > self.highest_id_ref:
+                            self.highest_id_ref = int(identity_reference)
+                        break
 
             if record.get('ancillary_data'):
                 for key in record['ancillary_data'].keys():
@@ -185,15 +186,12 @@ class VarsAnnotationProcessor:
                 'annotator': format_annotator(record['observer']),
                 'activity': record['activity'] if 'activity' in record.keys() else None,
                 'depth': depth,
-                'lat': lat,
-                'long': long,
-                'temperature': temperature,
-                'oxygen_ml_l': oxygen_ml_l,
             }
 
             if concept_name in self.phylogeny.keys():
                 for key in self.phylogeny[concept_name].keys():
-                    annotation_dict[key] = self.phylogeny[concept_name][key]
+                    # split to account for worms 'Phylum (Division)' case
+                    annotation_dict[key.split(' ')[0]] = self.phylogeny[concept_name][key]
             formatted_records.append(annotation_dict)
         return formatted_records
 
@@ -214,10 +212,6 @@ class VarsAnnotationProcessor:
             'annotator',
             'activity',
             'depth',
-            'lat',
-            'long',
-            'temperature',
-            'oxygen_ml_l',
             'phylum',
             'subphylum',
             'superclass',
@@ -264,10 +258,6 @@ class VarsAnnotationProcessor:
                 'activity': row['activity'],
                 'annotator': row['annotator'],
                 'depth': row['depth'],
-                'lat': row['lat'],
-                'long': row['long'],
-                'temperature': row['temperature'],
-                'oxygen_ml_l': row['oxygen_ml_l'],
                 'phylum': row['phylum'],
                 'class': row['class'],
                 'order': row['order'],

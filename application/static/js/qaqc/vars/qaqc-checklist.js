@@ -1,4 +1,5 @@
 import { updateCheckbox } from '../qaqcCheckboxes.js';
+import { formattedNumber } from '../../util/formattedNumber.js';
 
 function updateTaskCount() {
     const tasksComplete = Object.values(checklist).reduce((accumulator, currentValue) => currentValue === 2 ? accumulator + 1 : accumulator, 0);
@@ -30,9 +31,11 @@ document.addEventListener('DOMContentLoaded',  (event) => {
     $('#vesselName').html(vesselName);
     $('#sequenceList').html(sequences.map((seq) => seq.split(' ').slice(-1)).join(', '));
 
-    $('#annotationCount').html(annotationCount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-    $('#individualCount').html(individualCount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
-    $('#quickCheckTotalRecords').html(annotationCount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+    $('#annotationCount').html(formattedNumber(annotationCount));
+    $('#individualCount').html(formattedNumber(individualCount));
+    $('#quickCheckTotalRecords').html(formattedNumber(annotationCount));
+    $('#trueLocalizationCount').html(formattedNumber(trueLocalizationCount));
+    $('#groupLocalizationCount').html(formattedNumber(groupLocalizationCount));
 
     if (!annotationCount) {
         $('#404').show();
@@ -92,6 +95,8 @@ document.addEventListener('DOMContentLoaded',  (event) => {
     $('#expectedAssociationAnchor').on('click', () => showLoader());
     $('#timeDiffHostUponAnchor').attr('href', `/vars/qaqc/host-associate-time-diff?sequence=${sequences.join('&sequence=')}`);
     $('#timeDiffHostUponAnchor').on('click', () => showLoader());
+    $('#boundingBoxesAnchor').attr('href', `/vars/qaqc/number-of-bounding-boxes?sequence=${sequences.join('&sequence=')}`);
+    $('#boundingBoxesAnchor').on('click', () => showLoader());
     $('#uniqueFieldsAnchor').attr('href', `/vars/qaqc/unique-fields?sequence=${sequences.join('&sequence=')}#unique=concept-names`);
     $('#uniqueFieldsAnchor').on('click', () => showLoader());
 
@@ -104,7 +109,7 @@ document.addEventListener('DOMContentLoaded',  (event) => {
         const json = await res.json();
         $('#load-overlay').removeClass('loader-bg');
         $('#load-overlay').addClass('loader-bg-hidden');
-        $('#quickCheckNumProblemRecords').html(json.num_records.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+        $('#quickCheckNumProblemRecords').html(formattedNumber(json.num_records));
         $('#quickCheckSeeDetailsBtn').on('click', () => {
             $('#load-overlay').removeClass('loader-bg-hidden');
             $('#load-overlay').addClass('loader-bg');

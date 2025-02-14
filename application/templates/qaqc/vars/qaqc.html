@@ -12,8 +12,12 @@
                     <div><span id="vesselName"></span> <span id="sequenceList"></span></div>
                 </div>
                 <div class="col-3 text-end mt-auto">
-                    <div class="small">Total Annotations:&nbsp;&nbsp;<span id="annotationCount" style="font-weight: 600;"></span><br></div>
-                    <div class="small mt-1">
+                    <div class="small">
+                        Total Annotations:&nbsp;
+                        <span id="annotationCount" style="font-weight: 600;"></span>
+                        <br>
+                    </div>
+                    <div class="small mt-1" id="sortSelector">
                         Sort by:
                         <span class="position-relative small">
                             <select id="sortSelect">
@@ -35,6 +39,17 @@
                                 </svg>
                             </span>
                         </span>
+                    </div>
+                    <div id="filterRemarks" class="flex small" style="display: none;">
+                        <label for="filterRemarksCheckbox">
+                            Exclude "in water column"
+                        </label>
+                        <input
+                            type="checkbox"
+                            id="filterRemarksCheckbox"
+                            style="accent-color: #005c62"
+                            onclick="filterRemarksClick(this.checked)"
+                        >
                     </div>
                 </div>
             </div>

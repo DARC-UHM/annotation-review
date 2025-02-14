@@ -77,7 +77,7 @@ const setCurrentPage = (pageNum) => {
 
     annotationsToDisplay.forEach((annotation, index) => {
         if (index >= prevRange && index < currRange) {
-            if (Object.keys(annotation).includes('scientific_name') && annotation.scientific_name) { // this is a tator localization
+            if (Object.keys(annotation).includes('all_localizations') && annotation.all_localizations) { // this is a tator localization
                 $('#annotationTable').find('tbody').append(tatorLocalizationRow(annotation, comments[annotation.observation_uuid]));
                 $(`#${annotation.observation_uuid}_overlay`).css('opacity', '0.5');
                 $(`#${annotation.observation_uuid}_image`).hover((e) => {
@@ -149,6 +149,7 @@ function showAddFilter() {
             addFilter();
         }
     });
+    $('#imageFilterEntry').focus();
 }
 
 window.showAddFilter = showAddFilter;
@@ -523,17 +524,16 @@ async function updateAnnotation() {
             flashString += `${flashString.length ? ', d' : 'D'}eleted ${(deletes).join(', ')}`;
         }
         updateFlashMessages(flashString, 'success');
-        console.log(flashString)
         const res = await fetch(`/current-annotation/${formData.get('observation_uuid')}`);
         const updatedAnnotation = await res.json();
         const index = annotations.findIndex((anno) => anno.observation_uuid === formData.get('observation_uuid'));
         annotations[index].concept = updatedAnnotation.concept;
         annotations[index].associations = updatedAnnotation.associations;
-        annotations[index].upon = null;
-        annotations[index].guide_photo = null;
-        annotations[index].identity_certainty = null;
-        annotations[index].identity_reference = null;
-        annotations[index].comment = null;
+        annotations[index].upon = updatedAnnotation.associations.find((association) => association.link_name === 'upon')?.to_concept;
+        annotations[index].guide_photo = updatedAnnotation.associations.find((association) => association.link_name === 'guide-photo')?.to_concept;
+        annotations[index].identity_certainty = updatedAnnotation.associations.find((association) => association.link_name === 'identity-certainty')?.link_value;
+        annotations[index].identity_reference = updatedAnnotation.associations.find((association) => association.link_name === 'identity-reference')?.link_value;
+        annotations[index].comment = updatedAnnotation.associations.find((association) => association.link_name === 'comment')?.link_value;
         updateHash();
     }
     $('#load-overlay').addClass('loader-bg-hidden');
@@ -676,7 +676,6 @@ document.addEventListener('DOMContentLoaded', function(event) {
         }
     } else {
         // regular dive page
-        $('#syncCTD').hide();
         $('#externalReviewFilters').hide();
     }
 
@@ -689,7 +688,10 @@ document.addEventListener('DOMContentLoaded', function(event) {
         $('#totalPageNumBottom').html(pageCount);
     });
 
-    $('#imageFilterSelect').on('change', () => $('#imageFilterEntry').attr('placeholder', `Enter ${$('#imageFilterSelect').val().toLowerCase().replaceAll('_', ' ')}`));
+    $('#imageFilterSelect').on('change', () => {
+        $('#imageFilterEntry').attr('placeholder', `Enter ${$('#imageFilterSelect').val().toLowerCase().replaceAll('_', ' ')}`)
+        $('#imageFilterEntry').focus();
+    });
 
     $('#sortSelect').on('change', () => {
         const hashList = window.location.hash.substring(1).split('&');
@@ -766,7 +768,7 @@ $(document).ready(()=> {
         $(this).find('#editIdentifiedBy').val(localization.identified_by);
         $(this).find('#editNotes').val(localization.notes);
         $(this).find('#editLocalizationIdType').val(JSON.stringify(localization.all_localizations.map((loc) => {
-            return { id: loc.id, type: loc.type };
+            return { elemental_id: loc.elemental_id, version: loc.version, type: loc.type };
         })));
         $(this).find('#baseUuid').val(localization.observation_uuid);
     });

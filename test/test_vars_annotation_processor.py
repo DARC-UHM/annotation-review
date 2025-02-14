@@ -15,6 +15,7 @@ class TestVarsAnnotationProcessor:
         annotation_processor = VarsAnnotationProcessor(['Deep Discoverer 23060001'])
         assert annotation_processor.vessel_name == 'Deep Discoverer'
         assert annotation_processor.sequence_names == ['Deep Discoverer 23060001']
+        assert annotation_processor.highest_id_ref == 0
         assert annotation_processor.phylogeny == {}
         assert annotation_processor.working_records == []
         assert annotation_processor.final_records == []
@@ -102,10 +103,6 @@ class TestVarsAnnotationProcessor:
                 'video_sequence_name': 'Deep Discoverer 23060001',
                 'annotator': 'Nikki Cunanan',
                 'depth': 668,
-                'lat': 38.793,
-                'long': -72.992,
-                'temperature': 5.13,
-                'oxygen_ml_l': 7.32,
                 'phylum': 'Chordata',
                 'subphylum': 'Vertebrata',
                 'superclass': 'Pisces',
@@ -125,10 +122,6 @@ class TestVarsAnnotationProcessor:
                 'video_sequence_name': 'Deep Discoverer 23060001',
                 'annotator': 'Meagan Putts',
                 'depth': 668,
-                'lat': 38.793,
-                'long': -72.992,
-                'temperature': 5.13,
-                'oxygen_ml_l': 7.32,
                 'phylum': 'Chordata',
                 'subphylum': 'Vertebrata',
                 'superclass': 'Pisces',
@@ -144,10 +137,6 @@ class TestVarsAnnotationProcessor:
                 'associations': ex_23060001['annotations'][5]['associations'],
                 'annotator': 'Nikki Cunanan',
                 'depth': 668,
-                'lat': 38.793,
-                'long': -72.992,
-                'temperature': 5.13,
-                'oxygen_ml_l': 7.32,
                 'phylum': 'Chordata',
                 'subphylum': 'Vertebrata',
                 'superclass': 'Pisces',
@@ -176,10 +165,6 @@ class TestVarsAnnotationProcessor:
                 'associations': ex_23060001['annotations'][0]['associations'],
                 'annotator': 'Nikki Cunanan',
                 'depth': 668,
-                'lat': 38.793,
-                'long': -72.992,
-                'temperature': 5.13,
-                'oxygen_ml_l': 7.32,
                 'phylum': 'Chordata',
                 'class': 'Actinopterygii',
                 'order': 'Perciformes',
@@ -199,10 +184,6 @@ class TestVarsAnnotationProcessor:
                 'associations': ex_23060001['annotations'][5]['associations'],
                 'annotator': 'Nikki Cunanan',
                 'depth': 668,
-                'lat': 38.793,
-                'long': -72.992,
-                'temperature': 5.13,
-                'oxygen_ml_l': 7.32,
                 'phylum': 'Chordata',
                 'class': 'Actinopterygii',
                 'order': 'Perciformes',
@@ -222,10 +203,6 @@ class TestVarsAnnotationProcessor:
                 'identity_reference': '13',
                 'annotator': 'Meagan Putts',
                 'depth': 668,
-                'lat': 38.793,
-                'long': -72.992,
-                'temperature': 5.13,
-                'oxygen_ml_l': 7.32,
                 'phylum': 'Chordata',
                 'class': 'Actinopterygii',
                 'order': 'Perciformes',
@@ -240,3 +217,11 @@ class TestVarsAnnotationProcessor:
             },
 
         ]
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_highest_id_refs(self, mock_get):
+        annotation_processor = VarsAnnotationProcessor(['Deep Discoverer 23060001'])
+        sequence_videos = []
+        annotation_processor.fetch_media(annotation_processor.sequence_names[0], sequence_videos)
+        annotation_processor.process_working_records(sequence_videos)
+        assert annotation_processor.highest_id_ref == 13

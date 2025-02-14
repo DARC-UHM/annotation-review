@@ -33,6 +33,13 @@ ex_23060001 = {
                     'link_value': '12',
                     'mime_type': 'text/plain'
                 },
+                {
+                    "uuid": "c9567180-61e2-49bf-acfe-59a27353f591",
+                    "link_name": "bounding box",
+                    "to_concept": "self",
+                    "link_value": "{\"x\":520,\"y\":430,\"width\":517,\"height\":402,\"generator\":\"VARS Annotation\"}",
+                    "mime_type": "application/json"
+                },
             ],
             'image_references': [
                 {
@@ -455,6 +462,7 @@ ex_23060002 = {
             'imaged_moment_uuid': 'edd0673a-84a8-4e80-126c-11aa9597e81e',
             'elapsed_time_millis': 3725393,
             'recorded_timestamp': '2023-08-25T20:52:05.393Z',
+            'group': 'ROV',
             'activity': 'cruise',
             'associations': [
                 {
@@ -515,6 +523,7 @@ ex_23060002 = {
             'imaged_moment_uuid': '13e84950-60be-408a-6066-88f24898e81e',
             'elapsed_time_millis': 4543805,
             'recorded_timestamp': '2023-08-25T21:05:43.805Z',
+            'group': 'ROV',
             'activity': 'cruise',
             'associations': [
                 {

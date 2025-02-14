@@ -168,10 +168,6 @@ class TestVarsQaqcProcessor:
                 'activity': 'cruise',
                 'annotator': 'Nikki Cunanan',
                 'depth': 4255.0,
-                'lat': 56.923,
-                'long': -149.557,
-                'temperature': 1.47,
-                'oxygen_ml_l': 3.2,
                 'phylum': 'Cnidaria',
                 'class': 'Hydrozoa',
                 'order': None,
@@ -201,10 +197,6 @@ class TestVarsQaqcProcessor:
                 'activity': 'cruise',
                 'annotator': 'Nikki Cunanan',
                 'depth': 4256.0,
-                'lat': 56.923,
-                'long': -149.556,
-                'temperature': 1.48,
-                'oxygen_ml_l': 3.09,
                 'phylum': 'Chordata',
                 'class': 'Actinopterygii',
                 'order': 'Perciformes',
@@ -225,10 +217,6 @@ class TestVarsQaqcProcessor:
                 'activity': 'cruise',
                 'annotator': 'Nikki Cunanan',
                 'depth': None,
-                'lat': None,
-                'long': None,
-                'temperature': None,
-                'oxygen_ml_l': None,
                 'phylum': 'Cnidaria',
                 'class': 'Hydrozoa',
                 'order': None,
@@ -249,10 +237,6 @@ class TestVarsQaqcProcessor:
                 'activity': 'stationary',
                 'annotator': 'Nikki Cunanan',
                 'depth': 4260.0,
-                'lat': 56.924,
-                'long': -149.556,
-                'temperature': 1.46,
-                'oxygen_ml_l': 3.192,
                 'phylum': None,
                 'class': None,
                 'order': None,
@@ -266,6 +250,19 @@ class TestVarsQaqcProcessor:
                 'status': 'Time between record and closest previous matching host record greater than five minutes (10 mins, 0 seconds)'
             },
         ]
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_num_bounding_boxes(self, _):
+        qaqc_processor = VarsQaqcProcessor(['Deep Discoverer 23060001'])
+        qaqc_processor.find_num_bounding_boxes()
+        assert qaqc_processor.final_records == [{
+            'bounding_box_counts': {
+                'Pomacentridae': {'annos': 5, 'boxes': 1},
+                'none': {'annos': 1, 'boxes': 0}
+            },
+            'total_count_annos': 6,
+            'total_count_boxes': 1,
+        }]
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_unique_fields(self, _):
