@@ -99,9 +99,10 @@ async function updateExternalReviewers() {
         // refetch the comments for the observation
         const commentsRes = await fetch(`https://hurlstor.soest.hawaii.edu:5000/comment/get/${formData.get('observation_uuid')}`);
         const commentJson = await commentsRes.json();
+        const addedForReview = `Added for review: ${reviewers.join(', ')}`;
         comments[formData.get('observation_uuid')] = commentJson;
-        annotations[index].comment = `${annotations[index].comment}; Added for review: ${reviewers.join(', ')}`; // doesn't accurately reflect data on server, but that's okay
-        annotations[index].notes = `${annotations[index].notes}|Added for review: ${reviewers.join(', ')}`; // doesn't accurately reflect data on server, but that's okay
+        annotations[index].comment = annotations[index].comment ? `${annotations[index].comment}; ${addedForReview}` : addedForReview;
+        annotations[index].notes = annotations[index].notes ? `${annotations[index].notes}|${addedForReview}` : addedForReview;
         updateFlashMessages(commentsRes.status === 200 ? 'Reviewers successfully updated' : 'Successfully added for review', 'success');
         updateHash();
     } else {
