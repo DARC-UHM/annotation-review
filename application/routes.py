@@ -1,6 +1,7 @@
 import base64
 import tator
 import sys
+import threading
 import traceback
 
 from io import BytesIO
@@ -8,6 +9,7 @@ from flask import render_template, request, redirect, flash, session, Response, 
 from json import JSONDecodeError
 
 from application import app
+from application.server.constants import TERM_RED, TERM_NORMAL
 from application.server.vars_annotation_processor import VarsAnnotationProcessor
 from application.server.comment_processor import CommentProcessor
 from application.server.tator_qaqc_processor import TatorQaqcProcessor
@@ -554,11 +556,12 @@ def view_images():
 @app.get('/vars/qaqc-checklist')
 def vars_qaqc_checklist():
     sequences = request.args.getlist('sequence')
-    annotation_count = 0
-    individual_count = 0
-    true_localization_count = 0  # number of bounding box associations in dive
-    group_localization_count = 0  # number of annotations marked 'group: localization'
-    identity_references = set()
+    total_counts = {
+        'annotations': 0,
+        'individuals': 0,
+        'true_localizations': 0,  # number of bounding box associations in dive
+        'group_localizations': 0,  # number of annotations marked 'group: localization'
+    }
     with requests.get(
         url=f'{app.config.get("DARC_REVIEW_URL")}/vars-qaqc-checklist/{"&".join(request.args.getlist("sequence"))}',
         headers=app.config.get('DARC_REVIEW_HEADERS'),
@@ -569,56 +572,77 @@ def vars_qaqc_checklist():
             print('ERROR: Unable to get QAQC checklist from external review server')
             checklist = {}
     # get counts
+    threads = []
     for sequence in sequences:
-        with requests.get(f'{app.config.get("HURLSTOR_URL")}:8086/query/dive/{sequence.replace(" ", "%20")}') as r:
-            annotation_count += len(r.json()['annotations'])
-            for annotation in r.json()['annotations']:
-                if annotation['concept'][0].islower():  # ignore non-taxonomic concepts
-                    continue
-                if annotation.get('group') == 'localization':
-                    true_localization_count += 1
-                    group_localization_count += 1
-                    continue
-                id_ref = None
-                cat_abundance = None
-                pop_quantity = None
-                for association in annotation['associations']:
-                    if association['link_name'] == 'identity-reference':
-                        id_ref = association['link_value']
-                    elif association['link_name'] == 'categorical-abundance':
-                        cat_abundance = association['link_value']
-                    elif association['link_name'] == 'population-quantity':
-                        pop_quantity = association['link_value']
-                    elif association['link_name'] == 'bounding box':
-                        true_localization_count += 1
-                if id_ref:
-                    if id_ref in identity_references:
-                        continue
-                    else:
-                        identity_references.add(id_ref)
-                if cat_abundance:
-                    match cat_abundance:
-                        case '11-20':
-                            individual_count += 15
-                        case '21-50':
-                            individual_count += 35
-                        case '51-100':
-                            individual_count += 75
-                        case '\u003e100':
-                            individual_count += 100
-                    continue
-                if pop_quantity and pop_quantity != '':
-                    individual_count += int(pop_quantity)
-                    continue
-                individual_count += 1
+        thread = threading.Thread(target=get_sequence_counts, args=(sequence, total_counts))
+        threads.append(thread)
+        thread.start()
+    for thread in threads:
+        thread.join()
     return render_template(
         'qaqc/vars/qaqc-checklist.html',
-        annotation_count=annotation_count,
-        individual_count=individual_count,
-        true_localization_count=true_localization_count,
-        group_localization_count=group_localization_count,
+        annotation_count=total_counts['annotations'],
+        individual_count=total_counts['individuals'],
+        true_localization_count=total_counts['true_localizations'],
+        group_localization_count=total_counts['group_localizations'],
         checklist=checklist,
     )
+
+
+def get_sequence_counts(sequence_name, total_counts):
+    identity_references = set()
+    sequence_annotations = 0
+    sequence_individuals = 0
+    sequence_true_localizations = 0
+    sequence_group_localizations = 0
+    res = requests.get(f'{app.config.get("HURLSTOR_URL")}:8086/query/dive/{sequence_name.replace(" ", "%20")}')
+    if res.status_code != 200:
+        print(f'{TERM_RED}Failed to fetch annotations for sequence {sequence_name}{TERM_NORMAL}')
+    annotations = res.json()['annotations']
+    sequence_annotations += len(annotations)
+    for annotation in annotations:
+        if annotation['concept'][0].islower():  # ignore non-taxonomic concepts
+            continue
+        if annotation.get('group') == 'localization':
+            sequence_true_localizations += 1
+            sequence_group_localizations += 1
+            continue
+        id_ref = None
+        cat_abundance = None
+        pop_quantity = None
+        for association in annotation['associations']:
+            if association['link_name'] == 'identity-reference':
+                id_ref = association['link_value']
+            elif association['link_name'] == 'categorical-abundance':
+                cat_abundance = association['link_value']
+            elif association['link_name'] == 'population-quantity':
+                pop_quantity = association['link_value']
+            elif association['link_name'] == 'bounding box':
+                sequence_true_localizations += 1
+        if id_ref:
+            if id_ref in identity_references:
+                continue
+            else:
+                identity_references.add(id_ref)
+        if cat_abundance:
+            match cat_abundance:
+                case '11-20':
+                    sequence_individuals += 15
+                case '21-50':
+                    sequence_individuals += 35
+                case '51-100':
+                    sequence_individuals += 75
+                case '\u003e100':
+                    sequence_individuals += 100
+            continue
+        if pop_quantity and pop_quantity != '':
+            sequence_individuals += int(pop_quantity)
+            continue
+        sequence_individuals += 1
+    total_counts['annotations'] += sequence_annotations
+    total_counts['individuals'] += sequence_individuals
+    total_counts['true_localizations'] += sequence_true_localizations
+    total_counts['group_localizations'] += sequence_group_localizations
 
 
 # update vars qaqc checklist
