@@ -157,17 +157,14 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
                     i += 1
                     continue
                 base_timestamp = sorted_annotations[i]['recorded_timestamp'][:19]
-                if sorted_annotations[i + 1]['recorded_timestamp'][:19] == base_timestamp:
-                    indices_to_skip = 0
-                    annotations_with_same_timestamp[base_timestamp] = [sorted_annotations[i]]
-                    j = i + 1
-                    while sorted_annotations[j]['recorded_timestamp'][:19] == base_timestamp:
-                        if sorted_annotations[j].get('group') != 'localization':
-                            annotations_with_same_timestamp[base_timestamp].append(sorted_annotations[j])
-                        indices_to_skip += 1
-                        j += 1
-                    i += indices_to_skip
+                base_annotation = sorted_annotations[i]
                 i += 1
+                while sorted_annotations[i]['recorded_timestamp'][:19] == base_timestamp:
+                    if sorted_annotations[i].get('group') != 'localization':
+                        if base_timestamp not in annotations_with_same_timestamp.keys():
+                            annotations_with_same_timestamp[base_timestamp] = [base_annotation]
+                        annotations_with_same_timestamp[base_timestamp].append(sorted_annotations[i])
+                    i += 1
             # loop through each annotation that shares the same timestamp, compare substrates
             for timestamp_key in annotations_with_same_timestamp.keys():
                 base_substrates = {'s2': set()}
