@@ -135,7 +135,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                                 }
                             </div>
                             <div class="col values">
-                                ${externalComment.reviewer_comments.map(item => {
+                                ${externalComment.reviewer_comments?.map(item => {
                                     return item.comment
                                         ? `
                                             ${item.comment.length

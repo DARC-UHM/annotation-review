@@ -114,7 +114,7 @@ export const varsAnnotationTableRow = (annotation, externalComment) => {
                                 }
                             </div>
                             <div class="col values">
-                                ${externalComment.reviewer_comments.map(item => {
+                                ${externalComment.reviewer_comments?.map(item => {
                                     return item.comment 
                                         ? `
                                             ${item.comment.length
@@ -125,7 +125,8 @@ export const varsAnnotationTableRow = (annotation, externalComment) => {
                                                             ${item.reviewer}
                                                         </a> ${item.date_modified}
                                                     </span>
-                                                ` : 'N/A'}<br><br>`
+                                                ` : 'N/A'
+                                            }<br><br>`
                                         : `
                                             <span class="fw-normal">
                                                 Awaiting comment from <a href="https://hurlstor.soest.hawaii.edu:5000/review/${item.reviewer}" class="aquaLink" target="_blank">${item.reviewer}</a>
