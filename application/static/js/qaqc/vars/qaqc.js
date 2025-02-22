@@ -269,7 +269,7 @@ function updateHash() {
             <td class="text-center small" style="width: 20%">
                 <div class="mb-2">
                     <a href="${imageUrl}" target="_blank">
-                        <img src="${imageUrl}" style="width: 400px;"/>
+                        <img src="${imageUrl}" loading="lazy" style="width: 400px;"/>
                     </a>
                     <br>
                 </div>
