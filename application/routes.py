@@ -1,5 +1,8 @@
 import base64
+import cv2
+import hashlib
 import tator
+import time
 import sys
 import threading
 import traceback
@@ -7,6 +10,8 @@ import traceback
 from io import BytesIO
 from flask import render_template, request, redirect, flash, session, Response, send_file
 from json import JSONDecodeError
+from pathlib import Path
+from PIL import Image
 
 from application import app
 from application.server.constants import TERM_RED, TERM_NORMAL
@@ -733,6 +738,49 @@ def qaqc_quick(check):
             records = qaqc_annos.get_num_records_missing_ancillary_data()
             return {'num_records': records}, 200
     return render_template('not-found.html', err=''), 404
+
+
+@app.get('/vars/video-frame')
+def video_frame():
+    video_url = request.args.get('url')
+    timestamp = float(request.args.get('time', 0))
+    if not video_url:
+        return 'Missing video URL', 400
+    cache_dir = Path('cache', 'vars_frames')
+    cache_dir.mkdir(exist_ok=True)
+    cache_key = hashlib.md5(f'{video_url}_{timestamp}'.encode()).hexdigest()
+    cache_path = cache_dir / cache_key
+    if cache_path.exists():
+        if time.time() - cache_path.stat().st_mtime < 1_200_000:  # cache entries expire after 2 weeks :)
+            with open(cache_path, 'rb') as f:
+                return send_file(
+                    BytesIO(f.read()),
+                    mimetype='image/jpeg',
+                    as_attachment=False
+                )
+        else:
+            cache_path.unlink()  # remove expired cache entry
+    cap = cv2.VideoCapture(video_url)
+    if not cap.isOpened():
+        return 'Could not open video file', 500
+    frame_number = int(timestamp * cap.get(cv2.CAP_PROP_FPS))  # calc frame number
+    cap.set(cv2.CAP_PROP_POS_FRAMES, frame_number)  # set to frame
+    ret, frame = cap.read()  # get frame
+    cap.release()  # release video
+    if not ret:
+        return f'Could not read frame at timestamp {timestamp}', 500
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert BGR to RGB
+    img = Image.fromarray(frame)
+    img_byte_arr = BytesIO()
+    img.save(img_byte_arr, format='JPEG')
+    frame_data = img_byte_arr.getvalue()
+    with open(cache_path, 'wb') as f:
+        f.write(frame_data)
+    return send_file(
+        BytesIO(frame_data),
+        mimetype='image/jpeg',
+        as_attachment=False
+    )
 
 
 # displays comments in the external review db

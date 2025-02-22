@@ -249,7 +249,8 @@ function updateHash() {
             }
         });
         let videoUrl = annotation.video_url;
-        videoUrl = `/video?link=${videoUrl.split('#t=')[0]}&time=${videoUrl.split('#t=')[1]}`;
+        videoUrl = `${videoUrl.split('#t=')[0]}&time=${videoUrl.split('#t=')[1]}`;
+        const imageUrl = annotation.image_url ? annotation.image_url : `http://${window.location.host}/vars/video-frame?url=${videoUrl}`;
         $('#annotationTable').find('tbody').append(`
         <tr>
             <td class="ps-5 py-3" style="width: 20%">
@@ -267,12 +268,12 @@ function updateHash() {
             <td class="small" style="width: 40%"><div id="problemsDiv${index}"></div></td>
             <td class="text-center small" style="width: 20%">
                 <div class="mb-2">
-                    ${annotation.image_url
-                        ? `<a href="${annotation.image_url}" target="_blank"><img src="${annotation.image_url}" style="width: 200px;"/></a><br>`
-                        : `<div class="text=center pt-5 m-auto" style="width: 200px; height: 110px; background: #1e2125; color: #9f9f9f;">No image</div>`
-                    }
+                    <a href="${imageUrl}" target="_blank">
+                        <img src="${imageUrl}" style="width: 400px;"/>
+                    </a>
+                    <br>
                 </div>
-                <a class="editButton" href="${videoUrl}" target="_blank">See video</a><br>
+                <a class="editButton" href="/video?link=${videoUrl}" target="_blank">See video</a><br>
             </td>
         </tr>
         `);

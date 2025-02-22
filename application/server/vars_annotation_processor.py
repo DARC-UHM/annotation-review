@@ -143,10 +143,6 @@ class VarsAnnotationProcessor:
             concept_name = record['concept']
             identity_reference = None
             depth = None
-            lat = None
-            long = None
-            temperature = None
-            oxygen_ml_l = None
 
             if concept_name not in self.phylogeny.keys() and concept_name != 'none':
                 self.fetch_vars_phylogeny(concept_name, no_match_records)
@@ -165,14 +161,6 @@ class VarsAnnotationProcessor:
                 for key in record['ancillary_data'].keys():
                     if key == 'depth_meters':
                         depth = int(record['ancillary_data']['depth_meters'])
-                    elif key == 'latitude':
-                        lat = round(record['ancillary_data']['latitude'], 3)
-                    elif key == 'longitude':
-                        long = round(record['ancillary_data']['longitude'], 3)
-                    elif key == 'temperature_celsius':
-                        temperature = round(record['ancillary_data']['temperature_celsius'], 2)
-                    elif key == 'oxygen_ml_l':
-                        oxygen_ml_l = round(record['ancillary_data'][key], 3)
 
             annotation_dict = {
                 'observation_uuid': record['observation_uuid'],
