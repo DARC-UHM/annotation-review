@@ -125,7 +125,8 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
                 missing_upon = False
                 for association in annotation['associations']:
                     if association['link_name'] == 'upon':
-                        if association['to_concept'] and association['to_concept'][0].isupper() or association['to_concept'].startswith('dead'):
+                        if (association['to_concept'] and association['to_concept'][0].isupper()) \
+                                or association['to_concept'].startswith('dead'):
                             # 'upon' is an organism, don't need it to be in s1/s2
                             pass
                         else:
@@ -394,16 +395,14 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
         temp_records = self.final_records
         self.final_records = []
         for record in temp_records:
-            if (
-                    ('class' in record.keys() and record['class'] in classes)
-                    or ('order' in record.keys() and record['order'] in orders)
-                    or ('infraorder' in record.keys() and record['infraorder'] in infraorders)
-                    or ('family' in record.keys() and record['family'] in families)
-                    or ('genus' in record.keys() and record['genus'] in genera)
-                    or ('concept' in record.keys() and record['concept'] in concepts)
-            ):
+            if record.get('class') in classes \
+                    or record.get('order') in orders \
+                    or record.get('infraorder') in infraorders \
+                    or record.get('family') in families \
+                    or record.get('genus') in genera \
+                    or record.get('concept') in concepts:
                 upon = get_association(record, 'upon')
-                if upon and upon['to_concept'][0].islower():
+                if upon and upon['to_concept'][0].islower() and 'dead' not in upon['to_concept']:
                     self.final_records.append(record)
 
     def find_long_host_associate_time_diff(self):
