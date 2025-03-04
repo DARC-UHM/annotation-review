@@ -1,5 +1,4 @@
 import base64
-import cv2
 import tator
 import sys
 import threading
@@ -9,7 +8,6 @@ from io import BytesIO
 from flask import render_template, request, redirect, flash, session, Response, send_file
 from json import JSONDecodeError
 from pathlib import Path
-from PIL import Image
 
 from application import app
 from application.server.constants import TERM_RED, TERM_NORMAL
@@ -741,6 +739,8 @@ def qaqc_quick(check):
 # gets a frame from a VARS video for annotations without an image. caches images locally
 @app.get('/vars/video-frame')
 def video_frame():
+    import cv2
+    from PIL import Image
     video_url = request.args.get('url')
     timestamp = int(request.args.get('time', 0))
     if not video_url:
