@@ -19,8 +19,22 @@ export const varsAnnotationTableRow = (annotation, externalComment) => {
                     <div class="col-4">
                         Concept:
                     </div>
-                    <div class="col values">
-                        ${annotation.concept}<br>
+                    <div class="col">
+                        <button
+                            class="m-0 p-0 values"
+                            style="background: none; color: #eee; border: none; cursor: default;"
+                            data-toggle="tooltip"
+                            data-bs-placement="right"
+                            data-bs-html="true"
+                            title="Phylum: ${annotation.phylum ?? 'N/A'}<br>
+                                   Class: ${annotation.class ?? 'N/A'}<br>
+                                   Order: ${annotation.order ?? 'N/A'}<br>
+                                   Family: ${annotation.family ?? 'N/A'}<br>
+                                   Genus: ${annotation.genus ?? 'N/A'}<br>
+                                   Species: ${annotation.species ?? 'N/A'}"
+                        >
+                            ${annotation.concept}<br>
+                        </button>
                     </div>
                 </div>
                 <div class="row">
@@ -115,7 +129,7 @@ export const varsAnnotationTableRow = (annotation, externalComment) => {
                             </div>
                             <div class="col values">
                                 ${externalComment.reviewer_comments?.map(item => {
-                                    return item.comment 
+                                    return item.comment
                                         ? `
                                             ${item.comment.length
                                                 ? `
@@ -136,14 +150,14 @@ export const varsAnnotationTableRow = (annotation, externalComment) => {
                                 }).join('')}
                             </div>
                         </div>
-                    ` : '' 
+                    ` : ''
                 }
                 <div class="row mt-2">
                     <div class="col-4">
                         <button 
                             type="button" 
                             data-bs-toggle="modal" 
-                            data-anno='${ JSON.stringify(annotation) }' 
+                            data-anno='${JSON.stringify(annotation)}' 
                             data-bs-target="#editVarsAnnotationModal" 
                             class="editButton">
                                 Edit annotation
@@ -156,11 +170,11 @@ export const varsAnnotationTableRow = (annotation, externalComment) => {
                         <br>
                     </div>
                     <div class="col values">
-                        ${ externalComment ? (
+                        ${externalComment ? (
                             `<button 
                                 type="button" 
                                 data-bs-toggle="modal" 
-                                data-anno='${ JSON.stringify(annotation) }'
+                                data-anno='${JSON.stringify(annotation)}'
                                 data-bs-target="#externalReviewModal" 
                                 class="editButton" 
                                 onclick="updateReviewerName('${annotation.observation_uuid}')">
@@ -179,7 +193,7 @@ export const varsAnnotationTableRow = (annotation, externalComment) => {
                             `<button 
                                 type="button" 
                                 data-bs-toggle="modal" 
-                                data-anno='${ JSON.stringify(annotation) }' 
+                                data-anno='${JSON.stringify(annotation)}' 
                                 data-bs-target="#externalReviewModal" 
                                 class="editButton">
                                     Add to external review

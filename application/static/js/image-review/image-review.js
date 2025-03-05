@@ -713,6 +713,10 @@ window.onhashchange = () => {
 
 // get the annotation data and add it to the modal
 $(document).ready(()=> {
+    $('body').tooltip({ selector: '[data-toggle=tooltip]', trigger : 'hover' });
+    window.addEventListener('popstate', function () {
+        $('[data-toggle="tooltip"]').tooltip('dispose');
+    });
     if (missingRecords?.length) {
         $('#missingRecordTable').find('tbody').append(missingRecords.map((record) =>
             `<tr>
