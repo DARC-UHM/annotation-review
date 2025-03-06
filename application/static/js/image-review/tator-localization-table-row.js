@@ -19,7 +19,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                     <div class="col values">
                         <button
                             class="m-0 p-0 values"
-                            style="background: none; color: #eee; border: none; cursor: default;"
+                            style="background: none; color: #eee; border: none; cursor: text; user-select: text;"
                             data-toggle="tooltip"
                             data-bs-placement="right"
                             data-bs-html="true"
