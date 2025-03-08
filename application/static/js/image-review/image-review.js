@@ -282,6 +282,18 @@ export function updateHash() {
         `);
     }
 
+    const varsFilterOptions = `<option value="concept">Concept</option>
+         <option value="comment">Comment</option>
+         <option value="guide_photo">Guide Photo</option>
+         <option value="id_certainty">ID Certainty</option>
+         <option value="video_sequence">Video Sequence</option>`;
+
+    const tatorFilterOptions = `<option value="deployment">Deployment</option>
+         <option value="good_image">Good Image</option>
+         <option value="notes">Notes</option>
+         <option value="scientific_name">Scientific Name</option>
+         <option value="localization_type">Type</option>`;
+
     $('#filterList').append(`
         <span id="addFilterRow" class="small ms-3" style="display: none;">
             <form onsubmit="addFilter()" class="d-inline-block">
@@ -294,14 +306,8 @@ export function updateHash() {
                         <option>Genus</option>
                         <option>Species</option>
                         <option>Annotator</option>
-                        <option value="comment">Comment (VARS)</option>
-                        <option value="concept">Concept (VARS)</option>
-                        <option value="good_image">Good Image (Tator)</option>
-                        <option value="id_certainty">ID Certainty (VARS)</option>
-                        <option value="notes">Notes (Tator)</option>
-                        <option value="scientific_name">Scientific Name (Tator)</option>
-                        <option value="localization_type">Type (Tator)</option>
-                        <option value="video_sequence">Video Sequence</option>
+                        ${url.toString().includes('/vars/') || url.toString().includes('/external-review') ? varsFilterOptions : ''}
+                        ${url.toString().includes('/tator/') || url.toString().includes('/external-review') ? tatorFilterOptions : ''}
                     </select>
                     <span class="position-absolute dropdown-chev">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
@@ -327,51 +333,64 @@ export function updateHash() {
     `);
     autocomplete($('#imageFilterEntry'), allConcepts);
 
-    if (filter['phylum']) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['phylum']?.toLowerCase() === filter['phylum'].toLowerCase());
+    // Global filters
+    if (filter.phylum) {
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.phylum?.toLowerCase() === filter.phylum.toLowerCase());
     }
-    if (filter['class']) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['class']?.toLowerCase() === filter['class'].toLowerCase());
+    if (filter.class) {
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.class?.toLowerCase() === filter.class.toLowerCase());
     }
-    if (filter['order']) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['order']?.toLowerCase() === filter['order'].toLowerCase());
+    if (filter.order) {
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.order?.toLowerCase() === filter.order.toLowerCase());
     }
-    if (filter['family']) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['family']?.toLowerCase() === filter['family'].toLowerCase());
+    if (filter.family) {
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.family?.toLowerCase() === filter.family.toLowerCase());
     }
-    if (filter['genus']) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['genus']?.toLowerCase() === filter['genus'].toLowerCase());
+    if (filter.genus) {
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.genus?.toLowerCase() === filter.genus.toLowerCase());
     }
-    if (filter['species']) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['species']?.toLowerCase() === filter['species'].toLowerCase().replaceAll('%20', ' '));
+    if (filter.species) {
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.species?.toLowerCase() === filter.species.toLowerCase().replaceAll('%20', ' '));
     }
-    if (filter['id_certainty']) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['identity_certainty']?.toLowerCase().includes(filter['id_certainty'].toLowerCase().replaceAll('%20', ' ')));
+    if (filter.annotator) {
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.annotator?.toLowerCase().includes(filter.annotator.toLowerCase().replaceAll('%20', ' ')));
     }
-    if (filter['video_sequence']) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['video_sequence_name']?.toLowerCase().includes(filter['video_sequence'].toLowerCase().replaceAll('%20', ' ')));
+    if (filter.video_sequence || filter.deployment) {
+        const sequence = filter.video_sequence ? filter.video_sequence : filter.deployment;
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.video_sequence_name?.toLowerCase().includes(sequence.toLowerCase().replaceAll('%20', ' ')));
     }
-    if (filter['comment']) { // VARS
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['comment']?.toLowerCase().includes(filter['comment'].toLowerCase().replaceAll('%20', ' ')));
+
+    // VARS-specific filters
+    if (filter.id_certainty) {
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.identity_certainty?.toLowerCase().includes(filter.id_certainty.toLowerCase().replaceAll('%20', ' ')));
     }
-    if (filter['notes']) { // Tator
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['notes']?.toLowerCase().includes(filter['notes'].toLowerCase().replaceAll('%20', ' ')));
+    if (filter.comment) {
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.comment?.toLowerCase().includes(filter.comment.toLowerCase().replaceAll('%20', ' ')));
     }
-    if (filter['scientific_name']) { // Tator
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['scientific_name']?.toLowerCase().includes(filter['scientific_name'].toLowerCase().replaceAll('%20', ' ')));
+    if (filter.concept) {
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.concept?.toLowerCase().includes(filter.concept.toLowerCase().replaceAll('%20', ' ')));
     }
-    if (filter['concept']) { // VARS
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['concept']?.toLowerCase().includes(filter['concept'].toLowerCase().replaceAll('%20', ' ')));
+    if (filter.guide_photo) {
+        if (filter.guide_photo?.toLowerCase() === 'any') {
+            annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.guide_photo);
+        } else {
+            annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.guide_photo?.toLowerCase().includes(filter.guide_photo.toLowerCase().replaceAll('%20', ' ')));
+        }
     }
-    if (filter['localization_type']) { // Tator
+
+    // Tator-specific filters
+    if (filter.good_image) {
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.good_image);
+    }
+    if (filter.notes) {
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.notes?.toLowerCase().includes(filter.notes.toLowerCase().replaceAll('%20', ' ')));
+    }
+    if (filter.scientific_name) {
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.scientific_name?.toLowerCase().includes(filter.scientific_name.toLowerCase().replaceAll('%20', ' ')));
+    }
+    if (filter.localization_type) {
         const localizationType = filter.localization_type.toLowerCase().includes('box') ? 48 : 49;
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['all_localizations'][0].type === localizationType);
-    }
-    if (filter['good_image']) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['good_image']);
-    }
-    if (filter['annotator']) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno['annotator']?.toLowerCase().includes(filter['annotator'].toLowerCase().replaceAll('%20', ' ')));
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.all_localizations[0].type === localizationType);
     }
 
     if (!annotationsToDisplay.length) {
