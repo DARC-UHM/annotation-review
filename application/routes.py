@@ -1000,12 +1000,12 @@ def update_reviewer_info():
             success = True
             flash('Successfully added reviewer', 'success')
         else:
-            flash('Unable to add reviewer', 'danger')
+            flash(post_reviewer_res.json(), 'danger')
     elif patch_reviewer_res.status_code == 200:
         success = True
         flash('Successfully updated reviewer', 'success')
     else:
-        flash('Unable to update reviewer', 'danger')
+        flash(patch_reviewer_res.json(), 'danger')
     if success:
         with requests.get(
             url=f'{app.config.get("DARC_REVIEW_URL")}/reviewer/all',
