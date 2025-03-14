@@ -157,18 +157,18 @@ def load_media(project_id, section_id):
         if res.status_code != 200:
             return {}, res.status_code
         for media in res.json():
-            media_name = media['name'].split('_')
-            # stupid solution until we decide on an actual naming convention (it's getting dumber)
-            if len(media_name) == 5:  # format SLB_2024_dscm_01_C001.MP4
-                media_name = '_'.join(media_name[0:4])
-            elif len(media_name) == 3:  # format DOEX0087_NIU-dscm-02_c009.mp4
-                media_name = media_name[1]
-            else:  # format HAW_dscm_01_c010_202304250123Z_0983m.mp4
-                media_name = '_'.join(media_name[0:3])
-            if media_name not in deployment_list.keys():
-                deployment_list[media_name] = [media['id']]
+            media_name_parts = media['name'].split('_')
+            # stupid solution until we decide on an actual naming convention...never?
+            if 'dscm' in media_name_parts and media_name_parts.index('dscm') == 2:  # format SLB_2024_dscm_01_C001.MP4
+                deployment_name = '_'.join(media_name_parts[0:4])
+            elif 'dscm' in media_name_parts and media_name_parts.index('dscm') == 1:  # format HAW_dscm_01_c010_202304250123Z_0983m.mp4
+                deployment_name = '_'.join(media_name_parts[0:3])
+            else:  # format DOEX0087_NIU-dscm-02_c009.mp4
+                deployment_name = media_name_parts[1]
+            if deployment_name not in deployment_list.keys():
+                deployment_list[deployment_name] = [media['id']]
             else:
-                deployment_list[media_name].append(media['id'])
+                deployment_list[deployment_name].append(media['id'])
         session[f'{project_id}_{section_id}'] = deployment_list
         return sorted(deployment_list.keys()), 200
 
