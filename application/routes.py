@@ -158,8 +158,10 @@ def load_media(project_id, section_id):
             return {}, res.status_code
         for media in res.json():
             media_name = media['name'].split('_')
-            # stupid solution until we decide on an actual naming convention
-            if len(media_name) == 3:  # format DOEX0087_NIU-dscm-02_c009.mp4
+            # stupid solution until we decide on an actual naming convention (it's getting dumber)
+            if len(media_name) == 5:  # format SLB_2024_dscm_01_C001.MP4
+                media_name = '_'.join(media_name[0:4])
+            elif len(media_name) == 3:  # format DOEX0087_NIU-dscm-02_c009.mp4
                 media_name = media_name[1]
             else:  # format HAW_dscm_01_c010_202304250123Z_0983m.mp4
                 media_name = '_'.join(media_name[0:3])
