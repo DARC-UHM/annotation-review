@@ -1,5 +1,4 @@
 import os
-import webbrowser
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -18,11 +17,24 @@ Session(app)
 
 print('\nLaunching application...')
 
-from application import routes
+from application.blueprints.image_review import image_review_bp
+from application.blueprints.image_review.tator import tator_image_review_bp
+from application.blueprints.image_review.vars import vars_image_review_bp
+from application.blueprints.qaqc import qaqc_bp
+from application.blueprints.qaqc.tator import tator_qaqc_bp
+from application.blueprints.qaqc.vars import vars_qaqc_bp
+
+app.register_blueprint(image_review_bp)
+app.register_blueprint(tator_image_review_bp)
+app.register_blueprint(vars_image_review_bp)
+app.register_blueprint(qaqc_bp)
+app.register_blueprint(tator_qaqc_bp)
+app.register_blueprint(vars_qaqc_bp)
 
 print('\n\033[1;32;48mApplication running. Press CTRL + C to stop.\033[1;37;0m\n')
 
 if os.environ.get('_FLASK_ENV') == 'production':
+    import webbrowser
     webbrowser.open_new('http://127.0.0.1:8000')
 
 # clean VARS frame cache
