@@ -26,6 +26,7 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
         section_id: int,
         api: tator.api,
         deployment_list: list,
+        tator_url: str,
         darc_review_url: str = None,
     ):
         super().__init__(
@@ -34,6 +35,7 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
             api=api,
             deployment_list=deployment_list,
             darc_review_url=darc_review_url,
+            tator_url=tator_url,
         )
 
     def fetch_start_times(self):
@@ -43,7 +45,7 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
             if 'media_timestamps' not in session.keys():
                 session['media_timestamps'] = {}
             res = requests.get(
-                url=f'https://cloud.tator.io/rest/Medias/{self.project_id}?section={self.section_id}&attribute_contains=%24name%3A%3A{deployment}',
+                url=f'{self.tator_url}/rest/Medias/{self.project_id}?section={self.section_id}&attribute_contains=%24name%3A%3A{deployment}',
                 headers={
                     'Content-Type': 'application/json',
                     'Authorization': f'Token {session["tator_token"]}',
@@ -291,14 +293,14 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
                     first_box = unique_taxa[key]['first_box']
                     if not first_box or datetime.datetime.strptime(record['timestamp'], '%Y-%m-%d %H:%M:%SZ') < datetime.datetime.strptime(first_box, '%Y-%m-%d %H:%M:%SZ'):
                         unique_taxa[key]['first_box'] = record['timestamp']
-                        unique_taxa[key]['first_box_url'] = f'https://cloud.tator.io/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}&selected_entity={localization["elemental_id"]}'
+                        unique_taxa[key]['first_box_url'] = f'{self.tator_url}/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}&selected_entity={localization["elemental_id"]}'
                 elif localization['type'] == 49:
                     unique_taxa[key]['dot_count'] += 1
                     first_dot = unique_taxa[key]['first_dot']
                     observed_timestamp = datetime.datetime.strptime(record['timestamp'], '%Y-%m-%d %H:%M:%SZ')
                     if not first_dot or observed_timestamp < datetime.datetime.strptime(first_dot, '%Y-%m-%d %H:%M:%SZ'):
                         unique_taxa[key]['first_dot'] = record['timestamp']
-                        unique_taxa[key]['first_dot_url'] = f'https://cloud.tator.io/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}&selected_entity={localization["elemental_id"]}'
+                        unique_taxa[key]['first_dot_url'] = f'{self.tator_url}/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}&selected_entity={localization["elemental_id"]}'
         self.final_records = unique_taxa
 
     def get_max_n(self):
@@ -331,13 +333,13 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
                 # add new unique taxa to dict
                 deployment_taxa[record['video_sequence_name']]['max_n_dict'][scientific_tentative] = {
                     'max_n': record['count'],
-                    'max_n_url': f'https://cloud.tator.io/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}',
+                    'max_n_url': f'{self.tator_url}/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}',
                 }
             else:
                 # check for new max N
                 if record['count'] > deployment_taxa[record['video_sequence_name']]['max_n_dict'][scientific_tentative]['max_n']:
                     deployment_taxa[record['video_sequence_name']]['max_n_dict'][scientific_tentative]['max_n'] = record['count']
-                    deployment_taxa[record['video_sequence_name']]['max_n_dict'][scientific_tentative]['max_n_url'] = f'https://cloud.tator.io/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}'
+                    deployment_taxa[record['video_sequence_name']]['max_n_dict'][scientific_tentative]['max_n_url'] = f'{self.tator_url}/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}'
         # convert unique taxa to list for sorting
         unique_taxa_list = list(unique_taxa.values())
         unique_taxa_list.sort(key=lambda x: (
@@ -394,13 +396,15 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
                 # add new unique taxa to dict
                 deployment_taxa[record['video_sequence_name']]['tofa_dict'][scientific_tentative] = {
                     'tofa': str(observed_timestamp - bottom_time) if observed_timestamp > bottom_time else '00:00:00',
-                    'tofa_url': f'https://cloud.tator.io/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}',
+                    'tofa_url': f'{self.tator_url}/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}',
                 }
             else:
                 # check for new tofa
                 if str(observed_timestamp - bottom_time) < deployment_taxa[record['video_sequence_name']]['tofa_dict'][scientific_tentative]['tofa']:
-                    deployment_taxa[record['video_sequence_name']]['tofa_dict'][scientific_tentative]['tofa'] = str(observed_timestamp - bottom_time) if observed_timestamp > bottom_time else '00:00:00'
-                    deployment_taxa[record['video_sequence_name']]['tofa_dict'][scientific_tentative]['tofa_url'] = f'https://cloud.tator.io/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}'
+                    deployment_taxa[record['video_sequence_name']]['tofa_dict'][scientific_tentative]['tofa'] = \
+                        str(observed_timestamp - bottom_time) if observed_timestamp > bottom_time else '00:00:00'
+                    deployment_taxa[record['video_sequence_name']]['tofa_dict'][scientific_tentative]['tofa_url'] = \
+                        f'{self.tator_url}/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}'
         # convert unique taxa to list for sorting
         unique_taxa_list = list(unique_taxa.values())
         unique_taxa_list.sort(key=lambda x: (

@@ -1,3 +1,7 @@
+"""
+General endpoints for VARS annotations/associations that are used throughout the application.
+"""
+
 from io import BytesIO
 from pathlib import Path
 
@@ -12,7 +16,7 @@ vars_bp = Blueprint('vars', __name__)
 # get a single VARS annotation
 @vars_bp.get('/vars/annotation/<observation_uuid>')
 def get_current_associations(observation_uuid):
-    res = requests.get(url=f'{current_app.config.get("HURLSTOR_URL")}:8082/v1/annotations/{observation_uuid}')
+    res = requests.get(url=f'{current_app.config.get("VARS_ANNOTATION_URL")}/{observation_uuid}')
     if res.status_code != 200:
         return {}, res.status_code
     return res.json(), 200

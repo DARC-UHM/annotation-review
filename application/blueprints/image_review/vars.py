@@ -1,3 +1,7 @@
+"""
+VARS-specific image review endpoint.
+"""
+
 import requests
 from flask import Blueprint, current_app, request, render_template, session
 
@@ -24,7 +28,11 @@ def view_images():
     except requests.exceptions.ConnectionError:
         print('\nERROR: unable to connect to external review server\n')
     # get images in sequence
-    image_loader = VarsAnnotationProcessor(sequences)
+    image_loader = VarsAnnotationProcessor(
+        sequence_names=sequences,
+        vars_dive_url=current_app.config.get('VARS_DIVE_QUERY_URL'),
+        vars_phylogeny_url=current_app.config.get('VARS_PHYLOGENY_URL'),
+    )
     image_loader.process_sequences()
     if len(image_loader.final_records) < 1:
         return render_template('not-found.html', err='pics'), 404

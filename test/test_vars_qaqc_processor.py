@@ -5,6 +5,9 @@ from application.server.vars_qaqc_processor import VarsQaqcProcessor
 from test.data.vars_responses import ex_23060001, ex_23060002
 from test.util.mock_response import MockResponse
 
+VARS_DIVE_QUERY_URL = 'http://hurlstor.soest.hawaii.edu:8086/query/dive'
+VARS_PHYLOGENY_URL = 'http://hurlstor.soest.hawaii.edu:8083/v1/phylogeny/up'
+
 
 def mocked_requests_get(*args, **kwargs):
     return MockResponse(url=kwargs.get('url'))
@@ -12,7 +15,7 @@ def mocked_requests_get(*args, **kwargs):
 
 class TestVarsQaqcProcessor:
     def test_init(self):
-        qaqc_processor = VarsQaqcProcessor(['Deep Discoverer 23060001'])
+        qaqc_processor = VarsQaqcProcessor(['Deep Discoverer 23060001'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
         assert qaqc_processor.sequence_names == ['Deep Discoverer 23060001']
         assert qaqc_processor.videos == []
         assert qaqc_processor.working_records == []
@@ -21,7 +24,7 @@ class TestVarsQaqcProcessor:
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_fetch_annotations(self, _):
-        qaqc_processor = VarsQaqcProcessor(['Deep Discoverer 23060001'])
+        qaqc_processor = VarsQaqcProcessor(['Deep Discoverer 23060001'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
         assert qaqc_processor.fetch_annotations('Deep Discoverer 23060001') == ex_23060001['annotations']
         assert qaqc_processor.videos == [
             {
@@ -40,8 +43,8 @@ class TestVarsQaqcProcessor:
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_duplicate_associations(self, _):
-        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'])
-        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'])
+        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
+        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
         qaqc_processor_okay.find_duplicate_associations()
         qaqc_processor_problems.find_duplicate_associations()
         assert qaqc_processor_okay.working_records == []
@@ -49,8 +52,8 @@ class TestVarsQaqcProcessor:
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_missing_s1(self, _):
-        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'])
-        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'])
+        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
+        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
         qaqc_processor_okay.find_missing_s1()
         qaqc_processor_problems.find_missing_s1()
         assert qaqc_processor_okay.working_records == []
@@ -58,8 +61,8 @@ class TestVarsQaqcProcessor:
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_identical_s1_s2(self, _):
-        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'])
-        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'])
+        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
+        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
         qaqc_processor_okay.find_identical_s1_s2()
         qaqc_processor_problems.find_identical_s1_s2()
         assert qaqc_processor_okay.working_records == []
@@ -67,8 +70,8 @@ class TestVarsQaqcProcessor:
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_duplicate_s2(self, _):
-        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'])
-        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'])
+        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
+        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
         qaqc_processor_okay.find_duplicate_s2()
         qaqc_processor_problems.find_duplicate_s2()
         assert qaqc_processor_okay.working_records == []
@@ -76,8 +79,8 @@ class TestVarsQaqcProcessor:
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_missing_upon_substrate(self, _):
-        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'])
-        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'])
+        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
+        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
         qaqc_processor_okay.find_missing_upon_substrate()
         qaqc_processor_problems.find_missing_upon_substrate()
         assert qaqc_processor_okay.working_records == []
@@ -85,8 +88,8 @@ class TestVarsQaqcProcessor:
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_mismatched_substrates(self, _):
-        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'])
-        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'])
+        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
+        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
         qaqc_processor_okay.find_mismatched_substrates()
         qaqc_processor_problems.find_mismatched_substrates()
         assert qaqc_processor_okay.working_records == []
@@ -94,8 +97,8 @@ class TestVarsQaqcProcessor:
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_missing_upon(self, _):
-        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'])
-        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'])
+        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
+        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
         qaqc_processor_okay.find_missing_upon()
         qaqc_processor_problems.find_missing_upon()
         assert qaqc_processor_okay.working_records == []
@@ -103,15 +106,15 @@ class TestVarsQaqcProcessor:
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_get_num_records_missing_ancillary_data(self, _):
-        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'])
-        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'])
+        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
+        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
         assert qaqc_processor_okay.get_num_records_missing_ancillary_data() == 0
         assert qaqc_processor_problems.get_num_records_missing_ancillary_data() == 2
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_missing_ancillary_data(self, _):
-        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'])
-        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'])
+        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
+        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
         qaqc_processor_okay.find_missing_ancillary_data()
         qaqc_processor_problems.find_missing_ancillary_data()
         assert qaqc_processor_okay.working_records == []
@@ -119,8 +122,8 @@ class TestVarsQaqcProcessor:
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_id_refs_different_concept_name(self, _):
-        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'])
-        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'])
+        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
+        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
         qaqc_processor_okay.find_id_refs_different_concept_name()
         qaqc_processor_problems.find_id_refs_different_concept_name()
         assert qaqc_processor_okay.working_records == []
@@ -128,8 +131,8 @@ class TestVarsQaqcProcessor:
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_id_refs_conflicting_associations(self, _):
-        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'])
-        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'])
+        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
+        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
         qaqc_processor_okay.find_id_refs_conflicting_associations()
         qaqc_processor_problems.find_id_refs_conflicting_associations()
         assert qaqc_processor_okay.working_records == []
@@ -137,8 +140,8 @@ class TestVarsQaqcProcessor:
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_blank_associations(self, _):
-        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'])
-        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'])
+        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
+        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
         qaqc_processor_okay.find_blank_associations()
         qaqc_processor_problems.find_blank_associations()
         assert qaqc_processor_okay.working_records == []
@@ -146,8 +149,8 @@ class TestVarsQaqcProcessor:
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_suspicious_hosts(self, _):
-        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'])
-        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'])
+        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
+        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
         qaqc_processor_okay.find_suspicious_hosts()
         qaqc_processor_problems.find_suspicious_hosts()
         assert qaqc_processor_okay.working_records == []
@@ -155,8 +158,8 @@ class TestVarsQaqcProcessor:
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_missing_expected_association(self, _):
-        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'])
-        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'])
+        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
+        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
         qaqc_processor_okay.find_missing_expected_association()
         qaqc_processor_problems.find_missing_expected_association()
         assert qaqc_processor_okay.final_records == []
@@ -184,8 +187,8 @@ class TestVarsQaqcProcessor:
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_long_host_associate_time_diff(self, _):
-        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'])
-        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'])
+        qaqc_processor_okay = VarsQaqcProcessor(['Deep Discoverer 23060001'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
+        qaqc_processor_problems = VarsQaqcProcessor(['Deep Discoverer 23060002'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
         qaqc_processor_okay.find_long_host_associate_time_diff()
         qaqc_processor_problems.find_long_host_associate_time_diff()
         assert qaqc_processor_okay.final_records == []
@@ -253,7 +256,7 @@ class TestVarsQaqcProcessor:
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_num_bounding_boxes(self, _):
-        qaqc_processor = VarsQaqcProcessor(['Deep Discoverer 23060001'])
+        qaqc_processor = VarsQaqcProcessor(['Deep Discoverer 23060001'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
         qaqc_processor.find_num_bounding_boxes()
         assert qaqc_processor.final_records == [{
             'bounding_box_counts': {
@@ -266,7 +269,7 @@ class TestVarsQaqcProcessor:
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_unique_fields(self, _):
-        qaqc_processor = VarsQaqcProcessor(['Deep Discoverer 23060001'])
+        qaqc_processor = VarsQaqcProcessor(['Deep Discoverer 23060001'], VARS_DIVE_QUERY_URL, VARS_PHYLOGENY_URL)
         qaqc_processor.find_unique_fields()
         assert qaqc_processor.final_records == [
             {

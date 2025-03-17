@@ -17,7 +17,6 @@ _Requirements: Python ≥ 3.10_
 4. Set environment variables. Without these, the app will not be able to access the VARS server or the DARC external review server. Environment variables can be set by creating a file named `.env` in the root of the repository with the following content (replace the `...` with the appropriate values):
 
 ```python
-ANNOSAURUS_URL = '...'
 ANNOSAURUS_CLIENT_SECRET = '...'
 _FLASK_ENV = '...'
 APP_SECRET_KEY = '...'

@@ -1,3 +1,7 @@
+"""
+Endpoints related to external reviewers.
+"""
+
 import json
 import sys
 
@@ -76,7 +80,12 @@ def get_external_review():
     except requests.exceptions.ConnectionError:
         _reviewers = []
         print('\nERROR: unable to connect to external review server\n')
-    comment_loader = CommentProcessor(comments)
+    comment_loader = CommentProcessor(
+        comments=comments,
+        annosaurus_url=current_app.config.get('ANNOSAURUS_URL'),
+        vars_phylogeny_url=current_app.config.get('VARS_PHYLOGENY_URL'),
+        tator_localizations_url=f'{current_app.config.get("TATOR_URL")}/rest/Localizations',
+    )
     if len(comment_loader.distilled_records) < 1:
         if request.args.get('unread'):
             return render_template('not-found.html', err='unread'), 404

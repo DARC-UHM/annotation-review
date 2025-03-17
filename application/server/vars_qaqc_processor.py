@@ -10,8 +10,8 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
     Filters and formats annotations for the various DARC QA/QC checks.
     """
 
-    def __init__(self, sequence_names: list):
-        super().__init__(sequence_names)
+    def __init__(self, sequence_names: list, vars_dive_url: str, vars_phylogeny_url: str):
+        super().__init__(sequence_names, vars_dive_url, vars_phylogeny_url)
         self.videos = []
         self.load_phylogeny()
 
@@ -22,7 +22,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
         print(f'Fetching annotations for sequence {seq_name} from VARS...', end='')
         sys.stdout.flush()
 
-        res = requests.get(url=f'http://hurlstor.soest.hawaii.edu:8086/query/dive/{seq_name.replace(" ", "%20")}')
+        res = requests.get(url=f'{self.vars_dive_url}/{seq_name.replace(" ", "%20")}')
         dive_json = res.json()
         print('fetched!')
 

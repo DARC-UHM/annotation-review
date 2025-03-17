@@ -17,8 +17,11 @@ class CommentProcessor:
     Fetches annotation information from the VARS db on HURLSTOR and Tator given a dict of comments (key = uuid). Merges
     fetched annotations with the data in the comment dict into an array of dicts (self.annotations).
     """
-    def __init__(self, comments: Dict):
+    def __init__(self, comments: Dict, annosaurus_url: str, vars_phylogeny_url: str, tator_localizations_url: str):
         self.comments = comments
+        self.annosaurus_url = annosaurus_url
+        self.vars_phylogeny_url = vars_phylogeny_url
+        self.tator_localizations_url = tator_localizations_url
         self.distilled_records = []
         self.missing_records = []
         self.no_match_records = set()
@@ -50,7 +53,7 @@ class CommentProcessor:
                 chunk = list(media_ids)[i:i + 300]
                 # fixme (?) vvvv potential bug using hardcoded "26" as project id (but probably fine) vvvv
                 get_localization_res = requests.get(
-                    url=f'https://cloud.tator.io/rest/Localizations/26?media_id={",".join(map(str, chunk))}',
+                    url=f'{self.tator_localizations_url}/26?media_id={",".join(map(str, chunk))}',
                     headers={
                         'Content-Type': 'application/json',
                         'Authorization': f'Token {session["tator_token"]}',
@@ -77,7 +80,7 @@ class CommentProcessor:
                 identity_reference = None
                 depth = None
                 vars_comment = None
-                vars_res = requests.get(url=f'{os.environ.get("ANNOSAURUS_URL")}/annotations/{comment}')
+                vars_res = requests.get(url=f'{self.annosaurus_url}/annotations/{comment}')
                 try:
                     annotation = vars_res.json()
                     concept_name = annotation['concept']
@@ -155,7 +158,7 @@ class CommentProcessor:
                     comment_dict['all_localizations'] = [{}]
             if concept_name and concept_name not in phylogeny.keys() and concept_name not in self.no_match_records:
                 # get the phylogeny from VARS kb
-                with requests.get(url=f'http://hurlstor.soest.hawaii.edu:8083/v1/phylogeny/up/{concept_name}') \
+                with requests.get(url=f'{self.vars_phylogeny_url}/{concept_name}') \
                         as vars_tax_res:
                     if vars_tax_res.status_code == 200:
                         # this get us to phylum

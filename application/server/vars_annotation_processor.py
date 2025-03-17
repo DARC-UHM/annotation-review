@@ -14,10 +14,12 @@ class VarsAnnotationProcessor:
     the annotation data for display on the image review pages.
     """
 
-    def __init__(self, sequence_names: list):
+    def __init__(self, sequence_names: list, vars_dive_url: str, vars_phylogeny_url: str):
         self.sequence_names = sequence_names
+        self.vars_dive_url = vars_dive_url
+        self.vars_phylogeny_url = vars_phylogeny_url
         self.phylogeny = {}
-        self.working_records = []  # all of the annotations that have images
+        self.working_records = []  # all the annotations that have images
         self.final_records = []    # the final list of annotations
         self.highest_id_ref = 0
         temp_name = sequence_names[0].split()
@@ -58,7 +60,7 @@ class VarsAnnotationProcessor:
         """
         Fetches all annotations that have images and all video uris/start times from VARS.
         """
-        response = requests.get(url=f'http://hurlstor.soest.hawaii.edu:8086/query/dive/{sequence_name.replace(" ", "%20")}').json()
+        response = requests.get(url=f'{self.vars_dive_url}/{sequence_name.replace(" ", "%20")}').json()
 
         # get list of video links and start timestamps
         for video in response['media']:
@@ -79,7 +81,7 @@ class VarsAnnotationProcessor:
         """
         Fetches phylogeny for given concept from the VARS knowledge base.
         """
-        vars_tax_res = requests.get(url=f'http://hurlstor.soest.hawaii.edu:8083/v1/phylogeny/up/{concept_name.replace("/", "%2F")}')
+        vars_tax_res = requests.get(url=f'{self.vars_phylogeny_url}/{concept_name.replace("/", "%2F")}')
         if vars_tax_res.status_code == 200:
             try:
                 # this get us to phylum

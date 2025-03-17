@@ -1,3 +1,7 @@
+"""
+Tator-specific QA/QC endpoints
+"""
+
 from io import BytesIO
 
 import tator
@@ -48,7 +52,7 @@ def tator_qaqc_checklist():
     for i in range(0, len(media_ids), 300):
         chunk = media_ids[i:i + 300]
         res = requests.get(
-            url=f'https://cloud.tator.io/rest/Localizations/{project_id}?media_id={",".join(map(str, chunk))}',
+            url=f'{current_app.config.get("TATOR_URL")}/rest/Localizations/{project_id}?media_id={",".join(map(str, chunk))}',
             headers={
                 'Content-Type': 'application/json',
                 'Authorization': f'Token {session["tator_token"]}',
@@ -134,7 +138,7 @@ def tator_qaqc(check):
         for deployment in request.args.getlist('deployment'):
             media_attributes[deployment] = []
             res = requests.get(  # REST API is much faster than Python API for large queries
-                url=f'https://cloud.tator.io/rest/Medias/{project_id}?section={section_id}&attribute_contains=%24name%3A%3A{deployment}',
+                url=f'{current_app.config.get("TATOR_URL")}/rest/Medias/{project_id}?section={section_id}&attribute_contains=%24name%3A%3A{deployment}',
                 headers={
                     'Content-Type': 'application/json',
                     'Authorization': f'Token {session["tator_token"]}',
@@ -152,6 +156,7 @@ def tator_qaqc(check):
         api=api,
         deployment_list=request.args.getlist('deployment'),
         darc_review_url=current_app.config.get('DARC_REVIEW_URL'),
+        tator_url=current_app.config.get('TATOR_URL'),
     )
     qaqc_annos.fetch_localizations()
     qaqc_annos.load_phylogeny()

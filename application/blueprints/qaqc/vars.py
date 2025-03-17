@@ -1,3 +1,7 @@
+"""
+VARS-specific QA/QC endpoints
+"""
+
 import threading
 
 import requests
@@ -33,7 +37,7 @@ def vars_qaqc_checklist():
     for sequence in sequences:
         thread = threading.Thread(
             target=get_sequence_counts,
-            args=(sequence, total_counts, current_app.config.get("HURLSTOR_URL"))
+            args=(sequence, total_counts, current_app.config.get('VARS_DIVE_QUERY_URL')),
         )
         threads.append(thread)
         thread.start()
@@ -49,13 +53,13 @@ def vars_qaqc_checklist():
     )
 
 
-def get_sequence_counts(sequence_name, total_counts, hurlstor_url):
+def get_sequence_counts(sequence_name, total_counts, vars_dive_url):
     identity_references = set()
     sequence_annotations = 0
     sequence_individuals = 0
     sequence_true_localizations = 0
     sequence_group_localizations = 0
-    res = requests.get(f'{hurlstor_url}:8086/query/dive/{sequence_name.replace(" ", "%20")}')
+    res = requests.get(f'{vars_dive_url}/{sequence_name.replace(" ", "%20")}')
     if res.status_code != 200:
         print(f'{TERM_RED}Failed to fetch annotations for sequence {sequence_name}{TERM_NORMAL}')
     annotations = res.json()['annotations']
@@ -125,7 +129,11 @@ def patch_vars_qaqc_checklist():
 @vars_qaqc_bp.get('/qaqc/vars/check/<check>')
 def vars_qaqc(check):
     sequences = request.args.getlist('sequence')
-    qaqc_annos = VarsQaqcProcessor(sequences)
+    qaqc_annos = VarsQaqcProcessor(
+        sequence_names=sequences,
+        vars_dive_url=current_app.config.get('VARS_DIVE_QUERY_URL'),
+        vars_phylogeny_url=current_app.config.get('VARS_PHYLOGENY_URL'),
+    )
     data = {
         'concepts': session.get('vars_concepts', []),
         'title': check.replace('-', ' ').title(),

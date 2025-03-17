@@ -1,3 +1,7 @@
+"""
+Tator-specific image review endpoint.
+"""
+
 import tator
 import requests
 from flask import Blueprint, current_app, flash, render_template, redirect, request, session
@@ -26,7 +30,8 @@ def tator_image_review():
             project_id=project_id,
             section_id=section_id,
             api=api,
-            deployment_list=request.args.getlist('deployment')
+            deployment_list=request.args.getlist('deployment'),
+            tator_url=current_app.config.get('TATOR_URL'),
         )
         localization_processor.fetch_localizations()
         localization_processor.load_phylogeny()

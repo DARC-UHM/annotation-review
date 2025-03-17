@@ -1,3 +1,7 @@
+"""
+General endpoints for Tator that are used throughout the application.
+"""
+
 import base64
 import json
 
@@ -84,7 +88,7 @@ def load_media(project_id, section_id):
         deployment_list = {}
         # REST is much faster than Python API for large queries
         res = requests.get(
-            url=f'https://cloud.tator.io/rest/Medias/{project_id}?section={section_id}',
+            url=f'{current_app.config.get("TATOR_URL")}/rest/Medias/{project_id}?section={section_id}',
             headers={
                 'Content-Type': 'application/json',
                 'Authorization': f'Token {session.get("tator_token")}',

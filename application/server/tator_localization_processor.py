@@ -11,7 +11,6 @@ from .constants import KNOWN_ANNOTATORS, TERM_RED, TERM_NORMAL
 from .functions import flatten_taxa_tree
 
 WORMS_REST_URL = 'https://www.marinespecies.org/rest'
-TATOR_REST_URL = 'https://cloud.tator.io/rest'
 
 
 class TatorLocalizationProcessor:
@@ -26,12 +25,14 @@ class TatorLocalizationProcessor:
         section_id: int,
         api: tator.api,
         deployment_list: list,
+        tator_url: str,
         darc_review_url: str = None,
     ):
         self.project_id = project_id
         self.section_id = section_id
         self.api = api
         self.deployments = deployment_list
+        self.tator_url = tator_url
         self.darc_review_url = darc_review_url
         self.localizations = []  # list of raw localizations from tator
         self.final_records = []  # final list formatted for review page
@@ -97,7 +98,7 @@ class TatorLocalizationProcessor:
         for i in range(0, len(media_ids), 300):
             chunk = media_ids[i:i + 300]
             res = requests.get(
-                url=f'{TATOR_REST_URL}/Localizations/{self.project_id}?media_id={",".join(map(str, chunk))}',
+                url=f'{self.tator_url}/rest/Localizations/{self.project_id}?media_id={",".join(map(str, chunk))}',
                 headers={
                     'Content-Type': 'application/json',
                     'Authorization': f'Token {session["tator_token"]}',
