@@ -466,7 +466,7 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
                 if localization['phylum'] != current_phylum and current_phylum != 'UNKNOWN PHYLUM':
                     break
                 localization_id = localization['all_localizations'][0]['id']
-                response = requests.get(f'{app.config.get("LOCAL_APP_URL")}/tator-localization/{localization_id}?token={session["tator_token"]}')
+                response = requests.get(f'{app.config.get("LOCAL_APP_URL")}/tator/localization-image/{localization_id}?token={session["tator_token"]}')
                 if response.status_code != 200:
                     print(f'Error fetching image for record {localization["observation_uuid"]}')
                     continue

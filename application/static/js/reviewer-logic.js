@@ -45,7 +45,7 @@ $(document).ready(() => {
 
         $('#deleteReviewerName').html(reviewer.name);
         $('#deleteReviewerButton').on('click', async () => {
-            const res = await fetch(`/reviewer/${reviewer.name}`,{ method: 'DELETE' });
+            const res = await fetch(`/image-review/external-review/reviewer/${reviewer.name}`,{ method: 'DELETE' });
             if (res.ok) {
                 window.location.reload();
             }

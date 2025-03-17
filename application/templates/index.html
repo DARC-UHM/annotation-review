@@ -8,7 +8,7 @@
             </button>
             {% if unread_comment_count > 0 %}
             <span id="notif">
-                <a href="/external-review?unread=true" class="text-decoration-none text-white external-review-link">
+                <a href="/image-review/external-review?unread=true" class="text-decoration-none text-white external-review-link">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#eeeeee" class="bi bi-chat-right-fill mt-1" viewBox="0 0 16 16">
                       <path d="M14 0a2 2 0 0 1 2 2v12.793a.5.5 0 0 1-.854.353l-2.853-2.853a1 1 0 0 0-.707-.293H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12z"/>
                     </svg>
@@ -17,15 +17,15 @@
             </span>
             {% endif %}
             <ul class="dropdown-menu indexDropdownMenu small">
-                <li><a class="dropdown-item small external-review-link" href="/external-review?unread=true">Unread ({{ unread_comment_count }})</a></li>
-                <li><a class="dropdown-item small external-review-link" href="/external-review?read=true">Read ({{ read_comment_count }})</a></li>
-                <li><a class="dropdown-item small external-review-link" href="/external-review">All ({{ total_comment_count }})</a></li>
+                <li><a class="dropdown-item small external-review-link" href="/image-review/external-review?unread=true">Unread ({{ unread_comment_count }})</a></li>
+                <li><a class="dropdown-item small external-review-link" href="/image-review/external-review?read=true">Read ({{ read_comment_count }})</a></li>
+                <li><a class="dropdown-item small external-review-link" href="/image-review/external-review">All ({{ total_comment_count }})</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <div class="small text-center pb-1 px-4 mx-2" style="font-weight: 500;">Active Reviewer Pages</div>
                 {% for reviewer in active_reviewers %}<li>
                     <a
                         class="dropdown-item small external-review-link"
-                        href="/external-review?reviewer={{ reviewer }}"
+                        href="/image-review/external-review?reviewer={{ reviewer }}"
                     >
                         {{ reviewer }}
                     </a>

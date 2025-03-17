@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded',  (event) => {
             checklist[checkbox] = checklist[checkbox] < 2 ? checklist[checkbox] + 1 : 0;
             $(`#${checkboxName}`).html(updateCheckbox(checklist[checkbox]));
             updateTaskCount();
-            const res = await fetch('/vars/qaqc-checklist', {
+            const res = await fetch('/qaqc/vars/checklist', {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json'
@@ -69,35 +69,35 @@ document.addEventListener('DOMContentLoaded',  (event) => {
         updateTaskCount();
     }
 
-    $('#multipleAssociationsAnchor').attr('href', `/vars/qaqc/multiple-associations?sequence=${sequences.join('&sequence=')}`);
+    $('#multipleAssociationsAnchor').attr('href', `/qaqc/vars/check/multiple-associations?sequence=${sequences.join('&sequence=')}`);
     $('#multipleAssociationsAnchor').on('click', () => showLoader());
-    $('#primarySubstrateAnchor').attr('href', `/vars/qaqc/missing-primary-substrate?sequence=${sequences.join('&sequence=')}`);
+    $('#primarySubstrateAnchor').attr('href', `/qaqc/vars/check/missing-primary-substrate?sequence=${sequences.join('&sequence=')}`);
     $('#primarySubstrateAnchor').on('click', () => showLoader());
-    $('#identicalS1S2Anchor').attr('href', `/vars/qaqc/identical-s1-&-s2?sequence=${sequences.join('&sequence=')}`);
+    $('#identicalS1S2Anchor').attr('href', `/qaqc/vars/check/identical-s1-&-s2?sequence=${sequences.join('&sequence=')}`);
     $('#identicalS1S2Anchor').on('click', () => showLoader());
-    $('#duplicateS2Anchor').attr('href', `/vars/qaqc/duplicate-s2?sequence=${sequences.join('&sequence=')}`);
+    $('#duplicateS2Anchor').attr('href', `/qaqc/vars/check/duplicate-s2?sequence=${sequences.join('&sequence=')}`);
     $('#duplicateS2Anchor').on('click', () => showLoader());
-    $('#uponSubstrateAnchor').attr('href', `/vars/qaqc/missing-upon-substrate?sequence=${sequences.join('&sequence=')}`);
+    $('#uponSubstrateAnchor').attr('href', `/qaqc/vars/check/missing-upon-substrate?sequence=${sequences.join('&sequence=')}`);
     $('#uponSubstrateAnchor').on('click', () => showLoader());
-    $('#timestampSubstrateAnchor').attr('href', `/vars/qaqc/mismatched-substrates?sequence=${sequences.join('&sequence=')}#sort=Timestamp`);
+    $('#timestampSubstrateAnchor').attr('href', `/qaqc/vars/check/mismatched-substrates?sequence=${sequences.join('&sequence=')}#sort=Timestamp`);
     $('#timestampSubstrateAnchor').on('click', () => showLoader());
-    $('#missingUponAnchor').attr('href', `/vars/qaqc/missing-upon?sequence=${sequences.join('&sequence=')}`);
+    $('#missingUponAnchor').attr('href', `/qaqc/vars/check/missing-upon?sequence=${sequences.join('&sequence=')}`);
     $('#missingUponAnchor').on('click', () => showLoader());
-    $('#refIdConceptNameAnchor').attr('href', `/vars/qaqc/id-ref-concept-name?sequence=${sequences.join('&sequence=')}#sort=Timestamp`);
+    $('#refIdConceptNameAnchor').attr('href', `/qaqc/vars/check/id-ref-concept-name?sequence=${sequences.join('&sequence=')}#sort=Timestamp`);
     $('#refIdConceptNameAnchor').on('click', () => showLoader());
-    $('#refIdAssociationsAnchor').attr('href', `/vars/qaqc/id-ref-associations?sequence=${sequences.join('&sequence=')}#sort=Timestamp`);
+    $('#refIdAssociationsAnchor').attr('href', `/qaqc/vars/check/id-ref-associations?sequence=${sequences.join('&sequence=')}#sort=Timestamp`);
     $('#refIdAssociationsAnchor').on('click', () => showLoader());
-    $('#blankAssociationsAnchor').attr('href', `/vars/qaqc/blank-associations?sequence=${sequences.join('&sequence=')}`);
+    $('#blankAssociationsAnchor').attr('href', `/qaqc/vars/check/blank-associations?sequence=${sequences.join('&sequence=')}`);
     $('#blankAssociationsAnchor').on('click', () => showLoader());
-    $('#suspiciousHostAnchor').attr('href', `/vars/qaqc/suspicious-hosts?sequence=${sequences.join('&sequence=')}`);
+    $('#suspiciousHostAnchor').attr('href', `/qaqc/vars/check/suspicious-hosts?sequence=${sequences.join('&sequence=')}`);
     $('#suspiciousHostAnchor').on('click', () => showLoader());
-    $('#expectedAssociationAnchor').attr('href', `/vars/qaqc/expected-associations?sequence=${sequences.join('&sequence=')}`);
+    $('#expectedAssociationAnchor').attr('href', `/qaqc/vars/check/expected-associations?sequence=${sequences.join('&sequence=')}`);
     $('#expectedAssociationAnchor').on('click', () => showLoader());
-    $('#timeDiffHostUponAnchor').attr('href', `/vars/qaqc/host-associate-time-diff?sequence=${sequences.join('&sequence=')}`);
+    $('#timeDiffHostUponAnchor').attr('href', `/qaqc/vars/check/host-associate-time-diff?sequence=${sequences.join('&sequence=')}`);
     $('#timeDiffHostUponAnchor').on('click', () => showLoader());
-    $('#boundingBoxesAnchor').attr('href', `/vars/qaqc/number-of-bounding-boxes?sequence=${sequences.join('&sequence=')}`);
+    $('#boundingBoxesAnchor').attr('href', `/qaqc/vars/check/number-of-bounding-boxes?sequence=${sequences.join('&sequence=')}`);
     $('#boundingBoxesAnchor').on('click', () => showLoader());
-    $('#uniqueFieldsAnchor').attr('href', `/vars/qaqc/unique-fields?sequence=${sequences.join('&sequence=')}#unique=concept-names`);
+    $('#uniqueFieldsAnchor').attr('href', `/qaqc/vars/check/unique-fields?sequence=${sequences.join('&sequence=')}#unique=concept-names`);
     $('#uniqueFieldsAnchor').on('click', () => showLoader());
 
     $('#missingAncillaryAnchor').on('click', async () => {
@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded',  (event) => {
         $('#quickCheckCheck').html('missing ancillary data');
         $('#load-overlay').removeClass('loader-bg-hidden');
         $('#load-overlay').addClass('loader-bg');
-        const res = await fetch(`/vars/qaqc/quick/missing-ancillary-data?sequence=${sequences.join('&sequence=')}`);
+        const res = await fetch(`/qaqc/vars/check/quick/missing-ancillary-data?sequence=${sequences.join('&sequence=')}`);
         const json = await res.json();
         $('#load-overlay').removeClass('loader-bg');
         $('#load-overlay').addClass('loader-bg-hidden');
@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded',  (event) => {
         $('#quickCheckSeeDetailsBtn').on('click', () => {
             $('#load-overlay').removeClass('loader-bg-hidden');
             $('#load-overlay').addClass('loader-bg');
-            window.location.href = `/vars/qaqc/missing-ancillary-data?sequence=${sequences.join('&sequence=')}`
+            window.location.href = `/qaqc/vars/check/missing-ancillary-data?sequence=${sequences.join('&sequence=')}`
         });
     });
 

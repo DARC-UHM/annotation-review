@@ -116,7 +116,7 @@ async function showTatorForm() {
     localStorage.setItem('annotationPlatform', 'Tator');
     $('#varsIndexForm').hide();
     $('#platformSelectBtn').html('Tator ');
-    const res = await fetch('/tator/check-token');
+    const res = await fetch('/tator/token');
     const json = await res.json();
     if (res.status === 200) {
         $('#tatorLoggedInUser').html(json.username);
@@ -236,28 +236,28 @@ $('#varsImageReviewButton').on('click', () => {
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
     const sequences = new FormData($('#varsIndexForm')[0]).getAll('sequence');
-    window.location.href = `/vars/image-review?sequence=${sequences.join('&sequence=')}`;
+    window.location.href = `/image-review/vars?sequence=${sequences.join('&sequence=')}`;
 });
 
 $('#varsQaqcButton').on('click', () => {
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
     const sequences = new FormData($('#varsIndexForm')[0]).getAll('sequence');
-    window.location.href = `/vars/qaqc-checklist?sequence=${sequences.join('&sequence=')}`;
+    window.location.href = `/qaqc/vars/checklist?sequence=${sequences.join('&sequence=')}`;
 });
 
 $('#tatorImageReviewButton').on('click', () => {
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
     const formData = new FormData($('#tatorIndexForm')[0]);
-    window.location.href = `/tator/image-review/${formData.get('project')}/${formData.get('section')}?deployment=${formData.getAll('deployment').join('&deployment=')}`;
+    window.location.href = `/image-review/tator?project=${formData.get('project')}&section=${formData.get('section')}&deployment=${formData.getAll('deployment').join('&deployment=')}`;
 });
 
 $('#tatorQaqcButton').on('click', () => {
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
     const formData = new FormData($('#tatorIndexForm')[0]);
-    window.location.href = `/tator/qaqc-checklist/${formData.get('project')}/${formData.get('section')}?deployment=${formData.getAll('deployment').join('&deployment=')}`;
+    window.location.href = `/qaqc/tator/checklist?project=${formData.get('project')}&section=${formData.get('section')}&deployment=${formData.getAll('deployment').join('&deployment=')}`;
 });
 
 $('a.external-review-link').on('click', () => {

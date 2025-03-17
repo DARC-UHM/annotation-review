@@ -444,7 +444,7 @@ async function updateAnnotation() {
 
     // check for concept name change
     if (formData.get('concept') !== formData.get('originalConcept')) {
-        const res = await fetch('/vars/annotation-concept', {
+        const res = await fetch('/vars/annotation/concept', {
             method: 'PATCH',
             body: formData,
         });
@@ -543,7 +543,7 @@ async function updateAnnotation() {
             flashString += `${flashString.length ? ', d' : 'D'}eleted ${(deletes).join(', ')}`;
         }
         updateFlashMessages(flashString, 'success');
-        const res = await fetch(`/current-annotation/${formData.get('observation_uuid')}`);
+        const res = await fetch(`/vars/annotation/${formData.get('observation_uuid')}`);
         const updatedAnnotation = await res.json();
         const index = annotations.findIndex((anno) => anno.observation_uuid === formData.get('observation_uuid'));
         annotations[index].concept = updatedAnnotation.concept;
@@ -689,9 +689,9 @@ document.addEventListener('DOMContentLoaded', function(event) {
             $('#externalAllAnchor').css('color', 'white');
         }
         if (reviewer) {
-            $('#externalAllAnchor').attr('href', `/external-review?reviewer=${reviewer}`);
-            $('#externalUnreadAnchor').attr('href', `/external-review?reviewer=${reviewer}&unread=true`);
-            $('#externalReadAnchor').attr('href', `/external-review?reviewer=${reviewer}&read=true`);
+            $('#externalAllAnchor').attr('href', `/image-review/external-review?reviewer=${reviewer}`);
+            $('#externalUnreadAnchor').attr('href', `/image-review/external-review?reviewer=${reviewer}&unread=true`);
+            $('#externalReadAnchor').attr('href', `/image-review/external-review?reviewer=${reviewer}&read=true`);
         }
     } else {
         // regular dive page

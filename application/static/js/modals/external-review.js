@@ -85,7 +85,7 @@ async function updateExternalReviewers() {
 
     // post form data to backend
     const formData = new FormData($('#updateExternalReviewerForm')[0]);
-    const res = await fetch('/external-review', {
+    const res = await fetch('/image-review/external-review/annotation', {
         method: 'POST',
         body: formData,
     });
@@ -183,7 +183,7 @@ async function deleteFromExternalReview() {
     $('#deleteReviewModal').modal('hide');
 
     const formData = new FormData($('#deleteFromExternalReviewForm')[0]);
-    const res = await fetch('/external-review', {
+    const res = await fetch('/image-review/external-review/annotation', {
         method: 'DELETE',
         body: formData,
     });
@@ -215,7 +215,7 @@ async function deleteMissingRecords() {
     for (const missingRecord of missingRecords) {
         const formData = new FormData();
         formData.append('uuid', missingRecord.uuid);
-        const res = await fetch('/external-review', {
+        const res = await fetch('/image-review/external-review/annotation', {
             method: 'DELETE',
             body: formData,
         });

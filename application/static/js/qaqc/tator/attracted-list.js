@@ -17,7 +17,7 @@ async function addAttractedConcept() {
 async function editAttractedConcept() {
     event.preventDefault();
     const formData = new FormData($('#editAttractedConceptForm')[0]);
-    const response = await fetch(`/attracted/${$('#conceptToEdit').val()}`, {
+    const response = await fetch(`/qaqc/tator/attracted/${$('#conceptToEdit').val()}`, {
         method: 'PATCH',
         body: formData,
     });
@@ -30,7 +30,7 @@ async function editAttractedConcept() {
 
 async function deleteAttractedConcept() {
     event.preventDefault();
-    const response = await fetch(`/attracted/${$('#conceptToDelete').val()}`, {
+    const response = await fetch(`/qaqc/tator/attracted/${$('#conceptToDelete').val()}`, {
         method: 'DELETE',
     });
     if (response.ok) {

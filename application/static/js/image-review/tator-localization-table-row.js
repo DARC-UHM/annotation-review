@@ -319,7 +319,7 @@ function mouseOver(uuid, boxId) {
     if (boxId === 'null') return;
 
     const mainImage = $(`#${uuid}_img`);
-    const newImageUrl = `/tator-localization/${boxId}`;
+    const newImageUrl = `/tator/localization-image/${boxId}`;
     const newImage = new Image();
 
     $(`#${uuid}_loading`).show();
