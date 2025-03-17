@@ -69,10 +69,8 @@ function updateHash() {
         function returnToCheckList() {
             const url = new URL(window.location.href);
             const deploymentList = url.searchParams.get('deploymentList').split(',');
-            const newUrl = url.toString().split('?')[0].split('/');
-            newUrl.pop();
-            const sectionId = newUrl.pop();
-            const projectId = newUrl.pop();
+            const projectId = url.searchParams.get('project');
+            const sectionId = url.searchParams.get('section');
             window.location.href = `/qaqc/tator/checklist?project=${projectId}&section=${sectionId}&deployment=${deploymentList.join('&deployment=')}`;
         }
 
