@@ -17,16 +17,23 @@ Session(app)
 
 print('\nLaunching application...')
 
+from application import main
+from application.blueprints.tator import tator_bp
+from application.blueprints.vars import vars_bp
 from application.blueprints.image_review import image_review_bp
 from application.blueprints.image_review.tator import tator_image_review_bp
 from application.blueprints.image_review.vars import vars_image_review_bp
+from application.blueprints.image_review.external_review import external_review_bp
 from application.blueprints.qaqc import qaqc_bp
 from application.blueprints.qaqc.tator import tator_qaqc_bp
 from application.blueprints.qaqc.vars import vars_qaqc_bp
 
+app.register_blueprint(tator_bp)
+app.register_blueprint(vars_bp)
 app.register_blueprint(image_review_bp)
 app.register_blueprint(tator_image_review_bp)
 app.register_blueprint(vars_image_review_bp)
+app.register_blueprint(external_review_bp)
 app.register_blueprint(qaqc_bp)
 app.register_blueprint(tator_qaqc_bp)
 app.register_blueprint(vars_qaqc_bp)

@@ -1,8 +1,9 @@
 function returnToCheckList() {
-    const url = window.location.href;
-    const projectId = url.split('/')[url.split('/').length - 3];
-    const sectionId = url.split('/')[url.split('/').length - 2];
-    window.location.href = `/qaqc/tator/checklist?project=${projectId}&section=${sectionId}&${url.substring(url.indexOf('?'))}`;
+    const url = new URL(window.location.href);
+    const projectId = url.searchParams.get('project');
+    const sectionId = url.searchParams.get('section');
+    const deployments = url.searchParams.getAll('deployment');
+    window.location.href = `/qaqc/tator/checklist?project=${projectId}&section=${sectionId}&deployment=${deployments.join('&')}`;
 }
 
 function viewAttractedList() {

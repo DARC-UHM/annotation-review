@@ -1,7 +1,7 @@
 import traceback
 from json import JSONDecodeError
 
-from flask import render_template, request, redirect, flash, session
+from flask import flash, render_template, request, session
 
 from application import app
 from application.server.annosaurus import *

@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded',  (event) => {
         $('#quickCheckCheck').html('missing ancillary data');
         $('#load-overlay').removeClass('loader-bg-hidden');
         $('#load-overlay').addClass('loader-bg');
-        const res = await fetch(`/qaqc/vars/check/quick/missing-ancillary-data?sequence=${sequences.join('&sequence=')}`);
+        const res = await fetch(`/qaqc/vars/quick-check/missing-ancillary-data?sequence=${sequences.join('&sequence=')}`);
         const json = await res.json();
         $('#load-overlay').removeClass('loader-bg');
         $('#load-overlay').addClass('loader-bg-hidden');

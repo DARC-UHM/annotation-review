@@ -210,6 +210,8 @@ class TatorLocalizationProcessor:
                 localization_dict['do_concentration_salin_comp_mol_L'] = localization['attributes'].get('DO Concentration Salin Comp (mol per L)')
                 localization_dict['depth_m'] = localization['attributes'].get('Depth')
                 deployment_name = self.deployment_media_dict[localization['media']]
+                deployment_name = deployment_name.replace('-', '_')  # for DOEX0087_NIU-dscm-02
+                deployment_name = deployment_name.replace('_2024', '')  # for SLB_2024_dscm_01
                 deployment_ctd = next((x for x in expedition_fieldbook if x['deployment_name'] == deployment_name.replace('-', '_')), None)
                 if deployment_ctd:
                     localization_dict['lat'] = deployment_ctd['lat']

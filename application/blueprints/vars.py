@@ -50,8 +50,8 @@ def create_association():
 
 
 # updates a VARS association
-@vars_bp.patch('/vars/association')
-def update_association():
+@vars_bp.patch('/vars/association/<uuid>')
+def update_association(uuid):
     annosaurus = Annosaurus(current_app.config.get('ANNOSAURUS_URL'))
     updated_association = {
         'link_name': request.values.get('link_name'),
@@ -59,7 +59,7 @@ def update_association():
         'to_concept': request.values.get('to_concept'),
     }
     updated_response = annosaurus.update_association(
-        association_uuid=request.values.get('uuid'),
+        association_uuid=uuid,
         association=updated_association,
         client_secret=current_app.config.get('ANNOSAURUS_CLIENT_SECRET'),
     )

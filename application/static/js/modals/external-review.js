@@ -106,7 +106,7 @@ async function updateExternalReviewers() {
             .filter((comment) => !comment.toLowerCase().includes("added for review: ") && !comment.toLowerCase().includes('send to'))
             .join('; ');
         annotations[index].notes = annotations[index].notes?.split('|')
-            .filter((note) => !note.toLowerCase().includes("added for review: ") && !comment.toLowerCase().includes('send to'))
+            .filter((note) => !note.toLowerCase().includes("added for review: ") && !note.toLowerCase().includes('send to'))
             .join('|');
         annotations[index].comment = annotations[index].comment ? `${annotations[index].comment}; ${addedForReview}` : addedForReview;
         annotations[index].notes = annotations[index].notes ? `${annotations[index].notes}|${addedForReview}` : addedForReview;

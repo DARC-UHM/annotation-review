@@ -651,7 +651,7 @@ window.createAssociation = createAssociation;
 async function updateAssociation(uuid, link_name, textInputId) {
     const annoIndex = annotations.findIndex((anno) => anno.observation_uuid === workingAnnotationUuid);
     const assIndex = annotations[annoIndex].associations.findIndex((ass) => ass.uuid === uuid);
-    const updatedAssociation = { uuid, link_name };
+    const updatedAssociation = { link_name };
     if (toConcepts.includes(link_name)) {
         // association uses to_concept
         updatedAssociation.to_concept = $(`#${textInputId}`).val();
@@ -664,7 +664,7 @@ async function updateAssociation(uuid, link_name, textInputId) {
     }
     const formData = new FormData();
     Object.keys(updatedAssociation).forEach((key) => formData.append(key, updatedAssociation[key]));
-    const res = await fetch('/vars/association', {
+    const res = await fetch(`/vars/association/${uuid}`, {
         method: 'PATCH',
         body: formData,
     });

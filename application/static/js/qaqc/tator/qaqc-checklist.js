@@ -18,13 +18,9 @@ function showLoader() {
 
 document.addEventListener('DOMContentLoaded',  (event) => {
     const url = new URL(window.location.href);
-    const projectId = url.href.split('/').slice(-2)[0];
-    const sectionId = url.href.split('/').slice(-1)[0].split('?')[0];
-    const deployments = [];
-
-    for (const pair of url.searchParams.entries()) { // the only search params we expect here are deployments
-        deployments.push(pair[1]);
-    }
+    const projectId = url.searchParams.get('project');
+    const sectionId = url.searchParams.get('section');
+    const deployments = url.searchParams.getAll('deployment');
 
     $('#deploymentList').html(deployments.map((seq) => seq.split(' ').slice(-1)).join(', '));
 
@@ -65,33 +61,33 @@ document.addEventListener('DOMContentLoaded',  (event) => {
 
     $('#namesAcceptedAnchor').attr('href', `/qaqc/tator/check/names-accepted?project=${projectId}&section=${sectionId}&deployment=${deployments.join('&deployment=')}`);
     $('#namesAcceptedAnchor').on('click', () => showLoader());
-    $('#missingQualifierAnchor').attr('href', `/qaqc/tator/check/missing-qualifier?project=${projectId}&section=${sectionId}&=${deployments.join('&deployment=')}`);
+    $('#missingQualifierAnchor').attr('href', `/qaqc/tator/check/missing-qualifier?project=${projectId}&section=${sectionId}&deployment=${deployments.join('&deployment=')}`);
     $('#missingQualifierAnchor').on('click', () => showLoader());
-    $('#stetReasonAnchor').attr('href', `/qaqc/tator/check/stet-missing-reason?project=${projectId}&section=${sectionId}&=${deployments.join('&deployment=')}`);
+    $('#stetReasonAnchor').attr('href', `/qaqc/tator/check/stet-missing-reason?project=${projectId}&section=${sectionId}&deployment=${deployments.join('&deployment=')}`);
     $('#stetReasonAnchor').on('click', () => showLoader());
-    $('#sameNameQualifierAnchor').attr('href', `/qaqc/tator/check/same-name-qualifier?project=${projectId}&section=${sectionId}&=${deployments.join('&deployment=')}`);
+    $('#sameNameQualifierAnchor').attr('href', `/qaqc/tator/check/same-name-qualifier?project=${projectId}&section=${sectionId}&deployment=${deployments.join('&deployment=')}`);
     $('#sameNameQualifierAnchor').on('click', () => showLoader());
-    $('#nonTargetNotAttractedAnchor').attr('href', `/qaqc/tator/check/non-target-not-attracted?project=${projectId}&section=${sectionId}&=${deployments.join('&deployment=')}`);
+    $('#nonTargetNotAttractedAnchor').attr('href', `/qaqc/tator/check/non-target-not-attracted?project=${projectId}&section=${sectionId}&deployment=${deployments.join('&deployment=')}`);
     $('#nonTargetNotAttractedAnchor').on('click', () => showLoader());
-    $('#attractedAnchor').attr('href', `/qaqc/tator/check/attracted-not-attracted?project=${projectId}&section=${sectionId}&=${deployments.join('&deployment=')}`);
+    $('#attractedAnchor').attr('href', `/qaqc/tator/check/attracted-not-attracted?project=${projectId}&section=${sectionId}&deployment=${deployments.join('&deployment=')}`);
     $('#attractedAnchor').on('click', () => showLoader());
-    $('#tentativeIdAnchor').attr('href', `/qaqc/tator/check/all-tentative-ids?project=${projectId}&section=${sectionId}&=${deployments.join('&deployment=')}`);
+    $('#tentativeIdAnchor').attr('href', `/qaqc/tator/check/all-tentative-ids?project=${projectId}&section=${sectionId}&deployment=${deployments.join('&deployment=')}`);
     $('#tentativeIdAnchor').on('click', () => showLoader());
-    $('#notesRemarksAnchor').attr('href', `/qaqc/tator/check/notes-and-remarks?project=${projectId}&section=${sectionId}&=${deployments.join('&deployment=')}`);
+    $('#notesRemarksAnchor').attr('href', `/qaqc/tator/check/notes-and-remarks?project=${projectId}&section=${sectionId}&deployment=${deployments.join('&deployment=')}`);
     $('#notesRemarksAnchor').on('click', () => showLoader());
-    $('#reExaminedAnchor').attr('href', `/qaqc/tator/check/re-examined?project=${projectId}&section=${sectionId}&=${deployments.join('&deployment=')}`);
+    $('#reExaminedAnchor').attr('href', `/qaqc/tator/check/re-examined?project=${projectId}&section=${sectionId}&deployment=${deployments.join('&deployment=')}`);
     $('#reExaminedAnchor').on('click', () => showLoader());
-    $('#uniqueTaxaAnchor').attr('href', `/qaqc/tator/check/unique-taxa?project=${projectId}&section=${sectionId}&=${deployments[0]}&deploymentList=${deployments.join(',')}`);
+    $('#uniqueTaxaAnchor').attr('href', `/qaqc/tator/check/unique-taxa?project=${projectId}&section=${sectionId}&deployment=${deployments[0]}&deploymentList=${deployments.join(',')}`);
     $('#uniqueTaxaAnchor').on('click', () => showLoader());
-    $('#mediaAttributesAnchor').attr('href', `/qaqc/tator/check/media-attributes?project=${projectId}&section=${sectionId}&=${deployments.join('&deployment=')}`);
+    $('#mediaAttributesAnchor').attr('href', `/qaqc/tator/check/media-attributes?project=${projectId}&section=${sectionId}&deployment=${deployments.join('&deployment=')}`);
     $('#mediaAttributesAnchor').on('click', () => showLoader());
-    $('#summaryAnchor').attr('href', `/qaqc/tator/check/summary?project=${projectId}&section=${sectionId}&=${deployments.join('&deployment=')}`);
+    $('#summaryAnchor').attr('href', `/qaqc/tator/check/summary?project=${projectId}&section=${sectionId}&deployment=${deployments.join('&deployment=')}`);
     $('#summaryAnchor').on('click', () => showLoader());
-    $('#maxNAnchor').attr('href', `/qaqc/tator/check/max-n?project=${projectId}&section=${sectionId}&=${deployments.join('&deployment=')}`);
+    $('#maxNAnchor').attr('href', `/qaqc/tator/check/max-n?project=${projectId}&section=${sectionId}&deployment=${deployments.join('&deployment=')}`);
     $('#maxNAnchor').on('click', () => showLoader());
-    $('#tofaAnchor').attr('href', `/qaqc/tator/check/tofa?project=${projectId}&section=${sectionId}&=${deployments.join('&deployment=')}`);
+    $('#tofaAnchor').attr('href', `/qaqc/tator/check/tofa?project=${projectId}&section=${sectionId}&deployment=${deployments.join('&deployment=')}`);
     $('#tofaAnchor').on('click', () => showLoader());
-    $('#imageGuideAnchor').attr('href', `/qaqc/tator/check/image-guide?project=${projectId}&section=${sectionId}&=${deployments.join('&deployment=')}`);
+    $('#imageGuideAnchor').attr('href', `/qaqc/tator/check/image-guide?project=${projectId}&section=${sectionId}&deployment=${deployments.join('&deployment=')}`);
 });
 
 // get rid of loading screen if back button is pressed (mozilla)

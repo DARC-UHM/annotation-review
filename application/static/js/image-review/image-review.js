@@ -478,14 +478,13 @@ async function updateAnnotation() {
                 } else {
                     // update association
                     const associationFormData = new FormData();
-                    associationFormData.append('uuid', association.uuid);
                     associationFormData.append('link_name', association.link_name);
                     if (['identity-certainty', 'identity-reference', 'comment'].includes(association.link_name)) {
                         associationFormData.append('link_value', formData.get(association.link_name));
                     } else {
                         associationFormData.append('to_concept', formData.get(association.link_name));
                     }
-                    const res = await fetch('/vars/association', {
+                    const res = await fetch(`/vars/association/${association.uuid}`, {
                         method: 'PATCH',
                         body: associationFormData,
                     });

@@ -31,7 +31,10 @@ def vars_qaqc_checklist():
     # get counts
     threads = []
     for sequence in sequences:
-        thread = threading.Thread(target=get_sequence_counts, args=(sequence, total_counts))
+        thread = threading.Thread(
+            target=get_sequence_counts,
+            args=(sequence, total_counts, current_app.config.get("HURLSTOR_URL"))
+        )
         threads.append(thread)
         thread.start()
     for thread in threads:
@@ -46,13 +49,13 @@ def vars_qaqc_checklist():
     )
 
 
-def get_sequence_counts(sequence_name, total_counts):
+def get_sequence_counts(sequence_name, total_counts, hurlstor_url):
     identity_references = set()
     sequence_annotations = 0
     sequence_individuals = 0
     sequence_true_localizations = 0
     sequence_group_localizations = 0
-    res = requests.get(f'{current_app.config.get("HURLSTOR_URL")}:8086/query/dive/{sequence_name.replace(" ", "%20")}')
+    res = requests.get(f'{hurlstor_url}:8086/query/dive/{sequence_name.replace(" ", "%20")}')
     if res.status_code != 200:
         print(f'{TERM_RED}Failed to fetch annotations for sequence {sequence_name}{TERM_NORMAL}')
     annotations = res.json()['annotations']
@@ -181,7 +184,7 @@ def vars_qaqc(check):
     return render_template('qaqc/vars/qaqc.html', data=data)
 
 
-@vars_qaqc_bp.get('/vars/qaqc/quick/<check>')
+@vars_qaqc_bp.get('/qaqc/vars/quick-check/<check>')
 def qaqc_quick(check):
     sequences = request.args.getlist('sequence')
     qaqc_annos = VarsQaqcProcessor(sequences)
