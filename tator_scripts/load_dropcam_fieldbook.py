@@ -30,7 +30,7 @@ fieldbook_df = pd.read_excel(FIELDBOOK_XLSX_PATH)
 deployments = []
 for index, row in fieldbook_df.iterrows():
     deployment = {
-        'deployment_name': row['ps_station_id'].replace('2024_', ''),
+        'deployment_name': row['ps_station_id'],
         'lat': row['lat_in'],
         'long': row['lon_in'],
         'depth_m': row['depth_m'] if not pd.isnull(row['depth_m']) else None,
