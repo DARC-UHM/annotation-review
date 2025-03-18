@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
-from application.server.vars_annotation_processor import VarsAnnotationProcessor
-from application.server.functions import parse_datetime
+from application.image_review.vars.vars_annotation_processor import VarsAnnotationProcessor
+from application.util.functions import parse_datetime
 from test.data.vars_responses import ex_23060001
 from test.util.mock_response import MockResponse
 

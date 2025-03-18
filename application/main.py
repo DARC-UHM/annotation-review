@@ -4,7 +4,7 @@ from json import JSONDecodeError
 from flask import flash, render_template, request, session
 
 from application import app
-from application.server.annosaurus import *
+from application.vars.annosaurus import *
 
 
 @app.route('/favicon.ico')

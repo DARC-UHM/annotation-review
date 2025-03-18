@@ -4,7 +4,7 @@ import json
 
 from unittest.mock import patch
 
-from application.server.annosaurus import Annosaurus, AuthenticationError
+from application.vars.annosaurus import Annosaurus, AuthenticationError
 from test.data.vars_responses import ex_23060001
 
 

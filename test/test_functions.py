@@ -1,6 +1,6 @@
 import pytest
 
-from application.server.functions import *
+from application.util.functions import *
 from test.data.vars_responses import ex_23060001
 from test.data.worms_responses import clownfish_tree
 
