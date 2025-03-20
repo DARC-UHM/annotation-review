@@ -306,8 +306,8 @@ export function updateHash() {
                         <option>Genus</option>
                         <option>Species</option>
                         <option>Annotator</option>
-                        ${url.toString().includes('/vars/') || url.toString().includes('/external-review') ? varsFilterOptions : ''}
-                        ${url.toString().includes('/tator/') || url.toString().includes('/external-review') ? tatorFilterOptions : ''}
+                        ${url.toString().includes('/vars') || url.toString().includes('/external-review') ? varsFilterOptions : ''}
+                        ${url.toString().includes('/tator') || url.toString().includes('/external-review') ? tatorFilterOptions : ''}
                     </select>
                     <span class="position-absolute dropdown-chev">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
