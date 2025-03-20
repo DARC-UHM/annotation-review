@@ -59,4 +59,4 @@ def tator_image_review():
         'reviewers': session.get('reviewers', []),
         'comments': comments,
     }
-    return render_template('image-review.html', data=data)
+    return render_template('image_review/image-review.html', data=data)

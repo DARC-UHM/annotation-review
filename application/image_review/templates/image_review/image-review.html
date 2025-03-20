@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}DARC Image Review | {{ data.title }}{% endblock title %}
+{% block content %}
+{% include 'components/back-to-home-button.html' %}
+{% include 'components/flash-container.html' %}
+{% include 'modals/edit-vars-annotation.html' %}
+{% include 'modals/edit-tator-localization.html' %}
+{% include 'modals/add-to-external-review.html' %}
+{% include 'modals/delete-from-external-review.html' %}
+{% include 'modals/external-review-missing-records.html' %}
+{% include 'components/loading.html' %}
+<div class="text-center my-3 mx-5">
+    <div class="col mt-3 m-auto" style="max-width: 1200px;">
+        <div class="row m-auto">
+            <div class="col-9 text-start">
+                <h3 id="title" class="m-0 p-0 pb-2" style="font-weight: 600;">{{ data.title }}</h3>
+                <div id="externalReviewFilters">
+                    <a id="externalAllAnchor" href="/image-review/external-review" class="aquaLink" style="font-size: 0.8rem;">All ({{ data.total_comment_count }})</a>
+                    <a id="externalUnreadAnchor" href="/image-review/external-review?unread=true" class="aquaLink px-1" style="font-size: 0.8rem;">Unread ({{ data.unread_comment_count }})</a>
+                    <a id="externalReadAnchor" href="/image-review/external-review?read=true" class="aquaLink" style="font-size: 0.8rem;">Read ({{ data.read_comment_count }})</a>
+                </div>
+                <div id="sequenceList"></div>
+            </div>
+            <div class="col-3 text-end mt-auto">
+                <div>
+                    Page:&nbsp;&nbsp;<span id="currentPageNum" style="font-weight: 600;"></span>/<span id="totalPageNum" style="font-weight: 600;"></span><br>
+                    Total Images:&nbsp;&nbsp;<span id="annotationCount" style="font-weight: 600;"></span><br>
+                </div>
+                <div class="small mt-1">
+                    Sort by:
+                    <span class="position-relative small">
+                        <select id="sortSelect">
+                            <option>Default</option>
+                            <option>Phylum</option>
+                            <option>Class</option>
+                            <option>Order</option>
+                            <option>Family</option>
+                            <option>Genus</option>
+                            <option>Species</option>
+                            <option>Comment</option>
+                            <option>ID Reference</option>
+                            <option>Timestamp</option>
+                            <option>Depth</option>
+                        </select>
+                        <span class="position-absolute dropdown-chev">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
+                              <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                            </svg>
+                        </span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="404" style="display: none;" class="my-5">
+        <h3>No photos found<br></h3>
+        <p class="pb-4">Is the filter spelled correctly?</p>
+    </div>
+    <div class="col d-flex justify-content-center mt-3">
+        <table id="annotationTable" class="table table-striped">
+            <thead class="thead-dark" style="background-color: #393E46; color: #EEEEEE">
+                <tr>
+                    <th scope="col">Info</th>
+                    <th scope="col" style="width: 50%;">Image</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+    <div class="container">
+        <div class="pagination-container">
+            <button class="pagination-button" id="prev-button" title="Previous page" aria-label="Previous page">
+                &lt;
+            </button>
+            <div id="pagination-numbers">
+            </div>
+            <button class="pagination-button" id="next-button" title="Next page" aria-label="Next page">
+                &gt;
+            </button>
+        </div>
+    </div>
+    <div class="text-center mt-auto py-3 small row m-auto" style="max-width: 1200px;">
+        <div class="col"></div>
+        <div class="col">
+            Page:&nbsp;&nbsp;<span id="currentPageNumBottom" style="font-weight: 600;"></span>/<span id="totalPageNumBottom" style="font-weight: 600;"></span><br>
+            Total Images:&nbsp;&nbsp;<span id="annotationCountBottom" style="font-weight: 600;"></span><br>
+        </div>
+        <div class="col text-end">
+            <select id="paginationSelect">
+                <option>25</option>
+                <option>50</option>
+                <option>75</option>
+                <option>100</option>
+            </select>
+            images per page
+        </div>
+    </div>
+</div>
+{% endblock content %}
+{% block scripts %}
+<script>
+    const None = null;
+    const nan = null;
+    const True = true;
+    const False = false;
+    const annotations = {{ data.annotations|safe }};
+    const allConcepts = {{ data.concepts|safe }};
+    const reviewers = {{ data.reviewers|safe }};
+    const comments = {{ data.comments|safe }};
+    const missingRecords = {{ data.missing_records|safe or None }};
+    const attractedConcepts = null;
+</script>
+<script type="module" src="{{ url_for('image_review.static', filename='image-review.js') }}"></script>
+<script type="module" src="{{ url_for('image_review.static', filename='external-review.js') }}"></script>
+{% endblock scripts %}

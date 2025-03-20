@@ -1,4 +1,4 @@
-import { updateCheckbox } from '../qaqcCheckboxes.js';
+import { updateCheckbox } from '../../static/qaqcCheckboxes.js';
 import { formattedNumber } from '../../../static/js/util/formattedNumber.js';
 
 function updateTaskCount() {

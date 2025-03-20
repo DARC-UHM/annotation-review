@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}Attracted/Not Attracted List{% endblock title %}
+{% block content %}
+{% include 'components/flash-container.html' %}
+<h4 class="mt-3 mb-0 ms-4" style="font-weight: 600;">Attracted/Not Attracted List</h4>
+<button
+    id="addAttractedConceptButton"
+    class="my-2 ms-4 aquaLink"
+    data-bs-toggle="modal"
+    data-bs-target="#addAttractedConceptModal"
+>
+    Add New Concept
+</button>
+<div class="col d-flex justify-content-center mt-3">
+    <table id="annotationTable" class="table table-striped">
+        <thead class="thead-dark sticky-top" style="background-color: #393E46; color: #EEEEEE">
+            <tr>
+                <th scope="col" class="px-4">Concept</th>
+                <th scope="col" class="px-4" style="width: 50%;">Attracted</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for concept in attracted_concepts.keys() %}
+                <tr>
+                    <td class="px-4">{{ concept }}</td>
+                    <td class="px-4 d-flex justify-content-between">
+                        {{ 'Attracted' if attracted_concepts[concept] == 1 else 'Not attracted' if attracted_concepts[concept] == 0 else 'Both' }}
+                        <div>
+                            <button
+                                type="button"
+                                class="attractedListButton"
+                                data-bs-toggle="modal"
+                                data-concept="{{ concept }}"
+                                data-attracted="{{ attracted_concepts[concept] }}"
+                                data-bs-target="#editAttractedConceptModal"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 -960 960 960">
+                                    <path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/>
+                                </svg>
+                            </button>
+                            <button
+                                type="button"
+                                class="attractedListButton"
+                                data-bs-toggle="modal"
+                                data-concept="{{ concept }}"
+                                data-bs-target="#deleteAttractedConceptModal"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
+                                  <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" stroke="currentColor" stroke-width="0.5px"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="modal fade" id="addAttractedConceptModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form id="addAttractedConceptForm" onsubmit="addAttractedConcept()" autocomplete="off">
+            <div class="modal-content">
+                <div class="modal-header text-center">
+                    <h5 class="modal-title mt-1 ms-4" style="font-weight: 600;">Add To List</h5>
+                    <button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-start mx-4">
+                    <div class="mb-3 row">
+                        <label for="addConcept" class="col-4">Concept</label>
+                        <input type="text" class="col modal-text" id="addConcept" name="concept" required>
+                    </div>
+                    <div class="mb-3 row">
+                        <label for="addAttracted" class="col-4">Attracted</label>
+                        <select class="col" id="addAttracted" name="attracted" required>
+                            <option value="1">Attracted</option>
+                            <option value="0">Not Attracted</option>
+                            <option value="2">Both</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Cancel</button>
+                    <input type="submit" class="btn btn-primary modal-button" value="Add">
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<div class="modal fade" id="editAttractedConceptModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form id="editAttractedConceptForm" onsubmit="editAttractedConcept()" autocomplete="off">
+            <div class="modal-content">
+                <div class="modal-header text-center">
+                    <h5 class="modal-title mt-1 ms-4" style="font-weight: 600;">Edit <span id="conceptToEditText"></span></h5>
+                    <button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-start mx-4">
+                    <div class="mb-3 row">
+                        <label for="editAttracted" class="col-4">Attracted</label>
+                        <select class="col" id="editAttracted" name="attracted" required>
+                            <option value="1">Attracted</option>
+                            <option value="0">Not Attracted</option>
+                            <option value="2">Both</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <input type="hidden" id="conceptToEdit" name="concept">
+                    <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Cancel</button>
+                    <input type="submit" class="btn btn-primary modal-button" value="Update">
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<div class="modal fade" id="deleteAttractedConceptModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form id="deleteAttractedConceptForm" onsubmit="deleteAttractedConcept()" autocomplete="off">
+            <div class="modal-content">
+                <div class="modal-header text-center">
+                    <h5 class="modal-title mt-1 ms-4" style="font-weight: 600;">Delete From List</h5>
+                    <button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-start mx-4">
+                    Are you sure you want to delete <strong><span id="conceptToDeleteText"></span></strong> from the attracted/not attracted list?
+                </div>
+                <div class="modal-footer">
+                    <input type="hidden" id="conceptToDelete" name="concept">
+                    <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Cancel</button>
+                    <input type="submit" id="externalModalDeleteButton" class="btn btn-danger modal-button" value="Delete">
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock content %}
+{% block scripts %}
+<script type="module" src="{{ url_for('qaqc.tator_qaqc.static', filename='attracted-list.js') }}"></script>
+{% endblock scripts %}

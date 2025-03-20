@@ -1,6 +1,10 @@
 from flask import Blueprint
 
-image_review_bp = Blueprint('image_review', __name__, template_folder='templates')
+image_review_bp = Blueprint(
+    'image_review', __name__,
+    template_folder='templates',
+    static_folder='static',
+)
 
 from .external_review import external_review_bp
 from .tator import tator_image_review_bp

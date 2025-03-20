@@ -78,7 +78,7 @@ def tator_qaqc_checklist():
         'individual_count': individual_count,
         'checklist': checklist,
     }
-    return render_template('qaqc-checklist.html', data=data)
+    return render_template('qaqc/tator/qaqc-checklist.html', data=data)
 
 
 # update tator qaqc checklist
@@ -150,7 +150,7 @@ def tator_qaqc(check):
                 media_attributes[deployment].append(media)
         data['page_title'] = 'Media attributes'
         data['media_attributes'] = media_attributes
-        return render_template('qaqc-tables.html', data=data)
+        return render_template('qaqc/tator/qaqc-tables.html', data=data)
     qaqc_annos = TatorQaqcProcessor(
         project_id=project_id,
         section_id=section_id,
@@ -195,38 +195,38 @@ def tator_qaqc(check):
             qaqc_annos.get_unique_taxa()
             data['page_title'] = 'All unique taxa'
             data['unique_taxa'] = qaqc_annos.final_records
-            return render_template('qaqc-tables.html', data=data)
+            return render_template('qaqc/tator/qaqc-tables.html', data=data)
         case 'summary':
             qaqc_annos.get_summary()
             data['page_title'] = 'Summary'
             data['annotations'] = qaqc_annos.final_records
-            return render_template('qaqc-tables.html', data=data)
+            return render_template('qaqc/tator/qaqc-tables.html', data=data)
         case 'max-n':
             qaqc_annos.get_max_n()
             data['page_title'] = 'Max N'
             data['max_n'] = qaqc_annos.final_records
-            return render_template('qaqc-tables.html', data=data)
+            return render_template('qaqc/tator/qaqc-tables.html', data=data)
         case 'tofa':
             qaqc_annos.get_tofa()
             data['page_title'] = 'Time of First Arrival'
             data['tofa'] = qaqc_annos.final_records
-            return render_template('qaqc-tables.html', data=data)
+            return render_template('qaqc/tator/qaqc-tables.html', data=data)
         case 'image-guide':
             presentation_data = BytesIO()
             qaqc_annos.download_image_guide(current_app).save(presentation_data)
             presentation_data.seek(0)
             return send_file(presentation_data, as_attachment=True, download_name='image-guide.pptx')
         case _:
-            return render_template('not-found.html', err=''), 404
+            return render_template('errors/404.html', err=''), 404
     data['annotations'] = qaqc_annos.final_records
-    return render_template('qaqc.html', data=data)
+    return render_template('qaqc/tator/qaqc.html', data=data)
 
 
 # view list of saved attracted/non-attracted taxa
 @tator_qaqc_bp.get('/attracted-list')
 def attracted_list():
     res = requests.get(url=f'{current_app.config.get("DARC_REVIEW_URL")}/attracted')
-    return render_template('attracted-list.html', attracted_concepts=res.json()), 200
+    return render_template('qaqc/tator/attracted-list.html', attracted_concepts=res.json()), 200
 
 
 # add a new concept to the attracted collection

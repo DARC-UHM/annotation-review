@@ -25,7 +25,7 @@ def view_images():
             ) as res:
                 comments = comments | res.json()  # merge dicts
             if sequence not in session.get('vars_video_sequences', []):
-                return render_template('not-found.html', err='dive'), 404
+                return render_template('errors/404.html', err='dive'), 404
     except requests.exceptions.ConnectionError:
         print('\nERROR: unable to connect to external review server\n')
     # get images in sequence
@@ -36,7 +36,7 @@ def view_images():
     )
     image_loader.process_sequences()
     if len(image_loader.final_records) < 1:
-        return render_template('not-found.html', err='pics'), 404
+        return render_template('errors/404.html', err='pics'), 404
     data = {
         'annotations': image_loader.final_records,
         'highest_id_ref': image_loader.highest_id_ref,
@@ -45,4 +45,4 @@ def view_images():
         'reviewers': session.get('reviewers', []),
         'comments': comments,
     }
-    return render_template('image-review.html', data=data)
+    return render_template('image_review/image-review.html', data=data)

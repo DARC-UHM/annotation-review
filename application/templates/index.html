@@ -1,63 +1,126 @@
 {% extends "base.html" %}
 {% block content %}
 {% include 'components/flash-container.html' %}
-    <div class="container mt-3 small text-end">
-        <div class="dropdown">
-            <button type="button" class="aquaLink me-2 dropdown-toggle indexDropdownButton" data-bs-toggle="dropdown" aria-expanded="false">
-                External Image Review
-            </button>
-            {% if unread_comment_count > 0 %}
-            <span id="notif">
-                <a href="/image-review/external-review?unread=true" class="text-decoration-none text-white external-review-link">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#eeeeee" class="bi bi-chat-right-fill mt-1" viewBox="0 0 16 16">
-                      <path d="M14 0a2 2 0 0 1 2 2v12.793a.5.5 0 0 1-.854.353l-2.853-2.853a1 1 0 0 0-.707-.293H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12z"/>
-                    </svg>
-                    <span id="notif-inner">{{ unread_comment_count }}</span>
+{% include 'components/loading-fish.html' %}
+<div class="container mt-3 small text-end">
+    <div class="dropdown">
+        <button type="button" class="aquaLink me-2 dropdown-toggle indexDropdownButton" data-bs-toggle="dropdown" aria-expanded="false">
+            External Image Review
+        </button>
+        {% if unread_comment_count > 0 %}
+        <span id="notif">
+            <a href="/image-review/external-review?unread=true" class="text-decoration-none text-white external-review-link">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#eeeeee" class="bi bi-chat-right-fill mt-1" viewBox="0 0 16 16">
+                  <path d="M14 0a2 2 0 0 1 2 2v12.793a.5.5 0 0 1-.854.353l-2.853-2.853a1 1 0 0 0-.707-.293H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12z"/>
+                </svg>
+                <span id="notif-inner">{{ unread_comment_count }}</span>
+            </a>
+        </span>
+        {% endif %}
+        <ul class="dropdown-menu indexDropdownMenu small">
+            <li><a class="dropdown-item small external-review-link" href="/image-review/external-review?unread=true">Unread ({{ unread_comment_count }})</a></li>
+            <li><a class="dropdown-item small external-review-link" href="/image-review/external-review?read=true">Read ({{ read_comment_count }})</a></li>
+            <li><a class="dropdown-item small external-review-link" href="/image-review/external-review">All ({{ total_comment_count }})</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <div class="small text-center pb-1 px-4 mx-2" style="font-weight: 500;">Active Reviewer Pages</div>
+            {% for reviewer in active_reviewers %}<li>
+                <a
+                    class="dropdown-item small external-review-link"
+                    href="/image-review/external-review?reviewer={{ reviewer }}"
+                >
+                    {{ reviewer }}
                 </a>
-            </span>
-            {% endif %}
-            <ul class="dropdown-menu indexDropdownMenu small">
-                <li><a class="dropdown-item small external-review-link" href="/image-review/external-review?unread=true">Unread ({{ unread_comment_count }})</a></li>
-                <li><a class="dropdown-item small external-review-link" href="/image-review/external-review?read=true">Read ({{ read_comment_count }})</a></li>
-                <li><a class="dropdown-item small external-review-link" href="/image-review/external-review">All ({{ total_comment_count }})</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <div class="small text-center pb-1 px-4 mx-2" style="font-weight: 500;">Active Reviewer Pages</div>
-                {% for reviewer in active_reviewers %}<li>
-                    <a
-                        class="dropdown-item small external-review-link"
-                        href="/image-review/external-review?reviewer={{ reviewer }}"
-                    >
-                        {{ reviewer }}
-                    </a>
-                </li>{% endfor %}
-            </ul>
-        </div>
+            </li>{% endfor %}
+        </ul>
     </div>
-    <div id="index" class="text-center mb-3 mx-5">
-        <img src="/static/img/logo_darc.png" class="mt-2" width="30%" style="max-width: 300px; min-width: 200px; pointer-events: none;" alt="DARC logo"/>
-        <h1 class="my-3">DARC Review</h1>
-        <div class="dropdown">
-            <button id="platformSelectBtn" type="button" class="aquaLink dropdown-toggle indexDropdownButton" data-bs-toggle="dropdown" aria-expanded="false">
-                VARS
-            </button>
-            <ul class="dropdown-menu indexDropdownMenu">
-                <li><button id="varsSelect" class="dropdown-item small">VARS</button></li>
-                <li><button id="tatorSelect" class="dropdown-item small">Tator</button></li>
-            </ul>
+</div>
+<div id="index" class="text-center mb-3 mx-5">
+    <img src="/static/img/logo_darc.png" class="mt-2" width="30%" style="max-width: 300px; min-width: 200px; pointer-events: none;" alt="DARC logo"/>
+    <h1 class="my-3">DARC Review</h1>
+    <div class="dropdown">
+        <button id="platformSelectBtn" type="button" class="aquaLink dropdown-toggle indexDropdownButton" data-bs-toggle="dropdown" aria-expanded="false">
+            VARS
+        </button>
+        <ul class="dropdown-menu indexDropdownMenu">
+            <li><button id="varsSelect" class="dropdown-item small">VARS</button></li>
+            <li><button id="tatorSelect" class="dropdown-item small">Tator</button></li>
+        </ul>
+    </div>
+    <form id="varsIndexForm">
+        <div id="sequenceList" class="ms-2 mt-3 mb-2">
+            <div id="seqList1">
+                <div class="row d-inline-flex">
+                    <div class="col-1"></div>
+                    <div class="col-10 p-0">
+                        <label id="seqNameLabel" for="sequence1" class="small mb-2">Sequence Name:</label><br>
+                        <div class="autocomplete">
+                            <input type="text" id="sequence1" name="sequence" class="sequenceName" placeholder="[Vessel] [Dive Number]" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="col-1 ps-0 mt-auto">
+                        <button id="plusButton" type="button" class="plusButton">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
+                              <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
-        <form id="varsIndexForm">
-            <div id="sequenceList" class="ms-2 mt-3 mb-2">
-                <div id="seqList1">
+        <button type="button" id="varsQaqcButton" class="btn btn-success mt-4 mb-2 indexButton" disabled>QA/QC</button>
+        <br>
+        <button type="button" id="varsImageReviewButton" class="btn btn-success mb-5 indexButton" disabled>Image Review</button>
+    </form>
+    <form id="tatorLogin" onsubmit="tatorLogin()" autocomplete="off" class="mt-4" style="display: none;">
+        <input type="text" name="username" class="tatorLoginInput mb-2" placeholder="Username"><br>
+        <input type="password" id="password" name="password" class="tatorLoginInput mb-2" placeholder="Password"><br>
+        <button type="submit" id="loginBtn" class="btn btn-success px-4 mt-4" style="font-weight: 500;">Login</button>
+    </form>
+    <form id="tatorIndexForm" style="display: none;" autocomplete="off">
+        <div class="small">
+            <span style="opacity: 80%;">Logged in as</span>
+            <span class="dropdown mb-4">
+                <button id="tatorLoggedInUser" type="button" class="dropdown-toggle indexDropdownButton" data-bs-toggle="dropdown" aria-expanded="false" style="font-weight: 500; color: white;"></button>
+                <ul class="dropdown-menu indexDropdownMenu">
+                    <li><button id="logoutBtn" type="button" class="dropdown-item small">Sign out</button></li>
+                </ul>
+            </span>
+        </div>
+        <div>
+            <div class="row d-inline-flex">
+                <div class="col-1"></div>
+                <div class="col-10 p-0">
+                    <label for="tatorProject" class="small mb-2 mt-4">Project:</label>
+                    <button
+                        type="button"
+                        class="aquaLink ms-1 mb-1"
+                        onclick="refreshTatorSections()"
+                        style="width: 18px;"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 -960 960 960">
+                            <path d="M160-160v-80h110l-16-14q-52-46-73-105t-21-119q0-111 66.5-197.5T400-790v84q-72 26-116 88.5T240-478q0 45 17 87.5t53 78.5l10 10v-98h80v240H160Zm400-10v-84q72-26 116-88.5T720-482q0-45-17-87.5T650-648l-10-10v98h-80v-240h240v80H690l16 14q49 49 71.5 106.5T800-482q0 111-66.5 197.5T560-170Z"/>
+                        </svg>
+                    </button>
+                    <br>
+                    <select id="tatorProject" name="project" class="sequenceName"></select>
+                    <br>
+                    <label for="tatorSection" class="small mb-2 mt-3">Section:</label>
+                    <br>
+                    <select id="tatorSection" name="section" class="sequenceName"></select>
+                    <br>
+                </div>
+                <div class="col-1"></div>
+            </div>
+            <div id="tatorDeploymentList" class="my-2">
+                <div id="depList1">
                     <div class="row d-inline-flex">
                         <div class="col-1"></div>
                         <div class="col-10 p-0">
-                            <label id="seqNameLabel" for="sequence1" class="small mb-2">Sequence Name:</label><br>
-                            <div class="autocomplete">
-                                <input type="text" id="sequence1" name="sequence" class="sequenceName" placeholder="[Vessel] [Dive Number]" autocomplete="off">
-                            </div>
+                            <label for="deployment1" id="tatorDeploymentLabel" class="small mb-2">Deployment:</label><br>
+                            <select id="deployment1" name="deployment" class="sequenceName"></select>
                         </div>
                         <div class="col-1 ps-0 mt-auto">
-                            <button id="plusButton" type="button" class="plusButton">
+                            <button id="tatorPlusButton" type="button" class="plusButton">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
                                   <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
                                 </svg>
@@ -66,79 +129,16 @@
                     </div>
                 </div>
             </div>
-            <button type="button" id="varsQaqcButton" class="btn btn-success mt-4 mb-2 indexButton" disabled>QA/QC</button>
-            <br>
-            <button type="button" id="varsImageReviewButton" class="btn btn-success mb-5 indexButton" disabled>Image Review</button>
-        </form>
-        <form id="tatorLogin" onsubmit="tatorLogin()" autocomplete="off" class="mt-4" style="display: none;">
-            <input type="text" name="username" class="tatorLoginInput mb-2" placeholder="Username"><br>
-            <input type="password" id="password" name="password" class="tatorLoginInput mb-2" placeholder="Password"><br>
-            <button type="submit" id="loginBtn" class="btn btn-success px-4 mt-4" style="font-weight: 500;">Login</button>
-        </form>
-        <form id="tatorIndexForm" style="display: none;" autocomplete="off">
-            <div class="small">
-                <span style="opacity: 80%;">Logged in as</span>
-                <span class="dropdown mb-4">
-                    <button id="tatorLoggedInUser" type="button" class="dropdown-toggle indexDropdownButton" data-bs-toggle="dropdown" aria-expanded="false" style="font-weight: 500; color: white;"></button>
-                    <ul class="dropdown-menu indexDropdownMenu">
-                        <li><button id="logoutBtn" type="button" class="dropdown-item small">Sign out</button></li>
-                    </ul>
-                </span>
-            </div>
-            <div>
-                <div class="row d-inline-flex">
-                    <div class="col-1"></div>
-                    <div class="col-10 p-0">
-                        <label for="tatorProject" class="small mb-2 mt-4">Project:</label>
-                        <button
-                            type="button"
-                            class="aquaLink ms-1 mb-1"
-                            onclick="refreshTatorSections()"
-                            style="width: 18px;"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 -960 960 960">
-                                <path d="M160-160v-80h110l-16-14q-52-46-73-105t-21-119q0-111 66.5-197.5T400-790v84q-72 26-116 88.5T240-478q0 45 17 87.5t53 78.5l10 10v-98h80v240H160Zm400-10v-84q72-26 116-88.5T720-482q0-45-17-87.5T650-648l-10-10v98h-80v-240h240v80H690l16 14q49 49 71.5 106.5T800-482q0 111-66.5 197.5T560-170Z"/>
-                            </svg>
-                        </button>
-                        <br>
-                        <select id="tatorProject" name="project" class="sequenceName"></select>
-                        <br>
-                        <label for="tatorSection" class="small mb-2 mt-3">Section:</label>
-                        <br>
-                        <select id="tatorSection" name="section" class="sequenceName"></select>
-                        <br>
-                    </div>
-                    <div class="col-1"></div>
-                </div>
-                <div id="tatorDeploymentList" class="my-2">
-                    <div id="depList1">
-                        <div class="row d-inline-flex">
-                            <div class="col-1"></div>
-                            <div class="col-10 p-0">
-                                <label for="deployment1" id="tatorDeploymentLabel" class="small mb-2">Deployment:</label><br>
-                                <select id="deployment1" name="deployment" class="sequenceName"></select>
-                            </div>
-                            <div class="col-1 ps-0 mt-auto">
-                                <button id="tatorPlusButton" type="button" class="plusButton">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
-                                      <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <button type="button" id="tatorQaqcButton" class="btn btn-success mt-4 mb-2 indexButton">QA/QC</button>
-            <br>
-            <button type="button" id="tatorImageReviewButton" class="btn btn-success mb-5 indexButton">Image Review</button>
-        </form>
-    </div>
-    {% include 'components/loading-fish.html' %}
-    <script src="/static/modules/jquery/jquery.min.js"></script>
-    <script src="/static/modules/bootstrap/bootstrap.bundle.min.js"></script>
-    <script>
-        const sequences = {{ sequences|safe }};
-    </script>
-    <script type="module" src="/static/js/index.js"></script>
+        </div>
+        <button type="button" id="tatorQaqcButton" class="btn btn-success mt-4 mb-2 indexButton">QA/QC</button>
+        <br>
+        <button type="button" id="tatorImageReviewButton" class="btn btn-success mb-5 indexButton">Image Review</button>
+    </form>
+</div>
 {% endblock content %}
+{% block scripts %}
+<script>
+  const sequences = {{ sequences|safe }};
+</script>
+<script type="module" src="{{ url_for('static', filename='js/index.js') }}"></script>
+{% endblock scripts %}

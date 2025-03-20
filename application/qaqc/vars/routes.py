@@ -45,7 +45,7 @@ def vars_qaqc_checklist():
     for thread in threads:
         thread.join()
     return render_template(
-        'qaqc-checklist.html',
+        'qaqc/vars/qaqc-checklist.html',
         annotation_count=total_counts['annotations'],
         individual_count=total_counts['individuals'],
         true_localization_count=total_counts['true_localizations'],
@@ -188,9 +188,9 @@ def vars_qaqc(check):
         case 'unique-fields':
             qaqc_annos.find_unique_fields()
             data['unique_list'] = qaqc_annos.final_records
-            return render_template('qaqc-unique.html', data=data)
+            return render_template('qaqc/vars/qaqc-unique.html', data=data)
     data['annotations'] = qaqc_annos.final_records
-    return render_template('qaqc.html', data=data)
+    return render_template('qaqc/vars/qaqc.html', data=data)
 
 
 @vars_qaqc_bp.get('/quick-check/<check>')
@@ -201,4 +201,4 @@ def qaqc_quick(check):
         case 'missing-ancillary-data':
             records = qaqc_annos.get_num_records_missing_ancillary_data()
             return {'num_records': records}, 200
-    return render_template('not-found.html', err=''), 404
+    return render_template('errors/404.html', err=''), 404

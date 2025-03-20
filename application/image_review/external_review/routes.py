@@ -89,8 +89,8 @@ def get_external_review():
     )
     if len(comment_loader.distilled_records) < 1:
         if request.args.get('unread'):
-            return render_template('not-found.html', err='unread'), 404
-        return render_template('not-found.html', err='comments'), 404
+            return render_template('errors/404.html', err='unread'), 404
+        return render_template('errors/404.html', err='comments'), 404
     data = {
         'annotations': comment_loader.distilled_records,
         'title': f'External Review {"(" + request.args.get("reviewer") + ")" if request.args.get("reviewer") else ""}',
@@ -102,7 +102,7 @@ def get_external_review():
         'read_comment_count': read_comments,
         'total_comment_count': total_comments,
     }
-    return render_template('image-review.html', data=data)
+    return render_template('/image_review/image-review.html', data=data)
 
 
 # adds an annotation for review/updates the reviewer for an annotation
@@ -212,7 +212,7 @@ def delete_external_review():
 # displays information about all the reviewers in the hurl db
 @external_review_bp.get('/reviewer-list')
 def reviewers():
-    return render_template('external-reviewers.html', reviewers=session.get('reviewers'))
+    return render_template('image_review/external-reviewers.html', reviewers=session.get('reviewers'))
 
 
 # create or update a reviewer's information

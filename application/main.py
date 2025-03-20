@@ -70,7 +70,7 @@ def video():
 
 @app.errorhandler(404)
 def page_not_found(e):
-    return render_template('not-found.html', err=''), 404
+    return render_template('errors/404.html', err=''), 404
 
 
 @app.errorhandler(Exception)
@@ -79,4 +79,4 @@ def server_error(e):
     print('\nApplication error 😔')
     print(error)
     print(traceback.format_exc())
-    return render_template('error.html', err=error), 500
+    return render_template('errors/500.html', err=error), 500
