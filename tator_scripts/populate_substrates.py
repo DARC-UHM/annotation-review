@@ -30,7 +30,7 @@ with open(CSV_FILE, newline='') as file:
     reader = csv.DictReader(file)
     for row in reader:
         # get all media ids that match deployment name
-        deployment_name = row['deployment'].replace('_2024', '')
+        deployment_name = row['deployment']
         print(deployment_name)
         attributes = {
             'FOV': row['FoV'],
