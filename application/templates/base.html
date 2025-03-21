@@ -1,10 +1,15 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <title>{% block title %}DARC Review{% endblock title %}</title>
+    <title>{% block title %}Home | DARC Annotation Review{% endblock title %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="/static/modules/bootstrap/bootstrap.min.css" />
-    <link rel="stylesheet" href="/static/css/style.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='modules/bootstrap/bootstrap.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
 </head>
-<body>{% block content %}{% endblock content %}</body>
+<body>
+    {% block content %}{% endblock content %}
+    <script src="{{ url_for('static', filename='modules/jquery/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='modules/bootstrap/bootstrap.bundle.min.js') }}"></script>
+    {% block scripts %}{% endblock scripts %}
+</body>
 </html>

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}{{ data.tab_title }} | DARC QA/QC{% endblock title %}
+{% block content %}
+{% include 'components/loading.html' %}
+{% include 'components/back-to-checklist-button.html' %}
+{% include 'components/flash-container.html' %}
+<div class="text-center my-3 mx-5">
+    <div id="headerContainer" class="col mt-3 m-auto" style="max-width: 1300px;">
+        <div class="row m-auto">
+            <div class="col-9 text-start">
+                <h4 class="m-0 p-0 pb-2" style="font-weight: 600;">{{ data.page_title }}</h4>
+                <div><span id="deploymentList"></span></div>
+                <div id="subheader" class="small mt-2"></div>
+                <button id="downloadTsvButton" class="aquaLink pb-2 small">Download TSV</button>
+            </div>
+            <div class="col text-end mt-auto small">
+                <span id="countLabel"></span><span id="totalCount" style="font-weight: 600;"></span>
+            </div>
+        </div>
+    </div>
+    <div id="404" style="display: none;" class="my-5">
+        <h3>No records found<br></h3>
+    </div>
+    <div id="tableContainer" class="col d-flex justify-content-center mt-3">
+        <table id="annotationTable" class="table table-striped">
+            <thead class="text-start"></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    {% if data.tofa %}
+    <div class="col d-flex justify-content-center mt-5">
+        <div id="accumulationCurveChart" style="width: 600px;height:400px;"></div>
+    </div>
+    {% endif %}
+    <div class="col d-flex justify-content-center mt-2 mb-5">
+        <a id="previousPageButton" class="aquaLink me-4"></a>
+        <a id="nextPageButton" class="aquaLink ms-4"></a>
+    </div>
+</div>
+{% endblock content %}
+{% block scripts %}
+{% if data.tofa %}
+<script type="module" src="{{ url_for('static', filename='modules/echarts/echarts.min.js') }}"></script>
+{% endif %}
+<script>
+    const None = null;
+    const nan = null;
+    const True = true;
+    const False = false;
+    const uniqueTaxa = {{ data.unique_taxa|safe or {} }};
+    const maxN = {{ data.max_n|safe or {} }};
+    const tofa = {{ data.tofa|safe or {} }};
+    const mediaAttributes = {{ data.media_attributes|safe or {} }};
+    const annotations = {{ data.annotations|safe or {} }};
+</script>
+{% if data.tofa %}
+<script type="module" src="{{ url_for('qaqc.tator_qaqc.static', filename='qaqc-accumulation-curve.js') }}"></script>
+{% endif %}
+<script type="module" src="{{ url_for('qaqc.tator_qaqc.static', filename='qaqc-tables.js') }}"></script>
+{% endblock scripts %}

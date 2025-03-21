@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}{{ data.tab_title }} | DARC QA/QC{% endblock title %}
+{% block content %}
+{% include 'components/flash-container.html' %}
+{% include 'components/back-to-checklist-button.html' %}
+{% include 'components/modals/edit-tator-localization.html' %}
+{% include 'components/modals/add-to-external-review.html' %}
+{% include 'components/modals/delete-from-external-review.html' %}
+{% include 'components/loading.html' %}
+<div class="text-center my-3 mx-5">
+    <div class="col mt-3 m-auto" style="max-width: 1200px;">
+        <div class="row m-auto">
+            <div class="col-9 text-start">
+                <h4 class="m-0 p-0 pb-2" style="font-weight: 600;">{{ data.page_title }}</h4>
+                <div id="attractedNotAttractedSubHeading" class="mb-2 d-flex justify-content-between w-100" style="display: none !important;">
+                    (also flags records with taxa that can be either)
+                </div>
+                <div><span id="vesselName"></span> <span id="sequenceList"></span></div>
+            </div>
+            <div class="col-3 text-end mt-auto">
+                <button id="attractedNotAttractedPopupButton" onclick="viewAttractedList()" class="aquaLink small mb-1" style="display: none;">
+                    View/Edit Attracted List
+                </button>
+                <div class="small">Total Annotations:&nbsp;&nbsp;<span id="annotationCount" style="font-weight: 600;"></span><br></div>
+                <div class="small mt-1">
+                    Sort by:
+                    <span class="position-relative small">
+                        <select id="sortSelect">
+                            <option>Default</option>
+                            <option>Phylum</option>
+                            <option>Class</option>
+                            <option>Order</option>
+                            <option>Family</option>
+                            <option>Genus</option>
+                            <option>Species</option>
+                            <option>Comment</option>
+                            <option>ID Reference</option>
+                            <option>Timestamp</option>
+                            <option>Depth</option>
+                        </select>
+                        <span class="position-absolute dropdown-chev">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
+                              <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                            </svg>
+                        </span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col d-flex justify-content-center mt-3">
+        <table id="annotationTable" class="table table-striped">
+            <thead class="thead-dark" style="background-color: #393E46; color: #EEEEEE">
+                <tr>
+                    <th scope="col">Info</th>
+                    <th scope="col" style="width: 50%;">Image</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+    <div id="404" style="display: none;" class="my-5">
+        <h3>No records found<br></h3>
+    </div>
+    <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header text-center">
+                    <h5 class="modal-title mt-1 ms-4" style="font-weight: 600;">Edit Annotation</h5>
+                    <button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div id="editModalFields" class="modal-body text-start"></div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="deleteAssociationModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog pt-5">
+            <div class="modal-content">
+                <div class="modal-header text-center">
+                    <h5 class="modal-title mt-1 ms-4" style="font-weight: 600;">Delete Association</h5>
+                    <button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-start mx-4">
+                    Are you sure you want to delete this association?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Cancel</button>
+                    <button id="deleteAssociationButton" type="button" class="btn btn-danger modal-button" onclick="deleteAssociation()">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="pagination-container">
+            <button class="pagination-button" id="prev-button" title="Previous page" aria-label="Previous page">
+                &lt;
+            </button>
+            <div id="pagination-numbers">
+            </div>
+            <button class="pagination-button" id="next-button" title="Next page" aria-label="Next page">
+                &gt;
+            </button>
+        </div>
+    </div>
+    <div class="text-center mt-auto py-3 small row m-auto" style="max-width: 1200px;">
+        <div class="col"></div>
+        <div class="col">
+            Page:&nbsp;&nbsp;<span id="currentPageNumBottom" style="font-weight: 600;"></span>/<span id="totalPageNumBottom" style="font-weight: 600;"></span><br>
+            Total Images:&nbsp;&nbsp;<span id="annotationCountBottom" style="font-weight: 600;"></span><br>
+        </div>
+        <div class="col text-end">
+            <select id="paginationSelect">
+                <option>25</option>
+                <option>50</option>
+                <option>75</option>
+                <option>100</option>
+            </select>
+            images per page
+        </div>
+    </div>
+</div>
+{% endblock content %}
+{% block scripts %}
+<script>
+    const None = null;
+    const nan = null;
+    const True = true;
+    const False = false;
+    const allConcepts = {{ data.concepts|safe }};
+    const annotations = {{ data.annotations|safe }};
+    const comments = {{ data.comments|safe }};
+    const reviewers = {{ data.reviewers|safe }};
+    const title = '{{ data.title }}';
+    const missingRecords = {{ data.missing_records|safe or None }};
+    const attractedConcepts = {{ data.attracted_concepts|safe or None }};
+</script>
+<script type="module" src="{{ url_for('image_review.static', filename='image-review.js') }}"></script>
+<script type="module" src="{{ url_for('image_review.static', filename='external-review.js') }}"></script>
+<script type="module" src="{{ url_for('qaqc.tator_qaqc.static', filename='qaqc.js') }}"></script>
+{% endblock scripts %}

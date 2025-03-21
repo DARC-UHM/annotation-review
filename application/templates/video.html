@@ -1,17 +1,19 @@
 {% extends "base.html" %}
-{% block title %}Darc Review | Video{% endblock title %}
+{% block title %}Video | DARC Annotation Review{% endblock title %}
 {% block content %}
-    <div class="text-center small my-2" style="color: #e3e3e3;">
-        If the video does not play, try <a class="aquaLink" style="font-weight: 500;" href="{{ data.link }}">downloading it</a> (right click, "Save Link As...") or using another browser (e.g. Chrome or Edge).
-    </div>
-    <video id="video" class="w-100 position-fixed" controls disablePictureInPicture style="height: 94vh;">
-      <!-- MP4 format with H.264 video codec and AAC audio codec -->
-      <source src="{{ data.link }}#t={{ data.time }}" type="video/mp4">
+<div class="text-center small my-2" style="color: #e3e3e3;">
+    If the video does not play, try <a class="aquaLink" style="font-weight: 500;" href="{{ data.link }}">downloading it</a> (right click, "Save Link As...") or using another browser (e.g. Chrome or Edge).
+</div>
+<video id="video" class="w-100 position-fixed" controls disablePictureInPicture style="height: 94vh;">
+    <!-- MP4 format with H.264 video codec and AAC audio codec -->
+    <source src="{{ data.link }}#t={{ data.time }}" type="video/mp4">
 
-      <!-- MOV format with different codecs -->
-      <source src="{{ data.link }}#t={{ data.time }}" type="video/quicktime">
-      Your browser does not support the video tag or the file format of this video.
-    </video>
+    <!-- MOV format with different codecs -->
+    <source src="{{ data.link }}#t={{ data.time }}" type="video/quicktime">
+    Your browser does not support the video tag or the file format of this video.
+</video>
+{% endblock content %}
+{% block scripts %}
 <script>
     const video = document.getElementById('video');
     function scroll(event) {
@@ -20,4 +22,4 @@
     }
     window.addEventListener('wheel', scroll);
 </script>
-{% endblock content %}
+{% endblock scripts %}

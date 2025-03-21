@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
-from application.server.functions import parse_datetime
-from application.server.vars_qaqc_processor import VarsQaqcProcessor
+from application.util.functions import parse_datetime
+from application.qaqc.vars.vars_qaqc_processor import VarsQaqcProcessor
 from test.data.vars_responses import ex_23060001, ex_23060002
 from test.util.mock_response import MockResponse
 
