@@ -3,7 +3,8 @@ function returnToCheckList() {
     const projectId = url.searchParams.get('project');
     const sectionId = url.searchParams.get('section');
     const deployments = url.searchParams.getAll('deployment');
-    window.location.href = `/qaqc/tator/checklist?project=${projectId}&section=${sectionId}&deployment=${deployments.join('&')}`;
+    const deploymentList = deployments.map(dep => `&deployment=${dep}`).join('');
+    window.location.href = `/qaqc/tator/checklist?project=${projectId}&section=${sectionId}${deploymentList}`;
 }
 
 function viewAttractedList() {
