@@ -15,7 +15,6 @@ class Config:
     VARS_PHYLOGENY_URL = f'{HURLSTOR_URL}:8083/v1/phylogeny/up'
     VARS_SEQUENCE_LIST_URL = f'{HURLSTOR_URL}:8084/v1/videosequences/names'
     VARS_DIVE_QUERY_URL = f'{HURLSTOR_URL}:8086/query/dive'
-    EXPLAIN_TEMPLATE_LOADING = True
 
     DARC_REVIEW_HEADERS = {'API-Key': os.environ.get('DARC_REVIEW_API_KEY')}
     SECRET_KEY = os.environ.get('APP_SECRET_KEY')

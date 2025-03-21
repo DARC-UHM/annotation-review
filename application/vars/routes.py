@@ -1,7 +1,12 @@
 """
 General endpoints for VARS annotations/associations that are used throughout the application.
 
-/vars
+/vars/annotation/<observation_uuid> [GET]
+/vars/annotation/concept [PATCH]
+/vars/association [POST]
+/vars/association/<uuid> [PATCH]
+/vars/association/<uuid> [DELETE]
+/vars/video-frame [GET]
 """
 
 from io import BytesIO

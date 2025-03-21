@@ -3,7 +3,7 @@ import { updateFlashMessages } from '../../../static/js/util/updateFlashMessages
 async function addAttractedConcept() {
     event.preventDefault();
     const formData = new FormData($('#addAttractedConceptForm')[0]);
-    const response = await fetch('/attracted', {
+    const response = await fetch('/qaqc/tator/attracted', {
         method: 'POST',
         body: formData,
     });

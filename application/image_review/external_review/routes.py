@@ -1,7 +1,11 @@
 """
 Endpoints related to external reviewers.
 
-/image-review/external-review
+/image-review/external-review [GET]
+/image-review/external-review/annotation [POST, DELETE]
+/image-review/external-review/reviewer-list [GET]
+/image-review/external-review/reviewer [POST]
+/image-review/external-review/reviewer/<name> [DELETE]
 """
 
 import json
@@ -17,7 +21,7 @@ from application.image_review.external_review.comment_processor import CommentPr
 
 
 # displays comments in the external review db
-@external_review_bp.get('/')
+@external_review_bp.get('')
 def get_external_review():
     comments = []
     unread_comments = 0

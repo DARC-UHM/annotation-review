@@ -1,7 +1,7 @@
 """
 Tator-specific image review endpoint.
 
-/image-review/tator
+/image-review/tator [GET]
 """
 
 import tator
@@ -13,7 +13,7 @@ from application.image_review.tator.tator_localization_processor import TatorLoc
 
 
 # view all Tator annotations (localizations) in a specified project & section
-@tator_image_review_bp.get('/')
+@tator_image_review_bp.get('')
 def tator_image_review():
     if 'tator_token' not in session.keys():
         return redirect('/')
@@ -55,6 +55,7 @@ def tator_image_review():
     data = {
         'annotations': localization_processor.final_records,
         'title': localization_processor.section_name,
+        'tab_title': deployments[0] if len(deployments) == 1 else f'{deployments[0]} - {deployments[-1].split("_")[-1]}',
         'concepts': session.get('vars_concepts', []),
         'reviewers': session.get('reviewers', []),
         'comments': comments,

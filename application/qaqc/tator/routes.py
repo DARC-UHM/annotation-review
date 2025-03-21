@@ -1,7 +1,11 @@
 """
 Tator-specific QA/QC endpoints
 
-/qaqc/tator
+/qaqc/tator/checklist [GET, PATCH]
+/qaqc/tator/check/<check> [GET]
+/qaqc/tator/attracted-list [GET]
+/qaqc/tator/attracted [POST]
+/qaqc/tator/attracted/<concept> [PATCH, DELETE]
 """
 
 from io import BytesIO
@@ -37,7 +41,8 @@ def tator_qaqc_checklist():
     media_ids = []
     localizations = []
     individual_count = 0
-    for deployment in request.args.getlist('deployment'):
+    deployments = request.args.getlist('deployment')
+    for deployment in deployments:
         media_ids += session[f'{project_id}_{section_id}'][deployment]
     with requests.get(
             url=f'{current_app.config.get("DARC_REVIEW_URL")}/tator-qaqc-checklist/{"&".join(request.args.getlist("deployment"))}',
@@ -74,6 +79,7 @@ def tator_qaqc_checklist():
                         individual_count += 1000
     data = {
         'title': section_name,
+        'tab_title': deployments[0] if len(deployments) == 1 else f'{deployments[0]} - {deployments[-1].split("_")[-1]}',
         'localization_count': len(localizations),
         'individual_count': individual_count,
         'checklist': checklist,
@@ -118,8 +124,9 @@ def tator_qaqc(check):
         return redirect('/')
     project_id = int(request.args.get('project'))
     section_id = int(request.args.get('section'))
+    deployments = request.args.getlist('deployment')
     try:
-        for deployment in request.args.getlist('deployment'):
+        for deployment in deployments:
             with requests.get(
                     url=f'{current_app.config.get("DARC_REVIEW_URL")}/comment/sequence/{deployment}',
                     headers=current_app.config.get('DARC_REVIEW_HEADERS'),
@@ -127,9 +134,11 @@ def tator_qaqc(check):
                 comments = comments | res.json()  # merge dicts
     except requests.exceptions.ConnectionError:
         print('\nERROR: unable to connect to external review server\n')
+    tab_title = deployments[0] if len(deployments) == 1 else f'{deployments[0]} - {deployments[-1].split("_")[-1]}'
     data = {
         'concepts': session.get('vars_concepts', []),
         'title': check.replace('-', ' ').title(),
+        'tab_title': f'{tab_title} {check.replace("-", " ").title()}',
         'comments': comments,
         'reviewers': session.get('reviewers', []),
     }

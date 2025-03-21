@@ -1,7 +1,9 @@
 """
 VARS-specific QA/QC endpoints
 
-/qaqc/vars
+/qaqc/vars/checklist [GET, PATCH]
+/qaqc/vars/check/<check> [GET]
+/qaqc/vars/quick-check/<check> [GET]
 """
 
 import threading
@@ -51,6 +53,7 @@ def vars_qaqc_checklist():
         true_localization_count=total_counts['true_localizations'],
         group_localization_count=total_counts['group_localizations'],
         checklist=checklist,
+        tab_title=sequences[0] if len(sequences) == 1 else f'{sequences[0]} - {sequences[-1].split(" ")[-1]}'
     )
 
 
@@ -66,7 +69,8 @@ def get_sequence_counts(sequence_name, total_counts, vars_dive_url):
     annotations = res.json()['annotations']
     sequence_annotations += len(annotations)
     for annotation in annotations:
-        if annotation['concept'][0].islower():  # ignore non-taxonomic concepts
+        if len(annotation['concept']) == 0 or annotation['concept'][0].islower():
+            # ignore non-taxonomic concepts
             continue
         if annotation.get('group') == 'localization':
             sequence_true_localizations += 1
@@ -135,9 +139,11 @@ def vars_qaqc(check):
         vars_dive_url=current_app.config.get('VARS_DIVE_QUERY_URL'),
         vars_phylogeny_url=current_app.config.get('VARS_PHYLOGENY_URL'),
     )
+    tab_title = sequences[0] if len(sequences) == 1 else f'{sequences[0]} - {sequences[-1].split(" ")[-1]}'
     data = {
         'concepts': session.get('vars_concepts', []),
         'title': check.replace('-', ' ').title(),
+        'tab_title': f'{tab_title} {check.replace("-", " ").title()}',
     }
     match check:
         case 'multiple-associations':
@@ -196,7 +202,11 @@ def vars_qaqc(check):
 @vars_qaqc_bp.get('/quick-check/<check>')
 def qaqc_quick(check):
     sequences = request.args.getlist('sequence')
-    qaqc_annos = VarsQaqcProcessor(sequences)
+    qaqc_annos = VarsQaqcProcessor(
+        sequence_names=sequences,
+        vars_dive_url=current_app.config.get('VARS_DIVE_QUERY_URL'),
+        vars_phylogeny_url=current_app.config.get('VARS_PHYLOGENY_URL'),
+    )
     match check:
         case 'missing-ancillary-data':
             records = qaqc_annos.get_num_records_missing_ancillary_data()

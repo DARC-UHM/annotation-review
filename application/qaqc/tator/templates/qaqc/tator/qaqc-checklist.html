@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}QA/QC Checklist | Tator{% endblock title %}
+{% block title %}{{ data.tab_title }} QA/QC Checklist | DARC QA/QC{% endblock title %}
 {% block content %}
 {% include 'components/back-to-home-button.html' %}
 {% include 'components/flash-container.html' %}
@@ -35,7 +35,7 @@
                         <td id="missingQualifierCheckbox" class="qaqcCheckbox"></td>
                     </tr>
                     <tr>
-                        <td><a id="stetReasonAnchor" class="aquaLink">All records with a qualifier of 'stet' have a 'reason'</a></td>
+                        <td><a id="stetReasonAnchor" class="aquaLink">All records with a qualifier of "stet" have a "reason"</a></td>
                         <td id="stetReasonCheckbox" class="qaqcCheckbox"></td>
                     </tr>
                     <tr>
@@ -47,7 +47,7 @@
                         <td id="sameNameQualifierCheckbox" class="qaqcCheckbox"></td>
                     </tr>
                     <tr>
-                        <td><a id="nonTargetNotAttractedAnchor" class="aquaLink">All 'non-target' records are marked 'not attracted'</a></td>
+                        <td><a id="nonTargetNotAttractedAnchor" class="aquaLink">All "non-target" records are marked "not attracted"</a></td>
                         <td id="nonTargetNotAttractedCheckbox" class="qaqcCheckbox"></td>
                     </tr>
                     <tr>

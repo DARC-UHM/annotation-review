@@ -1,7 +1,17 @@
 """
 General endpoints for Tator that are used throughout the application.
 
-/tator
+/tator/login [POST]
+/tator/token [GET]
+/tator/logout [GET]
+/tator/projects [GET]
+/tator/sections/<project_id> [GET]
+/tator/deployments/<project_id>/<section_id> [GET]
+/tator/refresh-sections [GET]
+/tator/frame/<media_id>/<frame> [GET]
+/tator/localization-image/<localization_id> [GET]
+/tator/localization [PATCH]
+/tator/localization/good-image [PATCH]
 """
 
 import base64

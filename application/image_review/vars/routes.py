@@ -1,7 +1,7 @@
 """
 VARS-specific image review endpoint.
 
-/image-review/vars
+/image-review/vars [GET]
 """
 
 import requests
@@ -12,7 +12,7 @@ from application.image_review.vars.vars_annotation_processor import VarsAnnotati
 
 
 # view VARS annotations with images in a specified dive (or dives)
-@vars_image_review_bp.get('/')
+@vars_image_review_bp.get('')
 def view_images():
     comments = {}
     sequences = request.args.getlist('sequence')
@@ -41,6 +41,7 @@ def view_images():
         'annotations': image_loader.final_records,
         'highest_id_ref': image_loader.highest_id_ref,
         'title': image_loader.vessel_name,
+        'tab_title': sequences[0] if len(sequences) == 1 else f'{sequences[0]} - {sequences[-1].split(" ")[-1]}',
         'concepts': session.get('vars_concepts', []),
         'reviewers': session.get('reviewers', []),
         'comments': comments,

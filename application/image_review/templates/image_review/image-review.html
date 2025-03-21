@@ -1,13 +1,13 @@
 {% extends "base.html" %}
-{% block title %}DARC Image Review | {{ data.title }}{% endblock title %}
+{% block title %}{{ data.tab_title }} | DARC Image Review{% endblock title %}
 {% block content %}
 {% include 'components/back-to-home-button.html' %}
 {% include 'components/flash-container.html' %}
-{% include 'modals/edit-vars-annotation.html' %}
-{% include 'modals/edit-tator-localization.html' %}
-{% include 'modals/add-to-external-review.html' %}
-{% include 'modals/delete-from-external-review.html' %}
-{% include 'modals/external-review-missing-records.html' %}
+{% include 'components/modals/edit-vars-annotation.html' %}
+{% include 'components/modals/edit-tator-localization.html' %}
+{% include 'components/modals/add-to-external-review.html' %}
+{% include 'components/modals/delete-from-external-review.html' %}
+{% include 'components/modals/external-review-missing-records.html' %}
 {% include 'components/loading.html' %}
 <div class="text-center my-3 mx-5">
     <div class="col mt-3 m-auto" style="max-width: 1200px;">
