@@ -98,6 +98,7 @@ def get_external_review():
     data = {
         'annotations': comment_loader.distilled_records,
         'title': f'External Review {"(" + request.args.get("reviewer") + ")" if request.args.get("reviewer") else ""}',
+        'tab_title': f'External Review {"(" + request.args.get("reviewer") + ")" if request.args.get("reviewer") else ""}',
         'concepts': session.get('vars_concepts', []),
         'reviewers': session.get('reviewers', []),
         'comments': comments,
