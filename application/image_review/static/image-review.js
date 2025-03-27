@@ -2,6 +2,7 @@ import { autocomplete, removeAllLists, removeAutocomplete } from '../../static/j
 import { updateFlashMessages } from '../../static/js/util/updateFlashMessages.js';
 import { varsAnnotationTableRow } from './vars-annotation-table-row.js';
 import { tatorLocalizationRow } from './tator-localization-table-row.js';
+import { TatorLocalizationType } from '../../static/js/util/tatorLocalizationType.js';
 
 const guidePhotoVals = ['1 best', '2 good', '3 okay', ''];
 const sequences = [];
@@ -389,7 +390,8 @@ export function updateHash() {
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.scientific_name?.toLowerCase().includes(filter.scientific_name.toLowerCase().replaceAll('%20', ' ')));
     }
     if (filter.localization_type) {
-        const localizationType = filter.localization_type.toLowerCase().includes('box') ? 48 : 49;
+        const localizationType = filter.localization_type.toLowerCase().includes('box')
+          ? TatorLocalizationType.BOX : TatorLocalizationType.DOT;
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.all_localizations[0].type === localizationType);
     }
 

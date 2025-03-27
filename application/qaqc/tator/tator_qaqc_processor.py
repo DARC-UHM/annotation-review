@@ -13,6 +13,7 @@ from pptx.util import Inches, Pt
 
 from application.image_review.tator.tator_localization_processor import TatorLocalizationProcessor
 from application.util.constants import TERM_NORMAL, TERM_RED
+from application.util.tator_localization_type import TatorLocalizationType
 
 
 class TatorQaqcProcessor(TatorLocalizationProcessor):
@@ -288,13 +289,13 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
                 }
             for localization in record['all_localizations']:
                 # increment box/dot counts, set first box/dot and TOFA
-                if localization['type'] == 48:
+                if localization['type'] == TatorLocalizationType.BOX.value:
                     unique_taxa[key]['box_count'] += 1
                     first_box = unique_taxa[key]['first_box']
                     if not first_box or datetime.datetime.strptime(record['timestamp'], '%Y-%m-%d %H:%M:%SZ') < datetime.datetime.strptime(first_box, '%Y-%m-%d %H:%M:%SZ'):
                         unique_taxa[key]['first_box'] = record['timestamp']
                         unique_taxa[key]['first_box_url'] = f'{self.tator_url}/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}&selected_entity={localization["elemental_id"]}'
-                elif localization['type'] == 49:
+                elif localization['type'] == TatorLocalizationType.DOT.value:
                     unique_taxa[key]['dot_count'] += 1
                     first_dot = unique_taxa[key]['first_dot']
                     observed_timestamp = datetime.datetime.strptime(record['timestamp'], '%Y-%m-%d %H:%M:%SZ')
@@ -432,7 +433,9 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
         Returns a summary of the final records.
         """
         self.fetch_start_times()
-        self.localizations = [localization for localization in self.localizations if localization['type'] != 48]
+        self.localizations = [
+            localization for localization in self.localizations if localization['type'] != TatorLocalizationType.BOX.value
+        ]
         self.process_records(get_timestamp=True, get_ctd=True, get_substrates=True)
 
     def download_image_guide(self, app) -> Presentation:

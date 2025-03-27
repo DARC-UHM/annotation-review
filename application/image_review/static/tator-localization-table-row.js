@@ -1,10 +1,11 @@
 import { updateFlashMessages } from '../../static/js/util/updateFlashMessages.js';
+import { TatorLocalizationType } from '../../static/js/util/tatorLocalizationType.js';
 
 export const tatorLocalizationRow = (localization, externalComment) => {
     const previewFrameUrl = localization.frame_url ? `${localization.frame_url}?preview=true` : localization.image_url;
     let localizationBoxId = null;
     for (const loco of localization.all_localizations) {
-        if (loco.type === 48) {
+        if (loco.type === TatorLocalizationType.BOX) {
             localizationBoxId = loco.id;
             break;
         }
@@ -244,7 +245,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                                 />
                                 <div id="${localization.observation_uuid}_overlay">
                                 ${localization.all_localizations.map((loco, index) => {
-                                    if (loco.type === 48) { // 48 is a box
+                                    if (loco.type === TatorLocalizationType.BOX) {
                                         return `<span
                                                     class="position-absolute tator-box"
                                                     style="top: ${loco.points[1] * 100}%; left: ${loco.points[0] * 100}%; width: ${loco.dimensions[0] * 100}%; height: ${loco.dimensions[1] * 100}%;"
@@ -270,7 +271,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                         </div>
                     `)
                 }
-                ${localization.all_localizations[0].type === 48 && localization.scientific_name
+                ${localization.all_localizations[0].type === TatorLocalizationType.BOX && localization.scientific_name
                     ? `
                         <div class="mt-2 small d-flex justify-content-center">
                             <div class="my-auto">

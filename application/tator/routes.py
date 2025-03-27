@@ -22,6 +22,7 @@ import requests
 from flask import current_app, request, session, Response
 
 from . import tator_bp
+from ..util.tator_localization_type import TatorLocalizationType
 
 
 # log in to tator (get token from tator)
@@ -189,7 +190,7 @@ def update_tator_localization():
     try:
         for localization in localization_id_types:
             this_attributes = attributes.copy()
-            if localization['type'] == 49:  # point annotation, add cat abundance
+            if localization['type'] == TatorLocalizationType.DOT.value:
                 this_attributes['Categorical Abundance'] = request.values.get('categorical_abundance') if request.values.get('categorical_abundance') else '--'
             api = tator.get_api(
                 host=current_app.config.get('TATOR_URL'),

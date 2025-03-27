@@ -8,6 +8,7 @@ import tator
 
 from flask import session
 from application.util.constants import KNOWN_ANNOTATORS, TERM_RED, TERM_NORMAL
+from application.util.tator_localization_type import TatorLocalizationType
 from application.util.functions import flatten_taxa_tree
 
 WORMS_REST_URL = 'https://www.marinespecies.org/rest'
@@ -142,8 +143,8 @@ class TatorLocalizationProcessor:
                 )[0].attributes
 
         for localization in self.localizations:
-            if localization['type'] not in [48, 49]:  # we only care about boxes and dots
-                continue
+            if localization['type'] not in [TatorLocalizationType.BOX.value, TatorLocalizationType.DOT.value]:
+                continue  # we only care about boxes and dots
             scientific_name = localization['attributes']['Scientific Name']
             if scientific_name not in self.phylogeny.keys() and scientific_name not in no_match_records:
                 if not self.fetch_worms_phylogeny(scientific_name):
@@ -156,12 +157,14 @@ class TatorLocalizationProcessor:
                     'version': localization['version'],
                     'type': localization['type'],
                     'points': [round(localization['x'], 5), round(localization['y'], 5)],
-                    'dimensions': [localization['width'], localization['height']] if localization['type'] == 48 else None,
+                    'dimensions': [localization['width'], localization['height']]
+                    if localization['type'] == TatorLocalizationType.BOX.value
+                    else None,
                 },
                 'type': localization['type'],
                 'video_sequence_name': self.deployment_media_dict[localization['media']],
                 'scientific_name': scientific_name,
-                'count': 0 if localization['type'] == 48 else 1,
+                'count': 0 if localization['type'] == TatorLocalizationType.BOX.value else 1,
                 'attracted': localization['attributes'].get('Attracted'),
                 'categorical_abundance': localization['attributes'].get('Categorical Abundance'),
                 'identification_remarks': localization['attributes'].get('IdentificationRemarks'),
