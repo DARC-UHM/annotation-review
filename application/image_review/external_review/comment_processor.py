@@ -148,6 +148,7 @@ class CommentProcessor:
                         comment_dict['frame_url'] = f'/tator/frame/{annotation["media"]}/{annotation["frame"]}'
                         comment_dict['categorical_abundance'] = annotation['attributes'].get('Categorical Abundance')
                         comment_dict['identification_remarks'] = annotation['attributes'].get('IdentificationRemarks')
+                        comment_dict['morphospecies'] = annotation['attributes'].get('Morphospecies')
                         comment_dict['identified_by'] = annotation['attributes'].get('Identified By')
                         comment_dict['notes'] = annotation['attributes'].get('Notes')
                         comment_dict['qualifier'] = annotation['attributes'].get('Qualifier')
@@ -199,6 +200,7 @@ class CommentProcessor:
             'notes',
             'qualifier',
             'reason',
+            'morphospecies',
             'tentative_id',
             'identity_certainty',
             'identity_reference',

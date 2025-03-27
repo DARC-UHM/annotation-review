@@ -77,14 +77,18 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                         ${localization.qualifier || '-'}<br>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-4">
-                        Cat. Abundance:
-                    </div>
-                    <div class="col values">
-                        ${localization.categorical_abundance || '-'}<br>
-                    </div>
-                </div>
+                ${localization.type === TatorLocalizationType.DOT
+                    ? (`
+                        <div class="row">
+                            <div class="col-4">
+                                Cat. Abundance:
+                            </div>
+                            <div class="col values">
+                                ${localization.categorical_abundance || '-'}<br>
+                            </div>
+                        </div>
+                    `) : ''
+                }
                 <div class="row" style="${localization.problems?.includes('Reason') ? 'color: yellow;' : ''}">
                     <div class="col-4">
                         Reason:
@@ -100,6 +104,14 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                     <div class="col values">
                         ${localization.tentative_id || '-'}
                         ${localization.problems?.includes('Tentative ID phylogeny no match') ? '<div style="color: red;">^ That\'s not my child!</div>' : '<br>'}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-4">
+                        Morphospecies:
+                    </div>
+                    <div class="col values">
+                        ${localization.morphospecies || '-'}<br>
                     </div>
                 </div>
                 <div class="row" style="${localization.problems?.includes('ID Remarks') ? 'color: yellow;' : ''}">

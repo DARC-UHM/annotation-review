@@ -172,6 +172,7 @@ class TatorLocalizationProcessor:
                 'notes': localization['attributes'].get('Notes'),
                 'qualifier': localization['attributes'].get('Qualifier'),
                 'reason': localization['attributes'].get('Reason'),
+                'morphospecies': localization['attributes'].get('Morphospecies'),
                 'tentative_id': localization['attributes'].get('Tentative ID'),
                 'good_image': True if localization['attributes'].get('Good Image') else False,
                 'annotator': KNOWN_ANNOTATORS[localization['created_by']] if localization['created_by'] in KNOWN_ANNOTATORS.keys() else f'Unknown Annotator (#{localization["created_by"]})',
@@ -215,7 +216,6 @@ class TatorLocalizationProcessor:
                 localization_dict['depth_m'] = localization['attributes'].get('Depth')
                 deployment_name = self.deployment_media_dict[localization['media']]
                 deployment_name = deployment_name.replace('-', '_')  # for DOEX0087_NIU-dscm-02
-                deployment_name = deployment_name.replace('_2024', '')  # for SLB_2024_dscm_01
                 deployment_ctd = next((x for x in expedition_fieldbook if x['deployment_name'] == deployment_name.replace('-', '_')), None)
                 if deployment_ctd:
                     localization_dict['lat'] = deployment_ctd['lat']
@@ -253,6 +253,7 @@ class TatorLocalizationProcessor:
             'identified_by',
             'notes',
             'qualifier',
+            'morphospecies',
             'reason',
             'tentative_id',
             'good_image',
@@ -306,6 +307,7 @@ class TatorLocalizationProcessor:
             'notes': first_if_all_same,
             'qualifier': first_if_all_same,
             'reason': first_if_all_same,
+            'morphospecies': first_if_all_same,
             'good_image': 'first',
             'video_sequence_name': 'first',
             'annotator': 'first',
@@ -352,8 +354,13 @@ class TatorLocalizationProcessor:
             'frame',
         ])
 
+        def is_populated(val):
+            if isinstance(val, (list, pd.Series)):
+                return pd.notnull(val).all()
+            return pd.notnull(val)
+
         for index, row in localization_df.iterrows():
-            self.final_records.append({
+            record = {
                 'observation_uuid': row['elemental_id'],
                 'timestamp': row['timestamp'],
                 'camera_seafloor_arrival': row['camera_seafloor_arrival'],
@@ -363,6 +370,7 @@ class TatorLocalizationProcessor:
                 'frame': row['frame'],
                 'frame_url': row['frame_url'],
                 'annotator': row['annotator'],
+                'type': row['type'],
                 'scientific_name': row['scientific_name'] if row['scientific_name'] != '' else '--',
                 'section_id': self.section_id,
                 'video_sequence_name': row['video_sequence_name'],
@@ -375,6 +383,7 @@ class TatorLocalizationProcessor:
                 'qualifier': row['qualifier'],
                 'reason': row['reason'],
                 'tentative_id': row['tentative_id'],
+                'morphospecies': row['morphospecies'],
                 'good_image': row['good_image'],
                 'problems': row['problems'],
                 'lat': row['lat'],
@@ -400,6 +409,7 @@ class TatorLocalizationProcessor:
                 'species': row['species'],
                 'subspecies': row['subspecies'],
                 'aphia_id': row['aphia_id'],
-            })
+            }
+            self.final_records.append({key: val for key, val in record.items() if is_populated(val)})
         self.save_phylogeny()
         print('processed!')
