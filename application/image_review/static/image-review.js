@@ -788,6 +788,7 @@ $(document).ready(()=> {
         $(this).find('#editCatAbundance').val(localization.categorical_abundance || '--');
         $(this).find('#editReason').val(localization.reason);
         $(this).find('#editTentativeId').val(localization.tentative_id);
+        $(this).find('#editMorphospecies').val(localization.morphospecies);
         $(this).find('#editIdRemarks').val(localization.identification_remarks);
         $(this).find('#editIdentifiedBy').val(localization.identified_by);
         $(this).find('#editNotes').val(localization.notes);

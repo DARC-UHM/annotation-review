@@ -183,6 +183,7 @@ def update_tator_localization():
         'Reason': request.values.get('reason'),
         'Tentative ID': request.values.get('tentative_id'),
         'IdentificationRemarks': request.values.get('identification_remarks'),
+        'Morphospecies': request.values.get('morphospecies'),
         'Identified By': request.values.get('identified_by'),
         'Notes': request.values.get('notes'),
         'Attracted': request.values.get('attracted'),
