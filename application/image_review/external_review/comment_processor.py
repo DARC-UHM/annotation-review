@@ -136,9 +136,9 @@ class CommentProcessor:
                         comment_dict['good_image'] = True
                     else:
                         comment_dict['good_image'] = False
-                    concept_name = annotation['attributes']['Scientific Name']
+                    concept_name = annotation['attributes'].get('Scientific Name')
                     comment_dict['all_localizations'] = json.loads(self.comments[comment].get('all_localizations'))
-                    comment_dict['scientific_name'] = annotation['attributes']['Scientific Name']
+                    comment_dict['scientific_name'] = concept_name
                     comment_dict['media_id'] = annotation['media']
                     comment_dict['frame'] = annotation['frame']
                     comment_dict['recorded_timestamp'] = parse_datetime(annotation['recorded_timestamp']).strftime('%d %b %y %H:%M:%S UTC') if 'recorded_timestamp' in annotation.keys() else None
