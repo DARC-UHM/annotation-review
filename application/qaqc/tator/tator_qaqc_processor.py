@@ -55,7 +55,7 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
             for media in res.json():
                 if media['attributes'].get('Arrival') and media['attributes']['Arrival'].strip() != '':
                     video_start_timestamp = datetime.datetime.fromisoformat(media['attributes'].get('Start Time'))
-                    if 'not observed' in media['attributes']['Arrival']:
+                    if 'not observed' in media['attributes']['Arrival'].lower():
                         arrival_frame = 0
                     else:
                         try:
@@ -327,7 +327,7 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
                 }
             if record['video_sequence_name'] not in deployment_taxa.keys():
                 deployment_taxa[record['video_sequence_name']] = {
-                    'depth_m': record['depth_m'],
+                    'depth_m': record.get('depth_m'),
                     'max_n_dict': {},
                 }
             if scientific_tentative not in deployment_taxa[record['video_sequence_name']]['max_n_dict'].keys():
@@ -390,7 +390,7 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
                 }
             if record['video_sequence_name'] not in deployment_taxa.keys():
                 deployment_taxa[record['video_sequence_name']] = {
-                    'depth_m': record['depth_m'],
+                    'depth_m': record.get('depth_m'),
                     'tofa_dict': {},
                 }
             if scientific_tentative not in deployment_taxa[record['video_sequence_name']]['tofa_dict'].keys():
