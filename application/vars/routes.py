@@ -90,12 +90,17 @@ def delete_association(uuid):
 # gets a frame from a VARS video for annotations without an image. caches images locally
 @vars_bp.get('/video-frame')
 def video_frame():
-    import cv2
-    from PIL import Image
+    try:
+        import cv2
+        from PIL import Image
+    except ModuleNotFoundError:
+        print('To display video frames, install cv2 and PIL by running the command "pip install -r requirements.txt"')
+        return {}, 500
     video_url = request.args.get('url')
     timestamp = int(request.args.get('time', 0))
     if not video_url:
-        return 'Missing video URL', 400
+        print('Missing video URL')
+        return {}, 400
     cache_dir = Path('cache', 'vars_frames')
     cache_dir.mkdir(exist_ok=True)
     cache_path = cache_dir / f'{video_url.split("/")[-1].split(".")[0]}__{timestamp}.jpeg'
@@ -108,13 +113,15 @@ def video_frame():
             )
     cap = cv2.VideoCapture(video_url)
     if not cap.isOpened():
-        return 'Could not open video file', 500
+        print('Could not open video file')
+        return {}, 500
     frame_number = timestamp * cap.get(cv2.CAP_PROP_FPS)  # calc frame number
     cap.set(cv2.CAP_PROP_POS_FRAMES, frame_number)  # set to frame
     ret, frame = cap.read()  # get frame
     cap.release()  # release video
     if not ret:
-        return f'Could not read frame at timestamp {timestamp}', 500
+        print(f'Could not read frame at timestamp {timestamp}')
+        return {}, 500
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert BGR to RGB
     img = Image.fromarray(frame)
     img_byte_arr = BytesIO()
