@@ -268,20 +268,22 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
 
     def get_unique_taxa(self):
         """
-        Finds every unique scientific name/tentative ID combo and box/dot info.
+        Finds every unique scientific name, tentative ID, and morphospecies combo and box/dot info.
         """
         self.fetch_start_times()
         self.process_records(get_timestamp=True)
         unique_taxa = {}
         for record in self.final_records:
-            scientific_name = record['scientific_name']
-            tentative_id = record['tentative_id']
-            key = f'{scientific_name}:{tentative_id}'
+            scientific_name = record.get('scientific_name')
+            tentative_id = record.get('tentative_id', '')
+            morphospecies = record.get('morphospecies', '')
+            key = f'{scientific_name}:{tentative_id}:{morphospecies}'
             if key not in unique_taxa.keys():
                 # add new unique taxa to dict
                 unique_taxa[key] = {
                     'scientific_name': scientific_name,
                     'tentative_id': tentative_id,
+                    'morphospecies': morphospecies,
                     'box_count': 0,
                     'dot_count': 0,
                     'first_box': '',
