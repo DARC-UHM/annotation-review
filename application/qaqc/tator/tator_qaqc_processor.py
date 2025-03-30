@@ -308,7 +308,8 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
 
     def get_max_n(self):
         """
-        Finds the highest dot count for each unique scientific name, tentative ID, and morphospecies combo per deployment.
+        Finds the highest dot count for each unique scientific name, tentative ID, and morphospecies combo per
+         deployment. Ignores non-attracted taxa.
         """
         self.process_records(get_ctd=True)
         deployment_taxa = {}
@@ -363,8 +364,8 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
 
     def get_tofa(self):
         """
-        Finds the time of first arrival for each unique scientific name/tentative ID combo per deployment. Also shows
-        species accumulation curve. Ignores non-attracted taxa.
+        Finds the time of first arrival for each unique scientific name, tentative ID, and morphospecies combo per
+        deployment. Also shows species accumulation curve. Ignores non-attracted taxa.
         """
         self.fetch_start_times()
         self.process_records(get_timestamp=True, get_ctd=True)
@@ -374,21 +375,24 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
         bottom_time = None
         latest_timestamp = datetime.datetime.fromtimestamp(0)  # to find the duration of the deployment
         for record in self.final_records:
-            scientific_tentative = f'{record["scientific_name"]}{" (" + record["tentative_id"] + "?)" if record["tentative_id"] else ""}'
+            scientific_name = record.get('scientific_name')
+            tentative_id_suffix = f' ({record["tentative_id"]}?)' if record.get('tentative_id') else ''
+            morphospecies_suffix = f' ({record["morphospecies"]})' if record.get('morphospecies') else ''
+            unique_name = f'{scientific_name}{tentative_id_suffix}{morphospecies_suffix}'
             observed_timestamp = datetime.datetime.strptime(record['timestamp'], '%Y-%m-%d %H:%M:%SZ')
             bottom_time = datetime.datetime.strptime(self.bottom_times[record['video_sequence_name']], '%Y-%m-%d %H:%M:%SZ')
-            if record['count'] < 1 or record['attracted'] == 'Not Attracted':
+            if record.get('count', 0) < 1 or record.get('attracted') == 'Not Attracted':
                 continue
             if observed_timestamp > latest_timestamp:
                 latest_timestamp = observed_timestamp
-            if scientific_tentative not in unique_taxa_first_seen.keys():
-                unique_taxa_first_seen[scientific_tentative] = observed_timestamp
+            if unique_name not in unique_taxa_first_seen.keys():
+                unique_taxa_first_seen[unique_name] = observed_timestamp
             else:
-                if observed_timestamp < unique_taxa_first_seen[scientific_tentative]:
-                    unique_taxa_first_seen[scientific_tentative] = observed_timestamp
-            if scientific_tentative not in unique_taxa.keys():
-                unique_taxa[scientific_tentative] = {
-                    'scientific_tentative': scientific_tentative,
+                if observed_timestamp < unique_taxa_first_seen[unique_name]:
+                    unique_taxa_first_seen[unique_name] = observed_timestamp
+            if unique_name not in unique_taxa.keys():
+                unique_taxa[unique_name] = {
+                    'unique_name': unique_name,
                     'phylum': record.get('phylum'),
                     'class': record.get('class'),
                     'order': record.get('order'),
@@ -401,18 +405,18 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
                     'depth_m': record.get('depth_m'),
                     'tofa_dict': {},
                 }
-            if scientific_tentative not in deployment_taxa[record['video_sequence_name']]['tofa_dict'].keys():
+            if unique_name not in deployment_taxa[record['video_sequence_name']]['tofa_dict'].keys():
                 # add new unique taxa to dict
-                deployment_taxa[record['video_sequence_name']]['tofa_dict'][scientific_tentative] = {
+                deployment_taxa[record['video_sequence_name']]['tofa_dict'][unique_name] = {
                     'tofa': str(observed_timestamp - bottom_time) if observed_timestamp > bottom_time else '00:00:00',
                     'tofa_url': f'{self.tator_url}/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}',
                 }
             else:
                 # check for new tofa
-                if str(observed_timestamp - bottom_time) < deployment_taxa[record['video_sequence_name']]['tofa_dict'][scientific_tentative]['tofa']:
-                    deployment_taxa[record['video_sequence_name']]['tofa_dict'][scientific_tentative]['tofa'] = \
+                if str(observed_timestamp - bottom_time) < deployment_taxa[record['video_sequence_name']]['tofa_dict'][unique_name]['tofa']:
+                    deployment_taxa[record['video_sequence_name']]['tofa_dict'][unique_name]['tofa'] = \
                         str(observed_timestamp - bottom_time) if observed_timestamp > bottom_time else '00:00:00'
-                    deployment_taxa[record['video_sequence_name']]['tofa_dict'][scientific_tentative]['tofa_url'] = \
+                    deployment_taxa[record['video_sequence_name']]['tofa_dict'][unique_name]['tofa_url'] = \
                         f'{self.tator_url}/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}'
         # convert unique taxa to list for sorting
         unique_taxa_list = list(unique_taxa.values())
@@ -428,10 +432,12 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
         deployment_time = datetime.timedelta(hours=math.ceil((latest_timestamp - bottom_time).total_seconds() / 3600))
         accumulation_data = []  # just a list of the number of unique taxa seen at each hour
         for hour in range(1, deployment_time.seconds // 3600 + 1):
-            accumulation_data.append(len([taxa for taxa in unique_taxa_first_seen.values() if taxa < bottom_time + datetime.timedelta(hours=hour)]))
+            accumulation_data.append(len([
+                taxa for taxa in unique_taxa_first_seen.values() if taxa < bottom_time + datetime.timedelta(hours=hour)
+            ]))
         self.final_records = {
             'deployments': deployment_taxa,
-            'unique_taxa': [taxa['scientific_tentative'] for taxa in unique_taxa_list],
+            'unique_taxa': [taxa['unique_name'] for taxa in unique_taxa_list],
             'deployment_time': deployment_time.seconds // 3600,
             'accumulation_data': accumulation_data,
         }
