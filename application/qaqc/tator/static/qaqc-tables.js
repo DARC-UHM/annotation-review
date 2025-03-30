@@ -327,6 +327,12 @@ function updateHash() {
                         ${sortKey=== 'subspecies' ? caretUpFill : sortKey=== 'subspecies-desc' ? caretDownFill : ''}
                     </div>
                 </th>
+                <th scope="col" onclick="setSort('morphospecies')" class="table-header-hover">
+                    <div class="d-flex">
+                        Morphospecies
+                        ${sortKey=== 'morphospecies' ? caretUpFill : sortKey=== 'morphospecies-desc' ? caretDownFill : ''}
+                    </div>
+                </th>
                 <th scope="col" onclick="setSort('tentative_id')" class="table-header-hover">
                     <div class="d-flex">
                         TentativeID
@@ -466,6 +472,7 @@ function updateHash() {
                     <td>${annotation.subgenus || '-'}</td>
                     <td>${annotation.species || '-'}</td>
                     <td>${annotation.subspecies || '-'}</td>
+                    <td>${annotation.morphospecies || '-'}</td>
                     <td>${annotation.tentative_id || '-'}</td>
                     <td>${annotation.timestamp || '-'}</td>
                     <td>${annotation.camera_seafloor_arrival || '-'}</td>
@@ -513,6 +520,7 @@ function downloadSummaryTsv() {
         'Subgenus',
         'Species',
         'Subspecies',
+        'Morphospecies',
         'TentativeID',
         'ObservationTimestamp',
         'CameraSeafloorArrival',
@@ -553,6 +561,7 @@ function downloadSummaryTsv() {
         annotation.subgenus,
         annotation.species,
         annotation.subspecies,
+        annotation.morphospecies,
         annotation.tentative_id,
         annotation.timestamp,
         annotation.camera_seafloor_arrival,
