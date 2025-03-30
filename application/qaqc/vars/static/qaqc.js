@@ -208,7 +208,7 @@ function updateHash() {
             </span>
         `);
         $('#annotationTable').append(`
-            <thead>
+            <thead class="text-start sticky-top small" style="background-color: #1c2128; color: #eee;">
                 <tr>
                     <th class="text-start">Concept</th>
                     <th class="text-start">Annotation Count</th>
@@ -222,7 +222,7 @@ function updateHash() {
             }
             const boxCount = boundingBoxInfo.bounding_box_counts[concept].boxes;
             $('#annotationTable').find('tbody').append(`
-                <tr>
+                <tr class="small">
                     <td>${concept}</td>
                     <td>${boundingBoxInfo.bounding_box_counts[concept].annos}</td>
                     <td

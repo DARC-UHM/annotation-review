@@ -77,14 +77,14 @@ function updateHash() {
         window.returnToCheckList = returnToCheckList;
 
         $('#annotationTable').find('thead').html(`
-            <tr>
+            <tr class="thead-dark sticky-top" style="background-color: #1c2128; color: #eee;">
                 <th scope="col">Scientific Name</th>
                 <th scope="col">Tentative ID</th>
                 <th scope="col">Morphospecies</th>
                 <th scope="col">First Dot</th>
                 <th scope="col">First Box</th>
-                <th scope="col">Num Dots</th>
-                <th scope="col">Num Boxes</th>
+                <th scope="col">Dots</th>
+                <th scope="col">Boxes</th>
             </tr>
         `);
         for (const taxa of Object.keys(uniqueTaxa).sort()) {
@@ -121,7 +121,7 @@ function updateHash() {
         let totalMedia = 0;
         $('#downloadTsvButton').hide();
         $('#annotationTable').find('thead').html(`
-            <tr>
+            <tr class="text-start sticky-top" style="background-color: #1c2128; color: #eee;">
                 <th scope="col">Media Name</th>
                 <th scope="col">FOV</th>
                 <th scope="col">Substrate</th>
@@ -135,7 +135,7 @@ function updateHash() {
                 totalMedia++;
                 $('#annotationTable').find('tbody').append(`
                     <tr class="text-start">
-                        <td class="small">${media.name}</td>
+                        <td>${media.name}</td>
                         <td style="${media.attributes.FOV !== baselineFov ? 'color: yellow; font-weight: bold;' : ''}">${media.attributes.FOV}</td>
                         <td>${media.attributes.Substrate}</td>
                         <td>${media.attributes['Video Quality']}</td>
@@ -155,7 +155,7 @@ function updateHash() {
             downloadMaxNTsv();
         });
         $('#annotationTable').find('thead').html(`
-            <tr class="small">
+            <tr>
                 <th scope="col">Deployment</th>
                 <th scope="col" >Depth (m)</th>
                 ${maxN.unique_taxa.map((taxa) => `<th scope="col" class="fw-normal" style="writing-mode: vertical-lr;">${taxa}</th>`)}
@@ -164,7 +164,7 @@ function updateHash() {
         for (let i = 0; i < Object.keys(maxN.deployments).length; i++) {
             const deployment = maxN.deployments[Object.keys(maxN.deployments)[i]];
             $('#annotationTable').find('tbody').append(`
-                <tr class="text-start small">
+                <tr class="text-start">
                     <td>${Object.keys(maxN.deployments)[i]}</td>
                     <td>${deployment.depth_m}</td>
                     ${maxN.unique_taxa.map((taxa) => deployment.max_n_dict[taxa] ? `
@@ -186,7 +186,7 @@ function updateHash() {
             downloadTofaTsv();
         });
         $('#annotationTable').find('thead').html(`
-            <tr class="small">
+            <tr>
                 <th scope="col">Deployment</th>
                 <th scope="col" >Depth (m)</th>
                 ${tofa.unique_taxa.map((taxa) => `<th scope="col" class="fw-normal" style="writing-mode: vertical-lr;">${taxa}</th>`)}
@@ -195,7 +195,7 @@ function updateHash() {
         for (let i = 0; i < Object.keys(tofa.deployments).length; i++) {
             const deployment = tofa.deployments[Object.keys(tofa.deployments)[i]];
             $('#annotationTable').find('tbody').append(`
-                <tr class="text-start small">
+                <tr class="text-start">
                     <td>${Object.keys(tofa.deployments)[i]}</td>
                     <td>${deployment.depth_m}</td>
                     ${tofa.unique_taxa.map((taxa) => deployment.tofa_dict[taxa] ? `
@@ -243,7 +243,7 @@ function updateHash() {
             downloadSummaryTsv();
         });
         $('#annotationTable').find('thead').html(`
-            <tr class="small text-start sticky-top" style="background: #1c2128; cursor: pointer;">
+            <tr class="text-start sticky-top" style="background: #1c2128; cursor: pointer;">
                 <th
                   scope="col"
                   style="position: sticky; left: 0; background: #1c2128; z-index: 1;"
@@ -450,7 +450,7 @@ function updateHash() {
                 }
             }
             $('#annotationTable').find('tbody').append(`
-                <tr class="small text-start">
+                <tr class="text-start">
                     <td style="position: sticky; left: 0; background: ${dark ? '#212730' : 'var(--darc-bg)'}; z-index: 5;">
                         <a
                             class="editButton"

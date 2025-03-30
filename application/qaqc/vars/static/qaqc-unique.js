@@ -31,7 +31,7 @@ function updateHash() {
 
     if (fieldToCheck === 'concept-upon-combinations') {
         $('#annotationTable').append(`
-            <thead class="text-start">
+            <thead class="text-start sticky-top" style="background-color: #1c2128; color: #eee;">
                 <tr>
                     <th>Concept</th>
                     <th>Upon</th>
@@ -52,7 +52,7 @@ function updateHash() {
         }
     } else {
         $('#annotationTable').append(`
-            <thead class="text-start">
+            <thead class="text-start sticky-top" style="background-color: #1c2128; color: #eee;">
                 <tr>
                     <th style="text-transform: capitalize; width: 60%;">${fieldToCheck.replace('-', ' ')}</th>
                     <th style="width: 20%;">Records</th>

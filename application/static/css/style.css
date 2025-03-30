@@ -404,6 +404,10 @@ select:active {
     filter: brightness(110%);
 }
 
+.table>:not(:first-child) {
+    border-top: 0;
+}
+
 .sequenceName {
     padding: 3px 8px;
     width: 250px;
