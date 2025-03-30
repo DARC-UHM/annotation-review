@@ -146,7 +146,9 @@ class TatorLocalizationProcessor:
             if localization['type'] not in [TatorLocalizationType.BOX.value, TatorLocalizationType.DOT.value]:
                 continue  # we only care about boxes and dots
             scientific_name = localization['attributes'].get('Scientific Name')
-            if scientific_name not in self.phylogeny.keys() and scientific_name not in no_match_records:
+            cached_phylogeny = self.phylogeny.get(scientific_name)
+            if (cached_phylogeny is None or 'aphia_id' not in cached_phylogeny.keys())\
+                    and scientific_name not in no_match_records:
                 if not self.fetch_worms_phylogeny(scientific_name):
                     no_match_records.add(scientific_name)
             localization_dict = {
