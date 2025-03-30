@@ -308,18 +308,21 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
 
     def get_max_n(self):
         """
-        Finds the highest dot count for each unique scientific name/tentative ID combo per deployment.
+        Finds the highest dot count for each unique scientific name, tentative ID, and morphospecies combo per deployment.
         """
         self.process_records(get_ctd=True)
         deployment_taxa = {}
         unique_taxa = {}
         for record in self.final_records:
-            scientific_tentative = f'{record["scientific_name"]}{" (" + record["tentative_id"] + "?)" if record["tentative_id"] else ""}'
-            if record['count'] < 1 or record['attracted'] == 'Not Attracted':
+            scientific_name = record.get('scientific_name')
+            tentative_id_suffix = f' ({record["tentative_id"]}?)' if record.get('tentative_id') else ''
+            morphospecies_suffix = f' ({record["morphospecies"]})' if record.get('morphospecies') else ''
+            unique_name = f'{scientific_name}{tentative_id_suffix}{morphospecies_suffix}'
+            if record.get('count', 0) < 1 or record.get('attracted') == 'Not Attracted':
                 continue
-            if scientific_tentative not in unique_taxa.keys():
-                unique_taxa[scientific_tentative] = {
-                    'scientific_tentative': scientific_tentative,
+            if unique_name not in unique_taxa.keys():
+                unique_taxa[unique_name] = {
+                    'unique_name': unique_name,
                     'phylum': record.get('phylum'),
                     'class': record.get('class'),
                     'order': record.get('order'),
@@ -332,17 +335,17 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
                     'depth_m': record.get('depth_m'),
                     'max_n_dict': {},
                 }
-            if scientific_tentative not in deployment_taxa[record['video_sequence_name']]['max_n_dict'].keys():
+            if unique_name not in deployment_taxa[record['video_sequence_name']]['max_n_dict'].keys():
                 # add new unique taxa to dict
-                deployment_taxa[record['video_sequence_name']]['max_n_dict'][scientific_tentative] = {
+                deployment_taxa[record['video_sequence_name']]['max_n_dict'][unique_name] = {
                     'max_n': record['count'],
                     'max_n_url': f'{self.tator_url}/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}',
                 }
             else:
                 # check for new max N
-                if record['count'] > deployment_taxa[record['video_sequence_name']]['max_n_dict'][scientific_tentative]['max_n']:
-                    deployment_taxa[record['video_sequence_name']]['max_n_dict'][scientific_tentative]['max_n'] = record['count']
-                    deployment_taxa[record['video_sequence_name']]['max_n_dict'][scientific_tentative]['max_n_url'] = f'{self.tator_url}/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}'
+                if record['count'] > deployment_taxa[record['video_sequence_name']]['max_n_dict'][unique_name]['max_n']:
+                    deployment_taxa[record['video_sequence_name']]['max_n_dict'][unique_name]['max_n'] = record['count']
+                    deployment_taxa[record['video_sequence_name']]['max_n_dict'][unique_name]['max_n_url'] = f'{self.tator_url}/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}'
         # convert unique taxa to list for sorting
         unique_taxa_list = list(unique_taxa.values())
         unique_taxa_list.sort(key=lambda x: (
@@ -353,7 +356,10 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
             x['genus'] if x.get('genus') else '',
             x['species'] if x.get('species') else '',
         ))
-        self.final_records = {'deployments': deployment_taxa, 'unique_taxa': [taxa['scientific_tentative'] for taxa in unique_taxa_list]}
+        self.final_records = {
+            'deployments': deployment_taxa,
+            'unique_taxa': [taxa['unique_name'] for taxa in unique_taxa_list],
+        }
 
     def get_tofa(self):
         """
