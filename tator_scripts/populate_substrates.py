@@ -53,6 +53,9 @@ with open(CSV_FILE, newline='') as file:
             print(f'Error getting media ids: {res.json()["message"]}')
             exit(1)
         media_ids = [media['id'] for media in res.json()]
+        if len(media_ids) == 0:
+            print(f'\nNo clips found in Tator matching deployment name: {deployment_name}.')
+            continue
         print(f'Found {len(media_ids)} media files')
         # update attributes for each media id
         for media_id in media_ids:
