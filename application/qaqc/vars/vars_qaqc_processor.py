@@ -205,8 +205,6 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
         num_records_missing = 0
         for name in self.sequence_names:
             for annotation in self.fetch_annotations(name):
-                if annotation.get('group') == 'localization':
-                    continue
                 if 'ancillary_data' not in annotation.keys():
                     num_records_missing += 1
         return num_records_missing
