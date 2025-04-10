@@ -30,6 +30,7 @@ from datetime import datetime, timedelta
 
 TERM_RED = '\033[1;31;48m'
 TERM_YELLOW = '\033[1;93m'
+TERM_GREEN = '\033[1;32m'
 TERM_NORMAL = '\033[1;37;0m'
 
 
@@ -144,6 +145,8 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names):
     delta_offset = timedelta(seconds=offset)
     print(f'Offset: {offset} seconds ({delta_offset})')
 
+    count_success = 0
+    count_failure = 0
     print('\nSyncing CTD data...')
     # for each localization, populate the DO Temperature and DO Concentration Salin Comp attributes
     for localization in localizations:
@@ -159,10 +162,11 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names):
             do_concentration = row['DO Concentration Salin Comp (mol/L)'].values[0]
             depth = row['Depth (meters)'].values[0]
         except IndexError:
-            print(f'{TERM_RED}No CTD data found for localization {localization["id"]}{TERM_NORMAL}')
-            print(f'Sensor timestamp: {converted_timestamp}')
-            print(f'Localization URL: https://cloud.tator.io/{project_id}/annotation/{localization["media"]}?frame={localization["frame"]}')
-            exit(1)
+            count_failure += 1
+            print(f'\n{TERM_RED}No CTD data found for localization {localization["id"]}{TERM_NORMAL}')
+            print(f'Could not find row with timestamp {converted_timestamp} in sensor CSV')
+            print(f'Localization URL: https://cloud.tator.io/{project_id}/annotation/{localization["media"]}?frame={localization["frame"]}\n')
+            continue
 
         if do_temp <= 0 or do_temp > 35:
             print(f'{TERM_YELLOW}WARNING: DO Temperature out of range (0-35): {do_temp}{TERM_NORMAL}')
@@ -252,10 +256,21 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names):
                 }
             },
         )
-        print(update_res.json().get('message'))
+        if update_res.status_code == 200:
+            count_success += 1
+            print(update_res.json().get('message'))
+        else:
+            count_failure += 1
+            print(f'{TERM_RED}update_res.json().get("message"){TERM_NORMAL}')
 
     # pau
-    print(f'CTD for {deployment_name} synced!\n')
+    marine_emojis = ['🦈', '🐠', '🐬', '🐋', '🐙', '🦑', '🦐', '🦞', '🦀', '🐚', '🌊']
+    print()
+    print(f'{deployment_name} complete {marine_emojis[count_success % len(marine_emojis)]}')
+    print(f'{TERM_GREEN}Successfully populated CTD for {count_success} localizations{TERM_NORMAL}')
+    if count_failure > 0:
+        print(f'{TERM_RED}Failed to populate CTD for {count_failure} localizations{TERM_NORMAL}')
+    print()
 
 
 dotenv.load_dotenv()
@@ -279,4 +294,3 @@ if __name__ == '__main__':
         use_underscore_names=use_underscore_names,
     )
     os.system('say "Deployment CTD synced."')
-    print('Done!')
