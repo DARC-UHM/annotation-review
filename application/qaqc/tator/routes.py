@@ -252,6 +252,8 @@ def add_attracted():
     )
     if res.status_code == 201:
         flash(f'Added {request.values.get("concept")}', 'success')
+    else:
+        flash(f'Failed to add {request.values.get("concept")}', 'danger')
     return res.json(), res.status_code
 
 

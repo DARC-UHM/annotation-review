@@ -94,6 +94,8 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names):
         # get the folder metadata
         folder_metadata = dbx.files_list_folder(folder_path)
         for entry in folder_metadata.entries:  # iterate over the entries in the folder
+            if entry.name[0] == '.':
+                continue
             path = os.path.join(folder_path, entry.name)
             if isinstance(entry, dropbox.files.FileMetadata) and entry.name[-3:].lower() == 'csv':
                 # assume there is only one csv file in the sensor folder
