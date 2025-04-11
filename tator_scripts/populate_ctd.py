@@ -172,15 +172,18 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names):
     std_temperature = df[df['Depth (meters)'] > depth - 10]['DO Temperature (celsius)'].std()
     std_do_concentration = df[df['Depth (meters)'] > depth - 10]['DO Concentration Salin Comp (mol/L)'].std()
 
-    print(f'\nAvg Temperature at Bottom: {avg_temperature.round(2)} ± {std_temperature.round(2)}')
-    print(f'Avg DO Concentration at Bottom: {avg_do_concentration.round(2)} ± {std_do_concentration.round(2)}')
+    print(f'\nAvg temperature at bottom: {avg_temperature.round(2)} ± {std_temperature.round(2)}')
+    print(f'Avg DO concentration at bottom: {avg_do_concentration.round(2)} ± {std_do_concentration.round(2)}')
 
     before_length = len(df)
+    bottom_df = df[df['Depth (meters)'] > depth - 10]
+    ascent_descent_df = df[df['Depth (meters)'] <= depth - 10]
+    # remove any rows at bottom with a temperature diff that is greater than 3 standard deviations from the mean
+    bottom_df = bottom_df[(bottom_df['DO Temperature (celsius)'] - avg_temperature).abs() < 3 * std_temperature]
+    # remove any rows at bottom with a do concentration diff that is greater than 3 standard deviations from the mean
+    bottom_df = bottom_df[(bottom_df['DO Concentration Salin Comp (mol/L)'] - avg_do_concentration).abs() < 3 * std_do_concentration]
 
-    # remove any rows with a temperature diff that is greater than 3 standard deviations from the mean
-    df = df[(df['DO Temperature (celsius)'] - avg_temperature).abs() < 3 * std_temperature]
-    # remove any rows with a do concentration diff that is greater than 3 standard deviations from the mean
-    df = df[(df['DO Concentration Salin Comp (mol/L)'] - avg_do_concentration).abs() < 3 * std_do_concentration]
+    df = pd.concat([bottom_df, ascent_descent_df])  # join the dataframes back together
 
     print(f'\nRemoved {before_length - len(df)} rows with outliers (> 3 std devs from the mean)')
 
@@ -199,7 +202,12 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names):
         row = df.loc[df['Dropcam Timestamp (s)'] == converted_timestamp]
         ctd_offset_seconds = 0
         if row.empty:  # missing this timestamp, get the closest row with an earlier timestamp
-            row = df.loc[df['Dropcam Timestamp (s)'] < converted_timestamp].iloc[-1]
+            filtered_df = df.loc[df['Dropcam Timestamp (s)'] < converted_timestamp]
+            if filtered_df.empty:
+                print(f'{TERM_RED}No earlier timestamp found for localization {localization["elemental_id"]} '
+                      f'(timestamp {converted_timestamp}), skipping{TERM_NORMAL}')
+                continue
+            row = filtered_df.iloc[-1]
             ctd_offset_seconds = converted_timestamp - row['Dropcam Timestamp (s)']
             do_temp = row['DO Temperature (celsius)']
             do_concentration = row['DO Concentration Salin Comp (mol/L)']
