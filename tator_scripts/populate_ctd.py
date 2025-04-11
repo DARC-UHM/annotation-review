@@ -84,6 +84,7 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names):
         exit(1)
     localizations += get_localization_res.json()
     print(f'fetched {len(localizations)} localizations!')
+    print()
 
     # get the csv for the deployment
     print(f'Fetching CTD CSV file from Dropbox...', end='')
@@ -110,9 +111,12 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names):
         print(f'Tried looking for CSV sensor file in folder: {folder_path}')
         print('Is this the correct folder path?')
         exit(1)
+    except dropbox.exceptions.AuthError as e:
+        print(f'\n\n{TERM_RED}Error connecting to Dropbox: {e}{TERM_NORMAL}')
+        exit(1)
 
     if df is None:
-        print(f'{TERM_RED}No CTD CSV file found in Dropbox{TERM_NORMAL}')
+        print(f'\n{TERM_RED}No CTD CSV file found in Dropbox{TERM_NORMAL}')
         exit(1)
 
     for expected_col_header in [
@@ -126,24 +130,59 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names):
             print(f'See CSV file here: https://www.dropbox.com/home{path}')
             exit(1)
 
+    before_length = len(df)
+
+    # get rid of any rows with wonky timestamps
+    first_timestamp = df['Dropcam Timestamp (s)'][0]  # assume that the first timestamp is correct
+    df = df[df['Dropcam Timestamp (s)'] >= first_timestamp]
+    df = df[df['Dropcam Timestamp (s)'] < first_timestamp + 72 * 60 * 60]  # +72 hrs
+    df = df.reset_index(drop=True)
+
+    if before_length != len(df):
+        print(f'\nRemoved {before_length - len(df)} rows with wonky timestamps')
+
     # find the point at which the depths stop increasing
     bottom_row = None
+    depth = None
     rolling_avg = df['Depth (meters)'].rolling(window=20).mean()
     for i in range(250, len(rolling_avg)):  # assuming it takes at least 250 seconds to reach the bottom
-        diff = rolling_avg[i] - rolling_avg[i-1]
+        diff = rolling_avg[i] - rolling_avg[i - 1]
         if abs(diff) < 0.1 and df['Depth (meters)'][i] > 200:
             bottom_row = df.iloc[rolling_avg.index[i] - 20]
+            depth = bottom_row['Depth (meters)']
             break
 
     if bottom_row is None:
         print(f'{TERM_RED}Could not find bottom arrival time{TERM_NORMAL}')
+        exit(1)
 
-    print(f'Sensor bottom data arrival time unix: {bottom_row["Dropcam Timestamp (s)"]}')
+    print(f'\nSensor bottom data arrival time unix: {bottom_row["Dropcam Timestamp (s)"]}')
+
     offset = camera_bottom_unix_timestamp - bottom_row['Dropcam Timestamp (s)']
 
     # parse time difference to hours, minutes, seconds
     delta_offset = timedelta(seconds=offset)
     print(f'Offset: {offset} seconds ({delta_offset})')
+
+    # get the average of sensor data for the time that the camera was at the bottom
+    avg_temperature = df[df['Depth (meters)'] > depth - 10]['DO Temperature (celsius)'].mean()
+    avg_do_concentration = df[df['Depth (meters)'] > depth - 10]['DO Concentration Salin Comp (mol/L)'].mean()
+
+    # standard deviation of the sensor data for the time that the camera was at the bottom
+    std_temperature = df[df['Depth (meters)'] > depth - 10]['DO Temperature (celsius)'].std()
+    std_do_concentration = df[df['Depth (meters)'] > depth - 10]['DO Concentration Salin Comp (mol/L)'].std()
+
+    print(f'\nAvg Temperature at Bottom: {avg_temperature.round(2)} ± {std_temperature.round(2)}')
+    print(f'Avg DO Concentration at Bottom: {avg_do_concentration.round(2)} ± {std_do_concentration.round(2)}')
+
+    before_length = len(df)
+
+    # remove any rows with a temperature diff that is greater than 3 standard deviations from the mean
+    df = df[(df['DO Temperature (celsius)'] - avg_temperature).abs() < 3 * std_temperature]
+    # remove any rows with a do concentration diff that is greater than 3 standard deviations from the mean
+    df = df[(df['DO Concentration Salin Comp (mol/L)'] - avg_do_concentration).abs() < 3 * std_do_concentration]
+
+    print(f'\nRemoved {before_length - len(df)} rows with outliers (> 3 std devs from the mean)')
 
     count_success = 0
     count_failure = 0
@@ -157,16 +196,17 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names):
         # find the row in the CSV that matches the timestamp
         converted_timestamp = unix_timestamp - offset
         row = df.loc[df['Dropcam Timestamp (s)'] == converted_timestamp]
-        try:
+        ctd_offset_seconds = 0
+        if row.empty:  # missing this timestamp, get the closest row with an earlier timestamp
+            row = df.loc[df['Dropcam Timestamp (s)'] < converted_timestamp].iloc[-1]
+            ctd_offset_seconds = converted_timestamp - row['Dropcam Timestamp (s)']
+            do_temp = row['DO Temperature (celsius)']
+            do_concentration = row['DO Concentration Salin Comp (mol/L)']
+            depth = row['Depth (meters)']
+        else:
             do_temp = row['DO Temperature (celsius)'].values[0]
             do_concentration = row['DO Concentration Salin Comp (mol/L)'].values[0]
             depth = row['Depth (meters)'].values[0]
-        except IndexError:
-            count_failure += 1
-            print(f'\n{TERM_RED}No CTD data found for localization {localization["id"]}{TERM_NORMAL}')
-            print(f'Could not find row with timestamp {converted_timestamp} in sensor CSV')
-            print(f'Localization URL: https://cloud.tator.io/{project_id}/annotation/{localization["media"]}?frame={localization["frame"]}\n')
-            continue
 
         if do_temp <= 0 or do_temp > 35:
             print(f'{TERM_YELLOW}WARNING: DO Temperature out of range (0-35): {do_temp}{TERM_NORMAL}')
@@ -241,6 +281,17 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names):
             print(f'Localization URL: https://cloud.tator.io/{project_id}/annotation/{localization["media"]}?frame={localization["frame"]}')
             print(f'Sensor timestamp: {converted_timestamp}')
 
+        attributes = {
+            'DO Temperature (celsius)': do_temp,
+            'DO Concentration Salin Comp (mol per L)': do_concentration,
+            'Depth': depth,
+        }
+        if ctd_offset_seconds > 0:
+            current_notes = localization['attributes'].get('Notes')
+            data_note = f'Temperature and oxygen data collected {round(ctd_offset_seconds)} ' \
+                f'second{"s" if ctd_offset_seconds > 1 else ""} before timestamp of record'
+            attributes['Notes'] = f'{current_notes}|{data_note}' if current_notes else data_note
+
         # update the localization
         update_res = requests.patch(
             url=f'https://cloud.tator.io/rest/Localization/{localization["id"]}',
@@ -248,20 +299,14 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names):
                 'Content-Type': 'application/json',
                 'Authorization': f'Token {TATOR_TOKEN}',
             },
-            json={
-                'attributes': {
-                    'DO Temperature (celsius)': do_temp,
-                    'DO Concentration Salin Comp (mol per L)': do_concentration,
-                    'Depth': depth,
-                }
-            },
+            json={'attributes': attributes},
         )
         if update_res.status_code == 200:
             count_success += 1
             print(update_res.json().get('message'))
         else:
             count_failure += 1
-            print(f'{TERM_RED}update_res.json().get("message"){TERM_NORMAL}')
+            print(f'{TERM_RED}{update_res.json().get("message")}{TERM_NORMAL}')
 
     # pau
     marine_emojis = ['🦈', '🐠', '🐬', '🐋', '🐙', '🦑', '🦐', '🦞', '🦀', '🐚', '🌊']
@@ -281,11 +326,15 @@ if __name__ == '__main__':
         print('Usage: python populate_ctd.py <project_id> <section_id> <deployment_name> [--use-underscore-folder-names]')
         sys.exit()
     if len(sys.argv) == 5 and sys.argv[4] == '--use-underscore-folder-names':
+        print()
         print('Using old Dropbox folder naming format (underscores)')
+        print()
         use_underscore_names = True
     else:
+        print()
         print('Using new Dropbox folder naming format (replacing underscores with dashes)')
         print('To use old Dropbox folder naming format, append "--use-underscore-folder-names" to command')
+        print()
         use_underscore_names = False
     populate_ctd(
         project_id=sys.argv[1],
