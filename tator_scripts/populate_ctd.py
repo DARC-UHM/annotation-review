@@ -164,20 +164,22 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names):
     delta_offset = timedelta(seconds=offset)
     print(f'Offset: {offset} seconds ({delta_offset})')
 
+    bottom_df = df[df['Depth (meters)'] > depth - 10]  # only the rows at bottom
+    ascent_descent_df = df[df['Depth (meters)'] <= depth - 10]  # ascent/descent rows
+
     # get the average of sensor data for the time that the camera was at the bottom
-    avg_temperature = df[df['Depth (meters)'] > depth - 10]['DO Temperature (celsius)'].mean()
-    avg_do_concentration = df[df['Depth (meters)'] > depth - 10]['DO Concentration Salin Comp (mol/L)'].mean()
+    avg_temperature = bottom_df['DO Temperature (celsius)'].mean()
+    avg_do_concentration = bottom_df['DO Concentration Salin Comp (mol/L)'].mean()
 
     # standard deviation of the sensor data for the time that the camera was at the bottom
-    std_temperature = df[df['Depth (meters)'] > depth - 10]['DO Temperature (celsius)'].std()
-    std_do_concentration = df[df['Depth (meters)'] > depth - 10]['DO Concentration Salin Comp (mol/L)'].std()
+    std_temperature = bottom_df['DO Temperature (celsius)'].std()
+    std_do_concentration = bottom_df['DO Concentration Salin Comp (mol/L)'].std()
 
     print(f'\nAvg temperature at bottom: {avg_temperature.round(2)} ± {std_temperature.round(2)}')
     print(f'Avg DO concentration at bottom: {avg_do_concentration.round(2)} ± {std_do_concentration.round(2)}')
 
     before_length = len(df)
-    bottom_df = df[df['Depth (meters)'] > depth - 10]
-    ascent_descent_df = df[df['Depth (meters)'] <= depth - 10]
+
     # remove any rows at bottom with a temperature diff that is greater than 3 standard deviations from the mean
     bottom_df = bottom_df[(bottom_df['DO Temperature (celsius)'] - avg_temperature).abs() < 3 * std_temperature]
     # remove any rows at bottom with a do concentration diff that is greater than 3 standard deviations from the mean
