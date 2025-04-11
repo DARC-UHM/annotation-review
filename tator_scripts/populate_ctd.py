@@ -186,6 +186,7 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names):
 
     count_success = 0
     count_failure = 0
+    count_interpolated = 0
     print('\nSyncing CTD data...')
     # for each localization, populate the DO Temperature and DO Concentration Salin Comp attributes
     for localization in localizations:
@@ -203,6 +204,7 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names):
             do_temp = row['DO Temperature (celsius)']
             do_concentration = row['DO Concentration Salin Comp (mol/L)']
             depth = row['Depth (meters)']
+            count_interpolated += 1
         else:
             do_temp = row['DO Temperature (celsius)'].values[0]
             do_concentration = row['DO Concentration Salin Comp (mol/L)'].values[0]
@@ -311,10 +313,13 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names):
     # pau
     marine_emojis = ['🦈', '🐠', '🐬', '🐋', '🐙', '🦑', '🦐', '🦞', '🦀', '🐚', '🌊']
     print()
-    print(f'{deployment_name} complete {marine_emojis[count_success % len(marine_emojis)]}')
     print(f'{TERM_GREEN}Successfully populated CTD for {count_success} localizations{TERM_NORMAL}')
+    if count_interpolated > 0:
+        print(f'Of those, {count_interpolated} used a previous timestamp')
     if count_failure > 0:
         print(f'{TERM_RED}Failed to populate CTD for {count_failure} localizations{TERM_NORMAL}')
+    print()
+    print(f'{deployment_name} complete {marine_emojis[count_success % len(marine_emojis)]}')
     print()
 
 
