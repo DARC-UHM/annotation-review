@@ -130,12 +130,20 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names):
             print(f'See CSV file here: https://www.dropbox.com/home{path}')
             exit(1)
 
+    df = df.rename(columns={
+        'Depth (meters)': 'depth',
+        'Dropcam Timestamp (s)': 'timestamp',
+        'DO Temperature (celsius)': 'temp',
+        'DO Concentration Salin Comp (mol/L)': 'o2_concentration',
+    })
+    df = df[['timestamp', 'depth', 'temp', 'o2_concentration']]
+
     before_length = len(df)
 
     # get rid of any rows with wonky timestamps
-    first_timestamp = df['Dropcam Timestamp (s)'][0]  # assume that the first timestamp is correct
-    df = df[df['Dropcam Timestamp (s)'] >= first_timestamp]
-    df = df[df['Dropcam Timestamp (s)'] < first_timestamp + 72 * 60 * 60]  # +72 hrs
+    first_timestamp = df['timestamp'][0]  # assume that the first timestamp is correct
+    df = df[df['timestamp'] >= first_timestamp]
+    df = df[df['timestamp'] < first_timestamp + 72 * 60 * 60]  # +72 hrs
     df = df.reset_index(drop=True)
 
     if before_length != len(df):
@@ -144,55 +152,58 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names):
     # find the point at which the depths stop increasing
     bottom_row = None
     depth = None
-    rolling_avg = df['Depth (meters)'].rolling(window=20).mean()
+    rolling_avg = df['depth'].rolling(window=20).mean()
     for i in range(250, len(rolling_avg)):  # assuming it takes at least 250 seconds to reach the bottom
         diff = rolling_avg[i] - rolling_avg[i - 1]
-        if abs(diff) < 0.1 and df['Depth (meters)'][i] > 200:
+        if abs(diff) < 0.1 and df['depth'][i] > 200:
             bottom_row = df.iloc[rolling_avg.index[i] - 20]
-            depth = bottom_row['Depth (meters)']
+            depth = bottom_row['depth']
             break
 
     if bottom_row is None:
         print(f'{TERM_RED}Could not find bottom arrival time{TERM_NORMAL}')
         exit(1)
 
-    print(f'\nSensor bottom data arrival time unix: {bottom_row["Dropcam Timestamp (s)"]}')
+    print(f'\nCalculated bottom arrival time from sensor data (unix): {bottom_row["timestamp"]}')
+    print(f'Recommend double-checking this timestamp in the CSV file ^^^^^^^^^^')
 
-    offset = camera_bottom_unix_timestamp - bottom_row['Dropcam Timestamp (s)']
+    offset = camera_bottom_unix_timestamp - bottom_row['timestamp']
 
     # parse time difference to hours, minutes, seconds
     delta_offset = timedelta(seconds=offset)
-    print(f'Offset: {offset} seconds ({delta_offset})')
+    print(f'\nOffset between camera time and sensor time: {int(offset)} seconds ({delta_offset})')
 
-    bottom_df = df[df['Depth (meters)'] > depth - 10]  # only the rows at bottom
-    ascent_descent_df = df[df['Depth (meters)'] <= depth - 10]  # ascent/descent rows
+    bottom_df = df[df['depth'] > depth - 10]  # only the rows at bottom
+    ascent_descent_df = df[df['depth'] <= depth - 10]  # ascent/descent rows
 
     # get the average of sensor data for the time that the camera was at the bottom
-    avg_temperature = bottom_df['DO Temperature (celsius)'].mean()
-    avg_do_concentration = bottom_df['DO Concentration Salin Comp (mol/L)'].mean()
+    avg_temp_at_bottom = bottom_df['temp'].mean()
+    avg_o2_at_bottom = bottom_df['o2_concentration'].mean()
 
     # standard deviation of the sensor data for the time that the camera was at the bottom
-    std_temperature = bottom_df['DO Temperature (celsius)'].std()
-    std_do_concentration = bottom_df['DO Concentration Salin Comp (mol/L)'].std()
+    std_temp_at_bottom = bottom_df['temp'].std()
+    std_do_o2_at_bottom = bottom_df['o2_concentration'].std()
 
-    print(f'\nAvg temperature at bottom: {avg_temperature.round(2)} ± {std_temperature.round(2)}')
-    print(f'Avg DO concentration at bottom: {avg_do_concentration.round(2)} ± {std_do_concentration.round(2)}')
+    print(f'\nAvg temperature at bottom: {avg_temp_at_bottom.round(2)} ± {std_temp_at_bottom.round(2)}')
+    print(f'Avg DO concentration at bottom: {avg_o2_at_bottom.round(2)} ± {std_do_o2_at_bottom.round(2)}')
 
     before_length = len(df)
 
     # remove any rows at bottom with a temperature diff that is greater than 3 standard deviations from the mean
-    bottom_df = bottom_df[(bottom_df['DO Temperature (celsius)'] - avg_temperature).abs() < 3 * std_temperature]
+    bottom_df = bottom_df[(bottom_df['temp'] - avg_temp_at_bottom).abs() < 3 * std_temp_at_bottom]
     # remove any rows at bottom with a do concentration diff that is greater than 3 standard deviations from the mean
-    bottom_df = bottom_df[(bottom_df['DO Concentration Salin Comp (mol/L)'] - avg_do_concentration).abs() < 3 * std_do_concentration]
+    bottom_df = bottom_df[(bottom_df['o2_concentration'] - avg_o2_at_bottom).abs() < 3 * std_do_o2_at_bottom]
 
     df = pd.concat([bottom_df, ascent_descent_df])  # join the dataframes back together
+    df = df.sort_values(by='timestamp')
 
     print(f'\nRemoved {before_length - len(df)} rows with outliers (> 3 std devs from the mean)')
+    print('\nSyncing CTD data...')
 
     count_success = 0
     count_failure = 0
     count_interpolated = 0
-    print('\nSyncing CTD data...')
+
     # for each localization, populate the DO Temperature and DO Concentration Salin Comp attributes
     for localization in localizations:
         # get the timestamp of the localization
@@ -201,24 +212,24 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names):
         unix_timestamp = time.mktime(this_timestamp.timetuple())
         # find the row in the CSV that matches the timestamp
         converted_timestamp = unix_timestamp - offset
-        row = df.loc[df['Dropcam Timestamp (s)'] == converted_timestamp]
+        row = df.loc[df['timestamp'] == converted_timestamp]
         ctd_offset_seconds = 0
         if row.empty:  # missing this timestamp, get the closest row with an earlier timestamp
-            filtered_df = df.loc[df['Dropcam Timestamp (s)'] < converted_timestamp]
+            filtered_df = df.loc[df['timestamp'] < converted_timestamp]
             if filtered_df.empty:
                 print(f'{TERM_RED}No earlier timestamp found for localization {localization["elemental_id"]} '
                       f'(timestamp {converted_timestamp}), skipping{TERM_NORMAL}')
                 continue
             row = filtered_df.iloc[-1]
-            ctd_offset_seconds = converted_timestamp - row['Dropcam Timestamp (s)']
-            do_temp = row['DO Temperature (celsius)']
-            do_concentration = row['DO Concentration Salin Comp (mol/L)']
-            depth = row['Depth (meters)']
+            ctd_offset_seconds = converted_timestamp - row['timestamp']
+            do_temp = row['temp']
+            do_concentration = row['o2_concentration']
+            depth = row['depth']
             count_interpolated += 1
         else:
-            do_temp = row['DO Temperature (celsius)'].values[0]
-            do_concentration = row['DO Concentration Salin Comp (mol/L)'].values[0]
-            depth = row['Depth (meters)'].values[0]
+            do_temp = row['temp'].values[0]
+            do_concentration = row['o2_concentration'].values[0]
+            depth = row['depth'].values[0]
 
         if do_temp <= 0 or do_temp > 35:
             print(f'{TERM_YELLOW}WARNING: DO Temperature out of range (0-35): {do_temp}{TERM_NORMAL}')
@@ -228,27 +239,27 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names):
             later_do_temp = -1
             search_offset = 1
             while (earlier_do_temp <= 0 or earlier_do_temp > 35) and (later_do_temp <= 0 or later_do_temp > 35):
-                row = df.loc[df['Dropcam Timestamp (s)'] == converted_timestamp - search_offset]
+                row = df.loc[df['timestamp'] == converted_timestamp - search_offset]
                 try:
-                    earlier_do_temp = row['DO Temperature (celsius)'].values[0]
+                    earlier_do_temp = row['temp'].values[0]
                 except IndexError:
                     pass
                 if 0 < earlier_do_temp <= 35:
                     print(f'Found valid DO Temperature at timestamp {converted_timestamp - search_offset} ({search_offset} seconds earlier)')
                     do_temp = earlier_do_temp
-                    do_concentration = row['DO Concentration Salin Comp (mol/L)'].values[0]
-                    depth = row['Depth (meters)'].values[0]
+                    do_concentration = row['o2_concentration'].values[0]
+                    depth = row['depth'].values[0]
                     break
-                row = df.loc[df['Dropcam Timestamp (s)'] == converted_timestamp + search_offset]
+                row = df.loc[df['timestamp'] == converted_timestamp + search_offset]
                 try:
-                    later_do_temp = row['DO Temperature (celsius)'].values[0]
+                    later_do_temp = row['temp'].values[0]
                 except IndexError:
                     pass
                 if 0 < later_do_temp <= 35:
                     print(f'Found valid DO Temperature at timestamp {converted_timestamp + search_offset} ({search_offset} seconds later)')
                     do_temp = later_do_temp
-                    do_concentration = row['DO Concentration Salin Comp (mol/L)'].values[0]
-                    depth = row['Depth (meters)'].values[0]
+                    do_concentration = row['o2_concentration'].values[0]
+                    depth = row['depth'].values[0]
                     break
                 search_offset += 1
                 if search_offset > 300:
@@ -262,34 +273,34 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names):
             later_do_concentration = -1
             search_offset = 1
             while (earlier_do_concentration <= 0 or earlier_do_concentration > 320) and (later_do_concentration <= 0 or later_do_concentration > 320):
-                row = df.loc[df['Dropcam Timestamp (s)'] == converted_timestamp - search_offset]
+                row = df.loc[df['timestamp'] == converted_timestamp - search_offset]
                 try:
-                    earlier_do_concentration = row['DO Concentration Salin Comp (mol/L)'].values[0]
+                    earlier_do_concentration = row['o2_concentration'].values[0]
                 except IndexError:
                     pass
                 if 0 < earlier_do_concentration <= 320:
                     print(f'Found valid DO Concentration at timestamp {converted_timestamp - search_offset} ({search_offset} seconds earlier)')
                     do_concentration = earlier_do_concentration
-                    do_temp = row['DO Temperature (celsius)'].values[0]
-                    depth = row['Depth (meters)'].values[0]
+                    do_temp = row['temp'].values[0]
+                    depth = row['depth'].values[0]
                     break
-                row = df.loc[df['Dropcam Timestamp (s)'] == converted_timestamp + search_offset]
+                row = df.loc[df['timestamp'] == converted_timestamp + search_offset]
                 try:
-                    later_do_concentration = row['DO Concentration Salin Comp (mol/L)'].values[0]
+                    later_do_concentration = row['o2_concentration'].values[0]
                 except IndexError:
                     pass
                 if 0 < later_do_concentration <= 320:
                     print(f'Found valid DO Concentration Salin Comp at timestamp {converted_timestamp + search_offset} ({search_offset} seconds later)')
                     do_concentration = earlier_do_concentration
-                    do_temp = row['DO Temperature (celsius)'].values[0]
-                    depth = row['Depth (meters)'].values[0]
+                    do_temp = row['temp'].values[0]
+                    depth = row['depth'].values[0]
                     break
                 search_offset += 1
                 if search_offset > 300:
                     print(f'{TERM_RED}Could not find valid DO Concentration Salin Comp within 5 minutes of localization, exiting{TERM_NORMAL}')
                     exit(1)
-        if depth + 50 < bottom_row['Depth (meters)']:
-            print(f'{TERM_YELLOW}WARNING: Unexpected depth: {depth} (deployment depth was approximately {bottom_row["Depth (meters)"]}){TERM_NORMAL}')
+        if depth + 50 < bottom_row['depth']:
+            print(f'{TERM_YELLOW}WARNING: Unexpected depth: {depth} (deployment depth was approximately {bottom_row["depth"]}){TERM_NORMAL}')
             print(f'Localization URL: https://cloud.tator.io/{project_id}/annotation/{localization["media"]}?frame={localization["frame"]}')
             print(f'Sensor timestamp: {converted_timestamp}')
 
@@ -299,10 +310,16 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names):
             'Depth': depth,
         }
         if ctd_offset_seconds > 0:
-            current_notes = localization['attributes'].get('Notes')
             data_note = f'Temperature and oxygen data collected {round(ctd_offset_seconds)} ' \
-                f'second{"s" if ctd_offset_seconds > 1 else ""} before timestamp of record'
-            attributes['Notes'] = f'{current_notes}|{data_note}' if current_notes else data_note
+                        f'second{"s" if ctd_offset_seconds > 1 else ""} before timestamp of record'
+            current_notes = localization['attributes'].get('Notes')
+            if current_notes and current_notes != '':
+                note_parts = current_notes.split('|')
+                note_parts = [part for part in note_parts if 'Temperature and oxygen data collected' not in part]
+                note_parts.append(data_note)
+                attributes['Notes'] = '|'.join(note_parts)
+            else:
+                attributes['Notes'] = data_note
 
         # update the localization
         update_res = requests.patch(
