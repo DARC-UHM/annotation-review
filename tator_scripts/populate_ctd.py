@@ -17,6 +17,7 @@ To run this script, you must have a .env file in the root of the repository with
 Usage: python populate_ctd.py <project_id> <section_id> <deployment_name> [--use-underscore-folder-names]
 """
 
+import argparse
 import dotenv
 import dropbox
 import os
@@ -34,7 +35,14 @@ TERM_GREEN = '\033[1;32m'
 TERM_NORMAL = '\033[1;37;0m'
 
 
-def populate_ctd(project_id, section_id, deployment_name, use_underscore_names):
+def populate_ctd(project_id, section_id, deployment_name, use_underscore_names, dry_run):
+    if dry_run:
+        print('\n\n========= DRY RUN =========\n\n')
+    if use_underscore_names:
+        print('\nUsing old Dropbox folder naming format (underscores)\n')
+    else:
+        print('\nUsing new Dropbox folder naming format (replacing underscores with dashes)')
+        print('To use old Dropbox folder naming format, append "--use-underscore-folder-names" to command\n')
     # get list of media ids in deployment
     print(f'Fetching media IDs for deployment {deployment_name} from Tator...', end='')
     sys.stdout.flush()
@@ -323,21 +331,24 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names):
             else:
                 attributes['Notes'] = data_note
 
-        # update the localization
-        update_res = requests.patch(
-            url=f'https://cloud.tator.io/rest/Localization/{localization["id"]}',
-            headers={
-                'Content-Type': 'application/json',
-                'Authorization': f'Token {TATOR_TOKEN}',
-            },
-            json={'attributes': attributes},
-        )
-        if update_res.status_code == 200:
-            count_success += 1
-            print(update_res.json().get('message'))
+        if dry_run:
+            print(attributes)
         else:
-            count_failure += 1
-            print(f'{TERM_RED}{update_res.json().get("message")}{TERM_NORMAL}')
+            # update the localization
+            update_res = requests.patch(
+                url=f'https://cloud.tator.io/rest/Localization/{localization["id"]}',
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Token {TATOR_TOKEN}',
+                },
+                json={'attributes': attributes},
+            )
+            if update_res.status_code == 200:
+                count_success += 1
+                print(update_res.json().get('message'))
+            else:
+                count_failure += 1
+                print(f'{TERM_RED}{update_res.json().get("message")}{TERM_NORMAL}')
 
     # pau
     marine_emojis = ['🦈', '🐠', '🐬', '🐋', '🐙', '🦑', '🦐', '🦞', '🦀', '🐚', '🌊']
@@ -353,18 +364,21 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names):
             if media_deployment_notes and media_deployment_notes != '':
                 deployment_notes.add(media['attributes']['Deployment Notes'])
         deployment_notes.add('Temperature and oxygen sensor readings intermittent')
-        update_res = requests.patch(
-            url=f'https://cloud.tator.io/rest/Medias/26?media_id={",".join(map(str, media_ids.keys()))}',
-            headers={
-                'Content-Type': 'application/json',
-                'Authorization': f'Token {TATOR_TOKEN}',
-            },
-            json={'attributes': {'Deployment Notes': '|'.join(deployment_notes)}},
-        )
-        if update_res.status_code == 200:
-            print('added wonky sensor data note to "Deployment Notes"!')
+        if dry_run:
+            print({'Deployment Notes': '|'.join(deployment_notes)})
         else:
-            print(f'{TERM_RED}{update_res.json().get("message")}{TERM_NORMAL}')
+            update_res = requests.patch(
+                url=f'https://cloud.tator.io/rest/Medias/{project_id}?media_id={",".join(map(str, media_ids.keys()))}',
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Token {TATOR_TOKEN}',
+                },
+                json={'attributes': {'Deployment Notes': '|'.join(deployment_notes)}},
+            )
+            if update_res.status_code == 200:
+                print('added wonky sensor data note to "Deployment Notes"!')
+            else:
+                print(f'{TERM_RED}{update_res.json().get("message")}{TERM_NORMAL}')
     if count_failure > 0:
         print(f'{TERM_RED}Failed to populate CTD for {count_failure} localizations{TERM_NORMAL}')
     print()
@@ -376,24 +390,18 @@ dotenv.load_dotenv()
 TATOR_TOKEN = os.getenv('TATOR_TOKEN')
 
 if __name__ == '__main__':
-    if len(sys.argv) not in [4, 5]:
-        print('Usage: python populate_ctd.py <project_id> <section_id> <deployment_name> [--use-underscore-folder-names]')
-        sys.exit()
-    if len(sys.argv) == 5 and sys.argv[4] == '--use-underscore-folder-names':
-        print()
-        print('Using old Dropbox folder naming format (underscores)')
-        print()
-        use_underscore_names = True
-    else:
-        print()
-        print('Using new Dropbox folder naming format (replacing underscores with dashes)')
-        print('To use old Dropbox folder naming format, append "--use-underscore-folder-names" to command')
-        print()
-        use_underscore_names = False
+    parser = argparse.ArgumentParser(description='Syncs CTD data from Dropbox to Tator')
+    parser.add_argument('project_id', type=int, help='Tator project ID (most likely 26)')
+    parser.add_argument('section_id', type=int, help='Tator section ID (e.g. 18641)')
+    parser.add_argument('deployment_name', type=str, help='Name of the deployment (e.g. PNG_dscm_01)')
+    parser.add_argument('--use-underscore-folder-names', action='store_true', help='Use old Dropbox folder naming format (underscores)')
+    parser.add_argument('--dry-run', action='store_true', help='Do not update Tator, just print the changes (for development)')
+    args = parser.parse_args()
     populate_ctd(
-        project_id=sys.argv[1],
-        section_id=sys.argv[2],
-        deployment_name=sys.argv[3],
-        use_underscore_names=use_underscore_names,
+        project_id=args.project_id,
+        section_id=args.section_id,
+        deployment_name=args.deployment_name,
+        use_underscore_names=args.use_underscore_folder_names,
+        dry_run=args.dry_run,
     )
     os.system('say "Deployment CTD synced."')
