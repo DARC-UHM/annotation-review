@@ -50,7 +50,8 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names):
     if res.status_code != 200:
         print(f'\n{TERM_RED}Error fetching media IDs: {res.json()["message"]}{TERM_NORMAL}')
         exit(1)
-    for media in res.json():
+    full_media_list = res.json()
+    for media in full_media_list:
         if not media['attributes'].get('Start Time'):
             print(f'Media {media["id"]} does not have a start timestamp')
             exit(1)
@@ -73,7 +74,7 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names):
     sys.stdout.flush()
     localizations = []
     get_localization_res = requests.get(
-        url=f'https://cloud.tator.io/rest/Localizations/{project_id}?media_id={",".join(map(str, media_ids))}',
+        url=f'https://cloud.tator.io/rest/Localizations/{project_id}?media_id={",".join(map(str, media_ids.keys()))}',
         headers={
             'Content-Type': 'application/json',
             'Authorization': f'Token {TATOR_TOKEN}',
@@ -88,6 +89,7 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names):
 
     # get the csv for the deployment
     print(f'Fetching CTD CSV file from Dropbox...', end='')
+    sys.stdout.flush()
     dbx = dropbox.Dropbox(os.getenv('DROPBOX_ACCESS_TOKEN'))  # create a Dropbox client instance
     path = None
     df = None
@@ -342,7 +344,27 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names):
     print()
     print(f'{TERM_GREEN}Successfully populated CTD for {count_success} localizations{TERM_NORMAL}')
     if count_interpolated > 0:
-        print(f'Of those, {count_interpolated} used a previous timestamp')
+        print(f'Of those, {count_interpolated} used a previous timestamp...', end='')
+        sys.stdout.flush()
+        # get all deployment notes
+        deployment_notes = set()
+        for media in full_media_list:
+            media_deployment_notes = media['attributes'].get('Deployment Notes')
+            if media_deployment_notes and media_deployment_notes != '':
+                deployment_notes.add(media['attributes']['Deployment Notes'])
+        deployment_notes.add('Temperature and oxygen sensor readings intermittent')
+        update_res = requests.patch(
+            url=f'https://cloud.tator.io/rest/Medias/26?media_id={",".join(map(str, media_ids.keys()))}',
+            headers={
+                'Content-Type': 'application/json',
+                'Authorization': f'Token {TATOR_TOKEN}',
+            },
+            json={'attributes': {'Deployment Notes': '|'.join(deployment_notes)}},
+        )
+        if update_res.status_code == 200:
+            print('added wonky sensor data note to "Deployment Notes"!')
+        else:
+            print(f'{TERM_RED}{update_res.json().get("message")}{TERM_NORMAL}')
     if count_failure > 0:
         print(f'{TERM_RED}Failed to populate CTD for {count_failure} localizations{TERM_NORMAL}')
     print()
