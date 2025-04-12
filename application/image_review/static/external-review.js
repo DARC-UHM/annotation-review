@@ -249,8 +249,6 @@ $(document).ready(() => {
         if (currentAnnotation.all_localizations && currentAnnotation.all_localizations !== '') {
             // tator annotation
             currentAnnotation.video_url = `https://hurlstor.soest.hawaii.edu:5000/video?link=/tator-video/${currentAnnotation.media_id}&time=${Math.round(currentAnnotation.frame / 30)}`;
-            // just assume that all records with the same scientific name in the same clip are the same individual
-            currentAnnotation.id_reference = `${currentAnnotation.media_id}:${currentAnnotation.scientific_name}`;
         }
         $('#externalModalSubmitButton').prop('disabled', true);
         addReviewer(null);
@@ -262,7 +260,6 @@ $(document).ready(() => {
         $('#externalImageUrl').val(currentAnnotation.frame_url ? null : currentAnnotation.image_url);
         $('#externalVideoUrl').val(currentAnnotation.video_url);
         $('#externalAnnotator').val(currentAnnotation.annotator);
-        $('#externalIdRef').val(currentAnnotation.id_reference);
     });
 
     $('#externalReviewModal').on('hide.bs.modal', () => {
