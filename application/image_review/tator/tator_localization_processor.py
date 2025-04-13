@@ -297,7 +297,14 @@ class TatorLocalizationProcessor:
         def first_if_all_same(series):
             return series.iloc[0] if len(series.unique()) == 1 else f'Non-uniform values across dots: {series.unique()}'.replace("'", '"')
 
-        localization_df = localization_df.groupby(['media_id', 'frame', 'scientific_name', 'tentative_id', 'type']).agg({
+        localization_df = localization_df.groupby([
+            'media_id',
+            'frame',
+            'scientific_name',
+            'tentative_id',
+            'morphospecies',
+            'type',
+        ]).agg({
             'elemental_id': 'first',
             'timestamp': 'first',
             'camera_seafloor_arrival': 'first',
@@ -311,7 +318,6 @@ class TatorLocalizationProcessor:
             'notes': first_if_all_same,
             'qualifier': first_if_all_same,
             'reason': first_if_all_same,
-            'morphospecies': first_if_all_same,
             'good_image': 'first',
             'video_sequence_name': 'first',
             'annotator': 'first',
