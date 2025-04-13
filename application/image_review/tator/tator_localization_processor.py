@@ -224,11 +224,12 @@ class TatorLocalizationProcessor:
                     localization_dict['long'] = deployment_ctd['long']
                     localization_dict['bait_type'] = deployment_ctd['bait_type']
             if get_substrates and deployment_substrates:
-                localization_dict['primary_substrate'] = deployment_substrates[self.deployment_media_dict[localization['media']]]['Primary Substrate']
-                localization_dict['secondary_substrate'] = deployment_substrates[self.deployment_media_dict[localization['media']]]['Secondary Substrate']
-                localization_dict['bedforms'] = deployment_substrates[self.deployment_media_dict[localization['media']]]['Bedforms']
-                localization_dict['relief'] = deployment_substrates[self.deployment_media_dict[localization['media']]]['Relief']
-                localization_dict['substrate_notes'] = deployment_substrates[self.deployment_media_dict[localization['media']]]['Substrate Notes']
+                localization_dict['primary_substrate'] = deployment_substrates[self.deployment_media_dict[localization['media']]].get('Primary Substrate')
+                localization_dict['secondary_substrate'] = deployment_substrates[self.deployment_media_dict[localization['media']]].get('Secondary Substrate')
+                localization_dict['bedforms'] = deployment_substrates[self.deployment_media_dict[localization['media']]].get('Bedforms')
+                localization_dict['relief'] = deployment_substrates[self.deployment_media_dict[localization['media']]].get('Relief')
+                localization_dict['substrate_notes'] = deployment_substrates[self.deployment_media_dict[localization['media']]].get('Substrate Notes')
+                localization_dict['deployment_notes'] = deployment_substrates[self.deployment_media_dict[localization['media']]].get('Deployment Notes')
             if scientific_name in self.phylogeny.keys():
                 for key in self.phylogeny[scientific_name].keys():
                     # split to account for worms 'Phylum (Division)' case
@@ -275,6 +276,7 @@ class TatorLocalizationProcessor:
             'bedforms',
             'relief',
             'substrate_notes',
+            'deployment_notes',
             'phylum',
             'class',
             'subclass',
@@ -326,6 +328,7 @@ class TatorLocalizationProcessor:
             'bedforms': 'first',
             'relief': 'first',
             'substrate_notes': 'first',
+            'deployment_notes': 'first',
             'phylum': 'first',
             'class': 'first',
             'subclass': 'first',
@@ -399,6 +402,7 @@ class TatorLocalizationProcessor:
                 'bedforms': row['bedforms'],
                 'relief': row['relief'],
                 'substrate_notes': row['substrate_notes'],
+                'deployment_notes': row['deployment_notes'],
                 'phylum': row['phylum'],
                 'class': row['class'],
                 'subclass': row['subclass'],

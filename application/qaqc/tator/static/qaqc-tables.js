@@ -436,7 +436,13 @@ function updateHash() {
                         substrateNotes
                         ${sortKey=== 'substrate_notes' ? caretUpFill : sortKey=== 'substrate_notes-desc' ? caretDownFill : ''}
                     </div>
-                </th>               
+                </th>   
+                <th scope="col" onclick="setSort('deployment_notes')" class="table-header-hover">
+                    <div class="d-flex">
+                        deploymentNotes
+                        ${sortKey=== 'deployment_notes' ? caretUpFill : sortKey=== 'deployment_notes-desc' ? caretDownFill : ''}
+                    </div>
+                </th>            
                 <th scope="col" style="cursor: default;">baitType</th>
 
             </tr>
@@ -497,6 +503,7 @@ function updateHash() {
                     <td>${annotation.relief || '-'}</td>
                     <td>${annotation.bedforms || '-'}</td>
                     <td>${annotation.substrate_notes || '-'}</td>
+                    <td>${annotation.deployment_notes || '-'}</td>
                     <td>${annotation.bait_type || '-'}</td>
                 </tr>
             `);
@@ -545,6 +552,7 @@ function downloadSummaryTsv() {
         'relief',
         'bedforms',
         'substrateNotes',
+        'deploymentNotes',
         'baitType',
     ];
     const rows = annotations.map((annotation) => [
@@ -586,6 +594,7 @@ function downloadSummaryTsv() {
         annotation.relief,
         annotation.bedforms,
         annotation.substrate_notes,
+        annotation.deployment_notes,
         annotation.bait_type,
     ]);
     downloadTsv(headers, rows, 'summary');
