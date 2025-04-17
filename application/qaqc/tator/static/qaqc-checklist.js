@@ -6,8 +6,10 @@ function updateTaskCount() {
     $('#tasksComplete').html(tasksComplete);
     if (tasksComplete === Object.keys(checklist).length) {
         $('#fireworks').show();
+        $('#fireworksToggleButton').show();
     } else {
         $('#fireworks').hide();
+        $('#fireworksToggleButton').hide();
     }
 }
 
@@ -58,6 +60,10 @@ document.addEventListener('DOMContentLoaded',  (event) => {
         });
         updateTaskCount();
     }
+
+    $('#fireworksToggleButton').on('click', () => {
+        $('#fireworks').toggle();
+    });
 
     $('#namesAcceptedAnchor').attr('href', `/qaqc/tator/check/names-accepted?project=${projectId}&section=${sectionId}&deployment=${deployments.join('&deployment=')}`);
     $('#namesAcceptedAnchor').on('click', () => showLoader());

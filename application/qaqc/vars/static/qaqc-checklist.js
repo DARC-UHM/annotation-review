@@ -6,8 +6,10 @@ function updateTaskCount() {
     $('#tasksComplete').html(tasksComplete);
     if (tasksComplete === Object.keys(checklist).length) {
         $('#fireworks').show();
+        $('#fireworksToggleButton').show();
     } else {
         $('#fireworks').hide();
+        $('#fireworksToggleButton').hide();
     }
 }
 
@@ -68,6 +70,10 @@ document.addEventListener('DOMContentLoaded',  (event) => {
         });
         updateTaskCount();
     }
+
+    $('#fireworksToggleButton').on('click', () => {
+        $('#fireworks').toggle();
+    });
 
     $('#multipleAssociationsAnchor').attr('href', `/qaqc/vars/check/multiple-associations?sequence=${sequences.join('&sequence=')}`);
     $('#multipleAssociationsAnchor').on('click', () => showLoader());
