@@ -304,7 +304,7 @@ class TatorLocalizationProcessor:
             'tentative_id',
             'morphospecies',
             'type',
-        ]).agg({
+        ], dropna=False).agg({
             'elemental_id': 'first',
             'timestamp': 'first',
             'camera_seafloor_arrival': 'first',
