@@ -18,11 +18,13 @@ Session(app)
 print('\nLaunching application...')
 
 from application import main
+from application.image_reference import image_reference_bp
 from application.image_review import image_review_bp
 from application.qaqc import qaqc_bp
 from application.vars import vars_bp
 from application.tator import tator_bp
 
+app.register_blueprint(image_reference_bp, url_prefix='/image-reference')
 app.register_blueprint(image_review_bp, url_prefix='/image-review')
 app.register_blueprint(qaqc_bp, url_prefix='/qaqc')
 app.register_blueprint(vars_bp, url_prefix='/vars')
