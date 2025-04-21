@@ -68,47 +68,40 @@ function updateImageGrid() {
         const fullName = imageRef.scientific_name + nameSuffix;
         const photoKey = fullName.replaceAll(' ', '-');
         slideshows[photoKey] = [0, photos.length - 1];
-        let photoSlideshow = '';
-        for (let i = 0; i < photos.length; i++) {
-            photoSlideshow += `
-                <div id="${photoKey}-${i}" class="position-relative" style="${i > 0 ? 'display: none;' : ''}" >
-                    ${photos.length > 1 ? `<div class="photo-slideshow-numbers">${i + 1} / ${photos.length}</div>` : ''}
-                    <a href="${photos[i].split('?')[0]}" target="_blank">
-                        <img
-                            src="${photos[i]}"
-                            class="mw-100 mh-100 rounded-2"
-                            alt="${fullName}"
-                        >
-                    </a>
-                </div>
-            `;
-        }
         $('#imageGrid').append(`
             <div class="col-lg-3 col-md-4 col-sm-6 col-12 p-1">
-                <div class="rounded-3 small p-2 h-100 position-relative" style="background: #1b1f26">
-                    <div
-                        class="d-flex justify-content-center w-100"
-                        style="aspect-ratio: 1.5 / 1;"
-                    >
-                        ${photoSlideshow}
-                    </div>
-                    <a
-                        class="photo-slideshow-arrows photo-slideshow-prev"
-                        onclick="changeSlide('${photoKey}', -1)"
-                        ${photos.length < 2 ? "hidden" : ""}
-                    >
-                        &#10094;
-                    </a>
-                    <a
-                        class="photo-slideshow-arrows photo-slideshow-next"
-                        onclick="changeSlide('${photoKey}', 1)"
-                        ${photos.length < 2 ? "hidden" : ""}
-                    >
-                        &#10095;
-                    </a>
-                    <p class="my-2">
+                <div class="rounded-3 small h-100" style="background: #1b1f26;">
+                    <p class="py-2 fw-bold rounded-top m-0" style="background: #171a1f;">
                         ${fullName}
                     </p>
+                    <div
+                        class="d-flex justify-content-center w-100 position-relative"
+                        style="aspect-ratio: 1.5 / 1;"
+                    >
+                        ${photos.map((url, index) => (`
+                            <div id="${photoKey}-${index}" style="display: ${index > 0 ? 'none' : 'block'};" class="position-relative pb-1 px-1">
+                                <a href="${photos[index].split('?')[0]}" target="_blank">
+                                    <img src="${photos[index]}" class="mw-100 mh-100 d-block rounded-1 m-auto" alt="${fullName}">
+                                </a>
+                                ${photos.length > 1 ? `<div class="photo-slideshow-numbers" style="margin-left: -0.25rem;">${index + 1} / ${photos.length}</div>` : ''}
+                            </div>
+                        `)).join('')}
+                        <a
+                            class="photo-slideshow-arrows photo-slideshow-prev"
+                            onclick="changeSlide('${photoKey}', -1)"
+                            ${photos.length < 2 ? "hidden" : ""}
+                        >
+                            &#10094;
+                        </a>
+                        <a
+                            class="photo-slideshow-arrows photo-slideshow-next"
+                            onclick="changeSlide('${photoKey}', 1)"
+                            ${photos.length < 2 ? "hidden" : ""}
+                        >
+                            &#10095;
+                        </a>
+                    </div>
+                    
                 </div>
             </div>
         `);
