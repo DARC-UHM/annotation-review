@@ -5,8 +5,19 @@
 {% include 'components/loading.html' %}
 <div class="text-center my-3 mx-5">
     <div class="col mt-3 m-auto" style="max-width: 1200px;">
-        <div class="text-start">
-            <div class="small ps-1 mb-1" style="color: #94989f;">Filter by phylogeny</div>
+        <div class="text-start mb-2" style="font-size: 0.8rem;">
+            <div class="ps-1 mb-1" style="color: #94989f;">Filter by keyword</div>
+            <input
+                id="keywordFilterInput"
+                class="rounded-1"
+                style="padding: 6px 12px; background-color: var(--darc-input-bg); color: var(--darc-text); border: 0; min-width: 400px;"
+                type="text"
+                placeholder="Enter a scientific name, genus, morphospecies, etc..."
+                aria-label="Enter a scientific name, genus, morphospecies, etc..."
+            />
+        </div>
+        <div class="text-start" style="font-size: 0.8rem;">
+            <div class="ps-1 mb-1" style="color: #94989f;">Filter by phylogeny</div>
             <div id="filterList"></div>
         </div>
     </div>

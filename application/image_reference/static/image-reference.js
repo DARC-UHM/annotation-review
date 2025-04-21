@@ -1,15 +1,19 @@
-const taxonRanks = ['phylum', 'class', 'order', 'family', 'genus', 'species'];
+const taxonRanks = ['phylum', 'class', 'order', 'family', 'genus'];
 const phyla = {};
 
 let filteredImageReferences = imageReferences;
-let filter = {};
+let phylogenyFilter = {};
+let keywordFilter = '';
 
 $(document).ready(() => {
     populatePhyla();
-    console.log(phyla);
     getFiltersFromHash();
     updatePhylogenyFilterSelects();
     updateImageGrid();
+    $('#keywordFilterInput').on('input', (e) => {
+        keywordFilter = e.target.value;
+        updateHash();
+    });
 });
 
 window.onhashchange = () => {
@@ -18,12 +22,39 @@ window.onhashchange = () => {
     updateImageGrid();
 };
 
+function updateHash() {
+    location.hash = Object.keys(phylogenyFilter)
+        .map((key) => `${key}=${phylogenyFilter[key]}`)
+        .join('&');
+    if (keywordFilter) {
+        location.hash += location.hash.length > 0 ? '&' : '#';
+        location.hash += `keyword=${keywordFilter}`;
+    }
+}
+
 function updateImageGrid() {
     $('#imageGrid').empty();
     filteredImageReferences = imageReferences;
-    for (const key of Object.keys(filter)) {
+    for (const key of Object.keys(phylogenyFilter)) {
         filteredImageReferences = filteredImageReferences.filter((imageRef) => {
-            return imageRef[key === 'class' ? 'class_name' : key]?.toLowerCase().includes(filter[key].toLowerCase());
+            return imageRef[key === 'class' ? 'class_name' : key]?.toLowerCase().includes(phylogenyFilter[key].toLowerCase());
+        });
+    }
+    if (keywordFilter) {
+        filteredImageReferences = filteredImageReferences.filter((imageRef) => {
+            const properties = [
+                'scientific_name',
+                'expedition_added',
+                'phylum',
+                'class_name',
+                'order',
+                'family',
+                'genus',
+                'species',
+                'tentative_id',
+                'morphospecies',
+            ];
+            return properties.some((property) => imageRef[property]?.toLowerCase().includes(keywordFilter.toLowerCase()));
         });
     }
     filteredImageReferences.forEach((imageRef) => {
@@ -56,13 +87,20 @@ function updateImageGrid() {
 }
 
 function getFiltersFromHash() {
-    filter = {};
+    phylogenyFilter = {};
+    keywordFilter = '';
     const hash = window.location.hash.substring(1);
     if (hash === '') {
         return;
     }
     for (const hashPair of hash.split('&')) {
-        filter[hashPair.split('=')[0]] = hashPair.split('=')[1].replaceAll('%20', ' ');
+        const key = hashPair.split('=')[0];
+        const value = hashPair.split('=')[1].replaceAll('%20', ' ');
+        if (key === 'keyword') {
+            keywordFilter = value;
+            continue;
+        }
+        phylogenyFilter[key] = value;
     }
 }
 
@@ -94,22 +132,28 @@ function addPhylogenyFilterSelect(taxonRank, selectedValue) {
             rankOptions = (Object.keys(phyla));
             break;
         case 'class':
-            rankOptions = (Object.keys(phyla[filter.phylum]));
+            rankOptions = (Object.keys(phyla[phylogenyFilter.phylum]));
             break;
         case 'order':
-            rankOptions = (Object.keys(phyla[filter.phylum][filter.class]));
+            rankOptions = (Object.keys(phyla[phylogenyFilter.phylum][phylogenyFilter.class]));
             break;
         case 'family':
-            rankOptions = (Object.keys(phyla[filter.phylum][filter.class][filter.order]));
+            rankOptions = (Object.keys(phyla[phylogenyFilter.phylum][phylogenyFilter.class][phylogenyFilter.order]));
             break;
         case 'genus':
-            rankOptions = (Object.keys(phyla[filter.phylum][filter.class][filter.order][filter.family]));
+            rankOptions = (Object.keys(phyla[phylogenyFilter.phylum][phylogenyFilter.class][phylogenyFilter.order][phylogenyFilter.family]));
             break;
+        default:
+            rankOptions = [];
     }
     $('#filterList').append(`
-        <span id="${taxonRank}Filter" class="small">
+        <span id="${taxonRank}Filter">
             <span class="position-relative">
-                <select id="${taxonRank}FilterSelect" onchange="updatePhylogenyFilter('${taxonRank}')" style="background: #2d3541;">
+                <select
+                    id="${taxonRank}FilterSelect"
+                    onchange="updatePhylogenyFilter('${taxonRank}')"
+                    style="background: var(--darc-input-bg); height: 2rem;"
+                >
                     <option value="all">Any ${taxonRank}</option>
                     ${rankOptions.map((option) => 
                         `<option value="${option}" ${selectedValue === option ? 'selected' : ''}>${option}</option>`
@@ -128,31 +172,29 @@ function addPhylogenyFilterSelect(taxonRank, selectedValue) {
 function updatePhylogenyFilter(taxonRank) {
     const selected = $(`#${taxonRank}FilterSelect`).val();
     if (selected === 'all') {
-        delete filter[taxonRank];
+        delete phylogenyFilter[taxonRank];
     } else {
-        filter[taxonRank] = selected;
+        phylogenyFilter[taxonRank] = selected;
     }
     // remove all lower ranks
     for (let i = taxonRanks.indexOf(taxonRank) + 1; i < taxonRanks.length; i++) {
-        delete filter[taxonRanks[i]];
+        delete phylogenyFilter[taxonRanks[i]];
     }
-    location.hash = Object.keys(filter)
-        .map((key) => `${key}=${filter[key]}`)
-        .join('&');
+    updateHash();
 }
 
 window.updatePhylogenyFilter = updatePhylogenyFilter;
 
 function updatePhylogenyFilterSelects() {
     $('#filterList').empty();
-    for (const filterName of Object.keys(filter)) {
-        addPhylogenyFilterSelect(filterName, filter[filterName]);
+    for (const filterName of Object.keys(phylogenyFilter)) {
+        addPhylogenyFilterSelect(filterName, phylogenyFilter[filterName]);
         if (filterName !== 'genus') {
             $('#filterList').append('→');
         }
     }
     for (const taxonRank of taxonRanks) {
-        if (!filter[taxonRank]) {
+        if (!phylogenyFilter[taxonRank]) {
             addPhylogenyFilterSelect(taxonRank, '');
             break;
         }
