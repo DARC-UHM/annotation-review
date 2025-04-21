@@ -1,3 +1,4 @@
+const slideshows = {}; // {fullName: [currentIndex, maxIndex]}
 const taxonRanks = ['phylum', 'class', 'order', 'family', 'genus'];
 const phyla = {};
 
@@ -58,27 +59,55 @@ function updateImageGrid() {
         });
     }
     filteredImageReferences.forEach((imageRef) => {
-        const hurlUrl = 'https://hurlstor.soest.hawaii.edu:5000';
+        const photos = imageRef.photos.map((photoPath) => `https://hurlstor.soest.hawaii.edu:5000${photoPath}`);
         const nameSuffix = imageRef.tentative_id
             ? ` (${imageRef.tentative_id}?)`
             : imageRef.morphospecies
                 ? ` (${imageRef.morphospecies})`
                 : '';
+        const fullName = imageRef.scientific_name + nameSuffix;
+        const photoKey = fullName.replaceAll(' ', '-');
+        slideshows[photoKey] = [0, photos.length - 1];
+        let photoSlideshow = '';
+        for (let i = 0; i < photos.length; i++) {
+            photoSlideshow += `
+                <div id="${photoKey}-${i}" class="position-relative" style="${i > 0 ? 'display: none;' : ''}" >
+                    ${photos.length > 1 ? `<div class="photo-slideshow-numbers">${i + 1} / ${photos.length}</div>` : ''}
+                    <a href="${photos[i].split('?')[0]}" target="_blank">
+                        <img
+                            src="${photos[i]}"
+                            class="mw-100 mh-100 rounded-2"
+                            alt="${fullName}"
+                        >
+                    </a>
+                </div>
+            `;
+        }
         $('#imageGrid').append(`
             <div class="col-lg-3 col-md-4 col-sm-6 col-12 p-1">
-                <div class="rounded-3 small p-2 h-100" style="background: #1b1f26">
+                <div class="rounded-3 small p-2 h-100 position-relative" style="background: #1b1f26">
                     <div
-                        class="d-flex justify-content-center align-items-center w-100"
+                        class="d-flex justify-content-center w-100"
                         style="aspect-ratio: 1.5 / 1;"
                     >
-                        <img
-                            src="${hurlUrl}${imageRef.photos[0]}"
-                            class="mw-100 mh-100 rounded-2"
-                            alt="${imageRef.scientific_name}${nameSuffix}"
-                        >
+                        ${photoSlideshow}
                     </div>
+                    <a
+                        class="photo-slideshow-arrows photo-slideshow-prev"
+                        onclick="changeSlide('${photoKey}', -1)"
+                        ${photos.length < 2 ? "hidden" : ""}
+                    >
+                        &#10094;
+                    </a>
+                    <a
+                        class="photo-slideshow-arrows photo-slideshow-next"
+                        onclick="changeSlide('${photoKey}', 1)"
+                        ${photos.length < 2 ? "hidden" : ""}
+                    >
+                        &#10095;
+                    </a>
                     <p class="my-2">
-                        ${imageRef.scientific_name}${nameSuffix}
+                        ${fullName}
                     </p>
                 </div>
             </div>
@@ -200,3 +229,15 @@ function updatePhylogenyFilterSelects() {
         }
     }
 }
+
+function changeSlide(photoKey, slideMod) {
+    const [currentIndex, maxIndex] = slideshows[photoKey];
+    const slideIndex = (currentIndex + slideMod + maxIndex + 1) % (maxIndex + 1);
+    slideshows[photoKey][0] = slideIndex;
+    // hide all slides except the current one
+    for (let i = 0; i <= slideshows[photoKey][1]; i++) {
+        document.getElementById(`${photoKey}-${i}`).style.display = i === slideIndex ? 'block' : 'none';
+    }
+}
+
+window.changeSlide = changeSlide;
