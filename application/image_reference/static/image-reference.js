@@ -1,4 +1,4 @@
-const slideshows = {}; // {fullName: [currentIndex, maxIndex]}
+const slideshows = {}; // { fullName: { currentIndex, maxIndex, depthColors } }
 const taxonRanks = ['phylum', 'class', 'order', 'family', 'genus'];
 const phyla = {};
 
@@ -59,7 +59,6 @@ function updateImageGrid() {
         });
     }
     filteredImageReferences.forEach((imageRef) => {
-        const photos = imageRef.photos.map((photoPath) => `https://hurlstor.soest.hawaii.edu:5000${photoPath}`);
         const nameSuffix = imageRef.tentative_id
             ? ` (${imageRef.tentative_id}?)`
             : imageRef.morphospecies
@@ -67,36 +66,60 @@ function updateImageGrid() {
                 : '';
         const fullName = imageRef.scientific_name + nameSuffix;
         const photoKey = fullName.replaceAll(' ', '-');
-        slideshows[photoKey] = [0, photos.length - 1];
+        slideshows[photoKey] = { currentIndex: 0, maxIndex: imageRef.photo_records.length - 1, depthColors: [] };
         $('#imageGrid').append(`
             <div class="col-lg-3 col-md-4 col-sm-6 col-12 p-1">
                 <div class="rounded-3 small h-100" style="background: #1b1f26;">
-                    <p class="py-2 fw-bold rounded-top m-0" style="background: #171a1f;">
+                    <div class="py-2 fw-bold rounded-top m-0 position-relative" style="background: #171a1f;">
                         ${fullName}
-                    </p>
+                        <div class="position-absolute d-flex h-100" style="right: 0; top: 0;">
+                            <div
+                                id="${photoKey}-depthColor"
+                                class="my-auto me-2"
+                                style="width: 1.5rem; height: 1rem; background: orange; border-radius: 0.1rem;"
+                            ></div>
+                        </div>
+                    </div>
                     <div
                         class="d-flex justify-content-center w-100 position-relative"
                         style="aspect-ratio: 1.5 / 1;"
                     >
-                        ${photos.map((url, index) => (`
-                            <div id="${photoKey}-${index}" style="display: ${index > 0 ? 'none' : 'block'};" class="position-relative pb-1 px-1">
-                                <a href="${photos[index].split('?')[0]}" target="_blank">
-                                    <img src="${photos[index]}" class="mw-100 mh-100 d-block rounded-1 m-auto" alt="${fullName}">
+                        ${imageRef.photo_records.map((photoRecord, index) => {
+                            const imageUrl = `https://hurlstor.soest.hawaii.edu:5000/tator-localization-image/${photoRecord.tator_id}`;
+                            if (photoRecord.depth_m >= 1000) {
+                                slideshows[photoKey].depthColors.push('#000');
+                            } else if (photoRecord.depth_m >= 800) {
+                                slideshows[photoKey].depthColors.push('#ca1ec9');
+                            } else if (photoRecord.depth_m >= 600) {
+                                slideshows[photoKey].depthColors.push('#0b24fb');
+                            } else if (photoRecord.depth_m >= 400) {
+                                slideshows[photoKey].depthColors.push('#19af54');
+                            } else if (photoRecord.depth_m >= 200) {
+                                slideshows[photoKey].depthColors.push('#fffd38');
+                            } else {
+                                slideshows[photoKey].depthColors.push('#fc0d1b');
+                            }
+                            return `<div id="${photoKey}-${index}" style="display: ${index > 0 ? 'none' : 'block'};" class="position-relative pb-1 px-1">
+                                <a href="${imageUrl}" target="_blank">
+                                    <img src="${imageUrl}" class="mw-100 mh-100 d-block rounded-1 m-auto" alt="${fullName}">
                                 </a>
-                                ${photos.length > 1 ? `<div class="photo-slideshow-numbers" style="margin-left: -0.25rem;">${index + 1} / ${photos.length}</div>` : ''}
-                            </div>
-                        `)).join('')}
+                                ${imageRef.photo_records.length > 1 
+                                    ? `<div class="photo-slideshow-numbers" style="margin-left: -0.25rem;">${index + 1} / ${imageRef.photo_records.length}</div>`
+                                    : ''
+                                }
+                            </div>`;
+                        }).join('')}
                         <a
                             class="photo-slideshow-arrows photo-slideshow-prev"
                             onclick="changeSlide('${photoKey}', -1)"
-                            ${photos.length < 2 ? "hidden" : ""}
+                            ${imageRef.photo_records.length < 2 ? "hidden" : ""}
                         >
                             &#10094;
                         </a>
                         <a
                             class="photo-slideshow-arrows photo-slideshow-next"
                             onclick="changeSlide('${photoKey}', 1)"
-                            ${photos.length < 2 ? "hidden" : ""}
+                            ${imageRef.photo_records.length < 2 ? "hidden" : ""}
                         >
                             &#10095;
                         </a>
@@ -105,6 +128,9 @@ function updateImageGrid() {
                 </div>
             </div>
         `);
+        const depthIndicatorElement = document.getElementById(`${photoKey}-depthColor`);
+        depthIndicatorElement.style.background = slideshows[photoKey].depthColors[0];
+        depthIndicatorElement.title = `Depth: ${imageRef.photo_records[0].depth_m}m`;
     });
 }
 
@@ -224,13 +250,14 @@ function updatePhylogenyFilterSelects() {
 }
 
 function changeSlide(photoKey, slideMod) {
-    const [currentIndex, maxIndex] = slideshows[photoKey];
+    const { currentIndex, maxIndex } = slideshows[photoKey];
     const slideIndex = (currentIndex + slideMod + maxIndex + 1) % (maxIndex + 1);
-    slideshows[photoKey][0] = slideIndex;
+    slideshows[photoKey].currentIndex = slideIndex;
     // hide all slides except the current one
-    for (let i = 0; i <= slideshows[photoKey][1]; i++) {
+    for (let i = 0; i <= slideshows[photoKey].maxIndex; i++) {
         document.getElementById(`${photoKey}-${i}`).style.display = i === slideIndex ? 'block' : 'none';
     }
+    document.getElementById(`${photoKey}-depthColor`).style.background = slideshows[photoKey].depthColors[slideIndex];
 }
 
 window.changeSlide = changeSlide;
