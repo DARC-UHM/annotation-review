@@ -1,4 +1,4 @@
-const slideshows = {}; // { fullName: { currentIndex, maxIndex, depthColors } }
+const slideshows = {}; // { fullName: { currentIndex, maxIndex, depths } }
 const taxonRanks = ['phylum', 'class', 'order', 'family', 'genus'];
 const phyla = {};
 
@@ -66,7 +66,7 @@ function updateImageGrid() {
                 : '';
         const fullName = imageRef.scientific_name + nameSuffix;
         const photoKey = fullName.replaceAll(' ', '-');
-        slideshows[photoKey] = { currentIndex: 0, maxIndex: imageRef.photo_records.length - 1, depthColors: [] };
+        slideshows[photoKey] = { currentIndex: 0, maxIndex: imageRef.photo_records.length - 1, depths: [] };
         $('#imageGrid').append(`
             <div class="col-lg-3 col-md-4 col-sm-6 col-12 p-1">
                 <div class="rounded-3 small h-100" style="background: #1b1f26;">
@@ -86,19 +86,7 @@ function updateImageGrid() {
                     >
                         ${imageRef.photo_records.map((photoRecord, index) => {
                             const imageUrl = `https://hurlstor.soest.hawaii.edu:5000/tator-localization-image/${photoRecord.tator_id}`;
-                            if (photoRecord.depth_m >= 1000) {
-                                slideshows[photoKey].depthColors.push('#000');
-                            } else if (photoRecord.depth_m >= 800) {
-                                slideshows[photoKey].depthColors.push('#ca1ec9');
-                            } else if (photoRecord.depth_m >= 600) {
-                                slideshows[photoKey].depthColors.push('#0b24fb');
-                            } else if (photoRecord.depth_m >= 400) {
-                                slideshows[photoKey].depthColors.push('#19af54');
-                            } else if (photoRecord.depth_m >= 200) {
-                                slideshows[photoKey].depthColors.push('#fffd38');
-                            } else {
-                                slideshows[photoKey].depthColors.push('#fc0d1b');
-                            }
+                            slideshows[photoKey].depths.push(photoRecord.depth_m);
                             return `<div id="${photoKey}-${index}" style="display: ${index > 0 ? 'none' : 'block'};" class="position-relative pb-1 px-1">
                                 <a href="${imageUrl}" target="_blank">
                                     <img src="${imageUrl}" class="mw-100 mh-100 d-block rounded-1 m-auto" alt="${fullName}">
@@ -129,7 +117,7 @@ function updateImageGrid() {
             </div>
         `);
         const depthIndicatorElement = document.getElementById(`${photoKey}-depthColor`);
-        depthIndicatorElement.style.background = slideshows[photoKey].depthColors[0];
+        depthIndicatorElement.style.background = depthColor(slideshows[photoKey].depths[0]);
         depthIndicatorElement.title = `Depth: ${imageRef.photo_records[0].depth_m}m`;
     });
 }
@@ -257,7 +245,25 @@ function changeSlide(photoKey, slideMod) {
     for (let i = 0; i <= slideshows[photoKey].maxIndex; i++) {
         document.getElementById(`${photoKey}-${i}`).style.display = i === slideIndex ? 'block' : 'none';
     }
-    document.getElementById(`${photoKey}-depthColor`).style.background = slideshows[photoKey].depthColors[slideIndex];
+    const depthM = slideshows[photoKey].depths[slideIndex];
+    const depthIndicatorElement = document.getElementById(`${photoKey}-depthColor`);
+    depthIndicatorElement.title = `Depth: ${depthM}m`;
+    depthIndicatorElement.style.background = depthColor(depthM);
 }
 
 window.changeSlide = changeSlide;
+
+const depthColor = (depthM) => {
+    if (depthM >= 1000) {
+        return '#000';
+    } else if (depthM >= 800) {
+        return '#ca1ec9';
+    } else if (depthM >= 600) {
+        return '#0b24fb';
+    } else if (depthM >= 400) {
+        return '#19af54';
+    } else if (depthM >= 200) {
+        return '#fffd38';
+    }
+    return '#fc0d1b';
+}
