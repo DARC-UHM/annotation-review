@@ -85,11 +85,11 @@ function updateImageGrid() {
                         style="aspect-ratio: 1.5 / 1;"
                     >
                         ${imageRef.photo_records.map((photoRecord, index) => {
-                            const imageUrl = `https://hurlstor.soest.hawaii.edu:5000/tator-localization-image/${photoRecord.tator_id}`;
+                            const imageBaseUrl = 'https://hurlstor.soest.hawaii.edu:5000/image-reference/image/';
                             slideshows[photoKey].depths.push(photoRecord.depth_m);
                             return `<div id="${photoKey}-${index}" style="display: ${index > 0 ? 'none' : 'block'};" class="position-relative pb-1 px-1">
-                                <a href="${imageUrl}" target="_blank">
-                                    <img src="${imageUrl}" class="mw-100 mh-100 d-block rounded-1 m-auto" alt="${fullName}">
+                                <a href="${imageBaseUrl}${photoRecord.image_name}" target="_blank">
+                                    <img src="${imageBaseUrl}${photoRecord.thumbnail_name}" class="mw-100 mh-100 d-block rounded-1 m-auto" alt="${fullName}">
                                 </a>
                                 ${imageRef.photo_records.length > 1 
                                     ? `<div class="photo-slideshow-numbers" style="margin-left: -0.25rem;">${index + 1} / ${imageRef.photo_records.length}</div>`
