@@ -68,33 +68,39 @@ function updateImageGrid() {
         const photoKey = fullName.replaceAll(' ', '-');
         slideshows[photoKey] = { currentIndex: 0, maxIndex: imageRef.photo_records.length - 1, depths: [] };
         $('#imageGrid').append(`
-            <div class="col-lg-3 col-md-4 col-sm-6 col-12 p-1">
+            <div class="col-lg-3 col-md-4 col-sm-6 col-12 p-2">
                 <div class="rounded-3 small h-100" style="background: #1b1f26;">
-                    <div class="py-2 fw-bold rounded-top m-0 position-relative" style="background: #171a1f;">
+                    <div class="py-2 fw-bold rounded-top m-0" style="background: #171a1f;">
                         ${fullName}
-                        <div class="position-absolute d-flex h-100" style="right: 0; top: 0;">
-                            <div
-                                id="${photoKey}-depthColor"
-                                class="my-auto me-2"
-                                style="width: 1.5rem; height: 1rem; background: orange; border-radius: 0.1rem;"
-                            ></div>
-                        </div>
                     </div>
                     <div
                         class="d-flex justify-content-center w-100 position-relative"
-                        style="aspect-ratio: 1.5 / 1;"
                     >
                         ${imageRef.photo_records.map((photoRecord, index) => {
                             const imageBaseUrl = 'https://hurlstor.soest.hawaii.edu:5000/image-reference/image/';
-                            slideshows[photoKey].depths.push(photoRecord.depth_m);
-                            return `<div id="${photoKey}-${index}" style="display: ${index > 0 ? 'none' : 'block'};" class="position-relative pb-1 px-1">
-                                <a href="${imageBaseUrl}${photoRecord.image_name}" target="_blank">
-                                    <img src="${imageBaseUrl}${photoRecord.thumbnail_name}" class="mw-100 mh-100 d-block rounded-1 m-auto" alt="${fullName}">
-                                </a>
-                                ${imageRef.photo_records.length > 1 
-                                    ? `<div class="photo-slideshow-numbers" style="margin-left: -0.25rem;">${index + 1} / ${imageRef.photo_records.length}</div>`
-                                    : ''
-                                }
+                            return `
+                                <div id="${photoKey}-${index}" style="display: ${index > 0 ? 'none' : 'block'};">
+                                    <a href="${imageBaseUrl}${photoRecord.image_name}" target="_blank">
+                                        <div class="position-relative">
+                                            <img
+                                                src="${imageBaseUrl}${photoRecord.thumbnail_name}"
+                                                class="mw-100 mh-100"
+                                                style="border-radius: 0 0 0.2rem 0.2rem;"
+                                                alt="${fullName}"
+                                            >
+                                            <div class="position-absolute" style="right: 0; top: 0;">
+                                                <div
+                                                    class="my-auto"
+                                                    style="width: 1.5rem; height: 1.5rem; background: ${depthColor(photoRecord.depth_m)};"
+                                                    title="Depth: ${photoRecord.depth_m}m"
+                                                ></div>
+                                            </div>
+                                             ${imageRef.photo_records.length > 1
+                                                ? `<div class="photo-slideshow-numbers">${index + 1} / ${imageRef.photo_records.length}</div>`
+                                                : ''
+                                             }
+                                        </div>
+                                    </a>
                             </div>`;
                         }).join('')}
                         <a
@@ -116,9 +122,6 @@ function updateImageGrid() {
                 </div>
             </div>
         `);
-        const depthIndicatorElement = document.getElementById(`${photoKey}-depthColor`);
-        depthIndicatorElement.style.background = depthColor(slideshows[photoKey].depths[0]);
-        depthIndicatorElement.title = `Depth: ${imageRef.photo_records[0].depth_m}m`;
     });
 }
 
@@ -245,10 +248,6 @@ function changeSlide(photoKey, slideMod) {
     for (let i = 0; i <= slideshows[photoKey].maxIndex; i++) {
         document.getElementById(`${photoKey}-${i}`).style.display = i === slideIndex ? 'block' : 'none';
     }
-    const depthM = slideshows[photoKey].depths[slideIndex];
-    const depthIndicatorElement = document.getElementById(`${photoKey}-depthColor`);
-    depthIndicatorElement.title = `Depth: ${depthM}m`;
-    depthIndicatorElement.style.background = depthColor(depthM);
 }
 
 window.changeSlide = changeSlide;
