@@ -7,6 +7,10 @@ let phylogenyFilter = {};
 let keywordFilter = '';
 
 $(document).ready(() => {
+    $('body').tooltip({ selector: '[data-toggle=tooltip]', trigger : 'hover' });
+    window.addEventListener('popstate', function () {
+        $('[data-toggle="tooltip"]').tooltip('dispose');
+    });
     populatePhyla();
     getFiltersFromHash();
     updatePhylogenyFilterSelects();
@@ -59,19 +63,28 @@ function updateImageGrid() {
         });
     }
     filteredImageReferences.forEach((imageRef) => {
-        const nameSuffix = imageRef.tentative_id
-            ? ` (${imageRef.tentative_id}?)`
-            : imageRef.morphospecies
-                ? ` (${imageRef.morphospecies})`
-                : '';
-        const fullName = imageRef.scientific_name + nameSuffix;
+        const fullName = formattedName(imageRef);
         const photoKey = fullName.replaceAll(' ', '-');
         slideshows[photoKey] = { currentIndex: 0, maxIndex: imageRef.photo_records.length - 1, depths: [] };
         $('#imageGrid').append(`
             <div class="col-lg-3 col-md-4 col-sm-6 col-12 p-2">
                 <div class="rounded-3 small h-100" style="background: #1b1f26;">
-                    <div class="py-2 fw-bold rounded-top m-0" style="background: #171a1f;">
-                        ${fullName}
+                    <div class="py-2 rounded-top m-0" style="background: #171a1f;">
+                        <div
+                            class="mx-auto"
+                            style="width: fit-content;"
+                            data-toggle="tooltip"
+                            data-bs-placement="right"
+                            data-bs-html="true"
+                            title="Phylum: ${imageRef.phylum ?? 'N/A'}<br>
+                                   Class: ${imageRef.class_name ?? 'N/A'}<br>
+                                   Order: ${imageRef.order ?? 'N/A'}<br>
+                                   Family: ${imageRef.family ?? 'N/A'}<br>
+                                   Genus: ${imageRef.genus ? `<i>${imageRef.genus}</i>` : 'N/A'}<br>
+                                   Species: ${imageRef.species ? `<i>${imageRef.species}</i>` : 'N/A'}"
+                        >
+                            ${fullName}
+                        </div>
                     </div>
                     <div
                         class="d-flex justify-content-center w-100 position-relative"
@@ -92,6 +105,9 @@ function updateImageGrid() {
                                                 <div
                                                     class="my-auto"
                                                     style="width: 1.5rem; height: 1.5rem; background: ${depthColor(photoRecord.depth_m)};"
+                                                    data-toggle="tooltip"
+                                                    data-bs-placement="right"
+                                                    data-bs-html="true"
                                                     title="Depth: ${photoRecord.depth_m}m"
                                                 ></div>
                                             </div>
@@ -118,7 +134,7 @@ function updateImageGrid() {
                             &#10095;
                         </a>
                     </div>
-                    
+
                 </div>
             </div>
         `);
@@ -194,7 +210,7 @@ function addPhylogenyFilterSelect(taxonRank, selectedValue) {
                     style="background: var(--darc-input-bg); height: 2rem;"
                 >
                     <option value="all">Any ${taxonRank}</option>
-                    ${rankOptions.map((option) => 
+                    ${rankOptions.map((option) =>
                         `<option value="${option}" ${selectedValue === option ? 'selected' : ''}>${option}</option>`
                     )}
                 </select>
@@ -251,6 +267,23 @@ function changeSlide(photoKey, slideMod) {
 }
 
 window.changeSlide = changeSlide;
+
+const formattedName = (imageRef) => {
+    const italicizeScientificName = imageRef.species || imageRef.genus;
+    const italicizeSuffix = italicizeScientificName || imageRef.family;
+    const nameSuffix = imageRef.tentative_id
+      ? ` (${imageRef.tentative_id}?)`
+      : imageRef.morphospecies
+        ? ` (${imageRef.morphospecies})`
+        : '';
+    if (italicizeScientificName) {
+        return `<i>${imageRef.scientific_name}${nameSuffix}</i>`;
+    }
+    if (italicizeSuffix) {
+        return `${imageRef.scientific_name}<i>${nameSuffix}</i>`;
+    }
+    return `${imageRef.scientific_name}${nameSuffix}`;
+}
 
 const depthColor = (depthM) => {
     if (depthM >= 1000) {
