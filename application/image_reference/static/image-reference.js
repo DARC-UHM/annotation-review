@@ -165,16 +165,16 @@ function populatePhyla() {
         if (!phyla[imageRef.phylum]) {
             phyla[imageRef.phylum] = {};
         }
-        if (!phyla[imageRef.phylum][imageRef.class_name]) {
+        if (imageRef.class_name && !phyla[imageRef.phylum][imageRef.class_name]) {
             phyla[imageRef.phylum][imageRef.class_name] = {};
         }
-        if (!phyla[imageRef.phylum][imageRef.class_name][imageRef.order]) {
+        if (imageRef.order && !phyla[imageRef.phylum][imageRef.class_name][imageRef.order]) {
             phyla[imageRef.phylum][imageRef.class_name][imageRef.order] = {};
         }
-        if (!phyla[imageRef.phylum][imageRef.class_name][imageRef.order][imageRef.family]) {
+        if (imageRef.family && !phyla[imageRef.phylum][imageRef.class_name][imageRef.order][imageRef.family]) {
             phyla[imageRef.phylum][imageRef.class_name][imageRef.order][imageRef.family] = {};
         }
-        if (!phyla[imageRef.phylum][imageRef.class_name][imageRef.order][imageRef.family][imageRef.genus]) {
+        if (imageRef.genus && !phyla[imageRef.phylum][imageRef.class_name][imageRef.order][imageRef.family][imageRef.genus]) {
             phyla[imageRef.phylum][imageRef.class_name][imageRef.order][imageRef.family][imageRef.genus] = {};
         }
     });
