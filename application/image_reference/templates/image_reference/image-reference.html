@@ -9,7 +9,7 @@
     }
 </style>
 <div class="text-center my-3 mx-5">
-    <div class="col mt-3 m-auto" style="max-width: 1200px;">
+    <div class="col mt-3 m-auto position-relative" style="max-width: 1200px;">
         <div
             class="mx-auto rounded-pill py-1 d-flex justify-content-between"
             style="background: var(--darc-input-bg); max-width: 700px;"
@@ -53,6 +53,16 @@
                     </svg>
                 </div>
             </div>
+        </div>
+        <div class="position-absolute" style="right: 0; top: 0.25rem;">
+            <button
+                id="addButton"
+                class="btn btn-success btn-sm rounded-pill"
+                style="padding: 6px 12px; font-size: 0.8rem;"
+                onclick="alert('not yet implemented :)')"
+            >
+                Add +
+            </button>
         </div>
         <div class="accordion accordion-flush" id="phylogenyFilter">
             <div class="accordion-item py-2">
