@@ -182,6 +182,9 @@ class TatorLocalizationProcessor:
                 'frame_url': f'/tator/frame/{localization["media"]}/{localization["frame"]}',
                 'media_id': localization['media'],
                 'problems': localization['problems'] if 'problems' in localization.keys() else None,
+                'do_temp_c': localization['attributes'].get('DO Temperature (celsius)'),
+                'do_concentration_salin_comp_mol_L': localization['attributes'].get('DO Concentration Salin Comp (mol per L)'),
+                'depth_m': localization['attributes'].get('Depth'),
             }
             if localization_dict['categorical_abundance'] and localization_dict['categorical_abundance'] != '--':
                 match localization_dict['categorical_abundance']:
@@ -213,9 +216,6 @@ class TatorLocalizationProcessor:
                         seconds=time_diff.seconds
                     )) if observation_timestamp > camera_bottom_arrival else '00:00:00'
             if get_ctd and expedition_fieldbook:
-                localization_dict['do_temp_c'] = localization['attributes'].get('DO Temperature (celsius)')
-                localization_dict['do_concentration_salin_comp_mol_L'] = localization['attributes'].get('DO Concentration Salin Comp (mol per L)')
-                localization_dict['depth_m'] = localization['attributes'].get('Depth')
                 deployment_name = self.deployment_media_dict[localization['media']]
                 deployment_name = deployment_name.replace('-', '_')  # for DOEX0087_NIU-dscm-02
                 deployment_ctd = next((x for x in expedition_fieldbook if x['deployment_name'] == deployment_name.replace('-', '_')), None)
