@@ -1,6 +1,5 @@
 const slideshows = {}; // { fullName: { currentIndex, maxIndex, depths } }
 const taxonRanks = ['phylum', 'class', 'order', 'family', 'genus'];
-const locationsMap = { PNG: 'Papua New Guinea', SOL: 'Solomon Islands' };
 const phyla = {};
 
 let filteredImageReferences = imageReferences;
@@ -12,30 +11,19 @@ $(document).ready(() => {
     window.addEventListener('popstate', function () {
         $('[data-toggle="tooltip"]').tooltip('dispose');
     });
+    keywordFilter = $('#keywordFilterInput').val();
     populatePhyla();
-    getFiltersFromHash();
     updatePhylogenyFilterSelects();
     updateImageGrid();
     $('#keywordFilterInput').on('input', (e) => {
         keywordFilter = e.target.value;
-        updateHash();
+        updateFilter();
     });
 });
 
-window.onhashchange = () => {
-    getFiltersFromHash();
+function updateFilter() {
     updatePhylogenyFilterSelects();
     updateImageGrid();
-};
-
-function updateHash() {
-    location.hash = Object.keys(phylogenyFilter)
-        .map((key) => `${key}=${phylogenyFilter[key]}`)
-        .join('&');
-    if (keywordFilter) {
-        location.hash += location.hash.length > 0 ? '&' : '#';
-        location.hash += `keyword=${keywordFilter}`;
-    }
 }
 
 function updateImageGrid() {
@@ -47,10 +35,9 @@ function updateImageGrid() {
         });
     }
     if (keywordFilter) {
-        filteredImageReferences = filteredImageReferences.filter((imageRef) => {
+        const imageRefLevelFilteredImages = filteredImageReferences.filter((imageRef) => {
             const properties = [
                 'scientific_name',
-                'expedition_added',
                 'phylum',
                 'class_name',
                 'order',
@@ -62,6 +49,13 @@ function updateImageGrid() {
             ];
             return properties.some((property) => imageRef[property]?.toLowerCase().includes(keywordFilter.toLowerCase()));
         });
+        const photoRecordLevelFilteredImages = filteredImageReferences.filter((imageRef) => {
+            return imageRef.photo_records.some((photoRecord) => {
+                return photoRecord.location_short_name?.toLowerCase().includes(keywordFilter.toLowerCase())
+                    || photoRecord.location_long_name?.toLowerCase().includes(keywordFilter.toLowerCase())
+            });
+        });
+        filteredImageReferences = [...new Set([...imageRefLevelFilteredImages, ...photoRecordLevelFilteredImages])];
     }
     filteredImageReferences.forEach((imageRef) => {
         const fullName = formattedName(imageRef);
@@ -77,12 +71,14 @@ function updateImageGrid() {
                             data-toggle="tooltip"
                             data-bs-placement="right"
                             data-bs-html="true"
-                            title="Phylum: ${imageRef.phylum ?? 'N/A'}<br>
-                                   Class: ${imageRef.class_name ?? 'N/A'}<br>
-                                   Order: ${imageRef.order ?? 'N/A'}<br>
-                                   Family: ${imageRef.family ?? 'N/A'}<br>
-                                   Genus: ${imageRef.genus ? `<i>${imageRef.genus}</i>` : 'N/A'}<br>
-                                   Species: ${imageRef.species ? `<i>${imageRef.species}</i>` : 'N/A'}"
+                            title="<div class='text-start' style='max-width: none; white-space: nowrap;'>
+                                     Phylum: ${imageRef.phylum ?? 'N/A'}<br>
+                                     Class: ${imageRef.class_name ?? 'N/A'}<br>
+                                     Order: ${imageRef.order ?? 'N/A'}<br>
+                                     Family: ${imageRef.family ?? 'N/A'}<br>
+                                     Genus: ${imageRef.genus ? `<i>${imageRef.genus}</i>` : 'N/A'}<br>
+                                     Species: ${imageRef.species ? `<i>${imageRef.species}</i>` : 'N/A'}
+                                   </div>"
                         >
                             ${fullName}
                         </div>
@@ -121,9 +117,9 @@ function updateImageGrid() {
                                                 data-toggle="tooltip"
                                                 data-bs-placement="right"
                                                 data-bs-html="true"
-                                                title="${locationsMap[photoRecord.location_name] ?? photoRecord.location_name}"
+                                                title="${photoRecord.location_long_name}"
                                             >
-                                                ${photoRecord.location_name}
+                                                ${photoRecord.location_short_name}
                                             </div>
                                         </div>
                                         ${photoRecord.video_url
@@ -173,24 +169,6 @@ function updateImageGrid() {
             </div>
         `);
     });
-}
-
-function getFiltersFromHash() {
-    phylogenyFilter = {};
-    keywordFilter = '';
-    const hash = window.location.hash.substring(1);
-    if (hash === '') {
-        return;
-    }
-    for (const hashPair of hash.split('&')) {
-        const key = hashPair.split('=')[0];
-        const value = hashPair.split('=')[1].replaceAll('%20', ' ');
-        if (key === 'keyword') {
-            keywordFilter = value;
-            continue;
-        }
-        phylogenyFilter[key] = value;
-    }
 }
 
 function populatePhyla() {
@@ -269,7 +247,7 @@ function updatePhylogenyFilter(taxonRank) {
     for (let i = taxonRanks.indexOf(taxonRank) + 1; i < taxonRanks.length; i++) {
         delete phylogenyFilter[taxonRanks[i]];
     }
-    updateHash();
+    updateFilter();
 }
 
 window.updatePhylogenyFilter = updatePhylogenyFilter;
