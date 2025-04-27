@@ -2,9 +2,10 @@ const slideshows = {}; // { fullName: { currentIndex, maxIndex, depths } }
 const taxonRanks = ['phylum', 'class', 'order', 'family', 'genus'];
 const phyla = {};
 
-let filteredImageReferences = imageReferences;
+let filteredImageReferences = [...imageReferences];
 let phylogenyFilter = {};
 let keywordFilter = '';
+let sortKey = 'default';
 
 $(document).ready(() => {
     $('body').tooltip({ selector: '[data-toggle=tooltip]', trigger : 'hover' });
@@ -26,6 +27,10 @@ $(document).ready(() => {
     $('#keywordFilterInput').on('blur', () => {
         $('#filterContainer').css('border', '1px solid var(--darc-bg)');
     });
+    $('#sortSelect').on('change', (e) => {
+        sortKey = e.target.value;
+        updateImageGrid();
+    });
 });
 
 function updateFilter() {
@@ -35,7 +40,7 @@ function updateFilter() {
 
 function updateImageGrid() {
     $('#imageGrid').empty();
-    filteredImageReferences = imageReferences;
+    filteredImageReferences = [...imageReferences];
     for (const key of Object.keys(phylogenyFilter)) {
         filteredImageReferences = filteredImageReferences.filter((imageRef) => {
             return imageRef[key === 'class' ? 'class_name' : key]?.toLowerCase().includes(phylogenyFilter[key].toLowerCase());
@@ -64,6 +69,49 @@ function updateImageGrid() {
         });
         filteredImageReferences = [...new Set([...imageRefLevelFilteredImages, ...photoRecordLevelFilteredImages])];
     }
+    // move all records missing specified property to bottom
+    const recordsMissingSortKey = filteredImageReferences.filter((anno) => anno[sortKey]);
+    switch (sortKey) {
+        case 'phylum':
+            filteredImageReferences = filterAndSort(filteredImageReferences, 'species');
+            filteredImageReferences = filterAndSort(filteredImageReferences, 'genus');
+            filteredImageReferences = filterAndSort(filteredImageReferences, 'family');
+            filteredImageReferences = filterAndSort(filteredImageReferences, 'order');
+            filteredImageReferences = filterAndSort(filteredImageReferences, 'class');
+            filteredImageReferences = filterAndSort(filteredImageReferences, 'phylum');
+            break;
+        case 'class':
+            filteredImageReferences = filterAndSort(filteredImageReferences, 'species');
+            filteredImageReferences = filterAndSort(filteredImageReferences, 'genus');
+            filteredImageReferences = filterAndSort(filteredImageReferences, 'family');
+            filteredImageReferences = filterAndSort(filteredImageReferences, 'order');
+            filteredImageReferences = filterAndSort(filteredImageReferences, 'class');
+            break;
+        case 'order':
+            filteredImageReferences = filterAndSort(filteredImageReferences, 'species');
+            filteredImageReferences = filterAndSort(filteredImageReferences, 'genus');
+            filteredImageReferences = filterAndSort(filteredImageReferences, 'family');
+            filteredImageReferences = filterAndSort(filteredImageReferences, 'order');
+            break;
+        case 'family':
+            filteredImageReferences = filterAndSort(filteredImageReferences, 'species');
+            filteredImageReferences = filterAndSort(filteredImageReferences, 'genus');
+            filteredImageReferences = filterAndSort(filteredImageReferences, 'family');
+            break;
+        case 'genus':
+            filteredImageReferences = filterAndSort(filteredImageReferences, 'species');
+            filteredImageReferences = filterAndSort(filteredImageReferences, 'genus');
+            break;
+        case 'species':
+            filteredImageReferences = filterAndSort(filteredImageReferences, 'species');
+            break;
+        case 'depth':
+            filteredImageReferences.sort((a, b) => a.photo_records[0].depth_m - b.photo_records[0].depth_m);
+            break;
+        default:
+            break;
+    }
+    filteredImageReferences = recordsMissingSortKey.concat(filteredImageReferences.filter((record) => !record[sortKey]));
     filteredImageReferences.forEach((imageRef) => {
         const fullName = formattedName(imageRef);
         const photoKey = fullName.replaceAll(' ', '-');
@@ -105,15 +153,22 @@ function updateImageGrid() {
                                                 alt="${fullName}"
                                             >
                                         </a>
-                                        <div class="position-absolute" style="right: 0; bottom: -1.5rem;">
-                                            <div
-                                                class="my-auto"
-                                                style="width: 1.5rem; height: 1.5rem; background: ${depthColor(photoRecord.depth_m)}; border-radius: 0 0 0.25rem 0;"
-                                                data-toggle="tooltip"
-                                                data-bs-placement="right"
-                                                data-bs-html="true"
-                                                title="Depth: ${photoRecord.depth_m}m"
-                                            ></div>
+                                        <div
+                                            class="position-absolute"
+                                            style="right: 0; bottom: -1.5rem; width: 1.5rem; height: 1.5rem; background: ${depthColor(photoRecord.depth_m)}; border-radius: 0 0 0.25rem 0;"
+                                            data-toggle="tooltip"
+                                            data-bs-placement="right"
+                                            data-bs-html="true"
+                                            title="Depth: ${photoRecord.depth_m}m"
+                                        >
+                                            ${photoRecord.depth_m >= 1000
+                                                ? `
+                                                    <div
+                                                        class="mt-auto"
+                                                        style="width: 1.5rem; height: 0.4rem; background: #a6a6a6;"
+                                                    ></div>
+                                                ` : ''
+                                            }
                                         </div>
                                         <div
                                             class="position-absolute d-flex align-items-center"
@@ -176,6 +231,12 @@ function updateImageGrid() {
             </div>
         `);
     });
+}
+
+const filterAndSort = (list, key) => {
+    let filtered = list.filter((anno) => anno[key]);
+    filtered = filtered.sort((a, b) => (a[key] > b[key]) ? 1 : ((b[key] > a[key]) ? -1 : 0));
+    return filtered.concat(list.filter((anno) => !anno[key]));
 }
 
 function populatePhyla() {
