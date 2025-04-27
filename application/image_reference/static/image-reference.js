@@ -17,7 +17,14 @@ $(document).ready(() => {
     updateImageGrid();
     $('#keywordFilterInput').on('input', (e) => {
         keywordFilter = e.target.value;
+        $('[data-toggle="tooltip"]').tooltip('dispose');
         updateFilter();
+    });
+    $('#keywordFilterInput').on('focus', () => {
+        $('#filterContainer').css('border', '1px solid #ffffff25');
+    });
+    $('#keywordFilterInput').on('blur', () => {
+        $('#filterContainer').css('border', '1px solid var(--darc-bg)');
     });
 });
 

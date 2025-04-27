@@ -154,6 +154,11 @@ select:active {
   opacity: 0;
 }
 
+.rotate {
+    transform: rotate(180deg);
+    transition: 0.3s;
+}
+
 .video-overlay-link {
     color: #ffffff50;
     transition: 0.1s;
