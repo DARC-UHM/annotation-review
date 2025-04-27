@@ -351,19 +351,29 @@ window.changeSlide = changeSlide;
 const formattedName = (imageRef) => {
     const italicizeScientificName = imageRef.species || imageRef.genus;
     const italicizeSuffix = italicizeScientificName || imageRef.family;
-    const nameSuffix = imageRef.tentative_id
-      ? ` (${imageRef.tentative_id}?)`
-      : imageRef.morphospecies
-        ? ` (${imageRef.morphospecies})`
-        : '';
-    if (italicizeScientificName) {
-        return `<i>${imageRef.scientific_name}${nameSuffix}</i>`;
+    let nameSuffix = '';
+    if (imageRef.tentative_id) {
+        nameSuffix += ` (${italicizeSuffix || italicizeScientificName
+          ? italicizedSuffix(imageRef.tentative_id) : imageRef.tentative_id}${
+            imageRef.tentative_id.includes('cf.') ? '' : '?'
+        })`;
+    } else if (imageRef.morphospecies) {
+        nameSuffix += ` (${italicizeSuffix || italicizeScientificName
+          ? italicizedSuffix(imageRef.morphospecies) : imageRef.morphospecies})`;
     }
-    if (italicizeSuffix) {
-        return `${imageRef.scientific_name}<i>${nameSuffix}</i>`;
+    if (italicizeScientificName) {
+        return `<i>${imageRef.scientific_name}</i>${nameSuffix}`;
     }
     return `${imageRef.scientific_name}${nameSuffix}`;
 }
+
+const italicizedSuffix = (suffix) => {
+    if (suffix.includes('cf.')) {
+        const parts = suffix.split('cf.');
+        return `<i>${parts[0]}</i>cf.<i>${parts[1]}</i>`;
+    }
+    return `<i>${suffix}</i>`;
+};
 
 const depthColor = (depthM) => {
     if (depthM >= 1000) {
