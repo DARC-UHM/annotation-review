@@ -1,3 +1,5 @@
+import { updateFlashMessages } from '../../static/js/util/updateFlashMessages.js';
+
 const slideshows = {}; // { fullName: { currentIndex, maxIndex, depths } }
 const taxonRanks = ['phylum', 'class', 'order', 'family', 'genus'];
 const phyla = {};
@@ -347,6 +349,26 @@ function changeSlide(photoKey, slideMod) {
 }
 
 window.changeSlide = changeSlide;
+
+async function addImageReference() {
+    event.preventDefault();
+    const formData = new FormData($('#addImageReferenceForm')[0]);
+    $('#load-overlay').removeClass('loader-bg-hidden');
+    $('#load-overlay').addClass('loader-bg');
+    const response = await fetch('/image-reference', {
+        method: 'POST',
+        body: formData,
+    });
+    if (response.ok) {
+        location.reload();
+    } else {
+        updateFlashMessages('Failed to add concept', 'danger');
+    }
+    $('#load-overlay').addClass('loader-bg-hidden');
+    $('#load-overlay').removeClass('loader-bg');
+}
+
+window.addImageReference = addImageReference;
 
 const formattedName = (imageRef) => {
     const italicizeScientificName = imageRef.species || imageRef.genus;

@@ -65,7 +65,8 @@
                 id="addButton"
                 class="btn btn-success btn-sm rounded-pill"
                 style="padding: 6px 12px; font-size: 0.8rem;"
-                onclick="alert('not yet implemented :)')"
+                data-bs-toggle="modal"
+                data-bs-target="#addImageReferenceModal"
             >
                 Add +
             </button>
@@ -101,6 +102,33 @@
         </div>
     </div>
     <div id="imageGrid" class="row d-flex mt-1">
+    </div>
+</div>
+<div class="modal fade" id="addImageReferenceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form id="addImageReferenceForm" onsubmit="addImageReference()" autocomplete="off">
+            <div class="modal-content">
+                <div class="modal-header text-center">
+                    <h5 class="modal-title mt-1 ms-4" style="font-weight: 600;">Add Image Reference</h5>
+                    <button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-start mx-4">
+                    <div class="mb-3 row">
+                        <label for="localizationId" class="col-4">Tator Localization ID</label>
+                        <input type="text" class="col modal-text" id="localizationId" name="localizationId" required>
+                    </div>
+                    <div class="small">
+                        <a href="/image-reference/static/tator_localization_id.jpg" target="_blank" class="aquaLink">
+                            Where can I find the Tator Localization ID?
+                        </a>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Cancel</button>
+                    <input type="submit" class="btn btn-primary modal-button" value="Add">
+                </div>
+            </div>
+        </form>
     </div>
 </div>
 {% endblock content %}
