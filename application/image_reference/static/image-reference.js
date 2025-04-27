@@ -1,5 +1,6 @@
 const slideshows = {}; // { fullName: { currentIndex, maxIndex, depths } }
 const taxonRanks = ['phylum', 'class', 'order', 'family', 'genus'];
+const locationsMap = { PNG: 'Papua New Guinea', SOL: 'Solomon Islands' };
 const phyla = {};
 
 let filteredImageReferences = imageReferences;
@@ -68,7 +69,7 @@ function updateImageGrid() {
         slideshows[photoKey] = { currentIndex: 0, maxIndex: imageRef.photo_records.length - 1, depths: [] };
         $('#imageGrid').append(`
             <div class="col-lg-3 col-md-4 col-sm-6 col-12 p-2">
-                <div class="rounded-3 small h-100" style="background: #1b1f26;">
+                <div class="rounded-3 small" style="background: #1b1f26;">
                     <div class="py-2 rounded-top m-0" style="background: #171a1f;">
                         <div
                             class="mx-auto"
@@ -93,30 +94,62 @@ function updateImageGrid() {
                             const imageBaseUrl = 'https://hurlstor.soest.hawaii.edu:5000/image-reference/image/';
                             return `
                                 <div id="${photoKey}-${index}" style="display: ${index > 0 ? 'none' : 'block'};">
-                                    <a href="${imageBaseUrl}${photoRecord.image_name}" target="_blank">
-                                        <div class="position-relative">
+                                    <div class="position-relative">
+                                        <a href="${imageBaseUrl}${photoRecord.image_name}" target="_blank">
                                             <img
                                                 src="${imageBaseUrl}${photoRecord.thumbnail_name}"
                                                 class="mw-100 mh-100"
-                                                style="border-radius: 0 0 0.2rem 0.2rem;"
                                                 alt="${fullName}"
                                             >
-                                            <div class="position-absolute" style="right: 0; top: 0;">
-                                                <div
-                                                    class="my-auto"
-                                                    style="width: 1.5rem; height: 1.5rem; background: ${depthColor(photoRecord.depth_m)};"
-                                                    data-toggle="tooltip"
-                                                    data-bs-placement="right"
-                                                    data-bs-html="true"
-                                                    title="Depth: ${photoRecord.depth_m}m"
-                                                ></div>
-                                            </div>
-                                             ${imageRef.photo_records.length > 1
-                                                ? `<div class="photo-slideshow-numbers">${index + 1} / ${imageRef.photo_records.length}</div>`
-                                                : ''
-                                             }
+                                        </a>
+                                        <div class="position-absolute" style="right: 0; bottom: -1.5rem;">
+                                            <div
+                                                class="my-auto"
+                                                style="width: 1.5rem; height: 1.5rem; background: ${depthColor(photoRecord.depth_m)}; border-radius: 0 0 0.25rem 0;"
+                                                data-toggle="tooltip"
+                                                data-bs-placement="right"
+                                                data-bs-html="true"
+                                                title="Depth: ${photoRecord.depth_m}m"
+                                            ></div>
                                         </div>
-                                    </a>
+                                        <div
+                                            class="position-absolute d-flex align-items-center"
+                                            style="height: 1.5rem; left: 0; bottom: -1.5rem; font-size: 0.75rem;"
+                                        >
+                                            <div
+                                                class="ms-2 my-auto"
+                                                data-toggle="tooltip"
+                                                data-bs-placement="right"
+                                                data-bs-html="true"
+                                                title="${locationsMap[photoRecord.location_name] ?? photoRecord.location_name}"
+                                            >
+                                                ${photoRecord.location_name}
+                                            </div>
+                                        </div>
+                                        ${photoRecord.video_url
+                                            ? `
+                                                <div class="position-absolute" style="left: 0; top: 0;">
+                                                    <a href="${photoRecord.video_url}" target="_blank" class="video-overlay-link px-2 py-1">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                                            <path fill-rule="evenodd" d="M0 5a2 2 0 0 1 2-2h7.5a2 2 0 0 1 1.983 1.738l3.11-1.382A1 1 0 0 1 16 4.269v7.462a1 1 0 0 1-1.406.913l-3.111-1.382A2 2 0 0 1 9.5 13H2a2 2 0 0 1-2-2zm11.5 5.175 3.5 1.556V4.269l-3.5 1.556zM2 4a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h7.5a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1z"/>
+                                                        </svg>
+                                                    </a>
+                                                </div>
+                                            ` : ''
+                                        }
+                                        ${imageRef.photo_records.length > 1
+                                            ? `
+                                                <div
+                                                    class="position-absolute d-flex align-items-center w-100 pe-none"
+                                                    style="height: 1.5rem; bottom: -1.5rem; font-size: 0.75rem;"
+                                                >
+                                                    <div class="w-100 text-center">
+                                                        ${index + 1} / ${imageRef.photo_records.length}
+                                                    </div>
+                                                </div>
+                                            ` : ''
+                                        }
+                                    </div>
                             </div>`;
                         }).join('')}
                         <a
@@ -134,7 +167,8 @@ function updateImageGrid() {
                             &#10095;
                         </a>
                     </div>
-
+                    <div style="height: 1.5rem;">
+                    </div>
                 </div>
             </div>
         `);

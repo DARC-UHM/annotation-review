@@ -154,14 +154,13 @@ select:active {
   opacity: 0;
 }
 
-.photo-slideshow-numbers {
-    color: #f2f2f2;
-    font-size: 12px;
-    padding: 8px 12px;
-    position: absolute;
-    bottom: 0;
-    background: rgba(0,0,0,0.4);
-    border-radius: 0 0.25rem 0 0.25rem;
+.video-overlay-link {
+    color: #ffffff50;
+    transition: 0.1s;
+}
+
+.video-overlay-link:hover {
+    color: #ffffff;
 }
 
 .photo-slideshow-arrows {
