@@ -188,6 +188,11 @@ def vars_qaqc(check):
         case 'host-associate-time-diff':
             qaqc_annos.find_long_host_associate_time_diff()
             data['page_title'] = 'Records where "upon" occurred more than one minute ago or cannot be found'
+        case 'localizations-missing-bounding-box':
+            qaqc_annos.find_localizations_without_bounding_boxes()
+            data['page_title'] = 'Records in the "localization" group that do not contain a "bounding box" association ' \
+                                 '(also displays records not in the "localization" group that contain a "bounding box" ' \
+                                 'association)'
         case 'number-of-bounding-boxes':
             qaqc_annos.find_num_bounding_boxes()
             data['page_title'] = 'Number of bounding boxes for each unique concept'

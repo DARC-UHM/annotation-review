@@ -95,6 +95,8 @@ document.addEventListener('DOMContentLoaded',  (event) => {
     $('#refIdAssociationsAnchor').on('click', () => showLoader());
     $('#blankAssociationsAnchor').attr('href', `/qaqc/vars/check/blank-associations?sequence=${sequences.join('&sequence=')}`);
     $('#blankAssociationsAnchor').on('click', () => showLoader());
+    $('#localizationsMissingBoundingBoxAnchor').attr('href', `/qaqc/vars/check/localizations-missing-bounding-box?sequence=${sequences.join('&sequence=')}`);
+    $('#localizationsMissingBoundingBoxAnchor').on('click', () => showLoader());
     $('#suspiciousHostAnchor').attr('href', `/qaqc/vars/check/suspicious-hosts?sequence=${sequences.join('&sequence=')}`);
     $('#suspiciousHostAnchor').on('click', () => showLoader());
     $('#expectedAssociationAnchor').attr('href', `/qaqc/vars/check/expected-associations?sequence=${sequences.join('&sequence=')}`);

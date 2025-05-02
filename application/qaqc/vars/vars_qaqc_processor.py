@@ -328,7 +328,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
                 if annotation.get('group') == 'localization':
                     continue
                 for association in annotation['associations']:
-                    if association['link_value'] == "" and association['to_concept'] == 'self':
+                    if association['link_value'] == '' and association['to_concept'] == 'self':
                         self.working_records.append(annotation)
         self.sort_records(self.process_working_records(self.videos))
 
@@ -482,6 +482,25 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
             'total_count_boxes': total_count_boxes,
             'bounding_box_counts': sorted_box_counts,
         })
+
+    def find_localizations_without_bounding_boxes(self):
+        """
+        Finds records that are in the "localization" group but do not contain a bounding box association. Also finds
+        records that have a bounding box association but are not in the "localization" group.
+        """
+        for name in self.sequence_names:
+            for annotation in self.fetch_annotations(name):
+                has_box = False
+                for association in annotation['associations']:
+                    if association['link_name'] == 'bounding box':
+                        has_box = True
+                        break
+                if annotation.get('group') == 'localization':
+                    if not has_box:
+                        self.working_records.append(annotation)
+                elif has_box:
+                    self.working_records.append(annotation)
+        self.sort_records(self.process_working_records(self.videos))
 
     def find_unique_fields(self):
         def load_dict(field_name, unique_dict, individual_count):
