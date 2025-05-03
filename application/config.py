@@ -8,6 +8,7 @@ class Config:
     SESSION_FILE_DIR = 'flask_session'
     SESSION_PERMANENT = False
     SESSION_USE_SIGNER = True
+    SESSION_FILE_THRESHOLD = 10
     LOCAL_APP_URL = 'http://127.0.0.1:8000'
     TATOR_URL = 'https://cloud.tator.io'
     VARS_ANNOTATION_URL = f'{HURLSTOR_URL}:8082/v1/annotations'

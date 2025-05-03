@@ -61,7 +61,7 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names, 
     full_media_list = res.json()
     for media in full_media_list:
         if not media['attributes'].get('Start Time'):
-            print(f'Media {media["id"]} does not have a start timestamp')
+            print(f'Media {media["id"]} ({media["name"]}) does not have a start timestamp')
             exit(1)
         media_ids[media['id']] = media['attributes']['Start Time']
         if media['attributes'].get('Arrival') and media['attributes']['Arrival'] != '':
