@@ -26,12 +26,14 @@ export const varsAnnotationTableRow = (annotation, externalComment) => {
                             data-toggle="tooltip"
                             data-bs-placement="right"
                             data-bs-html="true"
-                            title="Phylum: ${annotation.phylum ?? 'N/A'}<br>
-                                   Class: ${annotation.class ?? 'N/A'}<br>
-                                   Order: ${annotation.order ?? 'N/A'}<br>
-                                   Family: ${annotation.family ?? 'N/A'}<br>
-                                   Genus: ${annotation.genus ?? 'N/A'}<br>
-                                   Species: ${annotation.species ?? 'N/A'}"
+                            title="<div class='text-start' style='max-width: none; white-space: nowrap;'>
+                                       Phylum: ${annotation.phylum ?? 'N/A'}<br>
+                                       Class: ${annotation.class ?? 'N/A'}<br>
+                                       Order: ${annotation.order ?? 'N/A'}<br>
+                                       Family: ${annotation.family ?? 'N/A'}<br>
+                                       Genus: ${annotation.genus ? `<i>${annotation.genus}</i>` : 'N/A'}<br>
+                                       Species: ${annotation.species ? `<i>${annotation.species}</i>` : 'N/A'}
+                                   </div>"
                         >
                             ${annotation.concept}<br>
                         </button>

@@ -32,16 +32,18 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                     <div class="col values">
                         <button
                             class="m-0 p-0 values"
-                            style="background: none; color: #eee; border: none; cursor: text; user-select: text;"
+                            style="background: none; color: #eee; border: none; cursor: text; user-select: text; width: fit-content;"
                             data-toggle="tooltip"
                             data-bs-placement="right"
                             data-bs-html="true"
-                            title="Phylum: ${localization.phylum ?? 'N/A'}<br>
-                                   Class: ${localization.class ?? 'N/A'}<br>
-                                   Order: ${localization.order ?? 'N/A'}<br>
-                                   Family: ${localization.family ?? 'N/A'}<br>
-                                   Genus: ${localization.genus ?? 'N/A'}<br>
-                                   Species: ${localization.species ?? 'N/A'}"
+                            title="<div class='text-start' style='max-width: none; white-space: nowrap;'>
+                                       Phylum: ${localization.phylum ?? 'N/A'}<br>
+                                       Class: ${localization.class ?? 'N/A'}<br>
+                                       Order: ${localization.order ?? 'N/A'}<br>
+                                       Family: ${localization.family ?? 'N/A'}<br>
+                                       Genus: ${localization.genus ? `<i>${localization.genus}</i>` : 'N/A'}<br>
+                                       Species: ${localization.species ? `<i>${localization.species}</i>` : 'N/A'}
+                                   </div>"
                         >
                             ${localization.scientific_name}<br>
                         </button>
