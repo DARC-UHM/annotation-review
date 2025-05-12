@@ -118,8 +118,9 @@ def tator_qaqc(check):
     except tator.openapi.tator_openapi.exceptions.ApiException:
         flash('Please log in to Tator', 'info')
         return redirect('/')
-    # get comments from external review db
+    # get comments and image references from external review db
     comments = {}
+    image_refs = {}
     if not request.args.get('project') or not request.args.get('section') or not request.args.getlist('deployment'):
         flash('Please select a project, section, and deployment', 'info')
         return redirect('/')
@@ -128,11 +129,17 @@ def tator_qaqc(check):
     deployments = request.args.getlist('deployment')
     try:
         for deployment in deployments:
-            with requests.get(
+            comment_res = requests.get(
                     url=f'{current_app.config.get("DARC_REVIEW_URL")}/comment/sequence/{deployment}',
                     headers=current_app.config.get('DARC_REVIEW_HEADERS'),
-            ) as res:
-                comments = comments | res.json()  # merge dicts
+            )
+            if comment_res.status_code != 200:
+                raise requests.exceptions.ConnectionError
+            comments |= comment_res.json()  # merge dicts
+        image_ref_res = requests.get(f'{current_app.config.get("DARC_REVIEW_URL")}/image-reference/quick')
+        if image_ref_res.status_code != 200:
+            raise requests.exceptions.ConnectionError
+        image_refs = image_ref_res.json()
     except requests.exceptions.ConnectionError:
         print('\nERROR: unable to connect to external review server\n')
     tab_title = deployments[0] if len(deployments) == 1 else f'{deployments[0]} - {deployments[-1].split("_")[-1]}'
@@ -140,8 +147,9 @@ def tator_qaqc(check):
         'concepts': session.get('vars_concepts', []),
         'title': check.replace('-', ' ').title(),
         'tab_title': f'{tab_title} {check.replace("-", " ").title()}',
-        'comments': comments,
         'reviewers': session.get('reviewers', []),
+        'comments': comments,
+        'image_refs': image_refs,
     }
     if check == 'media-attributes':
         # the one case where we don't want to initialize a TatorQaqcProcessor (no need to fetch localizations)

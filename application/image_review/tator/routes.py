@@ -41,15 +41,22 @@ def tator_image_review():
         flash('Please log in to Tator', 'info')
         return redirect('/')
     comments = {}
+    image_refs = {}
     deployments = request.args.getlist('deployment')
-    # get comments from external review db
+    # get comments and image ref list from external review db
     try:
         for deployment in deployments:
-            with requests.get(
+            comment_res = requests.get(
                     url=f'{current_app.config.get("DARC_REVIEW_URL")}/comment/sequence/{deployment.replace("-", "_")}',
                     headers=current_app.config.get('DARC_REVIEW_HEADERS'),
-            ) as res:
-                comments = comments | res.json()  # merge dicts
+            )
+            if comment_res.status_code != 200:
+                raise requests.exceptions.ConnectionError
+            comments |= comment_res.json()  # merge dicts
+        image_ref_res = requests.get(f'{current_app.config.get("DARC_REVIEW_URL")}/image-reference/quick')
+        if image_ref_res.status_code != 200:
+            raise requests.exceptions.ConnectionError
+        image_refs = image_ref_res.json()
     except requests.exceptions.ConnectionError:
         print('\nERROR: unable to connect to external review server\n')
     data = {
@@ -59,5 +66,6 @@ def tator_image_review():
         'concepts': session.get('vars_concepts', []),
         'reviewers': session.get('reviewers', []),
         'comments': comments,
+        'image_refs': image_refs,
     }
     return render_template('image_review/image-review.html', data=data)

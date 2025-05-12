@@ -4,6 +4,18 @@ import { TatorLocalizationType } from '../../static/js/util/tatorLocalizationTyp
 export const tatorLocalizationRow = (localization, externalComment) => {
     const previewFrameUrl = localization.frame_url ? `${localization.frame_url}?preview=true` : localization.image_url;
     let localizationBoxId = null;
+    let imageRefKey = localization.scientific_name;
+    let scientificTentative = localization.scientific_name;
+    if (localization.tentative_id) {
+      imageRefKey += `~tid=${localization.tentative_id}`;
+      scientificTentative += ` (${localization.tentative_id}?)`;
+    }
+    if (localization.morphospecies) {
+      imageRefKey += `~m=${localization.morphospecies}`;
+      scientificTentative += ` (${localization.morphospecies})`;
+    }
+    const notInImageRefs = !imageReferences || !imageReferences[imageRefKey];
+    const thisSpecificImageInImageRefs = !notInImageRefs && imageReferences[imageRefKey] && imageReferences[imageRefKey].includes(localization.observation_uuid);
     for (const loco of localization.all_localizations) {
         if (loco.type === TatorLocalizationType.BOX) {
             localizationBoxId = loco.id;
@@ -285,7 +297,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                 }
                 ${localization.all_localizations[0].type === TatorLocalizationType.BOX && localization.scientific_name
                     ? `
-                        <div class="mt-2 small d-flex justify-content-center">
+                        <div class="mt-2 small d-flex justify-content-center position-relative">
                             <div class="my-auto">
                                 Good Image
                             </div>
@@ -300,6 +312,63 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                                     <label for="goodImage${localization.observation_uuid}"></label>
                                 </div>
                             </div>
+                            <div
+                                class="position-absolute"
+                                style="right: 0; top: 0; width: 1.5rem; height: 1.5rem;"
+                            >
+                                <div
+                                    class="position-relative"
+                                    data-toggle="tooltip"
+                                    data-bs-placement="left"
+                                    data-bs-html="true"
+                                    title="${scientificTentative} ${
+                                        notInImageRefs
+                                            ? 'not saved in image reference list'
+                                            : thisSpecificImageInImageRefs
+                                                ? 'saved in image references (this specific image is saved)'
+                                                : 'saved in image references (this specific image is not saved)'
+                                      }"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6" style="opacity: 50%;">
+                                      <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                                    </svg>
+                                    <div class="position-absolute" style="left: -1rem; bottom: -0.5rem; width: 2rem; height: 2rem; color: #58da72">
+                                        ${
+                                            notInImageRefs
+                                                ? ''
+                                                : thisSpecificImageInImageRefs
+                                                    ? (
+                                                        `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-check-all" viewBox="0 0 16 16">
+                                                            <path d="M8.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L2.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093L8.95 4.992zm-.92 5.14.92.92a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 1 0-1.091-1.028L9.477 9.417l-.485-.486z"/>
+                                                        </svg>`
+                                                    ) : (
+                                                      `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-check" viewBox="0 0 16 16">
+                                                          <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425z"/>
+                                                      </svg>`
+                                                    )
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            ${thisSpecificImageInImageRefs
+                                ? ''
+                                : `
+                                    <div class="position-absolute" style="right: -1.4rem; top: 0">
+                                        <button
+                                            class="aquaLink"
+                                            onclick="alert('not implemented yet!'); console.log('${JSON.stringify(localization).replaceAll('"', '`')}');"
+                                            data-toggle="tooltip"
+                                            data-bs-placement="left"
+                                            data-bs-html="true"
+                                            title="Add to image reference list"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16" stroke="currentColor" stroke-width="0.8">
+                                                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
+                                            </svg> 
+                                        </button>
+                                    </div>
+                                `
+                            }
                         </div>
                     ` : ''
                 }
