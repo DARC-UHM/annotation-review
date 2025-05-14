@@ -266,7 +266,6 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                                     src="${previewFrameUrl}"
                                     style="width: 580px;"
                                     alt="${localization.scientific_name}"
-                                    onmouseover="mouseOver('${localization.observation_uuid}', '${localizationBoxId}')"
                                     onmouseout="mouseOut('${localization.observation_uuid}', '${previewFrameUrl}')"
                                 />
                                 <div id="${localization.observation_uuid}_overlay">
@@ -275,6 +274,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                                         return `<span
                                                     class="position-absolute tator-box"
                                                     style="top: ${loco.points[1] * 100}%; left: ${loco.points[0] * 100}%; width: ${loco.dimensions[0] * 100}%; height: ${loco.dimensions[1] * 100}%;"
+                                                    onmouseover="mouseOver('${localization.observation_uuid}', '${localizationBoxId}')"
                                                 ></span>`;
                                     }
                                     return `<span class="position-absolute tator-dot" style="top: ${loco.points[1] * 100}%; left: ${loco.points[0] * 100}%;"></span>`;
@@ -358,10 +358,12 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                                     <div class="position-absolute" style="right: -1.4rem; top: 0">
                                         <button
                                             class="aquaLink"
-                                            onclick="alert('not implemented yet!'); console.log('${JSON.stringify(localization).replaceAll('"', '`')}');"
                                             data-toggle="tooltip"
                                             data-bs-placement="left"
                                             data-bs-html="true"
+                                            data-localization='${ JSON.stringify(localization) }'
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#addToImageReferencesModal"
                                             title="Add to image reference list"
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16" stroke="currentColor" stroke-width="0.8">
@@ -423,3 +425,72 @@ function mouseOut(uuid, frameUrl) {
 }
 
 window.mouseOut = mouseOut;
+
+let localizationToAddToImageReferences = {};
+
+async function addToImageReferences() {
+    event.preventDefault();
+    const formData = new FormData();
+    const boxLocalization = localizationToAddToImageReferences.all_localizations[0];
+    formData.append('scientific_name', localizationToAddToImageReferences.scientific_name);
+    formData.append('deployment_name', localizationToAddToImageReferences.video_sequence_name);
+    formData.append('section_id', localizationToAddToImageReferences.section_id);
+    formData.append('tator_elemental_id', localizationToAddToImageReferences.observation_uuid);
+    formData.append('localization_media_id', localizationToAddToImageReferences.media_id);
+    formData.append('localization_frame', localizationToAddToImageReferences.frame);
+    formData.append('localization_type', localizationToAddToImageReferences.type);
+    formData.append('x', boxLocalization.points[0]);
+    formData.append('y', boxLocalization.points[1]);
+    formData.append('width', boxLocalization.dimensions[0]);
+    formData.append('height', boxLocalization.dimensions[1]);
+    formData.append('depth_m', localizationToAddToImageReferences.depth_m);
+    formData.append('temp_c', localizationToAddToImageReferences.do_temp_c);
+    formData.append('salinity_m_l', localizationToAddToImageReferences.do_concentration_salin_comp_mol_L);
+    if (localizationToAddToImageReferences.morphospecies) {
+        formData.append('morphospecies', localizationToAddToImageReferences.morphospecies);
+    }
+    if (localizationToAddToImageReferences.tentative_id) {
+        formData.append('tentative_id', localizationToAddToImageReferences.tentative_id);
+    }
+
+    $('#load-overlay').removeClass('loader-bg-hidden');
+    $('#load-overlay').addClass('loader-bg');
+    const response = await fetch('/image-reference', {
+        method: 'POST',
+        body: formData,
+    });
+    if (response.ok) {
+        updateFlashMessages('Successfully added record', 'success');
+        location.reload();
+    } else {
+        updateFlashMessages('Failed to add record', 'danger');
+    }
+    $('#load-overlay').addClass('loader-bg-hidden');
+    $('#load-overlay').removeClass('loader-bg');
+}
+
+window.addToImageReferences = addToImageReferences;
+
+$(document).ready(() => {
+    $('#addToImageReferencesModal').on('show.bs.modal', (e) => {
+        localizationToAddToImageReferences = $(e.relatedTarget).data('localization');
+        let imageRefKey = localizationToAddToImageReferences.scientific_name;
+        let scientificTentative = localizationToAddToImageReferences.scientific_name;
+        if (localizationToAddToImageReferences.tentative_id) {
+            imageRefKey += `~tid=${localizationToAddToImageReferences.tentative_id}`;
+            scientificTentative += ` (${localizationToAddToImageReferences.tentative_id}?)`;
+        }
+        if (localizationToAddToImageReferences.morphospecies) {
+            imageRefKey += `~m=${localizationToAddToImageReferences.morphospecies}`;
+            scientificTentative += ` (${localizationToAddToImageReferences.morphospecies})`;
+        }
+        if (!imageReferences || !imageReferences[imageRefKey]) {
+            $('#addToImageReferencesModalDetails').html(`Add new record <b>${scientificTentative}</b> to image references?`);
+        } else {
+            const numPhotos = imageReferences[imageRefKey].length;
+            $('#addToImageReferencesModalDetails')
+              .html(`Add new photo for <b>${scientificTentative}</b> to image references?
+                     There ${numPhotos === 1 ? 'is' : 'are'} currently ${numPhotos} photo${numPhotos === 1 ? '' : 's'} saved for this concept.`);
+        }
+    });
+});
