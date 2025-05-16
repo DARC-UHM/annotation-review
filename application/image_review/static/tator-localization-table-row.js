@@ -443,9 +443,15 @@ async function addToImageReferences() {
     formData.append('y', boxLocalization.points[1]);
     formData.append('width', boxLocalization.dimensions[0]);
     formData.append('height', boxLocalization.dimensions[1]);
-    formData.append('depth_m', localizationToAddToImageReferences.depth_m);
-    formData.append('temp_c', localizationToAddToImageReferences.do_temp_c);
-    formData.append('salinity_m_l', localizationToAddToImageReferences.do_concentration_salin_comp_mol_L);
+    if (localizationToAddToImageReferences.depth_m) {
+        formData.append('depth_m', localizationToAddToImageReferences.depth_m);
+    }
+    if (localizationToAddToImageReferences.do_temp_c) {
+        formData.append('temp_c', localizationToAddToImageReferences.do_temp_c);
+    }
+    if (localizationToAddToImageReferences.do_concentration_salin_comp_mol_L) {
+        formData.append('salinity_m_l', localizationToAddToImageReferences.do_concentration_salin_comp_mol_L);
+    }
     if (localizationToAddToImageReferences.morphospecies) {
         formData.append('morphospecies', localizationToAddToImageReferences.morphospecies);
     }
@@ -463,7 +469,8 @@ async function addToImageReferences() {
         updateFlashMessages('Successfully added record', 'success');
         location.reload();
     } else {
-        updateFlashMessages('Failed to add record', 'danger');
+        const jsonResponse = await response.json();
+        updateFlashMessages(Object.values(jsonResponse), 'danger');
     }
     $('#load-overlay').addClass('loader-bg-hidden');
     $('#load-overlay').removeClass('loader-bg');

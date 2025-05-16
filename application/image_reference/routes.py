@@ -42,4 +42,4 @@ def add_image_reference():
                 'salinity_m_l': request.form.get('salinity_m_l'),
             },
         )
-    return {}, res.status_code
+    return res.json(), res.status_code
