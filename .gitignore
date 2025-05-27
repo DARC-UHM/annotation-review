@@ -3,6 +3,7 @@ __pycache__/
 .pytest_cache/
 flask_session/
 cache/
+tator_scripts/temp/
 *.pyc
 .DS_Store
 .env
