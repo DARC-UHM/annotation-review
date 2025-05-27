@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded',  (event) => {
     }
 
     for (const checkbox of Object.keys(checklist)) { // checklist was passed from the server
+        // convert snake case to camel case for checkbox name
         const checkboxName = checkbox.split('_').map((word, index) => {
             return index > 0 ? word.charAt(0).toUpperCase() + word.slice(1) : word;
         }).join('') + 'Checkbox';
@@ -75,6 +76,8 @@ document.addEventListener('DOMContentLoaded',  (event) => {
     $('#sameNameQualifierAnchor').on('click', () => showLoader());
     $('#nonTargetNotAttractedAnchor').attr('href', `/qaqc/tator/check/non-target-not-attracted?project=${projectId}&section=${sectionId}&deployment=${deployments.join('&deployment=')}`);
     $('#nonTargetNotAttractedAnchor').on('click', () => showLoader());
+    $('#existsInImageRefsAnchor').attr('href', `/qaqc/tator/check/exists-in-image-references?project=${projectId}&section=${sectionId}&deployment=${deployments.join('&deployment=')}`);
+    $('#existsInImageRefsAnchor').on('click', () => showLoader());
     $('#attractedAnchor').attr('href', `/qaqc/tator/check/attracted-not-attracted?project=${projectId}&section=${sectionId}&deployment=${deployments.join('&deployment=')}`);
     $('#attractedAnchor').on('click', () => showLoader());
     $('#tentativeIdAnchor').attr('href', `/qaqc/tator/check/all-tentative-ids?project=${projectId}&section=${sectionId}&deployment=${deployments.join('&deployment=')}`);

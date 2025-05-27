@@ -200,6 +200,25 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
         self.localizations = records_of_interest
         self.process_records()
 
+    def check_exists_in_image_references(self, image_refs: dict):
+        """
+        Finds records that do not exist in the image references db (combo scientific name, tentative ID,
+        and morphospecies).
+        """
+        records_of_interest = []
+        for localization in self.localizations:
+            image_ref_key = localization['attributes'].get('Scientific Name')
+            tentative_id = localization['attributes'].get('Tentative ID')
+            morphospecies = localization['attributes'].get('Morphospecies')
+            if tentative_id and tentative_id != '':
+                image_ref_key += f'~tid={tentative_id}'
+            if morphospecies and morphospecies != '':
+                image_ref_key += f'~m={morphospecies}'
+            if image_ref_key not in image_refs:
+                records_of_interest.append(localization)
+        self.localizations = records_of_interest
+        self.process_records()
+
     def get_all_tentative_ids(self):
         """
         Finds every record with a tentative ID. Also checks whether or not the tentative ID is in the same

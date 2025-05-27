@@ -194,6 +194,9 @@ def tator_qaqc(check):
             qaqc_annos.check_attracted_not_attracted(attracted_concepts)
             data['page_title'] = 'Attracted/not attracted match expected taxa list'
             data['attracted_concepts'] = attracted_concepts
+        case 'exists-in-image-references':
+            qaqc_annos.check_exists_in_image_references(image_refs)
+            data['page_title'] = 'Records that do not exist in image references'
         case 'same-name-qualifier':
             qaqc_annos.check_same_name_qualifier()
             data['page_title'] = 'Records with the same scientific name/tentative ID but different qualifiers'

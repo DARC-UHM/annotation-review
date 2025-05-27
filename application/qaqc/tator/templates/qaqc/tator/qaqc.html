@@ -16,11 +16,17 @@
                 <div id="attractedNotAttractedSubHeading" class="mb-2 d-flex justify-content-between w-100" style="display: none !important;">
                     (also flags records with taxa that can be either)
                 </div>
+                <div id="imageRefSubHeading" class="mb-2 d-flex justify-content-between w-100" style="display: none !important;">
+                    (based on scientific name, tentative ID, and morphospecies)
+                </div>
                 <div><span id="vesselName"></span> <span id="sequenceList"></span></div>
             </div>
             <div class="col-3 text-end mt-auto">
                 <button id="attractedNotAttractedPopupButton" onclick="viewAttractedList()" class="aquaLink small mb-1" style="display: none;">
                     View/Edit Attracted List
+                </button>
+                <button id="imageRefPopupButton" onclick="viewImageReferences()" class="aquaLink small mb-1" style="display: none;">
+                    View/Edit Image References
                 </button>
                 <div class="small">Total Annotations:&nbsp;&nbsp;<span id="annotationCount" style="font-weight: 600;"></span><br></div>
                 <div class="small mt-1">
