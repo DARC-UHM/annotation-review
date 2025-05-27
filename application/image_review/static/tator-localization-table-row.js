@@ -120,7 +120,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                         ${localization.problems?.includes('Tentative ID phylogeny no match') ? '<div style="color: red;">^ That\'s not my child!</div>' : '<br>'}
                     </div>
                 </div>
-                <div class="row">
+                <div class="row" style="${localization.problems?.includes('Morphospecies') ? 'color: yellow;' : ''}">
                     <div class="col-4">
                         Morphospecies:
                     </div>
