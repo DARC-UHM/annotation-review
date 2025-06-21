@@ -8,7 +8,7 @@ $(document).ready(() => {
     }, 5000);
 
     for (const reviewer of reviewers) {
-        const url = `https://hurlstor.soest.hawaii.edu:5000/review/${reviewer.name.replace(/ /g, '-')}`
+        const url = `https://darc.soest.hawaii.edu/review/${reviewer.name.replace(/ /g, '-')}`
         $('#reviewerTable').find('tbody').append(`
         <tr>
             <td><a href="${url}" class="aquaLink" style="font-weight: 500;">${reviewer.name}</a></td>

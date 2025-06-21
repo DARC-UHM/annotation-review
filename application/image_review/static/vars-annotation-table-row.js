@@ -137,7 +137,7 @@ export const varsAnnotationTableRow = (annotation, externalComment) => {
                                                 ? `
                                                     ${item.comment}<br>
                                                     <span class="small fw-normal">
-                                                        - <a href="https://hurlstor.soest.hawaii.edu:5000/review/${item.reviewer}" class="aquaLink" target="_blank">
+                                                        - <a href="https://darc.soest.hawaii.edu/review/${item.reviewer}" class="aquaLink" target="_blank">
                                                             ${item.reviewer}
                                                         </a> ${item.date_modified}
                                                     </span>
@@ -145,7 +145,7 @@ export const varsAnnotationTableRow = (annotation, externalComment) => {
                                             }<br><br>`
                                         : `
                                             <span class="fw-normal">
-                                                Awaiting comment from <a href="https://hurlstor.soest.hawaii.edu:5000/review/${item.reviewer}" class="aquaLink" target="_blank">${item.reviewer}</a>
+                                                Awaiting comment from <a href="https://darc.soest.hawaii.edu/review/${item.reviewer}" class="aquaLink" target="_blank">${item.reviewer}</a>
                                                 <div class="small">Added ${item.date_modified.substring(0, 6)}</div>
                                             </span><br>
                                         `;
