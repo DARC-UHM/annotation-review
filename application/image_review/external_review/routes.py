@@ -82,6 +82,10 @@ def get_external_review():
             )
             comments = all_comments_res.json()
         print('fetched!')
+        image_ref_res = requests.get(f'{current_app.config.get("DARC_REVIEW_URL")}/image-reference/quick')
+        if image_ref_res.status_code != 200:
+            raise requests.exceptions.ConnectionError
+        image_refs = image_ref_res.json()
     except requests.exceptions.ConnectionError:
         _reviewers = []
         print('\nERROR: unable to connect to external review server\n')
@@ -106,6 +110,7 @@ def get_external_review():
         'unread_comment_count': unread_comments,
         'read_comment_count': read_comments,
         'total_comment_count': total_comments,
+        'image_refs': image_refs,
     }
     return render_template('/image_review/image-review.html', data=data)
 
