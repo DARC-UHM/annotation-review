@@ -163,7 +163,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                         ${localization.video_sequence_name || '-'}<br>
                     </div>
                 </div>
-                ${externalComment ? externalReviewNoteSection(externalComment, localization.uuid) : ''}
+                ${externalComment ? externalReviewNoteSection(externalComment, localization.observation_uuid) : ''}
                 <div class="row mt-2">
                     <div class="col-4">
                         <button
