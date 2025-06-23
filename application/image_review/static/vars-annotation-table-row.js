@@ -1,3 +1,5 @@
+import { externalReviewNoteSection } from './external-review-note-section.js';
+
 export const varsAnnotationTableRow = (annotation, externalComment) => {
     let videoUrl = annotation.video_url;
     if (videoUrl) {
@@ -14,7 +16,7 @@ export const varsAnnotationTableRow = (annotation, externalComment) => {
     }
     return (`
         <tr>
-            <td class="ps-5">
+            <td class="ps-5 small">
                 <div class="row">
                     <div class="col-4">
                         Concept:
@@ -111,49 +113,7 @@ export const varsAnnotationTableRow = (annotation, externalComment) => {
                         ${annotation.video_sequence_name}<br>
                     </div>
                 </div>
-                ${externalComment
-                    ? `
-                        <div class="row mt-2">
-                            <div class="col-4">
-                                Reviewer comments:<br>
-                                ${externalComment.unread
-                                    ? `
-                                        <button class="editButton" onclick="markCommentRead('${annotation.observation_uuid}')">
-                                            Mark read
-                                        </button>
-                                    ` : commentExists
-                                        ? `
-                                            <button class="editButton" onclick="markCommentUnread('${annotation.observation_uuid}')">
-                                                Mark unread
-                                            </button>
-                                        ` : ''
-                                }
-                            </div>
-                            <div class="col values">
-                                ${externalComment.reviewer_comments?.map(item => {
-                                    return item.comment
-                                        ? `
-                                            ${item.comment.length
-                                                ? `
-                                                    ${item.comment}<br>
-                                                    <span class="small fw-normal">
-                                                        - <a href="https://darc.soest.hawaii.edu/review/${item.reviewer}" class="aquaLink" target="_blank">
-                                                            ${item.reviewer}
-                                                        </a> ${item.date_modified}
-                                                    </span>
-                                                ` : 'N/A'
-                                            }<br><br>`
-                                        : `
-                                            <span class="fw-normal">
-                                                Awaiting comment from <a href="https://darc.soest.hawaii.edu/review/${item.reviewer}" class="aquaLink" target="_blank">${item.reviewer}</a>
-                                                <div class="small">Added ${item.date_modified.substring(0, 6)}</div>
-                                            </span><br>
-                                        `;
-                                }).join('')}
-                            </div>
-                        </div>
-                    ` : ''
-                }
+                ${externalComment ? externalReviewNoteSection(externalComment, annotation.observation_uuid) : ''}
                 <div class="row mt-2">
                     <div class="col-4">
                         <button 

@@ -1,5 +1,6 @@
 import { updateFlashMessages } from '../../static/js/util/updateFlashMessages.js';
 import { TatorLocalizationType } from '../../static/js/util/tatorLocalizationType.js';
+import { externalReviewNoteSection } from './external-review-note-section.js';
 
 export const tatorLocalizationRow = (localization, externalComment) => {
     const previewFrameUrl = localization.frame_url ? `${localization.frame_url}?preview=true` : localization.image_url;
@@ -24,7 +25,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
     }
     return (`
         <tr>
-            <td class="ps-5">
+            <td class="ps-5 small">
                 <div class="row" style="${localization.problems?.includes('Scientific Name') ? 'color: yellow;' : ''}">
                     <div class="col-4">
                         Scientific Name:
@@ -162,43 +163,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                         ${localization.video_sequence_name || '-'}<br>
                     </div>
                 </div>
-                ${externalComment
-                    ? `
-                        <div class="row mt-2">
-                            <div class="col-4">
-                                Reviewer comments:<br>
-                                ${externalComment.unread
-                                    ? `
-                                        <button class="editButton" onclick="markCommentRead('${localization.observation_uuid}')">
-                                            Mark read
-                                        </button>
-                                    ` : ''
-                                }
-                            </div>
-                            <div class="col values">
-                                ${externalComment.reviewer_comments?.map(item => {
-                                    return item.comment
-                                        ? `
-                                            ${item.comment.length
-                                                ? `
-                                                    ${item.comment}<br>
-                                                    <span class="small fw-normal">
-                                                        - <a href="https://darc.soest.hawaii.edu/review/${item.reviewer}" class="aquaLink" target="_blank">
-                                                            ${item.reviewer}
-                                                        </a> ${item.date_modified}
-                                                    </span>
-                                                ` : 'N/A'}<br><br>`
-                                        : `
-                                            <span class="fw-normal">
-                                                Awaiting comment from <a href="https://darc.soest.hawaii.edu/review/${item.reviewer}" class="aquaLink" target="_blank">${item.reviewer}</a>
-                                                <div class="small">Added ${item.date_modified.substring(0, 6)}</div>
-                                            </span><br>
-                                        `;
-                                }).join('')}
-                            </div>
-                        </div>
-                    ` : ''
-                }
+                ${externalComment ? externalReviewNoteSection(externalComment, localization.uuid) : ''}
                 <div class="row mt-2">
                     <div class="col-4">
                         <button
