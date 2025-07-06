@@ -26,5 +26,7 @@ $(document).ready(()=> {
     } else if (window.location.href.includes('exists-in-image-references')) {
         $('#imageRefSubHeading').css('display', 'inline-block');
         $('#imageRefPopupButton').css('display', 'inline-block');
+    } else if (window.location.href.includes('notes-and-remarks')) {
+        $('#filterCtdNotes').css('display', 'inline-block');
     }
 });

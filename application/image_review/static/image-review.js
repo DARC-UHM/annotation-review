@@ -24,6 +24,7 @@ let currentPage = 1;
 let pageCount;
 let paginationLimit = 25;
 let annotationsToDisplay = [...annotations];
+let filterTatorCtdNotes = false; // this is just here for tator qaqc
 
 const getPaginationNumbers = () => {
     $('#pagination-numbers').empty();
@@ -131,6 +132,13 @@ function validateName(name, nameList, button) {
     }
     button.disabled = disabled;
 }
+
+function filterCtdNotesClick(checked) {
+    filterTatorCtdNotes = !!checked;
+    updateHash();
+}
+
+window.filterCtdNotesClick = filterCtdNotesClick;
 
 // remove filter from hash
 function removeFilter(key, value) {
@@ -416,6 +424,10 @@ export function updateHash() {
     if (filter.localization_type) {
         const localizationType = filter.localization_type.toLowerCase().includes('box') ? TatorLocalizationType.BOX : TatorLocalizationType.DOT;
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.all_localizations[0].type === localizationType);
+    }
+    if (filterTatorCtdNotes) {
+        annotationsToDisplay = annotationsToDisplay.filter((anno) =>
+            !(anno.notes?.includes('Temperature and oxygen data collected') && !(anno.notes?.includes('|') || anno.notes?.includes(';'))));
     }
 
     if (!annotationsToDisplay.length) {

@@ -265,9 +265,6 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
             notes = localization['attributes'].get('Notes')
             id_remarks = localization['attributes'].get('IdentificationRemarks')
             has_note = notes and notes not in ['--', '-', '']
-            if 'Temperature and oxygen data collected' in notes \
-                    and not ('|' in notes or ';' in notes):
-                has_note = False
             has_remark = id_remarks and id_remarks not in ['--', '-', '']
             if has_note and has_remark:
                 localization['problems'] = 'Notes, ID Remarks'
