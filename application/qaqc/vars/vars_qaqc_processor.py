@@ -215,8 +215,6 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
         """
         for name in self.sequence_names:
             for annotation in self.fetch_annotations(name):
-                if annotation.get('group') == 'localization':
-                    continue
                 if 'ancillary_data' not in annotation.keys():
                     self.working_records.append(annotation)
         self.sort_records(self.process_working_records(self.videos))
