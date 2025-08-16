@@ -146,12 +146,12 @@ function updateImageGrid() {
                         ${imageRef.photo_records.map((photoRecord, index) => {
                             const imageBaseUrl = 'https://hurlstor.soest.hawaii.edu:5000/image-reference/image/';
                             return `
-                                <div id="${photoKey}-${index}" style="display: ${index > 0 ? 'none' : 'block'};">
+                                <div id="${photoKey}-${index}" style="display: ${index > 0 ? 'none' : 'block'}; width: 100%">
                                     <div class="position-relative">
                                         <a href="${imageBaseUrl}${photoRecord.image_name}" target="_blank">
                                             <img
                                                 src="${imageBaseUrl}${photoRecord.thumbnail_name}"
-                                                class="mw-100 mh-100"
+                                                class="w-100"
                                                 alt="${fullName}"
                                             >
                                         </a>
@@ -166,8 +166,7 @@ function updateImageGrid() {
                                             ${photoRecord.depth_m >= 1000
                                                 ? `
                                                     <div
-                                                        class="mt-auto"
-                                                        style="width: 1.5rem; height: 0.4rem; background: #a6a6a6;"
+                                                        style="width: 1.5rem; height: 0.4rem; background: #a6a6a6; margin-top: ${photoRecord.depth_m > 5000 ? '1.1rem' : photoRecord.depth_m > 3000 ? '0.55rem' : '0' }; border-radius: 0 0 ${photoRecord.depth_m > 5000 ? '0.25rem' : '0'} 0;"
                                                     ></div>
                                                 ` : ''
                                             }
