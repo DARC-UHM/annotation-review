@@ -7,6 +7,7 @@ const phyla = {};
 let filteredImageReferences = [...imageReferences];
 let phylogenyFilter = {};
 let keywordFilter = '';
+let idTypeFilter = 'any';
 let sortKey = 'default';
 
 $(document).ready(() => {
@@ -33,12 +34,27 @@ $(document).ready(() => {
         sortKey = e.target.value;
         updateImageGrid();
     });
+    $('#sortSelectSmall').on('change', (e) => {
+        sortKey = e.target.value;
+        updateImageGrid();
+    });
+    $('#idTypeFilterSelect').on('change', (e) => {
+        idTypeFilter = e.target.value;
+        updateFilter();
+    });
 });
 
 function updateFilter() {
     updatePhylogenyFilterSelects();
     updateImageGrid();
 }
+
+function updateIdTypeFilter(newFilter) {
+    idTypeFilter = newFilter;
+    updateFilter();
+}
+
+window.updateIdTypeFilter = updateIdTypeFilter;
 
 function updateImageGrid() {
     $('#imageGrid').empty();
@@ -70,6 +86,19 @@ function updateImageGrid() {
             });
         });
         filteredImageReferences = [...new Set([...imageRefLevelFilteredImages, ...photoRecordLevelFilteredImages])];
+    }
+    switch (idTypeFilter) {
+        case 'morphoOrTentative':
+            filteredImageReferences = filteredImageReferences.filter((imageRef) => imageRef.tentative_id || imageRef.morphospecies);
+            break;
+        case 'morphospecies':
+            filteredImageReferences = filteredImageReferences.filter((imageRef) => imageRef.morphospecies);
+            break;
+        case 'tentativeId':
+            filteredImageReferences = filteredImageReferences.filter((imageRef) => imageRef.tentative_id);
+            break;
+        default:
+            break;
     }
     // move all records missing specified property to bottom
     const recordsMissingSortKey = filteredImageReferences.filter((anno) => anno[sortKey]);

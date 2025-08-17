@@ -71,6 +71,50 @@
                 Add +
             </button>
         </div>
+        <div class="position-relative mt-3 mx-auto visible d-block d-md-none" style="width: max-content;">
+            <label for="sortSelectSmall" style="font-size: 0.8rem; width: 75px;">
+                Sort by
+            </label>
+            <select
+                id="sortSelectSmall"
+                class="mx-2 px-3 small rounded-pill"
+                style="background-color: var(--darc-input-bg); min-width: 250px; cursor: pointer;"
+            >
+                <option selected value="default">Default</option>
+                <option value="phylum">Phylum</option>
+                <option value="class">Class</option>
+                <option value="order">Order</option>
+                <option value="family">Family</option>
+                <option value="genus">Genus</option>
+                <option value="species">Species</option>
+                <option value="depth">Depth</option>
+            </select>
+            <div class="position-absolute pe-none" style="top: 4px; right: 1rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3">
+                    <path d="M480-360 280-560h400L480-360Z"/>
+                </svg>
+            </div>
+        </div>
+        <div class="position-relative mx-auto mt-3" style="width: max-content;">
+            <label for="idTypeFilterSelect" style="font-size: 0.8rem; width: 75px;">
+                ID type filter
+            </label>
+            <select
+                id="idTypeFilterSelect"
+                class="mx-2 px-3 small rounded-pill"
+                style="background-color: var(--darc-input-bg); min-width: 250px; cursor: pointer;"
+            >
+                <option value="any" selected>Any</option>
+                <option value="morphoOrTentative">Morphospecies/tentative ID</option>
+                <option value="morphospecies">Morphospecies</option>
+                <option value="tentativeId">Tentative ID</option>
+            </select>
+            <div class="position-absolute pe-none" style="top: 4px; right: 1rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3" class="my-auto">
+                    <path d="M480-360 280-560h400L480-360Z"/>
+                </svg>
+            </div>
+        </div>
         <div class="accordion accordion-flush" id="phylogenyFilter">
             <div class="accordion-item py-2">
                 <div class="accordion-header" id="flush-headingOne">
