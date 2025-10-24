@@ -97,7 +97,7 @@ async function updateExternalReviewers() {
             comments[formData.get('observation_uuid')] = {};
         }
         // refetch the comments for the observation
-        const externalCommentsRes = await fetch(`https://hurlstor.soest.hawaii.edu:5000/comment/get/${formData.get('observation_uuid')}`);
+        const externalCommentsRes = await fetch(`https://hurlstor.soest.hawaii.edu:5000/comment/${formData.get('observation_uuid')}`);
         comments[formData.get('observation_uuid')] = await externalCommentsRes.json();
 
         // update the comments/notes to include the new reviewer
