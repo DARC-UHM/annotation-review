@@ -1,4 +1,5 @@
 import traceback
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from json import JSONDecodeError
 
 from flask import flash, render_template, request, session
@@ -14,50 +15,46 @@ def favicon():
 
 @app.route('/')
 def index():
-    unread_comments = 0
-    read_comments = 0
-    total_comments = 0
-    active_reviewers = []
-    try:
-        # get list of reviewers from external review db
-        with requests.get(
-            url=f'{app.config.get("DARC_REVIEW_URL")}/reviewer/all',
-            headers=app.config.get('DARC_REVIEW_HEADERS'),
-        ) as reviewers_res:
-            session['reviewers'] = reviewers_res.json()
-        # get stats from external review db
-        with requests.get(
-            url=f'{app.config.get("DARC_REVIEW_URL")}/stats',
-            headers=app.config.get('DARC_REVIEW_HEADERS'),
-        ) as stats_res:
-            stats_json = stats_res.json()
-            unread_comments = stats_json['unread_comments']
-            read_comments = stats_json['read_comments']
-            total_comments = stats_json['total_comments']
-            active_reviewers = stats_json['active_reviewers']
-    except (JSONDecodeError, KeyError, requests.exceptions.ConnectionError):
-        flash('Unable to connect to external review server', 'danger')
-        print('\nERROR: unable to connect to external review server\n')
-        session['reviewers'] = []
-    try:
-        # get list of sequences from vars
-        with requests.get(url=app.config.get('VARS_SEQUENCE_LIST_URL')) as sequences_res:
-            session['vars_video_sequences'] = sequences_res.json()
-        # get concept list from vars (for input validation)
-        with requests.get(url=app.config.get('VARS_CONCEPT_LIST_URL')) as concept_res:
-            session['vars_concepts'] = concept_res.json()
-    except requests.exceptions.ConnectionError:
-        print('\nERROR: unable to connect to VARS\n')
-        flash('Unable to connect to VARS', 'danger')
-        session['vars_video_sequences'] = []
-        session['vars_concepts'] = []
+    def fetch_json(url, headers=None):
+        try:
+            res = requests.get(url, headers=headers)
+            res.raise_for_status()
+            return res.json()
+        except requests.exceptions.RequestException as e:
+            print(f'\nERROR: failed to fetch {url}: {e}\n')
+            flash(f'Unable to connect to {url}', 'danger')
+        except JSONDecodeError:
+            print(f'\nERROR: failed to parse JSON from {url}\n')
+        return None
+
+    http_requests = [
+        dict(name='reviewers', url=f'{app.config['DARC_REVIEW_URL']}/reviewer/all', headers=app.config['DARC_REVIEW_HEADERS']),
+        dict(name='stats', url=f'{app.config['DARC_REVIEW_URL']}/stats', headers=app.config['DARC_REVIEW_HEADERS']),
+        dict(name='sequences', url=app.config['VARS_SEQUENCE_LIST_URL']),
+        dict(name='concepts', url=app.config['VARS_CONCEPT_LIST_URL'])
+    ]
+    results = {}
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        futures = {
+            executor.submit(fetch_json, url=item['url'], headers=item.get('headers')): item['name']
+            for item in http_requests
+        }
+        for future in as_completed(futures):
+            name = futures[future]
+            results[name] = future.result()
+
+    stats = results.get('stats') or {}
+    session['reviewers'] = results.get('reviewers') or []
+    session['vars_video_sequences'] = results.get('sequences') or []
+    session['vars_concepts'] = results.get('concepts') or []
+
     return render_template(
         'index.html',
         sequences=session['vars_video_sequences'],
-        unread_comment_count=unread_comments,
-        read_comment_count=read_comments,
-        total_comment_count=total_comments,
-        active_reviewers=active_reviewers,
+        unread_comment_count=stats.get('unread_comments', 0),
+        read_comment_count=stats.get('read_comments', 0),
+        total_comment_count=stats.get('total_comments', 0),
+        active_reviewers=stats.get('active_reviewers', []),
     )
 
 
