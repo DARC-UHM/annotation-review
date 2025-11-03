@@ -1,9 +1,15 @@
 import { updateFlashMessages } from './util/updateFlashMessages.js';
 import { autocomplete } from './util/autocomplete.js';
 
+// just hardcoding 26 (NGS-ExTech Project) as I suspect it will never change. easy enough to update if it does
+const TATOR_PROJECT = 26;
+const TATOR_SECTION_STORAGE_KEY = 'tatorSection';
+const TATOR_FOLDER_STORAGE_KEY = 'tatorFolder';
+
 let numSequences = 1; // VARS
 let numDeployments = 1; // TATOR
 let deploymentList = [];
+let tatorExpeditions = [];
 
 function checkSequence() {
     let disabled = false;
@@ -16,72 +22,66 @@ function checkSequence() {
     $('#varsQaqcButton')[0].disabled = disabled;
 }
 
-async function getTatorProjects() {
-    const res = await fetch('/tator/projects');
-    const json = await res.json();
+async function getTatorSections() {
+    const res = await fetch(`/tator/sections/${TATOR_PROJECT}`);
+    tatorExpeditions = await res.json();
     if (res.status === 200) {
-        $('#tatorProject').html('<option value="" selected disabled>Select a project</option>');
-        for (const project of json) {
-            $('#tatorProject').append(`<option value="${project.id}">${project.name}</option>`);
-        }
-        $('#tatorProject').val(26); // default to 26 (NGS-ExTech Project)
-        await getTatorSections(26);
-    } else {
-        updateFlashMessages('Unable to get Tator projects', 'danger');
-    }
-}
-
-async function getTatorSections(projectId) {
-    if (!projectId) {
-        return;
-    }
-    const res = await fetch(`/tator/sections/${projectId}`);
-    const json = await res.json();
-    if (res.status === 200) {
-        $('#tatorSection').html('<option value="" selected disabled>Select a section</option>');
-        for (const section of json) {
-            $('#tatorSection').append(`<option value="${section.id}">${section.name}</option>`);
+        $('#tatorExpedition').html('<option value="" selected disabled>Select an expedition</option>');
+        for (const expedition of tatorExpeditions) {
+            $('#tatorExpedition').append(`<option value="${expedition.id}">${expedition.name}</option>`);
         }
         // load default section from local storage
-        let sectionId = json[0].id;
-        if (localStorage.getItem('tatorSection')) {
-            sectionId = localStorage.getItem('tatorSection');
+        let sectionId = tatorExpeditions[0]?.id;
+        if (localStorage.getItem(TATOR_SECTION_STORAGE_KEY)) {
+            sectionId = localStorage.getItem(TATOR_SECTION_STORAGE_KEY);
         }
-        $('#tatorSection').val(sectionId);
-        await getTatorDeployments(projectId, sectionId);
+        $('#tatorExpedition').val(sectionId);
+
+        updateTatorFolders(sectionId);
     }
 }
 
-async function getTatorDeployments(projectId, sectionId) {
-    if (!projectId || !sectionId) {
+function updateTatorFolders(sectionId) {
+    if (!sectionId) {
         return;
     }
-    $('#load-overlay').addClass('loader-bg');
-    $('#load-overlay').removeClass('loader-bg-hidden');
-    const res = await fetch(`/tator/deployments/${projectId}/${sectionId}`);
-    const json = await res.json();
-    if (res.status === 200) {
-        $('#deployment1').html('<option value="" selected disabled>Select a deployment</option>');
-        for (const deployment of json) {
-            $('#deployment1').append(`<option value="${deployment}">${deployment}</option>`);
-        }
-        $('#deployment1').val(json[0]);
+    const expedition = tatorExpeditions.find((expedition) => expedition.id.toString() === sectionId.toString());
+    const folderNames = Object.keys(expedition.folders);
+    if (folderNames.length === 0) {
+        $('#tatorFolder').html('<option value="" selected disabled>No folders found</option>');
+        $('#deployment1').html('<option value="" selected disabled>No deployments found</option>');
+        return;
     }
-    deploymentList = json;
+
+    $('#tatorFolder').html('<option value="" selected disabled>Select a folder</option>');
+    for (const folderName of folderNames) {
+        $('#tatorFolder').append(`<option value="${folderName}">${folderName}</option>`);
+    }
+
+    // load default section from local storage
+    let folderName = folderNames[0];
+    if (localStorage.getItem(TATOR_FOLDER_STORAGE_KEY)) {
+        folderName = localStorage.getItem(TATOR_FOLDER_STORAGE_KEY);
+    }
+
+    $('#tatorFolder').val(folderName);
+    updateTatorDeployments(sectionId, folderName);
+}
+
+function updateTatorDeployments(sectionId, folderName) {
+    const expedition = tatorExpeditions.find((expedition) => expedition.id.toString() === sectionId.toString());
+    const deployments = expedition.folders[folderName];
+    deploymentList = deployments;
+
+    $('#deployment1').html('<option value="" selected disabled>Select a deployment</option>');
+
+    for (const deployment of deploymentList) {
+        $('#deployment1').append(`<option value="${deployment.id}">${deployment.name}</option>`);
+    }
+    $('#deployment1').val(deployments[0].id);
     $('#load-overlay').addClass('loader-bg-hidden');
     $('#load-overlay').removeClass('loader-bg');
 }
-
-// refreshes the tator sections and deployments stored in the session (necessary for when changes are made in Tator)
-async function refreshTatorSections() {
-    const res = await fetch('/tator/refresh-sections');
-    if (res.status === 200) {
-        await getTatorProjects();
-        updateFlashMessages('Tator deployments refreshed', 'success');
-    }
-}
-
-window.refreshTatorSections = refreshTatorSections;
 
 async function tatorLogin() {
     event.preventDefault();
@@ -98,7 +98,7 @@ async function tatorLogin() {
         $('#password').val('');
         $('#tatorLoggedInUser').html(json.username);
         $('#tatorIndexForm').show();
-        await getTatorProjects();
+        // await getTatorProjects();  TODO??
         updateFlashMessages('Logged in to Tator', 'success');
     } else {
         updateFlashMessages('Could not log in to Tator', 'danger');
@@ -121,7 +121,7 @@ async function showTatorForm() {
     if (res.status === 200) {
         $('#tatorLoggedInUser').html(json.username);
         $('#tatorIndexForm').show();
-        await getTatorProjects();
+        await getTatorSections();
     } else {
         $('#tatorLogin').show();
     }
@@ -133,10 +133,14 @@ window.showTatorForm = showTatorForm;
 
 $('#tatorSelect').on('click', showTatorForm);
 
-$('#tatorProject').on('change', () => getTatorSections($('#tatorProject').val()));
-$('#tatorSection').on('change', () => {
-    localStorage.setItem('tatorSection', $('#tatorSection').val());
-    getTatorDeployments($('#tatorProject').val(), $('#tatorSection').val());
+$('#tatorExpedition').on('change', () => {
+    localStorage.setItem(TATOR_SECTION_STORAGE_KEY, $('#tatorExpedition').val());
+    updateTatorFolders($('#tatorExpedition').val());
+});
+
+$('#tatorFolder').on('change', () => {
+    localStorage.setItem(TATOR_FOLDER_STORAGE_KEY, $('#tatorFolder').val());
+    updateTatorDeployments($('#tatorExpedition').val(), $('#tatorFolder').val());
 });
 
 $('#varsSelect').on('click', () => {
@@ -221,11 +225,11 @@ $('#tatorPlusButton').on('click', () => {
         </div>
     `);
     for (const deployment of deploymentList) {
-        $(`#deployment${numDeployments}`).append(`<option value="${deployment}">${deployment}</option>`);
+        $(`#deployment${numDeployments}`).append(`<option value="${deployment.id}">${deployment.name}</option>`);
     }
     $(`#deployment${numDeployments}`).val(() => {
-        let index = deploymentList.indexOf(inputDeployment);
-        return index < 0 ? '' : deploymentList[index + 1];
+        let index = deploymentList.findIndex((dep) => dep.id.toString() === inputDeployment.toString());
+        return index < 0 ? '' : deploymentList[index + 1].id;
     });
 
     const currentNum = numDeployments;

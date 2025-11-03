@@ -21,7 +21,9 @@ import tator
 import requests
 from flask import current_app, request, session, Response
 
+from tator_scripts.populate_ctd import TERM_NORMAL
 from . import tator_bp
+from ..util.constants import TERM_YELLOW, TERM_RED
 from ..util.tator_localization_type import TatorLocalizationType
 
 
@@ -66,72 +68,63 @@ def tator_logout():
     return {}, 200
 
 
-# get a list of projects associated with user from tator
-@tator_bp.get('/projects')
-def tator_projects():
-    try:
-        project_list = tator.get_api(
-            host=current_app.config.get('TATOR_URL'),
-            token=session.get('tator_token'),
-        ).get_project_list()
-        return [{'id': project.id, 'name': project.name} for project in project_list], 200
-    except tator.openapi.tator_openapi.exceptions.ApiException:
-        return {}, 400
-
-
 # get a list of sections associated with a project from tator
 @tator_bp.get('/sections/<project_id>')
 def tator_sections(project_id):
+    def should_skip(section_path):
+        section_path_lower = section_path.lower()
+        return 'test' in section_path_lower or 'toplevelsectionname' in section_path_lower
+
     try:
+        sections = {}
         section_list = tator.get_api(
             host=current_app.config.get('TATOR_URL'),
             token=session.get('tator_token'),
         ).get_section_list(project_id)
-        return [{'id': section.id, 'name': section.name} for section in section_list], 200
-    except tator.openapi.tator_openapi.exceptions.ApiException:
-        return {}, 400
-
-
-# get a list of deployments associated with a project & section from tator
-@tator_bp.get('/deployments/<project_id>/<section_id>')
-def load_media(project_id, section_id):
-    if f'{project_id}_{section_id}' in session.keys() and request.args.get('refresh') != 'true':
-        return sorted(session[f'{project_id}_{section_id}'].keys()), 200
-    else:
-        deployment_list = {}
-        # REST is much faster than Python API for large queries
-        res = requests.get(
-            url=f'{current_app.config.get("TATOR_URL")}/rest/Medias/{project_id}?section={section_id}',
-            headers={
-                'Content-Type': 'application/json',
-                'Authorization': f'Token {session.get("tator_token")}',
+        # just doing two passes to simplify the logic
+        for section in section_list:  # first pass - get top-level sections
+            if should_skip(section.path):
+                print(f'Skipping section with test path: "{section.path}" and name: "{section.name}"')
+                continue
+            path_parts = section.path.split('.')
+            if len(path_parts) != 1:
+                continue  # not a top-level section
+            section_path_name = path_parts[0]
+            if section_path_name == 'None':
+                # handle case where top-level section is named "None" 🙄 (PNG DOEX010, Solomons DOEX010, etc?)
+                section_path_name = section.name
+            if sections.get(section_path_name):
+                print(f'{TERM_YELLOW}WARNING: duplicate expedition-level section name "{section_path_name}" detected{TERM_NORMAL}')
+            sections[section_path_name] = {
+                'id': section.id,
+                'name': section.name,
+                'folders': {},
+            }
+        for section in section_list:  # second pass - get subsections
+            if should_skip(section.path):
+                continue
+            path_parts = section.path.split('.')
+            if len(path_parts) == 1:
+                continue
+            if len(path_parts) != 3:
+                if path_parts[1] == 'dscm' or path_parts[1] == 'sub':
+                    continue
+                print(f'Skipping section with unexpected path format: "{section.path}"')
+                continue
+            parent_name, folder_name, _ = path_parts
+            if sections.get(parent_name) is None:
+                print(f'{TERM_YELLOW}WARNING: Skipping sub-section "{section.name}" because parent section "{parent_name}" was not found{TERM_NORMAL}')
+                continue
+            if sections[parent_name]['folders'].get(folder_name) is None:
+                sections[parent_name]['folders'][folder_name] = []
+            sections[parent_name]['folders'][folder_name].append({
+                'id': section.id,
+                'name': section.name,
             })
-        if res.status_code != 200:
-            return {}, res.status_code
-        for media in res.json():
-            media_name_parts = media['name'].split('_')
-            # stupid solution until we decide on an actual naming convention...never?
-            if 'dscm' in media_name_parts and media_name_parts.index('dscm') == 2:  # format SLB_2024_dscm_01_C001.MP4
-                deployment_name = '_'.join(media_name_parts[0:4])
-            elif 'dscm' in media_name_parts and media_name_parts.index('dscm') == 1:  # format HAW_dscm_01_c010_202304250123Z_0983m.mp4
-                deployment_name = '_'.join(media_name_parts[0:3])
-            else:  # format DOEX0087_NIU-dscm-02_c009.mp4
-                deployment_name = media_name_parts[1]
-            if deployment_name not in deployment_list.keys():
-                deployment_list[deployment_name] = [media['id']]
-            else:
-                deployment_list[deployment_name].append(media['id'])
-        session[f'{project_id}_{section_id}'] = deployment_list
-        return sorted(deployment_list.keys()), 200
-
-
-# deletes stored tator sections
-@tator_bp.get('/refresh-sections')
-def refresh_tator_sections():
-    for key in list(session.keys()):
-        if key.split('_')[0] == '26':  # id for NGS-ExTech Project
-            session.pop(key)
-    return {}, 200
+        return list(sections.values()), 200
+    except tator.openapi.tator_openapi.exceptions.ApiException as e:
+        print(f'{TERM_RED}ERROR: Unable to fetch Tator sections:{TERM_NORMAL} {e}')
+        return {'500': 'Error fetching Tator sections'}, 500
 
 
 # view tator video frame (not cropped)
