@@ -221,15 +221,22 @@ function updateHash() {
                 return;
             }
             const boxCount = boundingBoxInfo.bounding_box_counts[concept].boxes;
+            const annotationCount = boundingBoxInfo.bounding_box_counts[concept].annos;
+            let boxCountStyle = "";
+            let annotationCountStyle = "";
+            if (boxCount === 0) {
+                boxCountStyle = "color: red; font-weight: bold;";
+            } else if (boxCount > 10) {
+                boxCountStyle = "color: yellow; font-weight: bold;";
+            } else if (annotationCount === 1 && boxCount === 1) {
+                annotationCountStyle = "color: yellow; font-weight: bold;";
+                boxCountStyle = "color: yellow; font-weight: bold;";
+            }
             $('#annotationTable').find('tbody').append(`
                 <tr class="small">
                     <td>${concept}</td>
-                    <td>${boundingBoxInfo.bounding_box_counts[concept].annos}</td>
-                    <td
-                        style="color: ${boxCount === 0 ? 'red; font-weight: bold;' : boxCount > 10 ? 'yellow; font-weight: bold;' : ''}"
-                    >
-                        ${boxCount}
-                    </td>
+                    <td style="${annotationCountStyle}">${annotationCount}</td>
+                    <td style="${boxCountStyle}">${boxCount}</td>
                 </tr>
             `);
         });

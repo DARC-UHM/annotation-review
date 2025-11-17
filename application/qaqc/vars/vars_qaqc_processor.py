@@ -459,6 +459,9 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
                 f'Host not found in previous records'
 
     def find_num_bounding_boxes(self):
+        """
+        Finds the number of bounding boxes and total annotation count for each unique concept.
+        """
         bounding_box_counts = {}
         total_count_annos = 0
         total_count_boxes = 0

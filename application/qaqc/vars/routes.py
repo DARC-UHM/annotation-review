@@ -190,12 +190,13 @@ def vars_qaqc(check):
             data['page_title'] = 'Records where "upon" occurred more than one minute ago or cannot be found'
         case 'localizations-missing-bounding-box':
             qaqc_annos.find_localizations_without_bounding_boxes()
-            data['page_title'] = 'Records in the "localization" group that do not contain a "bounding box" association ' \
-                                 '(also displays records not in the "localization" group that contain a "bounding box" ' \
-                                 'association)'
+            data['page_title'] = 'Records in the "localization" group that do not contain a "bounding box" association'
+            data['page_subtitle'] = '(also displays records not in the "localization" group that contain a "bounding box" association)'
         case 'number-of-bounding-boxes':
             qaqc_annos.find_num_bounding_boxes()
             data['page_title'] = 'Number of bounding boxes for each unique concept'
+            data['page_subtitle'] = ('Flags concepts with 0 boxes in red and >10 boxes in yellow. Also flags concepts with 1 box & only '
+                                     '1 annotation in yellow')
         case 'unique-fields':
             qaqc_annos.find_unique_fields()
             data['unique_list'] = qaqc_annos.final_records
