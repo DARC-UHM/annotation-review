@@ -428,6 +428,9 @@ select:active {
 .indexDropdownMenu {
     color: var(--darc-text);
     background: var(--darc-border);
+    min-width: 250px;
+    max-height: 90vh;
+    overflow-y: scroll;
 }
 
 .indexDropdownMenu .dropdown-item:hover, .dropdown-item:active {
