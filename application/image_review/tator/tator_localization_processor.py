@@ -1,17 +1,29 @@
 import datetime
 import json
 import os
+from typing import List
+
 import pandas as pd
 import requests
 import sys
 import tator
 
 from flask import session
-from application.util.constants import KNOWN_ANNOTATORS, TERM_RED, TERM_NORMAL
+from application.util.constants import KNOWN_ANNOTATORS, TERM_RED, TERM_NORMAL, TERM_YELLOW
 from application.util.tator_localization_type import TatorLocalizationType
 from application.util.functions import flatten_taxa_tree
 
 WORMS_REST_URL = 'https://www.marinespecies.org/rest'
+
+
+class Section:
+    def __init__(self, section_id: str, api: tator.api):
+        section_data = api.get_section(int(section_id))
+        self.section_id = section_id
+        self.deployment_name = section_data.name
+        self.expedition_name = section_data.path.split('.')[0]
+        self.localizations = []
+        self.bottom_time = None
 
 
 class TatorLocalizationProcessor:
@@ -23,24 +35,17 @@ class TatorLocalizationProcessor:
     def __init__(
         self,
         project_id: int,
-        section_id: int,
+        section_ids: List[str],
         api: tator.api,
-        deployment_list: list,
         tator_url: str,
         darc_review_url: str = None,
     ):
         self.project_id = project_id
-        self.section_id = section_id
-        self.api = api
-        self.deployments = deployment_list
         self.tator_url = tator_url
         self.darc_review_url = darc_review_url
-        self.localizations = []  # list of raw localizations from tator
+        self.sections = [Section(section_id, api) for section_id in section_ids]
         self.final_records = []  # final list formatted for review page
-        self.deployment_media_dict = {}  # dict of all relevant media ids and their dep names
-        self.bottom_times = {deployment: '' for deployment in deployment_list}
         self.phylogeny = {}
-        self.section_name = self.api.get_section(section_id).name
 
     def load_phylogeny(self):
         try:
@@ -87,25 +92,18 @@ class TatorLocalizationProcessor:
         return True
 
     def fetch_localizations(self):
-        print('Fetching localizations...', end='')
+        print('Fetching localizations...')
         sys.stdout.flush()
-        media_ids = []
-        for deployment in self.deployments:
-            for media_id in session[f'{self.project_id}_{self.section_id}'][deployment]:
-                self.deployment_media_dict[media_id] = deployment
-            media_ids += session[f'{self.project_id}_{self.section_id}'][deployment]
-        # REST is much faster than Python API for large queries
-        # adding too many media ids results in a query that is too long, so we have to break it up
-        for i in range(0, len(media_ids), 300):
-            chunk = media_ids[i:i + 300]
+        for section in self.sections:
+            # REST is much faster than Python API for large queries
             res = requests.get(
-                url=f'{self.tator_url}/rest/Localizations/{self.project_id}?media_id={",".join(map(str, chunk))}',
+                url=f'{self.tator_url}/rest/Localizations/{self.project_id}?section={section.section_id}',
                 headers={
                     'Content-Type': 'application/json',
                     'Authorization': f'Token {session["tator_token"]}',
                 })
-            self.localizations += res.json()
-        print(f'fetched {len(self.localizations)} localizations!')
+            section.localizations = res.json()
+            print(f'Fetched {len(section.localizations)} localizations for deployment {section.deployment_name}')
 
     def process_records(
         self,
@@ -124,117 +122,123 @@ class TatorLocalizationProcessor:
             no_match_records = set()
 
         if get_ctd:
-            fieldbook = requests.get(
-                url=f'{self.darc_review_url}/dropcam-fieldbook/{self.section_id}',
-                headers={'API-Key': os.environ.get('DARC_REVIEW_API_KEY')},
-            )
-            if fieldbook.status_code == 200:
-                expedition_fieldbook = fieldbook.json()['deployments']
-            else:
-                print(f'{TERM_RED}Error fetching expedition fieldbook.{TERM_NORMAL}')
+            print(f'{TERM_YELLOW}WARNING - CTD data fetch from dropcam fieldbook is currently disabled.{TERM_NORMAL}')
+            # fieldbook = requests.get(
+            #     url=f'{self.darc_review_url}/dropcam-fieldbook/{self.section_id}',
+            #     headers={'API-Key': os.environ.get('DARC_REVIEW_API_KEY')},
+            # )
+            # if fieldbook.status_code == 200:
+            #     expedition_fieldbook = fieldbook.json()['deployments']
+            # else:
+            #     print(f'{TERM_RED}Error fetching expedition fieldbook.{TERM_NORMAL}')
 
         if get_substrates:
-            for deployment in self.deployments:
-                deployment_substrates[deployment] = self.api.get_media_list(
-                    project=self.project_id,
-                    section=self.section_id,
-                    attribute_contains=[f'$name::{deployment}'],
-                    stop=1,
-                )[0].attributes
+            # TODO: make substrates be at the section level?
+            print(f'{TERM_YELLOW}WARNING - getting substrate information is currently disabled.{TERM_NORMAL}')
+            # for deployment in self.deployments:
+            #     deployment_substrates[deployment] = self.api.get_media_list(
+            #         project=self.project_id,
+            #         section=self.section_id,
+            #         attribute_contains=[f'$name::{deployment}'],
+            #         stop=1,
+            #     )[0].attributes
 
-        for localization in self.localizations:
-            if localization['type'] not in [TatorLocalizationType.BOX.value, TatorLocalizationType.DOT.value]:
-                continue  # we only care about boxes and dots
-            scientific_name = localization['attributes'].get('Scientific Name')
-            cached_phylogeny = self.phylogeny.get(scientific_name)
-            if (cached_phylogeny is None or 'aphia_id' not in cached_phylogeny.keys())\
-                    and scientific_name not in no_match_records:
-                if not self.fetch_worms_phylogeny(scientific_name):
-                    no_match_records.add(scientific_name)
-            localization_dict = {
-                'elemental_id': localization['elemental_id'],
-                'all_localizations': {
-                    'id': localization['id'],
+        for section in self.sections:
+            for localization in section.localizations:
+                if localization['type'] not in [TatorLocalizationType.BOX.value, TatorLocalizationType.DOT.value]:
+                    continue  # we only care about boxes and dots
+                scientific_name = localization['attributes'].get('Scientific Name')
+                cached_phylogeny = self.phylogeny.get(scientific_name)
+                if (cached_phylogeny is None or 'aphia_id' not in cached_phylogeny.keys())\
+                        and scientific_name not in no_match_records:
+                    if not self.fetch_worms_phylogeny(scientific_name):
+                        no_match_records.add(scientific_name)
+                localization_dict = {
                     'elemental_id': localization['elemental_id'],
-                    'version': localization['version'],
+                    'section_id': section.section_id,
+                    'all_localizations': {
+                        'id': localization['id'],
+                        'elemental_id': localization['elemental_id'],
+                        'version': localization['version'],
+                        'type': localization['type'],
+                        'points': [round(localization['x'], 5), round(localization['y'], 5)],
+                        'dimensions': [localization['width'], localization['height']] if localization['type'] == TatorLocalizationType.BOX.value else None,
+                    },
                     'type': localization['type'],
-                    'points': [round(localization['x'], 5), round(localization['y'], 5)],
-                    'dimensions': [localization['width'], localization['height']]
-                    if localization['type'] == TatorLocalizationType.BOX.value
-                    else None,
-                },
-                'type': localization['type'],
-                'video_sequence_name': self.deployment_media_dict[localization['media']],
-                'scientific_name': scientific_name,
-                'count': 0 if localization['type'] == TatorLocalizationType.BOX.value else 1,
-                'attracted': localization['attributes'].get('Attracted'),
-                'categorical_abundance': localization['attributes'].get('Categorical Abundance'),
-                'identification_remarks': localization['attributes'].get('IdentificationRemarks'),
-                'identified_by': localization['attributes'].get('Identified By'),
-                'notes': localization['attributes'].get('Notes'),
-                'qualifier': localization['attributes'].get('Qualifier'),
-                'reason': localization['attributes'].get('Reason'),
-                'morphospecies': localization['attributes'].get('Morphospecies'),
-                'tentative_id': localization['attributes'].get('Tentative ID'),
-                'good_image': True if localization['attributes'].get('Good Image') else False,
-                'annotator': KNOWN_ANNOTATORS[localization['created_by']] if localization['created_by'] in KNOWN_ANNOTATORS.keys() else f'Unknown Annotator (#{localization["created_by"]})',
-                'frame': localization['frame'],
-                'frame_url': f'/tator/frame/{localization["media"]}/{localization["frame"]}',
-                'media_id': localization['media'],
-                'problems': localization['problems'] if 'problems' in localization.keys() else None,
-                'do_temp_c': localization['attributes'].get('DO Temperature (celsius)'),
-                'do_concentration_salin_comp_mol_L': localization['attributes'].get('DO Concentration Salin Comp (mol per L)'),
-                'depth_m': localization['attributes'].get('Depth'),
-            }
-            if localization_dict['categorical_abundance'] and localization_dict['categorical_abundance'] != '--':
-                match localization_dict['categorical_abundance']:
-                    case '1-19':
-                        localization_dict['count'] = 10
-                    case '20-49':
-                        localization_dict['count'] = 35
-                    case '50-99':
-                        localization_dict['count'] = 75
-                    case '100-999':
-                        localization_dict['count'] = 500
-                    case '1000+':
-                        localization_dict['count'] = 1000
-                    case _:
-                        print(f'{TERM_RED}Unknown categorical abundance: {localization_dict["categorical_abundance"]}{TERM_NORMAL}')
-            if get_timestamp:
-                if localization['media'] in session['media_timestamps'].keys():
-                    camera_bottom_arrival = datetime.datetime.strptime(
-                        self.bottom_times[self.deployment_media_dict[localization['media']]],
-                        '%Y-%m-%d %H:%M:%SZ'
-                    ).replace(tzinfo=datetime.timezone.utc)
-                    video_start_timestamp = datetime.datetime.fromisoformat(session['media_timestamps'][localization['media']])
-                    observation_timestamp = video_start_timestamp + datetime.timedelta(seconds=localization['frame'] / 30)
-                    time_diff = observation_timestamp - camera_bottom_arrival
-                    localization_dict['timestamp'] = observation_timestamp.strftime('%Y-%m-%d %H:%M:%SZ')
-                    localization_dict['camera_seafloor_arrival'] = camera_bottom_arrival.strftime('%Y-%m-%d %H:%M:%SZ')
-                    localization_dict['animal_arrival'] = str(datetime.timedelta(
-                        days=time_diff.days,
-                        seconds=time_diff.seconds
-                    )) if observation_timestamp > camera_bottom_arrival else '00:00:00'
-            if get_ctd and expedition_fieldbook:
-                deployment_name = self.deployment_media_dict[localization['media']]
-                deployment_name = deployment_name.replace('-', '_')  # for DOEX0087_NIU-dscm-02
-                deployment_ctd = next((x for x in expedition_fieldbook if x['deployment_name'] == deployment_name.replace('-', '_')), None)
-                if deployment_ctd:
-                    localization_dict['lat'] = deployment_ctd['lat']
-                    localization_dict['long'] = deployment_ctd['long']
-                    localization_dict['bait_type'] = deployment_ctd['bait_type']
-            if get_substrates and deployment_substrates:
-                localization_dict['primary_substrate'] = deployment_substrates[self.deployment_media_dict[localization['media']]].get('Primary Substrate')
-                localization_dict['secondary_substrate'] = deployment_substrates[self.deployment_media_dict[localization['media']]].get('Secondary Substrate')
-                localization_dict['bedforms'] = deployment_substrates[self.deployment_media_dict[localization['media']]].get('Bedforms')
-                localization_dict['relief'] = deployment_substrates[self.deployment_media_dict[localization['media']]].get('Relief')
-                localization_dict['substrate_notes'] = deployment_substrates[self.deployment_media_dict[localization['media']]].get('Substrate Notes')
-                localization_dict['deployment_notes'] = deployment_substrates[self.deployment_media_dict[localization['media']]].get('Deployment Notes')
-            if scientific_name in self.phylogeny.keys():
-                for key in self.phylogeny[scientific_name].keys():
-                    # split to account for worms 'Phylum (Division)' case
-                    localization_dict[key.split(' ')[0]] = self.phylogeny[scientific_name][key]
-            formatted_localizations.append(localization_dict)
+                    'video_sequence_name': section.deployment_name,
+                    'scientific_name': scientific_name,
+                    'count': 0 if localization['type'] == TatorLocalizationType.BOX.value else 1,
+                    'attracted': localization['attributes'].get('Attracted'),
+                    'categorical_abundance': localization['attributes'].get('Categorical Abundance'),
+                    'identification_remarks': localization['attributes'].get('IdentificationRemarks'),
+                    'identified_by': localization['attributes'].get('Identified By'),
+                    'notes': localization['attributes'].get('Notes'),
+                    'qualifier': localization['attributes'].get('Qualifier'),
+                    'reason': localization['attributes'].get('Reason'),
+                    'morphospecies': localization['attributes'].get('Morphospecies'),
+                    'tentative_id': localization['attributes'].get('Tentative ID'),
+                    'good_image': True if localization['attributes'].get('Good Image') else False,
+                    'annotator': KNOWN_ANNOTATORS[localization['created_by']] if localization['created_by'] in KNOWN_ANNOTATORS.keys() else f'Unknown Annotator (#{localization["created_by"]})',
+                    'frame': localization['frame'],
+                    'frame_url': f'/tator/frame/{localization["media"]}/{localization["frame"]}',
+                    'media_id': localization['media'],
+                    'problems': localization['problems'] if 'problems' in localization.keys() else None,
+                    'do_temp_c': localization['attributes'].get('DO Temperature (celsius)'),
+                    'do_concentration_salin_comp_mol_L': localization['attributes'].get('DO Concentration Salin Comp (mol per L)'),
+                    'depth_m': localization['attributes'].get('Depth'),
+                }
+                if localization_dict['categorical_abundance'] and localization_dict['categorical_abundance'] != '--':
+                    match localization_dict['categorical_abundance']:
+                        case '1-19':
+                            localization_dict['count'] = 10
+                        case '20-49':
+                            localization_dict['count'] = 35
+                        case '50-99':
+                            localization_dict['count'] = 75
+                        case '100-999':
+                            localization_dict['count'] = 500
+                        case '1000+':
+                            localization_dict['count'] = 1000
+                        case _:
+                            print(f'{TERM_RED}Unknown categorical abundance: {localization_dict["categorical_abundance"]}{TERM_NORMAL}')
+                if get_timestamp:
+                    print(f'{TERM_YELLOW}WARNING - get timestamp is currently disabled.{TERM_NORMAL}')
+                    # if localization['media'] in session['media_timestamps'].keys():
+                    #     camera_bottom_arrival = datetime.datetime.strptime(
+                    #         self.bottom_times[self.deployment_media_dict[localization['media']]],
+                    #         '%Y-%m-%d %H:%M:%SZ'
+                    #     ).replace(tzinfo=datetime.timezone.utc)
+                    #     video_start_timestamp = datetime.datetime.fromisoformat(session['media_timestamps'][localization['media']])
+                    #     observation_timestamp = video_start_timestamp + datetime.timedelta(seconds=localization['frame'] / 30)
+                    #     time_diff = observation_timestamp - camera_bottom_arrival
+                    #     localization_dict['timestamp'] = observation_timestamp.strftime('%Y-%m-%d %H:%M:%SZ')
+                    #     localization_dict['camera_seafloor_arrival'] = camera_bottom_arrival.strftime('%Y-%m-%d %H:%M:%SZ')
+                    #     localization_dict['animal_arrival'] = str(datetime.timedelta(
+                    #         days=time_diff.days,
+                    #         seconds=time_diff.seconds
+                    #     )) if observation_timestamp > camera_bottom_arrival else '00:00:00'
+                if get_ctd and expedition_fieldbook:
+                    pass
+                    # deployment_name = self.deployment_media_dict[localization['media']]
+                    # deployment_name = deployment_name.replace('-', '_')  # for DOEX0087_NIU-dscm-02
+                    # deployment_ctd = next((x for x in expedition_fieldbook if x['deployment_name'] == deployment_name.replace('-', '_')), None)
+                    # if deployment_ctd:
+                    #     localization_dict['lat'] = deployment_ctd['lat']
+                    #     localization_dict['long'] = deployment_ctd['long']
+                    #     localization_dict['bait_type'] = deployment_ctd['bait_type']
+                if get_substrates and deployment_substrates:
+                    pass
+                    # localization_dict['primary_substrate'] = deployment_substrates[self.deployment_media_dict[localization['media']]].get('Primary Substrate')
+                    # localization_dict['secondary_substrate'] = deployment_substrates[self.deployment_media_dict[localization['media']]].get('Secondary Substrate')
+                    # localization_dict['bedforms'] = deployment_substrates[self.deployment_media_dict[localization['media']]].get('Bedforms')
+                    # localization_dict['relief'] = deployment_substrates[self.deployment_media_dict[localization['media']]].get('Relief')
+                    # localization_dict['substrate_notes'] = deployment_substrates[self.deployment_media_dict[localization['media']]].get('Substrate Notes')
+                    # localization_dict['deployment_notes'] = deployment_substrates[self.deployment_media_dict[localization['media']]].get('Deployment Notes')
+                if scientific_name in self.phylogeny.keys():
+                    for key in self.phylogeny[scientific_name].keys():
+                        # split to account for worms 'Phylum (Division)' case
+                        localization_dict[key.split(' ')[0]] = self.phylogeny[scientific_name][key]
+                formatted_localizations.append(localization_dict)
 
         if not formatted_localizations:
             print('no records to process!')
@@ -242,6 +246,7 @@ class TatorLocalizationProcessor:
 
         localization_df = pd.DataFrame(formatted_localizations, columns=[
             'elemental_id',
+            'section_id',
             'timestamp',
             'camera_seafloor_arrival',
             'animal_arrival',
@@ -306,6 +311,7 @@ class TatorLocalizationProcessor:
             'type',
         ], dropna=False).agg({
             'elemental_id': 'first',
+            'section_id': 'first',
             'timestamp': 'first',
             'camera_seafloor_arrival': 'first',
             'animal_arrival': 'first',
@@ -383,7 +389,7 @@ class TatorLocalizationProcessor:
                 'annotator': row['annotator'],
                 'type': row['type'],
                 'scientific_name': row['scientific_name'] if row['scientific_name'] != '' else '--',
-                'section_id': self.section_id,
+                'section_id': row['section_id'],
                 'video_sequence_name': row['video_sequence_name'],
                 'count': row['count'],
                 'attracted': row['attracted'],

@@ -278,9 +278,12 @@ export function updateHash() {
         }
     }
 
-    $('#sequenceList').empty();
-    $('#sequenceList').html(sequences.join(', '));
-    $('#sequenceList').append(`<div id="filterList" class="small mt-2">Filters: ${Object.keys(filter).length ? '' : 'None'}</div>`);
+    if (sequences.length > 0) {
+        $('#sequenceList').html(sequences.join(', '));
+    }
+
+    $('#filterListContainer').empty();
+    $('#filterListContainer').append(`<div id="filterList" class="small mt-2">Filters: ${Object.keys(filter).length ? '' : 'None'}</div>`);
 
     for (const key of Object.keys(filter)) {
         $('#filterList').append(`
@@ -681,7 +684,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
     }
 
     for (const pair of url.searchParams.entries()) {
-        if (pair[0].includes('sequence') || pair[0].includes('deployment')) {
+        if (pair[0].includes('sequence')) {
             const param = pair[1].split(' ');
             sequences.push(param.pop());
         } else if (pair[0].includes('unread')) {

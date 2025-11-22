@@ -26,7 +26,8 @@
                     <a id="externalUnreadAnchor" href="/image-review/external-review?unread=true" class="aquaLink px-1" style="font-size: 0.8rem;">Unread ({{ data.unread_comment_count }})</a>
                     <a id="externalReadAnchor" href="/image-review/external-review?read=true" class="aquaLink" style="font-size: 0.8rem;">Read ({{ data.read_comment_count }})</a>
                 </div>
-                <div id="sequenceList"></div>
+                <div id="sequenceList">{{ data.deployments }}</div>
+                <div id="filterListContainer"></div>
             </div>
             <div class="col-3 text-end mt-auto">
                 <div>

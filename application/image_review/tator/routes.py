@@ -17,11 +17,11 @@ from application.image_review.tator.tator_localization_processor import TatorLoc
 def tator_image_review():
     if 'tator_token' not in session.keys():
         return redirect('/')
-    if not request.args.get('project') or not request.args.get('section') or not request.args.get('deployment'):
-        flash('Please select a project, section, and deployment', 'info')
+    if not request.args.get('project') or not request.args.getlist('section'):
+        flash('Please select a project and a section', 'info')
         return redirect('/')
     project_id = int(request.args.get('project'))
-    section_id = int(request.args.get('section'))
+    section_ids = request.args.getlist('section')
     try:
         api = tator.get_api(
             host=current_app.config.get('TATOR_URL'),
@@ -29,9 +29,8 @@ def tator_image_review():
         )
         localization_processor = TatorLocalizationProcessor(
             project_id=project_id,
-            section_id=section_id,
+            section_ids=section_ids,
             api=api,
-            deployment_list=request.args.getlist('deployment'),
             tator_url=current_app.config.get('TATOR_URL'),
         )
         localization_processor.fetch_localizations()
@@ -42,12 +41,11 @@ def tator_image_review():
         return redirect('/')
     comments = {}
     image_refs = {}
-    deployments = request.args.getlist('deployment')
     # get comments and image ref list from external review db
     try:
-        for deployment in deployments:
+        for section in localization_processor.sections:
             comment_res = requests.get(
-                    url=f'{current_app.config.get("DARC_REVIEW_URL")}/comment/sequence/{deployment.replace("-", "_")}',
+                    url=f'{current_app.config.get("DARC_REVIEW_URL")}/comment/sequence/{section.deployment_name.replace("-", "_")}',
                     headers=current_app.config.get('DARC_REVIEW_HEADERS'),
             )
             if comment_res.status_code != 200:
@@ -61,8 +59,9 @@ def tator_image_review():
         print('\nERROR: unable to connect to external review server\n')
     data = {
         'annotations': localization_processor.final_records,
-        'title': localization_processor.section_name,
-        'tab_title': deployments[0] if len(deployments) == 1 else f'{deployments[0]} - {deployments[-1].split("_")[-1]}',
+        'title': localization_processor.sections[0].expedition_name,
+        'tab_title': localization_processor.sections[0].deployment_name if len(localization_processor.sections) == 1 else f'{localization_processor.sections[0].expedition_name}',
+        'deployments': ', '.join([section.deployment_name for section in localization_processor.sections]),
         'concepts': session.get('vars_concepts', []),
         'reviewers': session.get('reviewers', []),
         'comments': comments,
