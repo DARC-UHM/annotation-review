@@ -212,7 +212,7 @@ $('#tatorPlusButton').on('click', () => {
             <div class="row d-inline-flex">
                 <div class="col-1"></div>
                 <div class="col-10 p-0">
-                    <select id="deployment${numDeployments}" name="deployment" class="sequenceName"></select>
+                    <select id="deployment${numDeployments}" name="section" class="sequenceName"></select>
                 </div>
                 <div class="col-1 ps-0">
                     <button id="xButton${numDeployments}" type="button" class="xButton">
@@ -239,29 +239,21 @@ $('#tatorPlusButton').on('click', () => {
 $('#varsImageReviewButton').on('click', () => {
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
-    const sequences = new FormData($('#varsIndexForm')[0]).getAll('sequence');
-    window.location.href = `image-review/vars?sequence=${sequences.join('&sequence=')}`;
 });
 
 $('#varsQaqcButton').on('click', () => {
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
-    const sequences = new FormData($('#varsIndexForm')[0]).getAll('sequence');
-    window.location.href = `qaqc/vars/checklist?sequence=${sequences.join('&sequence=')}`;
 });
 
 $('#tatorImageReviewButton').on('click', () => {
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
-    const formData = new FormData($('#tatorIndexForm')[0]);
-    window.location.href = `image-review/tator?project=${formData.get('project')}&section=${formData.get('section')}&deployment=${formData.getAll('deployment').join('&deployment=')}`;
 });
 
 $('#tatorQaqcButton').on('click', () => {
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
-    const formData = new FormData($('#tatorIndexForm')[0]);
-    window.location.href = `qaqc/tator/checklist?project=${formData.get('project')}&section=${formData.get('section')}&deployment=${formData.getAll('deployment').join('&deployment=')}`;
 });
 
 $('a.external-review-link').on('click', () => {

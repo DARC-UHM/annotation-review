@@ -78,9 +78,9 @@
                 </div>
             </div>
         </div>
-        <button type="button" id="varsQaqcButton" class="btn btn-success mt-4 mb-2 indexButton" disabled>QA/QC</button>
+        <button type="submit" formaction="/qaqc/vars/checklist" id="varsImageReviewButton" class="btn btn-success mt-4 mb-2 indexButton" disabled>QA/QC</button>
         <br>
-        <button type="button" id="varsImageReviewButton" class="btn btn-success mb-5 indexButton" disabled>Image Review</button>
+        <button type="submit" formaction="/image-review/vars" id="varsQaqcButton" class="btn btn-success mb-5 indexButton" disabled>Image Review</button>
     </form>
     <form id="tatorLogin" onsubmit="tatorLogin()" autocomplete="off" class="mt-4" style="display: none;">
         <input type="text" name="username" class="tatorLoginInput mb-2" placeholder="Username"><br>
@@ -88,6 +88,7 @@
         <button type="submit" id="loginBtn" class="btn btn-success px-4 mt-4" style="font-weight: 500;">Login</button>
     </form>
     <form id="tatorIndexForm" style="display: none;" autocomplete="off">
+        <input type="hidden" name="project" value="26">
         <div class="small">
             <span style="opacity: 80%;">Logged in as</span>
             <span class="dropdown mb-4">
@@ -101,13 +102,13 @@
             <div class="row d-inline-flex">
                 <div class="col-1"></div>
                 <div class="col-10 p-0">
-                    <label for="tatorProject" class="small mb-2 mt-4">Expedition:</label>
+                    <label for="tatorExpedition" class="small mb-2 mt-4">Expedition:</label>
                     <br>
-                    <select id="tatorExpedition" name="project" class="sequenceName"></select>
+                    <select id="tatorExpedition" class="sequenceName"></select>
                     <br>
                     <label for="tatorFolder" class="small mb-2 mt-3">Folder:</label>
                     <br>
-                    <select id="tatorFolder" name="section" class="sequenceName"></select>
+                    <select id="tatorFolder" class="sequenceName"></select>
                     <br>
                 </div>
                 <div class="col-1"></div>
@@ -118,7 +119,7 @@
                         <div class="col-1"></div>
                         <div class="col-10 p-0">
                             <label for="deployment1" id="tatorDeploymentLabel" class="small mb-2">Deployment:</label><br>
-                            <select id="deployment1" name="deployment" class="sequenceName"></select>
+                            <select id="deployment1" name="section" class="sequenceName"></select>
                         </div>
                         <div class="col-1 ps-0 mt-auto">
                             <button id="tatorPlusButton" type="button" class="plusButton">
@@ -131,9 +132,9 @@
                 </div>
             </div>
         </div>
-        <button type="button" id="tatorQaqcButton" class="btn btn-success mt-4 mb-2 indexButton">QA/QC</button>
+        <button type="submit" formaction="/qaqc/tator/checklist" id="tatorQaqcButton" class="btn btn-success mt-4 mb-2 indexButton">QA/QC</button>
         <br>
-        <button type="button" id="tatorImageReviewButton" class="btn btn-success mb-5 indexButton">Image Review</button>
+        <button type="submit" formaction="/image-review/tator" id="tatorImageReviewButton" class="btn btn-success mb-5 indexButton">Image Review</button>
     </form>
 </div>
 {% endblock content %}
