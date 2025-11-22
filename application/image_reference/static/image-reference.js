@@ -190,7 +190,7 @@ function updateImageGrid() {
                                             data-toggle="tooltip"
                                             data-bs-placement="right"
                                             data-bs-html="true"
-                                            title="Depth: ${photoRecord.depth_m}m"
+                                            title="${photoRecord.depth_m ? `Depth: ${photoRecord.depth_m}m` : 'Depth not available for this image'}"
                                         >
                                             ${photoRecord.depth_m >= 1000
                                                 ? `
@@ -426,6 +426,9 @@ const italicizedSuffix = (suffix) => {
 };
 
 const depthColor = (depthM) => {
+    if (!depthM) {
+        return '#00000000';
+    }
     if (depthM >= 1000) {
         return '#000';
     } else if (depthM >= 800) {
