@@ -117,22 +117,11 @@ class TatorLocalizationProcessor:
         print('Processing localizations...', end='')
         sys.stdout.flush()
         formatted_localizations = []
-        expedition_fieldbook = []
+        expedition_fieldbook = {}  # {section_id: deployments[]}
         deployment_substrates = {}
 
         if not no_match_records:
             no_match_records = set()
-
-        if get_ctd:
-            print(f'{TERM_YELLOW}WARNING - CTD data fetch from dropcam fieldbook is currently disabled.{TERM_NORMAL}')
-            # fieldbook = requests.get(
-            #     url=f'{self.darc_review_url}/dropcam-fieldbook/{self.section_id}',
-            #     headers={'API-Key': os.environ.get('DARC_REVIEW_API_KEY')},
-            # )
-            # if fieldbook.status_code == 200:
-            #     expedition_fieldbook = fieldbook.json()['deployments']
-            # else:
-            #     print(f'{TERM_RED}Error fetching expedition fieldbook.{TERM_NORMAL}')
 
         if get_substrates:
             print(f'{TERM_YELLOW}WARNING - getting substrate information is currently disabled.{TERM_NORMAL}')
@@ -214,15 +203,24 @@ class TatorLocalizationProcessor:
                             days=time_diff.days,
                             seconds=time_diff.seconds
                         )) if observation_timestamp > camera_bottom_arrival else '00:00:00'
-                if get_ctd and expedition_fieldbook:
-                    pass
-                    # deployment_name = self.deployment_media_dict[localization['media']]
-                    # deployment_name = deployment_name.replace('-', '_')  # for DOEX0087_NIU-dscm-02
-                    # deployment_ctd = next((x for x in expedition_fieldbook if x['deployment_name'] == deployment_name.replace('-', '_')), None)
-                    # if deployment_ctd:
-                    #     localization_dict['lat'] = deployment_ctd['lat']
-                    #     localization_dict['long'] = deployment_ctd['long']
-                    #     localization_dict['bait_type'] = deployment_ctd['bait_type']
+                if get_ctd:
+                    if not expedition_fieldbook.get(section.section_id):
+                        fieldbook_res = requests.get(
+                            url=f'{self.darc_review_url}/dropcam-fieldbook/{section.section_id}',
+                            headers={'API-Key': os.environ.get('DARC_REVIEW_API_KEY')},
+                        )
+                        if fieldbook_res.status_code == 200:
+                            expedition_fieldbook[section.section_id] = fieldbook_res.json()['deployments']
+                        else:
+                            print(f'{TERM_RED}Error fetching expedition fieldbook.{TERM_NORMAL}')
+                            print(fieldbook_res.text)
+                    deployment_name = section.deployment_name.replace('-', '_')  # for DOEX0087_NIU-dscm-02
+                    deployment_ctd = next((x for x in expedition_fieldbook[section.section_id] if x['deployment_name'] == deployment_name), None)
+                    if deployment_ctd:
+                        localization_dict['lat'] = deployment_ctd['lat']
+                        localization_dict['long'] = deployment_ctd['long']
+                        localization_dict['bait_type'] = deployment_ctd['bait_type']
+                        localization_dict['depth_m'] = localization_dict['depth_m'] or deployment_ctd['depth_m']
                 if get_substrates and deployment_substrates:
                     pass
                     # localization_dict['primary_substrate'] = deployment_substrates[self.deployment_media_dict[localization['media']]].get('Primary Substrate')

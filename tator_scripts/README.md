@@ -13,23 +13,30 @@ This script loads information (deployment names, location, depth, and bait type)
 
 This script can be run as soon as an expedition is uploaded into Tator and should be run before sending out images for review, so that the external review images have location and depth information populated.
 
+A Tator API token is required to run this script. To get one, start the image review app like normal and select `Tator` from the `VARS`/`Tator` dropdown on the homepage. If you're logged in already, your Tator token will be printed in the terminal. If you're not logged in, log in and refresh the page. Add this token to the `.env` file at the root of this repository:
+
+```
+TATOR_TOKEN = '<TOKEN HERE>'
+```
+
+Note that each time you log into Tator via the image review app, a new token is generated and the old token is invalidated, so you may have to update the value in the `.env` periodically.
+
 _To run the script:_
 
 1) Download the fieldbook XLSX file from the Dropbox and save it locally on your computer.
    1) Note the name of the expedition's folder in Dropbox (e.g. DOEX0096_Palau). This name will be used as an argument in the script and saved in the database.
-2) Find the section ID for the expedition on Tator. The section ID is the number that is displayed next to the expedition name when the expedition folder is selected ([example](img/tator-section-id.png)). This will also be used as an argument in the script and saved in the database.
-3) Open a terminal window and activate the DARC virtual environment (`conda activate darc`).
-4) `cd` into this directory.
-5) Run the command:
+2) Open a terminal window and activate the DARC virtual environment (`conda activate darc`).
+3) `cd` into this directory.
+4) Run the command:
 
     ```
-    python load_dropcam_fieldbook.py <SECTION ID> <EXPEDITION NAME> <PATH TO DROPCAM XLSX>
+    python load_dropcam_fieldbook.py <EXPEDITION NAME> <PATH TO DROPCAM XLSX>
     ```
 
     Example:
 
     ```
-    python load_dropcam_fieldbook.py 11922 DOEX0096_Palau /Users/darc/Downloads/PLW_dscm_fieldbook.xlsx
+    python load_dropcam_fieldbook.py DOEX0112_Tuvalu /Users/darc/Downloads/TUV_2025_dscm_fieldbook.xlsx
     ```
 
 The script will print a status code and the response from the server.

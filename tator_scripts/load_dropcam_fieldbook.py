@@ -33,7 +33,9 @@ try:
         host='https://cloud.tator.io',
         token=os.getenv('TATOR_TOKEN'),
     ).get_section_list(26)  # hardcoded NGS-ExTech Project
-    for section in section_list:  # second pass - get subsections
+    for section in section_list:
+        if 'bad_imports' in section.path or 'TopLevelSectionName' in section.path:
+            continue
         deployment_section_id_map[section.name] = section.id
 except tator.openapi.tator_openapi.exceptions.ApiException as e:
     print(f'ERROR: Unable to fetch Tator sections: {e}')
@@ -75,6 +77,6 @@ for deployment in deployments:
     )
     if res.status_code not in [200, 201]:
         print(f'ERROR: Unable to upload fieldbook for {deployment_name} 😔')
-    print(res.status_code, res.json())
+    print(res.status_code, res.text)
 
 print('Done!')
