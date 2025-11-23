@@ -22,13 +22,13 @@ from ...util.tator_localization_type import TatorLocalizationType
 # view QA/QC checklist for a specified project & section
 @tator_qaqc_bp.get('/checklist')
 def tator_qaqc_checklist():
-    if not request.args.get('project') or not request.args.getlist('section'):
-        flash('Please select a project and section', 'info')
-        return redirect('/')
     project_id = int(request.args.get('project'))
     section_ids = request.args.getlist('section')
     deployment_names = []
     expedition_name = None
+    if not project_id or not section_ids:
+        flash('Please select a project and section', 'info')
+        return redirect('/')
     if 'tator_token' not in session.keys():
         flash('Please log in to Tator', 'info')
         return redirect('/')
@@ -108,6 +108,13 @@ def patch_tator_qaqc_checklist():
 # individual qaqc checks
 @tator_qaqc_bp.get('/check/<check>')
 def tator_qaqc(check):
+    project_id = int(request.args.get('project'))
+    section_ids = request.args.getlist('section')
+    deployment_names = []
+    expedition_name = None
+    if not project_id or not section_ids:
+        flash('Please select a project and section', 'info')
+        return redirect('/')
     if 'tator_token' not in session.keys():
         flash('Please log in to Tator', 'info')
         return redirect('/')
@@ -116,20 +123,19 @@ def tator_qaqc(check):
             host=current_app.config.get('TATOR_URL'),
             token=session['tator_token'],
         )
+        for section_id in section_ids:
+            section = api.get_section(id=int(section_id))
+            deployment_names.append(section.name)
+            if expedition_name is None:
+                expedition_name = section.path.split('.')[0]
     except tator.openapi.tator_openapi.exceptions.ApiException:
         flash('Please log in to Tator', 'info')
         return redirect('/')
     # get comments and image references from external review db
     comments = {}
     image_refs = {}
-    if not request.args.get('project') or not request.args.get('section') or not request.args.getlist('deployment'):
-        flash('Please select a project, section, and deployment', 'info')
-        return redirect('/')
-    project_id = int(request.args.get('project'))
-    section_id = int(request.args.get('section'))
-    deployments = request.args.getlist('deployment')
     try:
-        for deployment in deployments:
+        for deployment in deployment_names:
             comment_res = requests.get(
                     url=f'{current_app.config.get("DARC_REVIEW_URL")}/comment/sequence/{deployment}',
                     headers=current_app.config.get('DARC_REVIEW_HEADERS'),
@@ -143,7 +149,7 @@ def tator_qaqc(check):
         image_refs = image_ref_res.json()
     except requests.exceptions.ConnectionError:
         print('\nERROR: unable to connect to external review server\n')
-    tab_title = deployments[0] if len(deployments) == 1 else f'{deployments[0]} - {deployments[-1].split("_")[-1]}'
+    tab_title = deployment_names[0] if len(deployment_names) == 1 else expedition_name
     data = {
         'concepts': session.get('vars_concepts', []),
         'title': check.replace('-', ' ').title(),
@@ -155,10 +161,10 @@ def tator_qaqc(check):
     if check == 'media-attributes':
         # the one case where we don't want to initialize a TatorQaqcProcessor (no need to fetch localizations)
         media_attributes = {}
-        for deployment in request.args.getlist('deployment'):
-            media_attributes[deployment] = []
+        for section_id in section_ids:
+            media_attributes[section_id] = []
             res = requests.get(  # REST API is much faster than Python API for large queries
-                url=f'{current_app.config.get("TATOR_URL")}/rest/Medias/{project_id}?section={section_id}&attribute_contains=%24name%3A%3A{deployment}',
+                url=f'{current_app.config.get("TATOR_URL")}/rest/Medias/{project_id}?section={section_id}',
                 headers={
                     'Content-Type': 'application/json',
                     'Authorization': f'Token {session["tator_token"]}',
@@ -166,15 +172,14 @@ def tator_qaqc(check):
             if res.status_code != 200:
                 raise tator.openapi.tator_openapi.exceptions.ApiException
             for media in res.json():
-                media_attributes[deployment].append(media)
+                media_attributes[section_id].append(media)
         data['page_title'] = 'Media attributes'
         data['media_attributes'] = media_attributes
         return render_template('qaqc/tator/qaqc-tables.html', data=data)
     qaqc_annos = TatorQaqcProcessor(
         project_id=project_id,
-        section_id=section_id,
+        section_ids=section_ids,
         api=api,
-        deployment_list=request.args.getlist('deployment'),
         darc_review_url=current_app.config.get('DARC_REVIEW_URL'),
         tator_url=current_app.config.get('TATOR_URL'),
     )

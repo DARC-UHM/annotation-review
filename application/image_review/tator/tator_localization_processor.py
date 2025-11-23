@@ -32,6 +32,8 @@ class TatorLocalizationProcessor:
     and sorts data for display on the image review pages.
     """
 
+    BOTTOM_TIME_FORMAT = '%Y-%m-%d %H:%M:%SZ'
+
     def __init__(
         self,
         project_id: int,
@@ -203,12 +205,12 @@ class TatorLocalizationProcessor:
                             print(f'{TERM_RED}Unknown categorical abundance: {localization_dict["categorical_abundance"]}{TERM_NORMAL}')
                 if get_timestamp:
                     if localization['media'] in session['media_timestamps'].keys():
-                        camera_bottom_arrival = datetime.datetime.strptime(section.bottom_time,'%Y-%m-%d %H:%M:%SZ').replace(tzinfo=datetime.timezone.utc)
+                        camera_bottom_arrival = datetime.datetime.strptime(section.bottom_time, self.BOTTOM_TIME_FORMAT).replace(tzinfo=datetime.timezone.utc)
                         video_start_timestamp = datetime.datetime.fromisoformat(session['media_timestamps'][localization['media']])
                         observation_timestamp = video_start_timestamp + datetime.timedelta(seconds=localization['frame'] / 30)
                         time_diff = observation_timestamp - camera_bottom_arrival
-                        localization_dict['timestamp'] = observation_timestamp.strftime('%Y-%m-%d %H:%M:%SZ')
-                        localization_dict['camera_seafloor_arrival'] = camera_bottom_arrival.strftime('%Y-%m-%d %H:%M:%SZ')
+                        localization_dict['timestamp'] = observation_timestamp.strftime(self.BOTTOM_TIME_FORMAT)
+                        localization_dict['camera_seafloor_arrival'] = camera_bottom_arrival.strftime(self.BOTTOM_TIME_FORMAT)
                         localization_dict['animal_arrival'] = str(datetime.timedelta(
                             days=time_diff.days,
                             seconds=time_diff.seconds

@@ -46,43 +46,44 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
         print('Checking for accepted names...')
         sys.stdout.flush()
         checked = {}
-        records_of_interest = []
-        for localization in self.localizations:
-            flag_record = False
-            scientific_name = localization['attributes'].get('Scientific Name')
-            tentative_id = localization['attributes'].get('Tentative ID')
-            if scientific_name not in checked.keys():
-                if scientific_name in self.phylogeny.keys():
-                    checked[scientific_name] = True
-                else:
-                    if self.fetch_worms_phylogeny(scientific_name):
+        for section in self.sections:
+            records_of_interest = []
+            for localization in section.localizations:
+                flag_record = False
+                scientific_name = localization['attributes'].get('Scientific Name')
+                tentative_id = localization['attributes'].get('Tentative ID')
+                if scientific_name not in checked.keys():
+                    if scientific_name in self.phylogeny.keys():
                         checked[scientific_name] = True
                     else:
-                        localization['problems'] = 'Scientific Name'
-                        checked[scientific_name] = False
-                        flag_record = True
-            elif not checked[scientific_name]:
-                localization['problems'] = 'Scientific Name'
-                flag_record = True
-            if tentative_id:
-                if tentative_id not in checked.keys():
-                    if tentative_id in self.phylogeny.keys():
-                        checked[tentative_id] = True
-                    else:
-                        if self.fetch_worms_phylogeny(tentative_id):
+                        if self.fetch_worms_phylogeny(scientific_name):
+                            checked[scientific_name] = True
+                        else:
+                            localization['problems'] = 'Scientific Name'
+                            checked[scientific_name] = False
+                            flag_record = True
+                elif not checked[scientific_name]:
+                    localization['problems'] = 'Scientific Name'
+                    flag_record = True
+                if tentative_id:
+                    if tentative_id not in checked.keys():
+                        if tentative_id in self.phylogeny.keys():
                             checked[tentative_id] = True
                         else:
-                            localization['problems'] = 'Tentative ID'
-                            checked[tentative_id] = False
-                            flag_record = True
-                elif not checked[tentative_id]:
-                    localization['problems'] = 'Tentative ID' if 'problems' not in localization.keys() else 'Scientific Name, Tentative ID'
-                    flag_record = True
-            if flag_record:
-                records_of_interest.append(localization)
-        print(f'Found {len(records_of_interest)} localizations with unaccepted names!')
-        self.localizations = records_of_interest
-        self.process_records(no_match_records={key for key in checked.keys() if not checked[key]})
+                            if self.fetch_worms_phylogeny(tentative_id):
+                                checked[tentative_id] = True
+                            else:
+                                localization['problems'] = 'Tentative ID'
+                                checked[tentative_id] = False
+                                flag_record = True
+                    elif not checked[tentative_id]:
+                        localization['problems'] = 'Tentative ID' if 'problems' not in localization.keys() else 'Scientific Name, Tentative ID'
+                        flag_record = True
+                if flag_record:
+                    records_of_interest.append(localization)
+            print(f'Found {len(records_of_interest)} localizations with unaccepted names from {section.deployment_name}!')
+            section.localizations = records_of_interest
+        self.process_records(no_match_records={key for key in checked.keys() if not checked[key]})  # don't try to fetch again for names we already know are unaccepted
 
     def check_missing_qualifier(self):
         """
@@ -101,13 +102,14 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
         """
         Finds records that have a qualifier of 'stet' but no reason set.
         """
-        records_of_interest = []
-        for localization in self.localizations:
-            if localization['attributes'].get('Qualifier') == 'stet.' \
-                    and localization['attributes'].get('Reason', '--') == '--':
-                localization['problems'] = 'Qualifier, Reason'
-                records_of_interest.append(localization)
-        self.localizations = records_of_interest
+        for section in self.sections:
+            records_of_interest = []
+            for localization in section.localizations:
+                if localization['attributes'].get('Qualifier') == 'stet.' \
+                        and localization['attributes'].get('Reason', '--') == '--':
+                    localization['problems'] = 'Qualifier, Reason'
+                    records_of_interest.append(localization)
+            section.localizations = records_of_interest
         self.process_records()
 
     def check_attracted_not_attracted(self, attracted_dict: dict):
@@ -115,19 +117,20 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
         Finds all records that are marked as "attracted" but are saved as "not attracted" in the attracted_dict, and
         vice versa. Also flags all records with taxa that are marked as "attracted/not attracted" in the attracted_dict.
         """
-        records_of_interest = []
-        for localization in self.localizations:
-            scientific_name = localization['attributes'].get('Scientific Name')
-            if scientific_name not in attracted_dict.keys() or attracted_dict[scientific_name] == 2:
-                localization['problems'] = 'Scientific Name, Attracted'
-                records_of_interest.append(localization)
-            elif localization['attributes'].get('Attracted') == 'Attracted' and attracted_dict[scientific_name] == 0:
-                localization['problems'] = 'Scientific Name, Attracted'
-                records_of_interest.append(localization)
-            elif localization['attributes'].get('Attracted') == 'Not Attracted' and attracted_dict[scientific_name] == 1:
-                localization['problems'] = 'Scientific Name, Attracted'
-                records_of_interest.append(localization)
-        self.localizations = records_of_interest
+        for section in self.sections:
+            records_of_interest = []
+            for localization in section.localizations:
+                scientific_name = localization['attributes'].get('Scientific Name')
+                if scientific_name not in attracted_dict.keys() or attracted_dict[scientific_name] == 2:
+                    localization['problems'] = 'Scientific Name, Attracted'
+                    records_of_interest.append(localization)
+                elif localization['attributes'].get('Attracted') == 'Attracted' and attracted_dict[scientific_name] == 0:
+                    localization['problems'] = 'Scientific Name, Attracted'
+                    records_of_interest.append(localization)
+                elif localization['attributes'].get('Attracted') == 'Not Attracted' and attracted_dict[scientific_name] == 1:
+                    localization['problems'] = 'Scientific Name, Attracted'
+                    records_of_interest.append(localization)
+            section.localizations = records_of_interest
         self.process_records()
 
     def check_same_name_qualifier(self):
@@ -136,34 +139,39 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
         """
         scientific_name_qualifiers = {}
         problem_scientific_names = set()
-        records_of_interest = []
-        for localization in self.localizations:
-            scientific_name = f'{localization["attributes"].get("Scientific Name")}{" (" + localization["attributes"]["Tentative ID"] + "?)" if localization["attributes"].get("Tentative ID") else ""}'
-            if scientific_name not in scientific_name_qualifiers.keys():
-                scientific_name_qualifiers[scientific_name] = localization['attributes'].get('Qualifier')
-            else:
-                if scientific_name_qualifiers[scientific_name] != localization['attributes'].get('Qualifier'):
-                    problem_scientific_names.add(scientific_name)
-        for localization in self.localizations:
-            scientific_name = f'{localization["attributes"].get("Scientific Name")}{" (" + localization["attributes"]["Tentative ID"] + "?)" if localization["attributes"].get("Tentative ID") else ""}'
-            if scientific_name in problem_scientific_names:
-                localization['problems'] = 'Scientific Name, Qualifier'
-                records_of_interest.append(localization)
-        self.localizations = records_of_interest
+        for section in self.sections:
+            # first pass: build dict of scientific name/tentative ID combos and their qualifiers, add to problem set if mismatch
+            for localization in section.localizations:
+                scientific_name = f'{localization["attributes"].get("Scientific Name")}{" (" + localization["attributes"]["Tentative ID"] + "?)" if localization["attributes"].get("Tentative ID") else ""}'
+                if scientific_name not in scientific_name_qualifiers.keys():
+                    scientific_name_qualifiers[scientific_name] = localization['attributes'].get('Qualifier')
+                else:
+                    if scientific_name_qualifiers[scientific_name] != localization['attributes'].get('Qualifier'):
+                        problem_scientific_names.add(scientific_name)
+        for section in self.sections:
+            # second pass: add records with problem scientific names to records of interest
+            records_of_interest = []
+            for localization in section.localizations:
+                scientific_name = f'{localization["attributes"].get("Scientific Name")}{" (" + localization["attributes"]["Tentative ID"] + "?)" if localization["attributes"].get("Tentative ID") else ""}'
+                if scientific_name in problem_scientific_names:
+                    localization['problems'] = 'Scientific Name, Qualifier'
+                    records_of_interest.append(localization)
+            section.localizations = records_of_interest
         self.process_records()
 
     def check_non_target_not_attracted(self):
         """
         Finds records that are marked as "non-target" but are marked as "attracted".
         """
-        records_of_interest = []
-        for localization in self.localizations:
-            attracted = localization['attributes'].get('Attracted')
-            reason = localization['attributes'].get('Reason')
-            if 'Non-target' in reason and attracted != 'Not Attracted':
-                localization['problems'] = 'Attracted, Reason'
-                records_of_interest.append(localization)
-        self.localizations = records_of_interest
+        for section in self.sections:
+            records_of_interest = []
+            for localization in section.localizations:
+                attracted = localization['attributes'].get('Attracted')
+                reason = localization['attributes'].get('Reason')
+                if 'Non-target' in reason and attracted != 'Not Attracted':
+                    localization['problems'] = 'Attracted, Reason'
+                    records_of_interest.append(localization)
+            section.localizations = records_of_interest
         self.process_records()
 
     def check_exists_in_image_references(self, image_refs: dict):
@@ -171,22 +179,23 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
         Finds records that do not exist in the image references db (combo scientific name, tentative ID,
         and morphospecies). Also flags records with both tentative ID and morphospecies set.
         """
-        records_of_interest = []
-        for localization in self.localizations:
-            image_ref_key = localization['attributes'].get('Scientific Name')
-            tentative_id = localization['attributes'].get('Tentative ID')
-            morphospecies = localization['attributes'].get('Morphospecies')
-            if tentative_id and morphospecies:
-                localization['problems'] = 'Tentative ID, Morphospecies'
-                records_of_interest.append(localization)
-                continue
-            if tentative_id and tentative_id != '':
-                image_ref_key += f'~tid={tentative_id}'
-            if morphospecies and morphospecies != '':
-                image_ref_key += f'~m={morphospecies}'
-            if image_ref_key not in image_refs:
-                records_of_interest.append(localization)
-        self.localizations = records_of_interest
+        for section in self.sections:
+            records_of_interest = []
+            for localization in section.localizations:
+                image_ref_key = localization['attributes'].get('Scientific Name')
+                tentative_id = localization['attributes'].get('Tentative ID')
+                morphospecies = localization['attributes'].get('Morphospecies')
+                if tentative_id and morphospecies:
+                    localization['problems'] = 'Tentative ID, Morphospecies'
+                    records_of_interest.append(localization)
+                    continue
+                if tentative_id and tentative_id != '':
+                    image_ref_key += f'~tid={tentative_id}'
+                if morphospecies and morphospecies != '':
+                    image_ref_key += f'~m={morphospecies}'
+                if image_ref_key not in image_refs:
+                    records_of_interest.append(localization)
+            section.localizations = records_of_interest
         self.process_records()
 
     def get_all_tentative_ids(self):
@@ -196,12 +205,13 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
         """
         no_match_records = set()
         records_of_interest = []
-        for localization in self.localizations:
-            tentative_id = localization['attributes'].get('Tentative ID')
-            if tentative_id and tentative_id not in ['--', '-', '']:
-                localization['problems'] = 'Tentative ID'
-                records_of_interest.append(localization)
-        self.localizations = records_of_interest
+        for section in self.sections:
+            for localization in section.localizations:
+                tentative_id = localization['attributes'].get('Tentative ID')
+                if tentative_id and tentative_id not in ['--', '-', '']:
+                    localization['problems'] = 'Tentative ID'
+                    records_of_interest.append(localization)
+            section.localizations = records_of_interest
         self.process_records()  # process first to make sure phylogeny is populated
         for localization in self.final_records:
             phylogeny_match = False
@@ -227,21 +237,22 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
         Finds every record with a note or remark.
         """
         records_of_interest = []
-        for localization in self.localizations:
-            notes = localization['attributes'].get('Notes')
-            id_remarks = localization['attributes'].get('IdentificationRemarks')
-            has_note = notes and notes not in ['--', '-', '']
-            has_remark = id_remarks and id_remarks not in ['--', '-', '']
-            if has_note and has_remark:
-                localization['problems'] = 'Notes, ID Remarks'
-                records_of_interest.append(localization)
-            elif has_note:
-                localization['problems'] = 'Notes'
-                records_of_interest.append(localization)
-            elif has_remark:
-                localization['problems'] = 'ID Remarks'
-                records_of_interest.append(localization)
-        self.localizations = records_of_interest
+        for section in self.sections:
+            for localization in section.localizations:
+                notes = localization['attributes'].get('Notes')
+                id_remarks = localization['attributes'].get('IdentificationRemarks')
+                has_note = notes and notes not in ['--', '-', '']
+                has_remark = id_remarks and id_remarks not in ['--', '-', '']
+                if has_note and has_remark:
+                    localization['problems'] = 'Notes, ID Remarks'
+                    records_of_interest.append(localization)
+                elif has_note:
+                    localization['problems'] = 'Notes'
+                    records_of_interest.append(localization)
+                elif has_remark:
+                    localization['problems'] = 'ID Remarks'
+                    records_of_interest.append(localization)
+            section.localizations = records_of_interest
         self.process_records()
 
     def get_re_examined(self):
@@ -249,10 +260,11 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
         Finds all records that have a reason of "to be re-examined"
         """
         records_of_interest = []
-        for localization in self.localizations:
-            if localization['attributes'].get('Reason') == 'To be re-examined':
-                records_of_interest.append(localization)
-        self.localizations = records_of_interest
+        for section in self.sections:
+            for localization in section.localizations:
+                if localization['attributes'].get('Reason') == 'To be re-examined':
+                    records_of_interest.append(localization)
+            section.localizations = records_of_interest
         self.process_records()
 
     def get_unique_taxa(self):
@@ -283,14 +295,14 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
                 if localization['type'] == TatorLocalizationType.BOX.value:
                     unique_taxa[key]['box_count'] += 1
                     first_box = unique_taxa[key]['first_box']
-                    if not first_box or datetime.datetime.strptime(record['timestamp'], '%Y-%m-%d %H:%M:%SZ') < datetime.datetime.strptime(first_box, '%Y-%m-%d %H:%M:%SZ'):
+                    if not first_box or datetime.datetime.strptime(record['timestamp'], self.BOTTOM_TIME_FORMAT) < datetime.datetime.strptime(first_box, self.BOTTOM_TIME_FORMAT):
                         unique_taxa[key]['first_box'] = record['timestamp']
                         unique_taxa[key]['first_box_url'] = f'{self.tator_url}/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}&selected_entity={localization["elemental_id"]}'
                 elif localization['type'] == TatorLocalizationType.DOT.value:
                     unique_taxa[key]['dot_count'] += 1
                     first_dot = unique_taxa[key]['first_dot']
-                    observed_timestamp = datetime.datetime.strptime(record['timestamp'], '%Y-%m-%d %H:%M:%SZ')
-                    if not first_dot or observed_timestamp < datetime.datetime.strptime(first_dot, '%Y-%m-%d %H:%M:%SZ'):
+                    observed_timestamp = datetime.datetime.strptime(record['timestamp'], self.BOTTOM_TIME_FORMAT)
+                    if not first_dot or observed_timestamp < datetime.datetime.strptime(first_dot, self.BOTTOM_TIME_FORMAT):
                         unique_taxa[key]['first_dot'] = record['timestamp']
                         unique_taxa[key]['first_dot_url'] = f'{self.tator_url}/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}&selected_entity={localization["elemental_id"]}'
         self.final_records = unique_taxa
@@ -298,7 +310,7 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
     def get_max_n(self):
         """
         Finds the highest dot count for each unique scientific name, tentative ID, and morphospecies combo per
-         deployment. Ignores non-attracted taxa.
+        deployment. Ignores non-attracted taxa.
         """
         self.process_records(get_ctd=True)
         deployment_taxa = {}
@@ -361,6 +373,7 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
         deployment_taxa = {}
         unique_taxa = {}
         unique_taxa_first_seen = {}
+        section_id_indices = {section.section_id: index for index, section in enumerate(self.sections)}
         bottom_time = None
         latest_timestamp = datetime.datetime.fromtimestamp(0)  # to find the duration of the deployment
         for record in self.final_records:
@@ -368,8 +381,9 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
             tentative_id_suffix = f' ({record["tentative_id"]}?)' if record.get('tentative_id') else ''
             morphospecies_suffix = f' ({record["morphospecies"]})' if record.get('morphospecies') else ''
             unique_name = f'{scientific_name}{tentative_id_suffix}{morphospecies_suffix}'
-            observed_timestamp = datetime.datetime.strptime(record['timestamp'], '%Y-%m-%d %H:%M:%SZ')
-            bottom_time = datetime.datetime.strptime(self.bottom_times[record['video_sequence_name']], '%Y-%m-%d %H:%M:%SZ')
+            observed_timestamp = datetime.datetime.strptime(record['timestamp'], self.BOTTOM_TIME_FORMAT)
+            this_section = self.sections[section_id_indices[record['section_id']]]
+            bottom_time = datetime.datetime.strptime(this_section.bottom_time, self.BOTTOM_TIME_FORMAT)
             if record.get('count', 0) < 1 or record.get('attracted') == 'Not Attracted':
                 continue
             if observed_timestamp > latest_timestamp:
@@ -436,20 +450,22 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
         Returns a summary of the final records.
         """
         self.fetch_start_times()
-        self.localizations = [
-            localization for localization in self.localizations if localization['type'] != TatorLocalizationType.BOX.value
-        ]
+        for section in self.sections:
+            section.localizations = [
+                localization for localization in section.localizations if localization['type'] != TatorLocalizationType.BOX.value
+            ]
         self.process_records(get_timestamp=True, get_ctd=True, get_substrates=True)
 
     def download_image_guide(self, app) -> Presentation:
         """
         Finds all records marked as "good" images, saves them to a ppt.
         """
-        records_of_interest = []
-        for localization in self.localizations:
-            if localization['attributes'].get('Good Image'):
-                records_of_interest.append(localization)
-        self.localizations = records_of_interest
+        for section in self.sections:
+            records_of_interest = []
+            for localization in section.localizations:
+                if localization['attributes'].get('Good Image'):
+                    records_of_interest.append(localization)
+            section.localizations = records_of_interest
         self.process_records()
         pres = Presentation()
         image_slide_layout = pres.slide_layouts[6]
@@ -543,7 +559,7 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
                             print(f'Arrival value: "{media["attributes"]["Arrival"]}"')
                             raise ValueError
                     deployment_bottom_time = video_start_timestamp + datetime.timedelta(seconds=arrival_frame / 30)
-                    section.bottom_time = deployment_bottom_time.strftime('%Y-%m-%d %H:%M:%SZ')
+                    section.bottom_time = deployment_bottom_time.strftime(self.BOTTOM_TIME_FORMAT)
                 # get media start times
                 if media['id'] not in session['media_timestamps'].keys():
                     if 'Start Time' in media['attributes'].keys():
