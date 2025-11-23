@@ -202,21 +202,17 @@ class TatorLocalizationProcessor:
                         case _:
                             print(f'{TERM_RED}Unknown categorical abundance: {localization_dict["categorical_abundance"]}{TERM_NORMAL}')
                 if get_timestamp:
-                    print(f'{TERM_YELLOW}WARNING - get timestamp is currently disabled.{TERM_NORMAL}')
-                    # if localization['media'] in session['media_timestamps'].keys():
-                    #     camera_bottom_arrival = datetime.datetime.strptime(
-                    #         self.bottom_times[self.deployment_media_dict[localization['media']]],
-                    #         '%Y-%m-%d %H:%M:%SZ'
-                    #     ).replace(tzinfo=datetime.timezone.utc)
-                    #     video_start_timestamp = datetime.datetime.fromisoformat(session['media_timestamps'][localization['media']])
-                    #     observation_timestamp = video_start_timestamp + datetime.timedelta(seconds=localization['frame'] / 30)
-                    #     time_diff = observation_timestamp - camera_bottom_arrival
-                    #     localization_dict['timestamp'] = observation_timestamp.strftime('%Y-%m-%d %H:%M:%SZ')
-                    #     localization_dict['camera_seafloor_arrival'] = camera_bottom_arrival.strftime('%Y-%m-%d %H:%M:%SZ')
-                    #     localization_dict['animal_arrival'] = str(datetime.timedelta(
-                    #         days=time_diff.days,
-                    #         seconds=time_diff.seconds
-                    #     )) if observation_timestamp > camera_bottom_arrival else '00:00:00'
+                    if localization['media'] in session['media_timestamps'].keys():
+                        camera_bottom_arrival = datetime.datetime.strptime(section.bottom_time,'%Y-%m-%d %H:%M:%SZ').replace(tzinfo=datetime.timezone.utc)
+                        video_start_timestamp = datetime.datetime.fromisoformat(session['media_timestamps'][localization['media']])
+                        observation_timestamp = video_start_timestamp + datetime.timedelta(seconds=localization['frame'] / 30)
+                        time_diff = observation_timestamp - camera_bottom_arrival
+                        localization_dict['timestamp'] = observation_timestamp.strftime('%Y-%m-%d %H:%M:%SZ')
+                        localization_dict['camera_seafloor_arrival'] = camera_bottom_arrival.strftime('%Y-%m-%d %H:%M:%SZ')
+                        localization_dict['animal_arrival'] = str(datetime.timedelta(
+                            days=time_diff.days,
+                            seconds=time_diff.seconds
+                        )) if observation_timestamp > camera_bottom_arrival else '00:00:00'
                 if get_ctd and expedition_fieldbook:
                     pass
                     # deployment_name = self.deployment_media_dict[localization['media']]

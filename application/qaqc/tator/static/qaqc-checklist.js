@@ -24,8 +24,6 @@ document.addEventListener('DOMContentLoaded',  (event) => {
     const sectionId = url.searchParams.get('section');
     const deployments = url.searchParams.getAll('deployment');
 
-    $('#deploymentList').html(deployments.map((seq) => seq.split(' ').slice(-1)).join(', '));
-
     $('#localizationCount').html(formattedNumber(localizationCount));
     $('#individualCount').html(formattedNumber(individualCount));
 

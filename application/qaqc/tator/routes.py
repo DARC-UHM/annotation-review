@@ -22,11 +22,13 @@ from ...util.tator_localization_type import TatorLocalizationType
 # view QA/QC checklist for a specified project & section
 @tator_qaqc_bp.get('/checklist')
 def tator_qaqc_checklist():
-    if not request.args.get('project') or not request.args.get('section') or not request.args.getlist('deployment'):
-        flash('Please select a project, section, and deployment', 'info')
+    if not request.args.get('project') or not request.args.getlist('section'):
+        flash('Please select a project and section', 'info')
         return redirect('/')
     project_id = int(request.args.get('project'))
-    section_id = int(request.args.get('section'))
+    section_ids = request.args.getlist('section')
+    deployment_names = []
+    expedition_name = None
     if 'tator_token' not in session.keys():
         flash('Please log in to Tator', 'info')
         return redirect('/')
@@ -35,18 +37,18 @@ def tator_qaqc_checklist():
             host=current_app.config.get('TATOR_URL'),
             token=session['tator_token'],
         )
-        section_name = api.get_section(id=section_id).name
+        for section_id in section_ids:
+            section = api.get_section(id=int(section_id))
+            deployment_names.append(section.name)
+            if expedition_name is None:
+                expedition_name = section.path.split('.')[0]
     except tator.openapi.tator_openapi.exceptions.ApiException:
         flash('Please log in to Tator', 'info')
         return redirect('/')
-    media_ids = []
     localizations = []
     individual_count = 0
-    deployments = request.args.getlist('deployment')
-    for deployment in deployments:
-        media_ids += session[f'{project_id}_{section_id}'][deployment]
     with requests.get(
-            url=f'{current_app.config.get("DARC_REVIEW_URL")}/tator-qaqc-checklist/{"&".join(request.args.getlist("deployment"))}',
+            url=f'{current_app.config.get("DARC_REVIEW_URL")}/tator-qaqc-checklist/{"&".join(deployment_names)}',
             headers=current_app.config.get('DARC_REVIEW_HEADERS'),
     ) as checklist_res:
         if checklist_res.status_code == 200:
@@ -55,11 +57,9 @@ def tator_qaqc_checklist():
             print('ERROR: Unable to get QAQC checklist from external review server')
             checklist = {}
     # REST is much faster than Python API for large queries
-    # adding too many media ids results in a query that is too long, so we have to break it up
-    for i in range(0, len(media_ids), 300):
-        chunk = media_ids[i:i + 300]
+    for section_id in section_ids:
         res = requests.get(
-            url=f'{current_app.config.get("TATOR_URL")}/rest/Localizations/{project_id}?media_id={",".join(map(str, chunk))}',
+            url=f'{current_app.config.get("TATOR_URL")}/rest/Localizations/{project_id}?section={section_id}',
             headers={
                 'Content-Type': 'application/json',
                 'Authorization': f'Token {session["tator_token"]}',
@@ -79,8 +79,9 @@ def tator_qaqc_checklist():
                     case '1000+':
                         individual_count += 1000
     data = {
-        'title': section_name,
-        'tab_title': deployments[0] if len(deployments) == 1 else f'{deployments[0]} - {deployments[-1].split("_")[-1]}',
+        'title': expedition_name,
+        'tab_title': deployment_names[0] if len(deployment_names) == 1 else expedition_name,
+        'deployments': ', '.join(deployment_names),
         'localization_count': len(localizations),
         'individual_count': individual_count,
         'checklist': checklist,

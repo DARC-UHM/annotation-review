@@ -38,7 +38,7 @@ function updateHash() {
     if (Object.keys(uniqueTaxa).length) {
         // unique taxa table
         $('#downloadTsvButton').hide();
-        $('#countLabel').html('Unique Taxa:&nbsp;&nbsp');
+        $('#countLabel').html('Unique Taxa:&nbsp;&nbsp;');
         $('#totalCount').html(formattedNumber(Object.keys(uniqueTaxa).length));
         $('#subheader').html('Highlights taxa that have a box occur before the first dot or do not have both a box and a dot');
 
@@ -144,11 +144,11 @@ function updateHash() {
                 `);
             }
         }
-        $('#countLabel').html('Total Media:&nbsp;&nbsp');
+        $('#countLabel').html('Total Media:&nbsp;&nbsp;');
         $('#totalCount').html(formattedNumber(totalMedia));
     } else if (Object.keys(maxN).length) {
         // max n table
-        $('#countLabel').html('Unique Taxa:&nbsp;&nbsp');
+        $('#countLabel').html('Unique Taxa:&nbsp;&nbsp;');
         $('#totalCount').html(formattedNumber(Object.keys(maxN.unique_taxa).length));
         $('#downloadTsvButton').show();
         $('#downloadTsvButton').on('click', () => {
@@ -179,7 +179,7 @@ function updateHash() {
         }
     } else if (Object.keys(tofa).length) {
         // tofa table
-        $('#countLabel').html('Unique Taxa:&nbsp;&nbsp');
+        $('#countLabel').html('Unique Taxa:&nbsp;&nbsp;');
         $('#totalCount').html(formattedNumber(Object.keys(tofa.unique_taxa).length));
         $('#downloadTsvButton').show();
         $('#downloadTsvButton').on('click', () => {

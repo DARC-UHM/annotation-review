@@ -9,13 +9,13 @@
         <div class="row m-auto mb-3">
             <div class="col-9 text-start">
                 <h3 class="m-0 p-0" style="font-weight: 600;">{{ data.title }}</h3>
-                <div id="deploymentList" class="mb-2"></div>
+                <div class="mb-2">{{ data.deployments }}</div>
                 <div style="font-weight: 600;">QA/QC Checklist</div>
             </div>
             <div class="col text-end mt-auto small">
-                <span>Total Localizations:&nbsp;&nbsp<span id="localizationCount" style="font-weight: 600;"></span></span><br>
-                <span>Total Individuals:&nbsp;&nbsp~<span id="individualCount" style="font-weight: 600;"></span></span><br>
-                <span>Checks Complete: &nbsp<span style="font-weight: 600;"><span id="tasksComplete">0</span> / <span>12</span></span></span>
+                <span>Total Localizations:&nbsp;&nbsp;<span id="localizationCount" style="font-weight: 600;"></span></span><br>
+                <span>Total Individuals:&nbsp;&nbsp;~<span id="individualCount" style="font-weight: 600;"></span></span><br>
+                <span>Checks Complete:&nbsp;&nbsp;<span style="font-weight: 600;"><span id="tasksComplete">0</span> / <span>12</span></span></span>
             </div>
         </div>
     </div>

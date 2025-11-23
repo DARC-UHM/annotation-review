@@ -1,5 +1,7 @@
 import datetime
 import math
+from typing import List
+
 import requests
 import sys
 import tator
@@ -24,54 +26,18 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
     def __init__(
         self,
         project_id: int,
-        section_id: int,
+        section_ids: List[str],
         api: tator.api,
-        deployment_list: list,
         tator_url: str,
         darc_review_url: str = None,
     ):
         super().__init__(
             project_id=project_id,
-            section_id=section_id,
+            section_ids=section_ids,
             api=api,
-            deployment_list=deployment_list,
             darc_review_url=darc_review_url,
             tator_url=tator_url,
         )
-
-    def fetch_start_times(self):
-        for deployment in self.deployments:
-            print(f'Fetching media start times for deployment "{deployment}"...', end='')
-            sys.stdout.flush()
-            if 'media_timestamps' not in session.keys():
-                session['media_timestamps'] = {}
-            res = requests.get(
-                url=f'{self.tator_url}/rest/Medias/{self.project_id}?section={self.section_id}&attribute_contains=%24name%3A%3A{deployment}',
-                headers={
-                    'Content-Type': 'application/json',
-                    'Authorization': f'Token {session["tator_token"]}',
-                }
-            )
-            for media in res.json():
-                if media['attributes'].get('Arrival') and media['attributes']['Arrival'].strip() != '':
-                    video_start_timestamp = datetime.datetime.fromisoformat(media['attributes'].get('Start Time'))
-                    if 'not observed' in media['attributes']['Arrival'].lower():
-                        arrival_frame = 0
-                    else:
-                        try:
-                            arrival_frame = int(media['attributes']['Arrival'].strip().split(' ')[0])
-                        except ValueError:
-                            print(f'\n{TERM_RED}Error:{TERM_NORMAL} Could not parse Arrival value for {media["name"]}')
-                            print(f'Arrival value: "{media["attributes"]["Arrival"]}"')
-                            raise ValueError
-                    self.bottom_times[deployment] = (video_start_timestamp + datetime.timedelta(seconds=arrival_frame / 30)).strftime('%Y-%m-%d %H:%M:%SZ')
-                if media['id'] not in session['media_timestamps'].keys():
-                    if 'Start Time' in media['attributes'].keys():
-                        session['media_timestamps'][media['id']] = media['attributes']['Start Time']
-                        session.modified = True
-                    else:
-                        print(f'{TERM_RED}Warning:{TERM_NORMAL} No start time found for media {media["id"]}')
-            print('fetched!')
 
     def check_names_accepted(self):
         """
@@ -548,3 +514,41 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
                 if i >= len(self.final_records):
                     break
         return pres
+
+    def fetch_start_times(self):
+        if 'media_timestamps' not in session.keys():
+            session['media_timestamps'] = {}
+        for section in self.sections:
+            print(f'Fetching media start times for deployment "{section.deployment_name}"...', end='')
+            sys.stdout.flush()
+            res = requests.get(
+                url=f'{self.tator_url}/rest/Medias/{self.project_id}?section={section.section_id}',
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Token {session["tator_token"]}',
+                }
+            )
+            for media in res.json():
+                media_arrival_attribute = media['attributes'].get('Arrival')
+                # get deployment bottom time
+                if media_arrival_attribute and media_arrival_attribute.strip() != '':
+                    video_start_timestamp = datetime.datetime.fromisoformat(media['attributes'].get('Start Time'))
+                    if 'not observed' in media_arrival_attribute.lower():
+                        arrival_frame = 0
+                    else:
+                        try:
+                            arrival_frame = int(media_arrival_attribute.strip().split(' ')[0])
+                        except ValueError:
+                            print(f'\n{TERM_RED}Error:{TERM_NORMAL} Could not parse Arrival value for {media["name"]}')
+                            print(f'Arrival value: "{media["attributes"]["Arrival"]}"')
+                            raise ValueError
+                    deployment_bottom_time = video_start_timestamp + datetime.timedelta(seconds=arrival_frame / 30)
+                    section.bottom_time = deployment_bottom_time.strftime('%Y-%m-%d %H:%M:%SZ')
+                # get media start times
+                if media['id'] not in session['media_timestamps'].keys():
+                    if 'Start Time' in media['attributes'].keys():
+                        session['media_timestamps'][media['id']] = media['attributes']['Start Time']
+                        session.modified = True
+                    else:
+                        print(f'{TERM_RED}Warning:{TERM_NORMAL} No start time found for media {media["id"]}')
+            print('fetched!')
