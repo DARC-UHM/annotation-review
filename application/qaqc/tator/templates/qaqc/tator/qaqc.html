@@ -19,7 +19,7 @@
                 <div id="imageRefSubHeading" class="mb-2 d-flex justify-content-between w-100" style="display: none !important;">
                     (also flags records that have both a tentative ID and a morphospecies)
                 </div>
-                <div><span id="vesselName"></span> <span id="sequenceList"></span></div>
+                <div id="deploymentList"></div>
             </div>
             <div class="col-3 text-end mt-auto">
                 <button id="attractedNotAttractedPopupButton" onclick="viewAttractedList()" class="aquaLink small mb-1" style="display: none;">
@@ -151,6 +151,7 @@
     const title = '{{ data.title }}';
     const missingRecords = {{ data.missing_records|safe or None }};
     const attractedConcepts = {{ data.attracted_concepts|safe or None }};
+    const deploymentNames = {{ data.deployment_names|safe }};
 </script>
 <script type="module" src="{{ url_for('image_review.static', filename='image-review.js') }}"></script>
 <script type="module" src="{{ url_for('image_review.static', filename='external-review.js') }}"></script>

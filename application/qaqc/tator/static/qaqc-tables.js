@@ -1,7 +1,5 @@
 import { formattedNumber } from '../../../static/js/util/formattedNumber.js';
 
-const deployments = [];
-
 const caretDownFill = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-down-fill ms-1 pt-1" viewBox="0 0 16 16">
     <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
 </svg>`;
@@ -10,13 +8,13 @@ const caretUpFill = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="
     <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z"/>
 </svg>`;
 
+let currentDeploymentIndex = 0;
+
 function returnToCheckList() {
     const url = new URL(window.location.href);
     const projectId = url.searchParams.get('project');
     const sectionId = url.searchParams.get('section');
-    const deployments = url.searchParams.getAll('deployment');
-    window.location.href = `/qaqc/tator/checklist?project=${projectId}&section=${sectionId}&deployment=${deployments.join('&')}`;
-
+    window.location.href = `/qaqc/tator/checklist?project=${projectId}&section=${sectionId}`;
 }
 
 window.returnToCheckList = returnToCheckList;
@@ -41,40 +39,6 @@ function updateHash() {
         $('#countLabel').html('Unique Taxa:&nbsp;&nbsp;');
         $('#totalCount').html(formattedNumber(Object.keys(uniqueTaxa).length));
         $('#subheader').html('Highlights taxa that have a box occur before the first dot or do not have both a box and a dot');
-
-        const url = new URL(window.location.href);
-        const deploymentList = url.searchParams.get('deploymentList').split(',');
-        const currentDeployment = url.searchParams.get('deployment');
-        const deploymentIndex = deploymentList.indexOf(currentDeployment);
-
-        // find previous and next deployments
-        let previousDeployment;
-        let nextDeployment;
-        if (deploymentIndex > 0) {
-            const prevUrl = new URL(window.location.href);
-            prevUrl.searchParams.set('deployment', deploymentList[deploymentIndex - 1]);
-            previousDeployment = deploymentList[deploymentIndex - 1];
-            $('#previousPageButton').text(`Prev: ${previousDeployment}`);
-            $('#previousPageButton').attr('href', prevUrl);
-        }
-        if (deploymentIndex < deploymentList.length - 1) {
-            const nextUrl = new URL(window.location.href);
-            nextUrl.searchParams.set('deployment', deploymentList[deploymentIndex + 1]);
-            nextDeployment = deploymentList[deploymentIndex + 1];
-            $('#nextPageButton').text(`Next: ${nextDeployment}`);
-            $('#nextPageButton').attr('href', nextUrl);
-        }
-
-        // redefine because we use a special url for this table
-        function returnToCheckList() {
-            const url = new URL(window.location.href);
-            const deploymentList = url.searchParams.get('deploymentList').split(',');
-            const projectId = url.searchParams.get('project');
-            const sectionId = url.searchParams.get('section');
-            window.location.href = `/qaqc/tator/checklist?project=${projectId}&section=${sectionId}&deployment=${deploymentList.join('&deployment=')}`;
-        }
-
-        window.returnToCheckList = returnToCheckList;
 
         $('#annotationTable').find('thead').html(`
             <tr class="thead-dark sticky-top" style="background-color: #1c2128; color: #eee;">
@@ -649,16 +613,7 @@ function downloadTsv(headers, rows, title) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    const url = new URL(window.location.href);
-
-    for (const pair of url.searchParams.entries()) {
-        if (pair[0] === 'deployment') {
-            const param = pair[1].split(' ');
-            deployments.push(param.pop());
-        }
-    }
-    $('#deploymentList').html(`${deployments.join(', ')}<br>`);
-
+    $('#deploymentList').html(deploymentNames.join(', '));
     updateHash();
 });
 

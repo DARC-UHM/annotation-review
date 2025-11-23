@@ -2,9 +2,7 @@ function returnToCheckList() {
     const url = new URL(window.location.href);
     const projectId = url.searchParams.get('project');
     const sectionId = url.searchParams.get('section');
-    const deployments = url.searchParams.getAll('deployment');
-    const deploymentList = deployments.map(dep => `&deployment=${dep}`).join('');
-    window.location.href = `/qaqc/tator/checklist?project=${projectId}&section=${sectionId}${deploymentList}`;
+    window.location.href = `/qaqc/tator/checklist?project=${projectId}&section=${sectionId}`;
 }
 
 function viewAttractedList() {
@@ -20,6 +18,8 @@ window.viewAttractedList = viewAttractedList;
 window.viewImageReferences = viewImageReferences;
 
 $(document).ready(()=> {
+    $('#deploymentList').html(deploymentNames.join(', '));
+
     if (window.location.href.includes('attracted-not-attracted')) {
         $('#attractedNotAttractedSubHeading').css('display', 'inline-block');
         $('#attractedNotAttractedPopupButton').css('display', 'inline-block');

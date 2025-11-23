@@ -81,7 +81,7 @@ def tator_qaqc_checklist():
     data = {
         'title': expedition_name,
         'tab_title': deployment_names[0] if len(deployment_names) == 1 else expedition_name,
-        'deployments': ', '.join(deployment_names),
+        'deployment_names': deployment_names,
         'localization_count': len(localizations),
         'individual_count': individual_count,
         'checklist': checklist,
@@ -154,9 +154,11 @@ def tator_qaqc(check):
         'concepts': session.get('vars_concepts', []),
         'title': check.replace('-', ' ').title(),
         'tab_title': f'{tab_title} {check.replace("-", " ").title()}',
+        'deployment_names': deployment_names,
         'reviewers': session.get('reviewers', []),
         'comments': comments,
         'image_refs': image_refs,
+
     }
     if check == 'media-attributes':
         # the one case where we don't want to initialize a TatorQaqcProcessor (no need to fetch localizations)

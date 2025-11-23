@@ -9,7 +9,7 @@
         <div class="row m-auto">
             <div class="col-9 text-start">
                 <h4 class="m-0 p-0 pb-2" style="font-weight: 600;">{{ data.page_title }}</h4>
-                <div><span id="deploymentList"></span></div>
+                <div id="deploymentList"></div>
                 <div id="subheader" class="small mt-2"></div>
                 <button id="downloadTsvButton" class="aquaLink pb-2 small">Download TSV</button>
             </div>
@@ -52,6 +52,7 @@
     const tofa = {{ data.tofa|safe or {} }};
     const mediaAttributes = {{ data.media_attributes|safe or {} }};
     const annotations = {{ data.annotations|safe or {} }};
+    const deploymentNames = {{ data.deployment_names|safe }};
 </script>
 {% if data.tofa %}
 <script type="module" src="{{ url_for('qaqc.tator_qaqc.static', filename='qaqc-accumulation-curve.js') }}"></script>

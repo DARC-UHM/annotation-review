@@ -9,7 +9,7 @@
         <div class="row m-auto mb-3">
             <div class="col-9 text-start">
                 <h3 class="m-0 p-0" style="font-weight: 600;">{{ data.title }}</h3>
-                <div class="mb-2">{{ data.deployments }}</div>
+                <div class="mb-2" id="deploymentList"></div>
                 <div style="font-weight: 600;">QA/QC Checklist</div>
             </div>
             <div class="col text-end mt-auto small">
@@ -105,6 +105,7 @@
     const localizationCount = {{ data.localization_count }};
     const individualCount = {{ data.individual_count }};
     const checklist = {{ data.checklist|safe }};
+    const deploymentNames = {{ data.deployment_names|safe }};
 </script>
 <script type="module" src="{{ url_for('qaqc.tator_qaqc.static', filename='qaqc-checklist.js') }}"></script>
 {% endblock scripts %}
