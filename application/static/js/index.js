@@ -98,7 +98,7 @@ async function tatorLogin() {
         $('#password').val('');
         $('#tatorLoggedInUser').html(json.username);
         $('#tatorIndexForm').show();
-        // await getTatorProjects();  TODO??
+        await getTatorSections();
         updateFlashMessages('Logged in to Tator', 'success');
     } else {
         updateFlashMessages('Could not log in to Tator', 'danger');

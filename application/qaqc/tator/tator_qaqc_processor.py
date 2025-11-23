@@ -294,12 +294,17 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
                 # increment box/dot counts, set first box/dot and TOFA
                 if localization['type'] == TatorLocalizationType.BOX.value:
                     unique_taxa[key]['box_count'] += 1
+                    if not record.get('timestamp'):
+                        continue
                     first_box = unique_taxa[key]['first_box']
-                    if not first_box or datetime.datetime.strptime(record['timestamp'], self.BOTTOM_TIME_FORMAT) < datetime.datetime.strptime(first_box, self.BOTTOM_TIME_FORMAT):
+                    observed_timestamp = datetime.datetime.strptime(record['timestamp'], self.BOTTOM_TIME_FORMAT)
+                    if not first_box or observed_timestamp < datetime.datetime.strptime(first_box, self.BOTTOM_TIME_FORMAT):
                         unique_taxa[key]['first_box'] = record['timestamp']
                         unique_taxa[key]['first_box_url'] = f'{self.tator_url}/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}&selected_entity={localization["elemental_id"]}'
                 elif localization['type'] == TatorLocalizationType.DOT.value:
                     unique_taxa[key]['dot_count'] += 1
+                    if not record.get('timestamp'):
+                        continue
                     first_dot = unique_taxa[key]['first_dot']
                     observed_timestamp = datetime.datetime.strptime(record['timestamp'], self.BOTTOM_TIME_FORMAT)
                     if not first_dot or observed_timestamp < datetime.datetime.strptime(first_dot, self.BOTTOM_TIME_FORMAT):
@@ -381,6 +386,8 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
             tentative_id_suffix = f' ({record["tentative_id"]}?)' if record.get('tentative_id') else ''
             morphospecies_suffix = f' ({record["morphospecies"]})' if record.get('morphospecies') else ''
             unique_name = f'{scientific_name}{tentative_id_suffix}{morphospecies_suffix}'
+            if not record.get('timestamp'):
+                continue
             observed_timestamp = datetime.datetime.strptime(record['timestamp'], self.BOTTOM_TIME_FORMAT)
             this_section = self.sections[section_id_indices[record['section_id']]]
             bottom_time = datetime.datetime.strptime(this_section.bottom_time, self.BOTTOM_TIME_FORMAT)
@@ -431,6 +438,15 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
             x['genus'] if x.get('genus') else '',
             x['species'] if x.get('species') else '',
         ))
+        if len(unique_taxa_list) == 0:
+            print(f'{TERM_RED}ERROR: Unable to calculate TOFA. Missing start times?{TERM_NORMAL}')
+            self.final_records = {
+                'deployments': deployment_taxa,
+                'unique_taxa': [],
+                'deployment_time': 0,
+                'accumulation_data': [],
+            }
+            return
         # rounding up to nearest hour
         deployment_time = datetime.timedelta(hours=math.ceil((latest_timestamp - bottom_time).total_seconds() / 3600))
         accumulation_data = []  # just a list of the number of unique taxa seen at each hour
@@ -545,10 +561,18 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
                 }
             )
             for media in res.json():
-                media_arrival_attribute = media['attributes'].get('Arrival')
+                # get media start times
+                if media['id'] not in session['media_timestamps'].keys():
+                    if 'Start Time' in media['attributes'].keys():
+                        session['media_timestamps'][media['id']] = media['attributes']['Start Time']
+                        session.modified = True
+                    else:
+                        print(f'{TERM_RED}Warning:{TERM_NORMAL} No start time found for media {media["id"]}')
+                        continue
                 # get deployment bottom time
+                media_arrival_attribute = media['attributes'].get('Arrival')
                 if media_arrival_attribute and media_arrival_attribute.strip() != '':
-                    video_start_timestamp = datetime.datetime.fromisoformat(media['attributes'].get('Start Time'))
+                    video_start_timestamp = datetime.datetime.fromisoformat(media['attributes']['Start Time'])
                     if 'not observed' in media_arrival_attribute.lower():
                         arrival_frame = 0
                     else:
@@ -560,11 +584,4 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
                             raise ValueError
                     deployment_bottom_time = video_start_timestamp + datetime.timedelta(seconds=arrival_frame / 30)
                     section.bottom_time = deployment_bottom_time.strftime(self.BOTTOM_TIME_FORMAT)
-                # get media start times
-                if media['id'] not in session['media_timestamps'].keys():
-                    if 'Start Time' in media['attributes'].keys():
-                        session['media_timestamps'][media['id']] = media['attributes']['Start Time']
-                        session.modified = True
-                    else:
-                        print(f'{TERM_RED}Warning:{TERM_NORMAL} No start time found for media {media["id"]}')
             print('fetched!')

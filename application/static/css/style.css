@@ -476,7 +476,6 @@ select:active {
 }
 
 .tator-box {
-    background-color: rgba(203, 203, 14, 0.25);
     border: 2px solid yellow;
     border-radius: 2px;
 }

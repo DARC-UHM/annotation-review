@@ -135,7 +135,6 @@ class TatorLocalizationProcessor:
             #     print(f'{TERM_RED}Error fetching expedition fieldbook.{TERM_NORMAL}')
 
         if get_substrates:
-            # TODO: make substrates be at the section level?
             print(f'{TERM_YELLOW}WARNING - getting substrate information is currently disabled.{TERM_NORMAL}')
             # for deployment in self.deployments:
             #     deployment_substrates[deployment] = self.api.get_media_list(
