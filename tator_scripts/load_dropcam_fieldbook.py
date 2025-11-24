@@ -11,8 +11,15 @@ import os
 import pandas as pd
 import requests
 import sys
-import tator
 
+from tator_script_helper_functions import get_deployment_section_id_map
+
+TERM_RED = '\033[1;31;48m'
+TERM_GREEN = '\033[1;32m'
+TERM_NORMAL = '\033[1;37;0m'
+
+SUCCESS = f'{TERM_GREEN}SUCCESS{TERM_NORMAL}'
+FAILED = f'{TERM_RED}FAILED{TERM_NORMAL}'
 
 if len(sys.argv) != 3:
     print('Usage: python load_dropcam_fieldbook.py <expedition_name> <path to dropcam fieldbook xlsx>')
@@ -22,26 +29,6 @@ dotenv.load_dotenv()
 
 EXPEDITION_NAME = sys.argv[1]
 FIELDBOOK_XLSX_PATH = sys.argv[2]
-
-deployment_section_id_map = {}
-
-print('Fetching section details from Tator...', end='')
-sys.stdout.flush()
-
-try:
-    section_list = tator.get_api(
-        host='https://cloud.tator.io',
-        token=os.getenv('TATOR_TOKEN'),
-    ).get_section_list(26)  # hardcoded NGS-ExTech Project
-    for section in section_list:
-        if 'bad_imports' in section.path or 'TopLevelSectionName' in section.path:
-            continue
-        deployment_section_id_map[section.name] = section.id
-except tator.openapi.tator_openapi.exceptions.ApiException as e:
-    print(f'ERROR: Unable to fetch Tator sections: {e}')
-    exit(1)
-
-print('fetched!')
 
 # open xlsx file
 fieldbook_xlsx = pd.ExcelFile(FIELDBOOK_XLSX_PATH)
@@ -58,6 +45,8 @@ for index, row in fieldbook_df.iterrows():
         'bait_type': row['bait_type'],
     }
     deployments.append(deployment)
+
+deployment_section_id_map = get_deployment_section_id_map()
 
 for deployment in deployments:
     deployment_name = deployment['deployment_name']
@@ -76,7 +65,8 @@ for deployment in deployments:
         headers={'API-Key': os.getenv('DARC_REVIEW_API_KEY')},
     )
     if res.status_code not in [200, 201]:
-        print(f'ERROR: Unable to upload fieldbook for {deployment_name} 😔')
-    print(res.status_code, res.text)
+        print(f'{TERM_RED}ERROR: Unable to upload fieldbook for {deployment_name}{TERM_NORMAL}')
+    print(f'{deployment_name} {SUCCESS if res.status_code in [200, 201] else FAILED}')
+    print(res.text)
 
 print('Done!')

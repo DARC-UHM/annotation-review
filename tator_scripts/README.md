@@ -58,23 +58,21 @@ Note that each time you log into Tator via the image review app, a new token is 
 _To run the script:_
 
 1) Download the `Substrates` sheet from the `Annotation Log` XLSX as a CSV and save it locally on your computer.
-2) Find the project ID for the expedition on Tator. This is almost certainly `26`, but to double-check, open Tator and navigate to the project page (the main page that shows all the expeditions) and check the URL. The number immediately following "cloud.tator.io" is the project ID ([example](img/tator-project-id.png)).
-3) Find the section ID for the expedition on Tator. The section ID is the number that is displayed next to the expedition name when the expedition folder is selected on Tator ([example](img/tator-section-id.png)).
-4) Open a terminal window and activate the DARC virtual environment (`conda activate darc`).
-5) `cd` into this directory.
-6) Run the command:
+2) Open a terminal window and activate the DARC virtual environment (`conda activate darc`).
+3) `cd` into this directory.
+4) Run the command:
 
    ```
-   python populate_substrates.py <PROJECT ID> <SECTION ID> "<PATH TO SUBSTRATES CSV>"
+   python populate_substrates.py "<PATH TO SUBSTRATES CSV>"
    ```
    
    Example:
 
    ```
-   python populate_substrates.py 26 11922 "/Users/darc/Downloads/DOEX0096(Palau)_Annotation_Log - Substrates.csv"
+   python populate_substrates.py "/Users/darc/Downloads/DOEX0096(Palau)_Annotation_Log - Substrates.csv"
    ```
    
-The script will iterate over each deployment in the CSV and update all the media files in Tator with the corresponding substrate information. For each media that is updated, a server response is printed. This will take quite a while.
+The script will iterate over each deployment in the CSV and update all the media files in Tator with the corresponding substrate information. This will take quite a while.
 
 ## populate_ctd.py
 
