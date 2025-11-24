@@ -14,7 +14,7 @@ To run this script, you must have a .env file in the root of the repository with
     - DROPBOX_FOLDER_PATH: Path to the folder in Dropbox containing the deployment's video files
     - TATOR_TOKEN: Tator API token
 
-Usage: python populate_ctd.py <project_id> <section_id> <deployment_name> [--use-underscore-folder-names]
+Usage: python populate_ctd.py <expedition_name> <deployment_name> [--use-underscore-folder-names]
 """
 
 import argparse
@@ -22,20 +22,23 @@ import dotenv
 import dropbox
 import os
 import pandas as pd
+import random
 import requests
 import sys
 import time
 
 from datetime import datetime, timedelta
 
+from tator_script_helper_functions import get_deployment_section_id_map
 
 TERM_RED = '\033[1;31;48m'
 TERM_YELLOW = '\033[1;93m'
 TERM_GREEN = '\033[1;32m'
 TERM_NORMAL = '\033[1;37;0m'
+PROJECT_ID = 26
 
 
-def populate_ctd(project_id, section_id, deployment_name, use_underscore_names, dry_run):
+def populate_ctd(expedition_name: str, deployment_name: str, use_underscore_names: bool, dry_run: bool):
     if dry_run:
         print('\n\n========= DRY RUN =========\n\n')
     if use_underscore_names:
@@ -43,6 +46,13 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names, 
     else:
         print('\nUsing new Dropbox folder naming format (replacing underscores with dashes)')
         print('To use old Dropbox folder naming format, append "--use-underscore-folder-names" to command\n')
+
+    deployment_section_id_map = get_deployment_section_id_map()
+    section_id = deployment_section_id_map.get(deployment_name)
+    if section_id is None:
+        print(f'{TERM_RED}ERROR: Unable to find section ID for deployment {deployment_name} in Tator.{TERM_NORMAL}')
+        return
+
     # get list of media ids in deployment
     print(f'Fetching media IDs for deployment {deployment_name} from Tator...', end='')
     sys.stdout.flush()
@@ -50,7 +60,7 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names, 
     bottom_time = None
     camera_bottom_unix_timestamp = None
     res = requests.get(
-        url=f'https://cloud.tator.io/rest/Medias/{project_id}?section={section_id}&attribute_contains=%24name%3A%3A{deployment_name}',
+        url=f'https://cloud.tator.io/rest/Medias/{PROJECT_ID}?section={section_id}',
         headers={
             'Content-Type': 'application/json',
             'Authorization': f'Token {TATOR_TOKEN}',
@@ -82,7 +92,7 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names, 
     sys.stdout.flush()
     localizations = []
     get_localization_res = requests.get(
-        url=f'https://cloud.tator.io/rest/Localizations/{project_id}?media_id={",".join(map(str, media_ids.keys()))}',
+        url=f'https://cloud.tator.io/rest/Localizations/{PROJECT_ID}?section={section_id}',
         headers={
             'Content-Type': 'application/json',
             'Authorization': f'Token {TATOR_TOKEN}',
@@ -101,7 +111,7 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names, 
     dbx = dropbox.Dropbox(os.getenv('DROPBOX_ACCESS_TOKEN'))  # create a Dropbox client instance
     path = None
     df = None
-    folder_path = f'{os.getenv("DROPBOX_FOLDER_PATH")}/{deployment_name if use_underscore_names else deployment_name.replace("_", "-")}/Sensor'
+    folder_path = f'/Pristine Seas Dropcam Data/{expedition_name}/{deployment_name if use_underscore_names else deployment_name.replace("_", "-")}/Sensor'
     try:
         # get the folder metadata
         folder_metadata = dbx.files_list_folder(folder_path)
@@ -311,7 +321,7 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names, 
                     exit(1)
         if depth + 50 < bottom_row['depth']:
             print(f'{TERM_YELLOW}WARNING: Unexpected depth: {depth} (deployment depth was approximately {bottom_row["depth"]}){TERM_NORMAL}')
-            print(f'Localization URL: https://cloud.tator.io/{project_id}/annotation/{localization["media"]}?frame={localization["frame"]}')
+            print(f'Localization URL: https://cloud.tator.io/{PROJECT_ID}/annotation/{localization["media"]}?frame={localization["frame"]}')
             print(f'Sensor timestamp: {converted_timestamp}')
 
         attributes = {
@@ -368,7 +378,7 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names, 
             print({'Deployment Notes': '|'.join(deployment_notes)})
         else:
             update_res = requests.patch(
-                url=f'https://cloud.tator.io/rest/Medias/{project_id}?media_id={",".join(map(str, media_ids.keys()))}',
+                url=f'https://cloud.tator.io/rest/Medias/{PROJECT_ID}?media_id={",".join(map(str, media_ids.keys()))}',
                 headers={
                     'Content-Type': 'application/json',
                     'Authorization': f'Token {TATOR_TOKEN}',
@@ -382,26 +392,26 @@ def populate_ctd(project_id, section_id, deployment_name, use_underscore_names, 
     if count_failure > 0:
         print(f'{TERM_RED}Failed to populate CTD for {count_failure} localizations{TERM_NORMAL}')
     print()
-    print(f'{deployment_name} complete {marine_emojis[count_success % len(marine_emojis)]}')
+    print(f'{deployment_name} complete {random.choice(marine_emojis)}')
     print()
 
 
-dotenv.load_dotenv()
-TATOR_TOKEN = os.getenv('TATOR_TOKEN')
-
 if __name__ == '__main__':
+    dotenv.load_dotenv()
+    TATOR_TOKEN = os.getenv('TATOR_TOKEN')
+
     parser = argparse.ArgumentParser(description='Syncs CTD data from Dropbox to Tator')
-    parser.add_argument('project_id', type=int, help='Tator project ID (most likely 26)')
-    parser.add_argument('section_id', type=int, help='Tator section ID (e.g. 18641)')
-    parser.add_argument('deployment_name', type=str, help='Name of the deployment (e.g. PNG_dscm_01)')
+    parser.add_argument('expedition_name', type=str, help='Name of the expedition (e.g. DOEX0112_Tuvalu)')
+    parser.add_argument('deployment_name', type=str, help='Name of the deployment (e.g. TUV_2025_dscm_01)')
     parser.add_argument('--use-underscore-folder-names', action='store_true', help='Use old Dropbox folder naming format (underscores)')
     parser.add_argument('--dry-run', action='store_true', help='Do not update Tator, just print the changes (for development)')
     args = parser.parse_args()
+
     populate_ctd(
-        project_id=args.project_id,
-        section_id=args.section_id,
+        expedition_name=args.expedition_name,
         deployment_name=args.deployment_name,
         use_underscore_names=args.use_underscore_folder_names,
         dry_run=args.dry_run,
     )
+
     os.system('say "Deployment CTD synced."')

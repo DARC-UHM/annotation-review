@@ -84,7 +84,6 @@ A Dropbox access token is required to run this script. To obtain one, head to ht
 
 ```
 DROPBOX_ACCESS_TOKEN = '<TOKEN GOES HERE>'
-DROPBOX_FOLDER_PATH = '/Pristine Seas Dropcam Data/DOEX0096_Palau'
 ```
 
 A Tator token is also required to run this script - see above in the `populate_substrates.py` section.
@@ -97,13 +96,13 @@ _To run the script:_
 4) Run the command:
 
    ```
-   python populate_ctd.py <PROJECT ID> <SECTION ID> <DEPLOYMENT NAME>
+   python populate_ctd.py <EXPEDITION NAME> <DEPLOYMENT NAME>
    ```
    
    Example:
 
    ```
-   python populate_ctd.py 26 11922 PLW_dscm_02
+   python populate_ctd.py DOEX0112_Tuvalu TUV_2025_dscm_01
    ```
    
 5) (Optional) Check the timestamp printed on the line `Sensor bottom data arrival time unix:` against the timestamp that you see the depths leveling out on bottom in the sensor CSV file. The depth at the printed timestamp should also approximately match the depth recorded for this deployment in the fieldbook. 
