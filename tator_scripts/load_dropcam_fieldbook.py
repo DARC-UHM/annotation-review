@@ -15,6 +15,7 @@ import sys
 from tator_script_helper_functions import get_deployment_section_id_map
 
 TERM_RED = '\033[1;31;48m'
+TERM_YELLOW = '\033[1;93m'
 TERM_GREEN = '\033[1;32m'
 TERM_NORMAL = '\033[1;37;0m'
 
@@ -52,7 +53,7 @@ for deployment in deployments:
     deployment_name = deployment['deployment_name']
     section_id = deployment_section_id_map.get(deployment_name)
     if section_id is None:
-        print(f'WARNING: Unable to find section ID for deployment {deployment_name} in Tator. Will skip this deployment.')
+        print(f'\n{TERM_YELLOW}WARNING: Unable to find section ID for deployment {deployment_name} in Tator. Will skip this deployment.\n{TERM_NORMAL}')
         continue
     deployment['section_id'] = section_id
     res = requests.post(

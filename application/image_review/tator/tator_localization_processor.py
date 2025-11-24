@@ -46,6 +46,7 @@ class TatorLocalizationProcessor:
         self.tator_url = tator_url
         self.darc_review_url = darc_review_url
         self.sections = [Section(section_id, api) for section_id in section_ids]
+        self.api = api
         self.final_records = []  # final list formatted for review page
         self.phylogeny = {}
 
@@ -118,20 +119,10 @@ class TatorLocalizationProcessor:
         sys.stdout.flush()
         formatted_localizations = []
         expedition_fieldbook = {}  # {section_id: deployments[]}
-        deployment_substrates = {}
+        media_substrates = {}  # {media_id: substrates}
 
         if not no_match_records:
             no_match_records = set()
-
-        if get_substrates:
-            print(f'{TERM_YELLOW}WARNING - getting substrate information is currently disabled.{TERM_NORMAL}')
-            # for deployment in self.deployments:
-            #     deployment_substrates[deployment] = self.api.get_media_list(
-            #         project=self.project_id,
-            #         section=self.section_id,
-            #         attribute_contains=[f'$name::{deployment}'],
-            #         stop=1,
-            #     )[0].attributes
 
         for section in self.sections:
             for localization in section.localizations:
@@ -221,14 +212,16 @@ class TatorLocalizationProcessor:
                         localization_dict['long'] = deployment_ctd['long']
                         localization_dict['bait_type'] = deployment_ctd['bait_type']
                         localization_dict['depth_m'] = localization_dict['depth_m'] or deployment_ctd['depth_m']
-                if get_substrates and deployment_substrates:
-                    pass
-                    # localization_dict['primary_substrate'] = deployment_substrates[self.deployment_media_dict[localization['media']]].get('Primary Substrate')
-                    # localization_dict['secondary_substrate'] = deployment_substrates[self.deployment_media_dict[localization['media']]].get('Secondary Substrate')
-                    # localization_dict['bedforms'] = deployment_substrates[self.deployment_media_dict[localization['media']]].get('Bedforms')
-                    # localization_dict['relief'] = deployment_substrates[self.deployment_media_dict[localization['media']]].get('Relief')
-                    # localization_dict['substrate_notes'] = deployment_substrates[self.deployment_media_dict[localization['media']]].get('Substrate Notes')
-                    # localization_dict['deployment_notes'] = deployment_substrates[self.deployment_media_dict[localization['media']]].get('Deployment Notes')
+                if get_substrates:
+                    media_id = localization['media']
+                    if not media_substrates.get(media_id):
+                        media_substrates[media_id] = self.api.get_media(media_id).attributes
+                    localization_dict['primary_substrate'] = media_substrates[media_id].get('Primary Substrate')
+                    localization_dict['secondary_substrate'] = media_substrates[media_id].get('Secondary Substrate')
+                    localization_dict['bedforms'] = media_substrates[media_id].get('Bedforms')
+                    localization_dict['relief'] = media_substrates[media_id].get('Relief')
+                    localization_dict['substrate_notes'] = media_substrates[media_id].get('Substrate Notes')
+                    localization_dict['deployment_notes'] = media_substrates[media_id].get('Deployment Notes')
                 if scientific_name in self.phylogeny.keys():
                     for key in self.phylogeny[scientific_name].keys():
                         # split to account for worms 'Phylum (Division)' case
