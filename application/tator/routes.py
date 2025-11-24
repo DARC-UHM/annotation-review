@@ -21,9 +21,8 @@ import tator
 import requests
 from flask import current_app, request, session, Response
 
-from tator_scripts.populate_ctd import TERM_NORMAL
 from . import tator_bp
-from ..util.constants import TERM_YELLOW, TERM_RED
+from ..util.constants import TERM_YELLOW, TERM_RED, TERM_NORMAL
 from ..util.tator_localization_type import TatorLocalizationType
 
 
