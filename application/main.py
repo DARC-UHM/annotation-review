@@ -28,8 +28,8 @@ def index():
         return None
 
     http_requests = [
-        dict(name='reviewers', url=f'{app.config['DARC_REVIEW_URL']}/reviewer/all', headers=app.config['DARC_REVIEW_HEADERS']),
-        dict(name='stats', url=f'{app.config['DARC_REVIEW_URL']}/stats', headers=app.config['DARC_REVIEW_HEADERS']),
+        dict(name='reviewers', url=f'{app.config["DARC_REVIEW_URL"]}/reviewer/all', headers=app.config['DARC_REVIEW_HEADERS']),
+        dict(name='stats', url=f'{app.config["DARC_REVIEW_URL"]}/stats', headers=app.config['DARC_REVIEW_HEADERS']),
         dict(name='sequences', url=app.config['VARS_SEQUENCE_LIST_URL']),
         dict(name='concepts', url=app.config['VARS_CONCEPT_LIST_URL'])
     ]
