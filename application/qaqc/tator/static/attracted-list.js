@@ -1,4 +1,5 @@
 import { updateFlashMessages } from '../../../static/js/util/updateFlashMessages.js';
+import { getWormsAutocomplete } from '../../../static/js/util/wormsAutocomplete.js';
 
 async function addAttractedConcept() {
     event.preventDefault();
@@ -44,6 +45,10 @@ $(document).ready(() => {
     window.editAttractedConcept = editAttractedConcept;
     window.addAttractedConcept = addAttractedConcept;
     window.deleteAttractedConcept = deleteAttractedConcept;
+
+    $('#addToListSpinner').hide();
+    $('#addConceptInput').on('input', () =>
+        getWormsAutocomplete('addConceptInput', 'addToListSpinner', 'addToListSubmitButton'));
 
     $('#deleteAttractedConceptModal').on('show.bs.modal', (e) => {
         $('#conceptToDeleteText').text($(e.relatedTarget).data('concept'));

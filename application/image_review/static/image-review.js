@@ -1,4 +1,5 @@
-import { autocomplete, removeAllLists, removeAutocomplete } from '../../static/js/util/autocomplete.js';
+import { autocomplete } from '../../static/js/util/autocomplete.js';
+import { getWormsAutocomplete } from '../../static/js/util/wormsAutocomplete.js';
 import { updateFlashMessages } from '../../static/js/util/updateFlashMessages.js';
 import { varsAnnotationTableRow } from './vars-annotation-table-row.js';
 import { tatorLocalizationRow } from './tator-localization-table-row.js';
@@ -636,32 +637,6 @@ function saveScrollPosition(page) {
     sessionStorage.setItem(`scrollPos${queryAndHash}`, `${window.scrollY}`);
 }
 
-async function getWormsAutocomplete() {
-    const scientificNameObj = $('#editScientificName');
-    const scientificName = scientificNameObj.val();
-    if (scientificName.length > 2) {
-        removeAutocomplete(scientificNameObj);
-        removeAllLists();
-        $('#scientificNameAutocompleteSpinner').show();
-        const res = await fetch(`https://www.marinespecies.org/rest/AphiaRecordsByName/${scientificName}?like=true&marine_only=true`);
-        let scientificNameList = [];
-        if (res.status === 200) {
-            const data = await res.json();
-            scientificNameList = data.map((record) => record.scientificname);
-        }
-        autocomplete(scientificNameObj, scientificNameList);
-        scientificNameObj.on('input', () => getWormsAutocomplete());
-
-        validateName(scientificNameObj.val(), scientificNameList, $('#editTatorLocaModalSubmitButton')[0]);
-        scientificNameObj.on('input', () => validateName(scientificNameObj.val(), scientificNameList, $('#editTatorLocaModalSubmitButton')[0]));
-        scientificNameObj.on('change', () => validateName(scientificNameObj.val(), scientificNameList, $('#editTatorLocaModalSubmitButton')[0]));
-        $('#scientificNameAutocompleteSpinner').hide();
-    } else {
-        $('#editTatorLocaModalSubmitButton')[0].disabled = true;
-        removeAllLists(); // only show autocomplete if there are more than 2 characters
-    }
-}
-
 document.addEventListener('DOMContentLoaded', function(event) {
     const url = new URL(window.location.href);
     const queryAndHash = url.search + url.hash;
@@ -673,7 +648,8 @@ document.addEventListener('DOMContentLoaded', function(event) {
     autocomplete($('#editUpon'), allConcepts);
 
     $('#scientificNameAutocompleteSpinner').hide();
-    $('#editScientificName').on('input', () => getWormsAutocomplete());
+    $('#editScientificName').on('input', () =>
+        getWormsAutocomplete('editScientificName', 'scientificNameAutocompleteSpinner', 'editTatorLocaModalSubmitButton'));
 
     if (sessionStorage.getItem(`scrollPos${queryAndHash}`)) {
         window.scrollTo({

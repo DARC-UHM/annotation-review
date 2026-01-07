@@ -66,8 +66,13 @@
                 </div>
                 <div class="modal-body text-start mx-4">
                     <div class="mb-3 row">
-                        <label for="addConcept" class="col-4">Concept</label>
-                        <input type="text" class="col modal-text" id="addConcept" name="concept" required>
+                        <label for="addConceptInput" class="col-4">Concept</label>
+                        <div class="col position-relative p-0">
+                            <input type="text" id="addConceptInput" name="concept" class="modal-text w-100" required>
+                            <div id="addToListSpinner" class="text-input-loading-container w-100">
+                                <div class="text-input-loading-spinner"></div>
+                            </div>
+                        </div>
                     </div>
                     <div class="mb-3 row">
                         <label for="addAttracted" class="col-4">Attracted</label>
@@ -80,7 +85,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Cancel</button>
-                    <input type="submit" class="btn btn-primary modal-button" value="Add">
+                    <input id="addToListSubmitButton" type="submit" class="btn btn-primary modal-button" value="Add">
                 </div>
             </div>
         </form>
