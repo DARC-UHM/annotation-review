@@ -5,6 +5,7 @@ from json import JSONDecodeError
 from flask import flash, render_template, request, session
 
 from application import app
+from application.util.constants import TERM_NORMAL, TERM_RED
 from application.vars.annosaurus import *
 
 
@@ -19,13 +20,15 @@ def index():
         try:
             res = requests.get(url, headers=headers)
             res.raise_for_status()
-            return res.json()
+            return res.json(), None
         except requests.exceptions.RequestException as e:
-            print(f'\nERROR: failed to fetch {url}: {e}\n')
-            flash(f'Unable to connect to {url}', 'danger')
+            msg = f'Unable to connect to {url}: {e}'
+            print(f'{TERM_RED}ERROR{TERM_NORMAL}: {msg}')
+            return None, msg
         except JSONDecodeError:
-            print(f'\nERROR: failed to parse JSON from {url}\n')
-        return None
+            msg = f'Failed to parse JSON from {url}'
+            print(f'{TERM_RED}ERROR{TERM_NORMAL}: {msg}')
+            return None, msg
 
     http_requests = [
         dict(name='reviewers', url=f'{app.config["DARC_REVIEW_URL"]}/reviewer/all', headers=app.config['DARC_REVIEW_HEADERS']),
@@ -34,14 +37,21 @@ def index():
         dict(name='concepts', url=app.config['VARS_CONCEPT_LIST_URL'])
     ]
     results = {}
+    errors = []
     with ThreadPoolExecutor(max_workers=4) as executor:
-        futures = {
+        future_to_name = {
             executor.submit(fetch_json, url=item['url'], headers=item.get('headers')): item['name']
             for item in http_requests
         }
-        for future in as_completed(futures):
-            name = futures[future]
-            results[name] = future.result()
+        for future in as_completed(future_to_name):
+            name = future_to_name[future]
+            data, error = future.result()
+            results[name] = data
+            if error:
+                errors.append(error)
+
+    for error in errors:
+        flash(error, 'danger')
 
     stats = results.get('stats') or {}
     session['reviewers'] = results.get('reviewers') or []
