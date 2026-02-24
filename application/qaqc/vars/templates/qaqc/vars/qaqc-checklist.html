@@ -43,71 +43,71 @@
             <table id="checklistTable" class="table text-start">
                 <tbody style="border-top: solid 2px var(--darc-border);">
                     <tr>
-                        <td><a id="primarySubstrateAnchor" class="aquaLink">No records other than "none" missing primary substrate</a></td>
+                        <td><a id="primarySubstrateAnchor" class="aquaLink">1. No records other than "none" missing primary substrate</a></td>
                         <td id="primarySubstrateCheckbox" class="qaqcCheckbox"></td>
                     </tr>
                     <tr>
-                        <td><a id="missingUponAnchor" class="aquaLink">No records other than "none" missing "upon"</a></td>
+                        <td><a id="missingUponAnchor" class="aquaLink">2. No records other than "none" missing "upon"</a></td>
                         <td id="missingUponCheckbox" class="qaqcCheckbox"></td>
                     </tr>
                     <tr>
-                        <td><button type="button" id="missingAncillaryAnchor" data-bs-toggle="modal" data-bs-target="#quickCheckModal" class="aquaLink">No records missing ancillary data</button></td>
+                        <td><button type="button" id="missingAncillaryAnchor" data-bs-toggle="modal" data-bs-target="#quickCheckModal" class="aquaLink">3. No records missing ancillary data</button></td>
                         <td id="missingAncillaryCheckbox" class="qaqcCheckbox"></td>
                     </tr>
                     <tr>
-                        <td><a id="multipleAssociationsAnchor" class="aquaLink">No records with more than one of the same association type other than s2</a></td>
+                        <td><a id="multipleAssociationsAnchor" class="aquaLink">4. No records with more than one of the same association type other than s2</a></td>
                         <td id="multipleAssociationsCheckbox" class="qaqcCheckbox"></td>
                     </tr>
                     <tr>
-                        <td><a id="identicalS1S2Anchor" class="aquaLink">No records with identical primary and secondary substrates</a></td>
+                        <td><a id="identicalS1S2Anchor" class="aquaLink">5. No records with identical primary and secondary substrates</a></td>
                         <td id="identicalS1S2Checkbox" class="qaqcCheckbox"></td>
                     </tr>
                     <tr>
-                        <td><a id="duplicateS2Anchor" class="aquaLink">No records with duplicate secondary substrates</a></td>
+                        <td><a id="duplicateS2Anchor" class="aquaLink">6. No records with duplicate secondary substrates</a></td>
                         <td id="duplicateS2Checkbox" class="qaqcCheckbox"></td>
                     </tr>
                     <tr>
-                        <td><a id="uponSubstrateAnchor" class="aquaLink">No records missing a substrate that it is recorded "upon"</a></td>
+                        <td><a id="uponSubstrateAnchor" class="aquaLink">7. No records missing a substrate that it is recorded "upon"</a></td>
                         <td id="uponSubstrateCheckbox" class="qaqcCheckbox"></td>
                     </tr>
                     <tr>
-                        <td><a id="timestampSubstrateAnchor" class="aquaLink">No records occurring at the same timestamp with mismatched substrates</a></td>
+                        <td><a id="timestampSubstrateAnchor" class="aquaLink">8. No records occurring at the same timestamp with mismatched substrates</a></td>
                         <td id="timestampSubstrateCheckbox" class="qaqcCheckbox"></td>
                     </tr>
                     <tr>
-                        <td><a id="refIdConceptNameAnchor" class="aquaLink">No records with the same ID reference have different concept names</a></td>
+                        <td><a id="refIdConceptNameAnchor" class="aquaLink">9. No records with the same ID reference have different concept names</a></td>
                         <td id="refIdConceptNameCheckbox" class="qaqcCheckbox"></td>
                     </tr>
                     <tr>
-                        <td><a id="refIdAssociationsAnchor" class="aquaLink">No records with the same ID reference have conflicting associations</a></td>
+                        <td><a id="refIdAssociationsAnchor" class="aquaLink">10. No records with the same ID reference have conflicting associations</a></td>
                         <td id="refIdAssociationsCheckbox" class="qaqcCheckbox"></td>
                     </tr>
                     <tr>
-                        <td><a id="blankAssociationsAnchor" class="aquaLink">No records with blank association link values</a></td>
+                        <td><a id="blankAssociationsAnchor" class="aquaLink">11. No records with blank association link values</a></td>
                         <td id="blankAssociationsCheckbox" class="qaqcCheckbox"></td>
                     </tr>
                     <tr>
-                        <td><a id="localizationsMissingBoundingBoxAnchor" class="aquaLink">No records in the "localization" group missing a bounding box association</a></td>
+                        <td><a id="localizationsMissingBoundingBoxAnchor" class="aquaLink">12. No records in the "localization" group missing a bounding box association</a></td>
                         <td id="localizationsMissingBoundingBoxCheckbox" class="qaqcCheckbox"></td>
                     </tr>
                     <tr>
-                        <td><a id="suspiciousHostAnchor" class="aquaLink">Review records with a suspicious host (concept upon itself)</a></td>
+                        <td><a id="suspiciousHostAnchor" class="aquaLink">13. Review records with a suspicious host (concept upon itself)</a></td>
                         <td id="suspiciousHostCheckbox" class="qaqcCheckbox"></td>
                     </tr>
                     <tr>
-                        <td><a id="expectedAssociationAnchor" class="aquaLink">Review records that are expected to be associated with an organism (slow)</a></td>
+                        <td><a id="expectedAssociationAnchor" class="aquaLink">14. Review records that are expected to be associated with an organism (slow)</a></td>
                         <td id="expectedAssociationCheckbox" class="qaqcCheckbox"></td>
                     </tr>
                     <tr>
-                        <td><a id="timeDiffHostUponAnchor" class="aquaLink">Review upon/host record timestamps</a></td>
+                        <td><a id="timeDiffHostUponAnchor" class="aquaLink">15. Review upon/host record timestamps</a></td>
                         <td id="timeDiffHostUponCheckbox" class="qaqcCheckbox"></td>
                     </tr>
                     <tr>
-                        <td><a id="boundingBoxesAnchor" class="aquaLink">Review number of bounding boxes for each unique concept</a></td>
+                        <td><a id="boundingBoxesAnchor" class="aquaLink">16. Review number of bounding boxes for each unique concept</a></td>
                         <td id="boundingBoxesCheckbox" class="qaqcCheckbox"></td>
                     </tr>
                     <tr>
-                        <td><a id="uniqueFieldsAnchor" class="aquaLink">Review all unique fields (concept names, comments, condition comments, etc)</a></td>
+                        <td><a id="uniqueFieldsAnchor" class="aquaLink">17. Review all unique fields (concept names, comments, condition comments, etc)</a></td>
                         <td id="uniqueFieldsCheckbox" class="qaqcCheckbox"></td>
                     </tr>
                 </tbody>
