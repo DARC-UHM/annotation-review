@@ -18,7 +18,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
     const notInImageRefs = !imageReferences || !imageReferences[imageRefKey];
     const thisSpecificImageInImageRefs = !notInImageRefs && imageReferences[imageRefKey] && imageReferences[imageRefKey].includes(localization.observation_uuid);
     for (const loco of localization.all_localizations) {
-        if (loco.type === TatorLocalizationType.BOX) {
+        if (TatorLocalizationType.isBox(loco.type)) {
             localizationBoxId = loco.id;
             break;
         }
@@ -92,7 +92,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                         ${localization.qualifier || '-'}<br>
                     </div>
                 </div>
-                ${localization.type === TatorLocalizationType.DOT
+                ${TatorLocalizationType.isDot(localization.type)
                     ? (`
                         <div class="row">
                             <div class="col-4">
@@ -235,7 +235,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                                 />
                                 <div id="${localization.observation_uuid}_overlay">
                                 ${localization.all_localizations.map((loco, index) => {
-                                    if (loco.type === TatorLocalizationType.BOX) {
+                                    if (TatorLocalizationType.isBox(loco.type)) {
                                         return `<span
                                                     class="position-absolute tator-box"
                                                     style="top: ${loco.points[1] * 100}%; left: ${loco.points[0] * 100}%; width: ${loco.dimensions[0] * 100}%; height: ${loco.dimensions[1] * 100}%;"
@@ -262,7 +262,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                         </div>
                     `)
                 }
-                ${localization.all_localizations[0].type === TatorLocalizationType.BOX && localization.scientific_name
+                ${TatorLocalizationType.isBox(localization.all_localizations[0].type) && localization.scientific_name
                     ? `
                         <div class="mt-2 small d-flex justify-content-center position-relative">
                             <div class="my-auto">

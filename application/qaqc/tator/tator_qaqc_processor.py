@@ -292,7 +292,7 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
                 }
             for localization in record['all_localizations']:
                 # increment box/dot counts, set first box/dot and TOFA
-                if localization['type'] == TatorLocalizationType.BOX.value:
+                if TatorLocalizationType.is_box(localization['type']):
                     unique_taxa[key]['box_count'] += 1
                     if not record.get('timestamp'):
                         continue
@@ -301,7 +301,7 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
                     if not first_box or observed_timestamp < datetime.datetime.strptime(first_box, self.BOTTOM_TIME_FORMAT):
                         unique_taxa[key]['first_box'] = record['timestamp']
                         unique_taxa[key]['first_box_url'] = f'{self.tator_url}/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}&selected_entity={localization["elemental_id"]}'
-                elif localization['type'] == TatorLocalizationType.DOT.value:
+                elif TatorLocalizationType.is_dot(localization['type']):
                     unique_taxa[key]['dot_count'] += 1
                     if not record.get('timestamp'):
                         continue
@@ -468,7 +468,7 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
         self.fetch_start_times()
         for section in self.sections:
             section.localizations = [
-                localization for localization in section.localizations if localization['type'] != TatorLocalizationType.BOX.value
+                localization for localization in section.localizations if not TatorLocalizationType.is_box(localization['type'])
             ]
         self.process_records(get_timestamp=True, get_ctd=True, get_substrates=True)
 

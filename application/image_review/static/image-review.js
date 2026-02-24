@@ -426,8 +426,10 @@ export function updateHash() {
         annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.scientific_name?.toLowerCase().includes(filter.scientific_name.toLowerCase().replaceAll('%20', ' ')));
     }
     if (filter.localization_type) {
-        const localizationType = filter.localization_type.toLowerCase().includes('box') ? TatorLocalizationType.BOX : TatorLocalizationType.DOT;
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.all_localizations[0].type === localizationType);
+        const isBox = filter.localization_type.toLowerCase().includes('box');
+        annotationsToDisplay = annotationsToDisplay.filter((anno) => isBox
+            ? TatorLocalizationType.isBox(anno.all_localizations[0].type)
+            : TatorLocalizationType.isDot(anno.all_localizations[0].type));
     }
     if (filterTatorCtdNotes) {
         annotationsToDisplay = annotationsToDisplay.filter((anno) =>

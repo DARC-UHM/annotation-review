@@ -66,7 +66,7 @@ def tator_qaqc_checklist():
             })
         localizations += res.json()
     for localization in localizations:
-        if localization['type'] == TatorLocalizationType.DOT.value:
+        if TatorLocalizationType.is_dot(localization['type']):
             individual_count += 1
             if localization['attributes']['Categorical Abundance'] != '--':
                 match localization['attributes']['Categorical Abundance']:
