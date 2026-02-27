@@ -5,8 +5,7 @@ General endpoints for Tator that are used throughout the application.
 /tator/token [GET]
 /tator/logout [GET]
 /tator/projects [GET]
-/tator/sections/<project_id> [GET]
-/tator/deployments/<project_id>/<section_id> [GET]
+/tator/sections?project=<project_id> [GET]
 /tator/refresh-sections [GET]
 /tator/frame/<media_id>/<frame> [GET]
 /tator/localization-image/<localization_id> [GET]
@@ -68,12 +67,13 @@ def tator_logout():
 
 
 # get a list of sections associated with a project from tator
-@tator_bp.get('/sections/<project_id>')
-def tator_sections(project_id):
+@tator_bp.get('/sections')
+def tator_sections():
     def should_skip(section_path):
         section_path_lower = section_path.lower()
         return 'test' in section_path_lower or 'toplevelsectionname' in section_path_lower
 
+    project_id = request.args.get('project')
     try:
         sections = {}
         section_list = tator.get_api(
@@ -124,6 +124,34 @@ def tator_sections(project_id):
     except tator.openapi.tator_openapi.exceptions.ApiException as e:
         print(f'{TERM_RED}ERROR: Unable to fetch Tator sections:{TERM_NORMAL} {e}')
         return {'500': 'Error fetching Tator sections'}, 500
+
+
+# get a list of transect
+@tator_bp.get('/transects')
+def transects():
+    project_id = request.values.get('project')
+    section_id = request.values.get('section')
+    try:
+        tator_api = tator.get_api(
+            host=current_app.config.get('TATOR_URL'),
+            token=session.get('tator_token'),
+        )
+        transect_media_ids = set()
+        state_list = tator_api.get_state_list(project_id, section=section_id)
+        for state in state_list:
+            if state.attributes.get('Mode') == 'Transect':
+                transect_media_ids.update(state.media)
+        print("MEDIA_IDS:", list(transect_media_ids))
+
+        media_name_id_list = []
+        media_list = tator_api.get_media_list(project_id, media_id=list(transect_media_ids))
+        for media in media_list:
+            media_name_id_list.append({ 'name': media.name, 'id': media.id })
+        print(media_name_id_list)
+    except tator.openapi.tator_openapi.exceptions.ApiException as e:
+        print(f'{TERM_RED}ERROR: Unable to fetch transects list from Tator:{TERM_NORMAL} {e}')
+        return {'500': 'Error fetching Tator transects'}, 500
+    return {}, 200
 
 
 # view tator video frame (not cropped)

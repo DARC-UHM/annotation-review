@@ -5,6 +5,7 @@ import { autocomplete } from './util/autocomplete.js';
 const TATOR_PROJECT = 26;
 const TATOR_SECTION_STORAGE_KEY = 'tatorSection';
 const TATOR_FOLDER_STORAGE_KEY = 'tatorFolder';
+const TATOR_DEPLOYMENT_STORAGE_KEY = 'tatorDeployment';
 
 let numSequences = 1; // VARS
 let numDeployments = 1; // TATOR
@@ -23,7 +24,7 @@ function checkSequence() {
 }
 
 async function getTatorSections() {
-    const res = await fetch(`/tator/sections/${TATOR_PROJECT}`);
+    const res = await fetch(`/tator/sections?project=${TATOR_PROJECT}`);
     tatorExpeditions = await res.json();
     if (res.status === 200) {
         $('#tatorExpedition').html('<option value="" selected disabled>Select an expedition</option>');
@@ -37,11 +38,11 @@ async function getTatorSections() {
         }
         $('#tatorExpedition').val(sectionId);
 
-        updateTatorFolders(sectionId);
+        await updateTatorFolders(sectionId);
     }
 }
 
-function updateTatorFolders(sectionId) {
+async function updateTatorFolders(sectionId) {
     if (!sectionId) {
         return;
     }
@@ -65,11 +66,11 @@ function updateTatorFolders(sectionId) {
     }
 
     $('#tatorFolder').val(folderName);
-    updateTatorDeployments(sectionId, folderName);
+    await updateTatorDeployments(sectionId, folderName);
 }
 
-function updateTatorDeployments(sectionId, folderName) {
-    const expedition = tatorExpeditions.find((expedition) => expedition.id.toString() === sectionId.toString());
+async function updateTatorDeployments(topLevelSectionId, folderName) {
+    const expedition = tatorExpeditions.find((expedition) => expedition.id.toString() === topLevelSectionId.toString());
     const deployments = expedition.folders[folderName];
     deploymentList = deployments;
 
@@ -78,9 +79,22 @@ function updateTatorDeployments(sectionId, folderName) {
     for (const deployment of deploymentList) {
         $('#deployment1').append(`<option value="${deployment.id}">${deployment.name}</option>`);
     }
-    $('#deployment1').val(deployments[0].id);
-    $('#load-overlay').addClass('loader-bg-hidden');
-    $('#load-overlay').removeClass('loader-bg');
+
+    // load default section from local storage
+    let deploymentSectionId = deploymentList[0]?.id;
+    if (localStorage.getItem(TATOR_DEPLOYMENT_STORAGE_KEY)) {
+        deploymentSectionId = localStorage.getItem(TATOR_DEPLOYMENT_STORAGE_KEY);
+    }
+    $('#deployment1').val(deploymentSectionId);
+
+    if (folderName === 'sub') {
+        // TODO extract to method and add another select
+        const res = await fetch(`/tator/transects?project=${TATOR_PROJECT}&section=${deploymentSectionId}`);
+    } else {
+        $('#deployment1').val(deployments[0].id);
+        $('#load-overlay').addClass('loader-bg-hidden');
+        $('#load-overlay').removeClass('loader-bg');
+    }
 }
 
 async function tatorLogin() {
