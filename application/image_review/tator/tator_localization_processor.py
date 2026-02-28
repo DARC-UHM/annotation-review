@@ -9,7 +9,7 @@ import sys
 import tator
 
 from flask import session
-from application.util.constants import KNOWN_ANNOTATORS, TERM_RED, TERM_NORMAL
+from application.util.constants import TERM_RED, TERM_NORMAL
 from application.util.tator_localization_type import TatorLocalizationType
 from application.util.functions import flatten_taxa_tree
 
@@ -159,7 +159,7 @@ class TatorLocalizationProcessor:
                     'morphospecies': localization['attributes'].get('Morphospecies'),
                     'tentative_id': localization['attributes'].get('Tentative ID'),
                     'good_image': True if localization['attributes'].get('Good Image') else False,
-                    'annotator': KNOWN_ANNOTATORS[localization['created_by']] if localization['created_by'] in KNOWN_ANNOTATORS.keys() else f'Unknown Annotator (#{localization["created_by"]})',
+                    'annotator': self._get_annotator_name(localization['created_by']),
                     'frame': localization['frame'],
                     'frame_url': f'/tator/frame/{localization["media"]}/{localization["frame"]}',
                     'media_id': localization['media'],
@@ -419,3 +419,25 @@ class TatorLocalizationProcessor:
             self.final_records.append({key: val for key, val in record.items() if is_populated(val)})
         self.save_phylogeny()
         print('processed!')
+
+    def _get_annotator_name(self, user_id: int) -> str:
+        if 'tator_usernames' not in session.keys():
+            session['tator_usernames'] = {}
+        if user_id not in session['tator_usernames']:
+            print(f'Fetching annotator name for user ID {user_id} from Tator...')
+            res = requests.get(
+                url=f'{self.tator_url}/rest/User/{user_id}',
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Token {session["tator_token"]}',
+                }
+            )
+            if res.status_code != 200:
+                print(f'{TERM_RED}Error fetching annotator name for user ID {user_id}{TERM_NORMAL}')
+                print(res.text)
+                return f'Unknown annotator (#{user_id})'
+            res_json = res.json()
+            annotator_name = f'{res_json["first_name"]} {res_json["last_name"]}'
+            print(f'Annotator name for user ID {user_id} is "{annotator_name}"')
+            session['tator_usernames'][user_id] = annotator_name
+        return session['tator_usernames'][user_id]
