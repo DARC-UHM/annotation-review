@@ -579,9 +579,10 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
                         try:
                             arrival_frame = int(media_arrival_attribute.strip().split(' ')[0])
                         except ValueError:
-                            print(f'\n{TERM_RED}Error:{TERM_NORMAL} Could not parse Arrival value for {media["name"]}')
-                            print(f'Arrival value: "{media["attributes"]["Arrival"]}"')
-                            raise ValueError
+                            error_message = (f'Could not parse Arrival value for media "{media["name"]}". '
+                                             f'Expected format like "1234" or "not observed" but got "{media["attributes"]["Arrival"]}".')
+                            print(f'\n\n{TERM_RED}ERROR: {error_message}{TERM_NORMAL}')
+                            raise ValueError(error_message)
                     deployment_bottom_time = video_start_timestamp + datetime.timedelta(seconds=arrival_frame / 30)
                     section.bottom_time = deployment_bottom_time.strftime(self.BOTTOM_TIME_FORMAT)
             print('fetched!')
