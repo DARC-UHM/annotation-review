@@ -36,8 +36,8 @@ def tator_image_review():
         localization_processor.fetch_localizations()
         localization_processor.load_phylogeny()
         localization_processor.process_records()
-    except tator.openapi.tator_openapi.exceptions.ApiException:
-        flash('Please log in to Tator', 'info')
+    except tator.openapi.tator_openapi.exceptions.ApiException as e:
+        flash(json.loads(e.body)['message'], 'danger')
         return redirect('/')
     comments = {}
     image_refs = {}

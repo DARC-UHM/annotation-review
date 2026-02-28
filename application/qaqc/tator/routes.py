@@ -7,7 +7,7 @@ Tator-specific QA/QC endpoints
 /qaqc/tator/attracted [POST]
 /qaqc/tator/attracted/<concept> [PATCH, DELETE]
 """
-
+import json
 from io import BytesIO
 
 import tator
@@ -42,8 +42,8 @@ def tator_qaqc_checklist():
             deployment_names.append(section.name)
             if expedition_name is None:
                 expedition_name = section.path.split('.')[0]
-    except tator.openapi.tator_openapi.exceptions.ApiException:
-        flash('Please log in to Tator', 'info')
+    except tator.openapi.tator_openapi.exceptions.ApiException as e:
+        flash(json.loads(e.body)['message'], 'danger')
         return redirect('/')
     localizations = []
     individual_count = 0
@@ -128,8 +128,8 @@ def tator_qaqc(check):
             deployment_names.append(section.name)
             if expedition_name is None:
                 expedition_name = section.path.split('.')[0]
-    except tator.openapi.tator_openapi.exceptions.ApiException:
-        flash('Please log in to Tator', 'info')
+    except tator.openapi.tator_openapi.exceptions.ApiException as e:
+        flash(json.loads(e.body)['message'], 'danger')
         return redirect('/')
     # get comments and image references from external review db
     comments = {}
