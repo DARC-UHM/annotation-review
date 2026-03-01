@@ -160,7 +160,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
                 base_timestamp = sorted_annotations[i]['recorded_timestamp'][:19]
                 base_annotation = sorted_annotations[i]
                 i += 1
-                while sorted_annotations[i]['recorded_timestamp'][:19] == base_timestamp:
+                while i < len(sorted_annotations) and sorted_annotations[i]['recorded_timestamp'][:19] == base_timestamp:
                     if sorted_annotations[i].get('group') != 'localization':
                         if base_timestamp not in annotations_with_same_timestamp.keys():
                             annotations_with_same_timestamp[base_timestamp] = [base_annotation]

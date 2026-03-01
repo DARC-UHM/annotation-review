@@ -69,17 +69,19 @@ def populate_ctd(expedition_name: str, deployment_name: str, use_underscore_name
         print(f'\n{TERM_RED}Error fetching media IDs: {res.json()["message"]}{TERM_NORMAL}')
         exit(1)
     full_media_list = res.json()
+    media_fps = {}
     for media in full_media_list:
         if not media['attributes'].get('Start Time'):
             print(f'Media {media["id"]} ({media["name"]}) does not have a start timestamp')
             exit(1)
         media_ids[media['id']] = media['attributes']['Start Time']
+        media_fps[media['id']] = media.get('fps') or 30
         if media['attributes'].get('Arrival') and media['attributes']['Arrival'] != '':
             video_start_timestamp = datetime.fromisoformat(media['attributes']['Start Time'])
             if 'not observed' in media['attributes']['Arrival'].lower():
                 bottom_time = video_start_timestamp
             else:
-                bottom_time = video_start_timestamp + timedelta(seconds=int(int(media['attributes']['Arrival'].split('|')[0]) / 30))
+                bottom_time = video_start_timestamp + timedelta(seconds=int(int(media['attributes']['Arrival'].split('|')[0]) / media_fps[media['id']]))
             camera_bottom_unix_timestamp = time.mktime(bottom_time.timetuple())
     print(f'fetched {len(media_ids)} media IDs!')
 
@@ -228,7 +230,7 @@ def populate_ctd(expedition_name: str, deployment_name: str, use_underscore_name
     for localization in localizations:
         # get the timestamp of the localization
         video_start_timestamp = datetime.fromisoformat(media_ids[localization['media']])
-        this_timestamp = video_start_timestamp + timedelta(seconds=localization['frame'] / 30)
+        this_timestamp = video_start_timestamp + timedelta(seconds=localization['frame'] / media_fps[localization['media']])
         unix_timestamp = time.mktime(this_timestamp.timetuple())
         # find the row in the CSV that matches the timestamp
         converted_timestamp = unix_timestamp - offset

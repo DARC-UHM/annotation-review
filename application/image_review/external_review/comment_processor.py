@@ -169,7 +169,7 @@ class CommentProcessor:
                         except KeyError:
                             if concept_name not in no_match_records:
                                 no_match_records.add(concept_name)
-                                print(f'{TERM_YELLOW}WARNING: Could not find phylogeny for concept "{annotation["concept"]}" in VARS knowledge base{TERM_NORMAL}')
+                                print(f'{TERM_YELLOW}WARNING: Could not find phylogeny for concept "{concept_name}" in VARS knowledge base{TERM_NORMAL}')
                             vars_tree = {}
                         while 'children' in vars_tree.keys():
                             if 'rank' in vars_tree.keys():  # sometimes it's not

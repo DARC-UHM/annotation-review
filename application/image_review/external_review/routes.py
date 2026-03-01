@@ -87,7 +87,7 @@ def get_external_review():
             raise requests.exceptions.ConnectionError
         image_refs = image_ref_res.json()
     except requests.exceptions.ConnectionError:
-        _reviewers = []
+        image_refs = []
         print('\nERROR: unable to connect to external review server\n')
     comment_loader = CommentProcessor(
         comments=comments,

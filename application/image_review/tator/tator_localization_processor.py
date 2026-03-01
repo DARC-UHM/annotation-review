@@ -120,6 +120,8 @@ class TatorLocalizationProcessor:
         formatted_localizations = []
         expedition_fieldbook = {}  # {section_id: deployments[]}
         media_substrates = {}  # {media_id: substrates}
+        if 'media_fps' not in session:
+            session['media_fps'] = {}
 
         if not no_match_records:
             no_match_records = set()
@@ -183,10 +185,15 @@ class TatorLocalizationProcessor:
                         case _:
                             print(f'{TERM_RED}Unknown categorical abundance: {localization_dict["categorical_abundance"]}{TERM_NORMAL}')
                 if get_timestamp:
-                    if localization['media'] in session['media_timestamps'].keys():
+                    media_id = localization['media']
+                    if media_id in session['media_timestamps'].keys():
+                        if media_id not in session['media_fps'].keys():
+                            session['media_fps'][media_id] = self.api.get_media(media_id).fps
+                            session.modified = True
+                        media_fps = session['media_fps'][media_id] or 30
                         camera_bottom_arrival = datetime.datetime.strptime(section.bottom_time, self.BOTTOM_TIME_FORMAT).replace(tzinfo=datetime.timezone.utc)
-                        video_start_timestamp = datetime.datetime.fromisoformat(session['media_timestamps'][localization['media']])
-                        observation_timestamp = video_start_timestamp + datetime.timedelta(seconds=localization['frame'] / 30)
+                        video_start_timestamp = datetime.datetime.fromisoformat(session['media_timestamps'][media_id])
+                        observation_timestamp = video_start_timestamp + datetime.timedelta(seconds=localization['frame'] / media_fps)
                         time_diff = observation_timestamp - camera_bottom_arrival
                         localization_dict['timestamp'] = observation_timestamp.strftime(self.BOTTOM_TIME_FORMAT)
                         localization_dict['camera_seafloor_arrival'] = camera_bottom_arrival.strftime(self.BOTTOM_TIME_FORMAT)
@@ -440,4 +447,5 @@ class TatorLocalizationProcessor:
             annotator_name = f'{res_json["first_name"]} {res_json["last_name"]}'
             print(f'Annotator name for user ID {user_id} is "{annotator_name}"')
             session['tator_usernames'][user_id] = annotator_name
+            session.modified = True
         return session['tator_usernames'][user_id]

@@ -415,17 +415,19 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
                     'depth_m': record.get('depth_m'),
                     'tofa_dict': {},
                 }
+            time_diff = observed_timestamp - bottom_time if observed_timestamp > bottom_time else datetime.timedelta(0)
             if unique_name not in deployment_taxa[record['video_sequence_name']]['tofa_dict'].keys():
                 # add new unique taxa to dict
                 deployment_taxa[record['video_sequence_name']]['tofa_dict'][unique_name] = {
-                    'tofa': str(observed_timestamp - bottom_time) if observed_timestamp > bottom_time else '00:00:00',
+                    'tofa': str(time_diff),
+                    'tofa_seconds': time_diff.total_seconds(),
                     'tofa_url': f'{self.tator_url}/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}',
                 }
             else:
                 # check for new tofa
-                if str(observed_timestamp - bottom_time) < deployment_taxa[record['video_sequence_name']]['tofa_dict'][unique_name]['tofa']:
-                    deployment_taxa[record['video_sequence_name']]['tofa_dict'][unique_name]['tofa'] = \
-                        str(observed_timestamp - bottom_time) if observed_timestamp > bottom_time else '00:00:00'
+                if time_diff.total_seconds() < deployment_taxa[record['video_sequence_name']]['tofa_dict'][unique_name]['tofa_seconds']:
+                    deployment_taxa[record['video_sequence_name']]['tofa_dict'][unique_name]['tofa'] = str(time_diff)
+                    deployment_taxa[record['video_sequence_name']]['tofa_dict'][unique_name]['tofa_seconds'] = time_diff.total_seconds()
                     deployment_taxa[record['video_sequence_name']]['tofa_dict'][unique_name]['tofa_url'] = \
                         f'{self.tator_url}/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}'
         # convert unique taxa to list for sorting
@@ -582,6 +584,7 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
                             print(f'\n{TERM_RED}Error:{TERM_NORMAL} Could not parse Arrival value for {media["name"]}')
                             print(f'Arrival value: "{media["attributes"]["Arrival"]}"')
                             raise ValueError
-                    deployment_bottom_time = video_start_timestamp + datetime.timedelta(seconds=arrival_frame / 30)
+                    media_fps = media.get('fps') or 30
+                    deployment_bottom_time = video_start_timestamp + datetime.timedelta(seconds=arrival_frame / media_fps)
                     section.bottom_time = deployment_bottom_time.strftime(self.BOTTOM_TIME_FORMAT)
             print('fetched!')

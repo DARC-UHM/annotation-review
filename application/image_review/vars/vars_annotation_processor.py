@@ -53,8 +53,8 @@ class VarsAnnotationProcessor:
                 json.dump(self.phylogeny, f, indent=2)
         except FileNotFoundError:
             os.makedirs('cache')
-        with open(os.path.join('cache', 'phylogeny.json'), 'w') as f:
-            json.dump(self.phylogeny, f, indent=2)
+            with open(os.path.join('cache', 'phylogeny.json'), 'w') as f:
+                json.dump(self.phylogeny, f, indent=2)
 
     def fetch_media(self, sequence_name: str, videos: list):
         """

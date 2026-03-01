@@ -115,7 +115,7 @@ def video_frame():
     if not cap.isOpened():
         print('Could not open video file')
         return {}, 500
-    frame_number = timestamp * cap.get(cv2.CAP_PROP_FPS)  # calc frame number
+    frame_number = int(timestamp * cap.get(cv2.CAP_PROP_FPS))  # calc frame number
     cap.set(cv2.CAP_PROP_POS_FRAMES, frame_number)  # set to frame
     ret, frame = cap.read()  # get frame
     cap.release()  # release video
