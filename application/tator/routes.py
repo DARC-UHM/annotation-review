@@ -126,32 +126,32 @@ def tator_sections():
         return {'500': 'Error fetching Tator sections'}, 500
 
 
-# get a list of transect
+# get a list of media ids marked as "transect" given a section id
 @tator_bp.get('/transects')
 def transects():
     project_id = request.values.get('project')
-    section_id = request.values.get('section')
+    section_ids = request.values.getlist('section')
     try:
         tator_api = tator.get_api(
             host=current_app.config.get('TATOR_URL'),
             token=session.get('tator_token'),
         )
         transect_media_ids = set()
-        state_list = tator_api.get_state_list(project_id, section=section_id)
+        state_list = tator_api.get_state_list(project_id, multi_section=section_ids)
         for state in state_list:
             if state.attributes.get('Mode') == 'Transect':
                 transect_media_ids.update(state.media)
-        print("MEDIA_IDS:", list(transect_media_ids))
-
+        if len(transect_media_ids) == 0:
+            print(f'{TERM_YELLOW}WARNING: No media ids marked as "transect" found for sections {section_ids}{TERM_NORMAL}')
+            return [], 200
         media_name_id_list = []
         media_list = tator_api.get_media_list(project_id, media_id=list(transect_media_ids))
         for media in media_list:
             media_name_id_list.append({ 'name': media.name, 'id': media.id })
-        print(media_name_id_list)
+        return media_name_id_list, 200
     except tator.openapi.tator_openapi.exceptions.ApiException as e:
         print(f'{TERM_RED}ERROR: Unable to fetch transects list from Tator:{TERM_NORMAL} {e}')
         return {'500': 'Error fetching Tator transects'}, 500
-    return {}, 200
 
 
 # view tator video frame (not cropped)
