@@ -24,7 +24,7 @@ class TestVarsQaqcProcessor:
         assert qaqc_processor.videos == []
         assert qaqc_processor.working_records == []
         assert qaqc_processor.final_records == []
-        assert len(qaqc_processor.phylogeny.keys()) > 0
+        assert len(qaqc_processor.phylogeny.data.keys()) > 0
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_fetch_annotations(self, _):

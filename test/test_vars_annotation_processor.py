@@ -23,18 +23,9 @@ class TestVarsAnnotationProcessor:
         assert annotation_processor.vessel_name == 'Deep Discoverer'
         assert annotation_processor.sequence_names == ['Deep Discoverer 23060001']
         assert annotation_processor.highest_id_ref == 0
-        assert annotation_processor.phylogeny == {}
         assert annotation_processor.working_records == []
         assert annotation_processor.final_records == []
-
-    def test_load_phylogeny(self):
-        annotation_processor = VarsAnnotationProcessor(
-            sequence_names=['Deep Discoverer 23060001'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
-        )
-        annotation_processor.load_phylogeny()
-        assert len(annotation_processor.phylogeny.keys()) > 0
+        assert len(annotation_processor.phylogeny.data.keys()) > 0
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_fetch_media(self, mock_get):
@@ -68,8 +59,12 @@ class TestVarsAnnotationProcessor:
             vars_dive_url=VARS_DIVE_QUERY_URL,
             vars_phylogeny_url=VARS_PHYLOGENY_URL,
         )
-        annotation_processor.fetch_vars_phylogeny('Pomacentridae', no_match_records=set())
-        assert annotation_processor.phylogeny['Pomacentridae'] == {
+        annotation_processor.phylogeny.fetch_vars(
+            concept_name='Pomacentridae',
+            vars_phylogeny_url='http://hurlstor.soest.hawaii.edu:8083/v1/phylogeny/up',
+            no_match_records=set()
+        )
+        assert annotation_processor.phylogeny.data['Pomacentridae'] == {
             'phylum': 'Chordata',
             'subphylum': 'Vertebrata',
             'superclass': 'Pisces',

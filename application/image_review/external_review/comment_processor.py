@@ -7,6 +7,8 @@ import pandas as pd
 import numpy as np
 from json import JSONDecodeError
 
+from flask import current_app
+
 from application.util.functions import format_annotator, parse_datetime
 from application.util.constants import TERM_RED, TERM_NORMAL
 from application.util.phylogeny_cache import PhylogenyCache
@@ -46,7 +48,7 @@ class CommentProcessor:
                     media_ids.add(media_id)
             for i in range(0, len(media_ids), 300):
                 chunk = list(media_ids)[i:i + 300]
-                localizations += self.tator_client.get_localizations(26, media_id=chunk)
+                localizations += self.tator_client.get_localizations(current_app.config.get('TATOR_PROJECT_ID'), media_id=chunk)
 
         # add formatted comments to list
         for comment in self.comments:
