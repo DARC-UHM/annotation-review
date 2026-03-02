@@ -30,6 +30,7 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
         api: tator.api,
         tator_url: str,
         darc_review_url: str = None,
+        transect_media_ids: List[int] = None,
     ):
         super().__init__(
             project_id=project_id,
@@ -37,6 +38,7 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
             api=api,
             darc_review_url=darc_review_url,
             tator_url=tator_url,
+            transect_media_ids=transect_media_ids,
         )
 
     def check_names_accepted(self):
