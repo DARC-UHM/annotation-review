@@ -16,7 +16,7 @@ from flask import current_app, flash, redirect, render_template, request, send_f
 
 from . import tator_qaqc_bp
 from .tator_qaqc_processor import TatorQaqcProcessor
-from ...util.tator_localization_type import TatorLocalizationType
+from ...util.tator_type import TatorLocalizationType
 
 
 # view QA/QC checklist for a specified project & section

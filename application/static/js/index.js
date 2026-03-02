@@ -297,7 +297,7 @@ $('#tatorPlusTransectButton').on('click', () => {
             <div class="row d-inline-flex">
                 <div class="col-1"></div>
                 <div class="col-10 p-0">
-                    <select id="${newTransectSelectId}" name="section" class="sequenceName transectSelect"></select>
+                    <select id="${newTransectSelectId}" name="transect" class="sequenceName transectSelect"></select>
                 </div>
                 <div class="col-1 ps-0">
                     <button id="xButton${numTransects}" type="button" class="xButton">

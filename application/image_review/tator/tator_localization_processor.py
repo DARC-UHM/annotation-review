@@ -1,4 +1,5 @@
 import datetime
+import os
 from typing import List
 
 import pandas as pd
@@ -8,7 +9,7 @@ import tator
 
 from flask import session
 from application.util.constants import TERM_RED, TERM_NORMAL
-from application.util.tator_localization_type import TatorLocalizationType
+from application.util.tator_type import TatorLocalizationType
 from application.util.phylogeny_cache import PhylogenyCache
 
 
@@ -37,6 +38,7 @@ class TatorLocalizationProcessor:
         api: tator.api,
         tator_url: str,
         darc_review_url: str = None,
+        transect_media_ids: List[int] = None,
     ):
         self.project_id = project_id
         self.tator_url = tator_url
@@ -45,20 +47,39 @@ class TatorLocalizationProcessor:
         self.api = api
         self.final_records = []  # final list formatted for review page
         self.phylogeny = PhylogenyCache()
+        self.transect_media_ids = set(media_id for media_id in transect_media_ids) if transect_media_ids else None
 
     def fetch_localizations(self):
         print('Fetching localizations...')
         sys.stdout.flush()
-        for section in self.sections:
-            # REST is much faster than Python API for large queries
-            res = requests.get(
-                url=f'{self.tator_url}/rest/Localizations/{self.project_id}?section={section.section_id}',
-                headers={
-                    'Content-Type': 'application/json',
-                    'Authorization': f'Token {session["tator_token"]}',
-                })
-            section.localizations = res.json()
-            print(f'Fetched {len(section.localizations)} localizations for deployment {section.deployment_name}')
+        if self.transect_media_ids:  # list of transects, fetch by media IDs instead of section
+            section_map = {int(section.section_id): section for section in self.sections}
+            media_id_list = list(self.transect_media_ids)
+            for i in range(0, len(media_id_list), 50):
+                batch = media_id_list[i:i + 50]
+                # REST is much faster than Python API for large queries
+                res = requests.get(
+                    url=f'{self.tator_url}/rest/Localizations/{self.project_id}?media_id={",".join(str(mid) for mid in batch)}',
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Token {session["tator_token"]}',
+                    })
+                for localization in res.json():
+                    section = section_map.get(localization.get('master_section'), self.sections[0])
+                    section.localizations.append(localization)
+            for section in self.sections:
+                print(f'Fetched {len(section.localizations)} localizations for deployment {section.deployment_name}')
+        else:
+            for section in self.sections:
+                # REST is much faster than Python API for large queries
+                res = requests.get(
+                    url=f'{self.tator_url}/rest/Localizations/{self.project_id}?section={section.section_id}',
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Token {session["tator_token"]}',
+                    })
+                section.localizations = res.json()
+                print(f'Fetched {len(section.localizations)} localizations for deployment {section.deployment_name}')
 
     def process_records(
         self,

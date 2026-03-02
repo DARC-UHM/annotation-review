@@ -22,7 +22,7 @@ from flask import current_app, request, session, Response
 
 from . import tator_bp
 from ..util.constants import TERM_YELLOW, TERM_RED, TERM_NORMAL
-from ..util.tator_localization_type import TatorLocalizationType
+from ..util.tator_type import TatorLocalizationType
 
 
 # log in to tator (get token from tator)

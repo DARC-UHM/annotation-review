@@ -15,7 +15,7 @@ from pptx.util import Inches, Pt
 
 from application.image_review.tator.tator_localization_processor import TatorLocalizationProcessor
 from application.util.constants import TERM_NORMAL, TERM_RED
-from application.util.tator_localization_type import TatorLocalizationType
+from application.util.tator_type import TatorLocalizationType
 
 
 class TatorQaqcProcessor(TatorLocalizationProcessor):
