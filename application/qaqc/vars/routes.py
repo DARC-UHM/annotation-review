@@ -12,7 +12,7 @@ import requests
 from flask import current_app, render_template, request, session
 
 from . import vars_qaqc_bp
-from .vars_qaqc_processor import VarsQaqcProcessor
+from application.vars.vars_qaqc_processor import VarsQaqcProcessor
 from application.util.constants import TERM_NORMAL, TERM_RED
 
 

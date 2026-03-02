@@ -2,7 +2,7 @@ import requests
 import sys
 
 from application.util.functions import extract_recorded_datetime, get_association, parse_datetime
-from application.image_review.vars.vars_annotation_processor import VarsAnnotationProcessor
+from application.vars.vars_annotation_processor import VarsAnnotationProcessor
 
 
 class VarsQaqcProcessor(VarsAnnotationProcessor):

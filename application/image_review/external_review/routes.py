@@ -28,8 +28,9 @@ def get_external_review():
     read_comments = 0
     total_comments = 0
     if 'tator_token' in session.keys():
+        # verify we're logged in
         try:
-            api = tator.get_api(
+            tator.get_api(
                 host=current_app.config.get('TATOR_URL'),
                 token=session['tator_token'],
             )
@@ -93,7 +94,8 @@ def get_external_review():
         comments=comments,
         annosaurus_url=current_app.config.get('ANNOSAURUS_URL'),
         vars_phylogeny_url=current_app.config.get('VARS_PHYLOGENY_URL'),
-        tator_localizations_url=f'{current_app.config.get("TATOR_URL")}/rest/Localizations',
+        tator_url=current_app.config.get('TATOR_URL'),
+        tator_token=session.get('tator_token'),
     )
     if len(comment_loader.distilled_records) < 1:
         if request.args.get('unread'):

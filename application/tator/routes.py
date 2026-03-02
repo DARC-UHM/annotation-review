@@ -13,7 +13,6 @@ General endpoints for Tator that are used throughout the application.
 /tator/localization/good-image [PATCH]
 """
 
-import base64
 import json
 
 import tator
@@ -22,25 +21,23 @@ from flask import current_app, request, session, Response
 
 from . import tator_bp
 from ..util.constants import TERM_YELLOW, TERM_RED, TERM_NORMAL
-from ..util.tator_type import TatorLocalizationType
+from application.tator.tator_type import TatorLocalizationType
+from application.tator.tator_rest_client import TatorRestClient
 
 
 # log in to tator (get token from tator)
 @tator_bp.post('/login')
 def tator_login():
-    res = requests.post(
-        url=f'{current_app.config.get("TATOR_URL")}/rest/Token',
-        headers={'Content-Type': 'application/json'},
-        data=json.dumps({
-            'username': request.values.get('username'),
-            'password': request.values.get('password'),
-            'refresh': True,
-        }),
-    )
-    if res.status_code == 201:
-        session['tator_token'] = res.json()['token']
+    try:
+        token = TatorRestClient.login(
+            tator_url=current_app.config.get('TATOR_URL'),
+            username=request.values.get('username'),
+            password=request.values.get('password'),
+        )
+        session['tator_token'] = token
         return {'username': request.values.get('username')}, 200
-    return {}, res.status_code
+    except requests.HTTPError as e:
+        return {}, e.response.status_code
 
 
 # check if stored tator token is valid
@@ -157,40 +154,24 @@ def transects():
 # view tator video frame (not cropped)
 @tator_bp.get('/frame/<media_id>/<frame>')
 def tator_frame(media_id, frame):
-    if 'tator_token' in session.keys():
-        token = session['tator_token']
-    else:
-        token = request.args.get('token')
-    url = f'{current_app.config.get("TATOR_URL")}/rest/GetFrame/{media_id}?frames={frame}'
-    if request.values.get('preview'):
-        url += '&quality=650'
-    res = requests.get(
-        url=url,
-        headers={'Authorization': f'Token {token}'}
-    )
-    if res.status_code == 200:
-        base64_image = base64.b64encode(res.content).decode('utf-8')
-        return Response(base64.b64decode(base64_image), content_type='image/png'), 200
-    return '', 500
+    token = session.get('tator_token') or request.args.get('token')
+    if not token:
+        return {}, 400
+    tator_client = TatorRestClient(current_app.config.get('TATOR_URL'), token)
+    quality = 650 if request.values.get('preview') else None
+    image = tator_client.get_frame(int(media_id), frame=int(frame), quality=quality)
+    return Response(image, content_type='image/png'), 200
 
 
 # view tator localization image (cropped)
 @tator_bp.get('/localization-image/<localization_id>')
 def tator_image(localization_id):
-    if not session.get('tator_token'):
-        if not request.values.get('token'):
-            return {}, 400
-        token = request.values.get('token')
-    else:
-        token = session["tator_token"]
-    res = requests.get(
-        url=f'{current_app.config.get("TATOR_URL")}/rest/LocalizationGraphic/{localization_id}',
-        headers={'Authorization': f'Token {token}'}
-    )
-    if res.status_code == 200:
-        base64_image = base64.b64encode(res.content).decode('utf-8')
-        return Response(base64.b64decode(base64_image), content_type='image/png'), 200
-    return '', 500
+    token = session.get('tator_token') or request.values.get('token')
+    if not token:
+        return {}, 400
+    tator_client = TatorRestClient(current_app.config.get('TATOR_URL'), token)
+    image = tator_client.get_localization_graphic(int(localization_id))
+    return Response(image, content_type='image/png'), 200
 
 
 # update tator localization

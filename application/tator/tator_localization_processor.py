@@ -9,8 +9,9 @@ import tator
 
 from flask import session
 from application.util.constants import TERM_RED, TERM_NORMAL
-from application.util.tator_type import TatorLocalizationType
+from application.tator.tator_type import TatorLocalizationType
 from application.util.phylogeny_cache import PhylogenyCache
+from application.tator.tator_rest_client import TatorRestClient
 
 
 class Section:
@@ -45,6 +46,7 @@ class TatorLocalizationProcessor:
         self.darc_review_url = darc_review_url
         self.sections = [Section(section_id, api) for section_id in section_ids]
         self.api = api
+        self.tator_client = TatorRestClient(tator_url, session['tator_token'])
         self.final_records = []  # final list formatted for review page
         self.phylogeny = PhylogenyCache()
         self.transect_media_ids = set(media_id for media_id in transect_media_ids) if transect_media_ids else None
@@ -57,28 +59,14 @@ class TatorLocalizationProcessor:
             media_id_list = list(self.transect_media_ids)
             for i in range(0, len(media_id_list), 50):
                 batch = media_id_list[i:i + 50]
-                # REST is much faster than Python API for large queries
-                res = requests.get(
-                    url=f'{self.tator_url}/rest/Localizations/{self.project_id}?media_id={",".join(str(mid) for mid in batch)}',
-                    headers={
-                        'Content-Type': 'application/json',
-                        'Authorization': f'Token {session["tator_token"]}',
-                    })
-                for localization in res.json():
+                for localization in self.tator_client.get_localizations(self.project_id, media_id=batch):
                     section = section_map.get(localization.get('master_section'), self.sections[0])
                     section.localizations.append(localization)
             for section in self.sections:
                 print(f'Fetched {len(section.localizations)} localizations for deployment {section.deployment_name}')
         else:
             for section in self.sections:
-                # REST is much faster than Python API for large queries
-                res = requests.get(
-                    url=f'{self.tator_url}/rest/Localizations/{self.project_id}?section={section.section_id}',
-                    headers={
-                        'Content-Type': 'application/json',
-                        'Authorization': f'Token {session["tator_token"]}',
-                    })
-                section.localizations = res.json()
+                section.localizations = self.tator_client.get_localizations(self.project_id, section=section.section_id)
                 print(f'Fetched {len(section.localizations)} localizations for deployment {section.deployment_name}')
 
     def process_records(
@@ -408,18 +396,10 @@ class TatorLocalizationProcessor:
             session['tator_usernames'] = {}
         if user_id not in session['tator_usernames']:
             print(f'Fetching annotator name for user ID {user_id} from Tator...')
-            res = requests.get(
-                url=f'{self.tator_url}/rest/User/{user_id}',
-                headers={
-                    'Content-Type': 'application/json',
-                    'Authorization': f'Token {session["tator_token"]}',
-                }
-            )
-            if res.status_code != 200:
+            res_json = self.tator_client.get_user(user_id)
+            if 'first_name' not in res_json:
                 print(f'{TERM_RED}Error fetching annotator name for user ID {user_id}{TERM_NORMAL}')
-                print(res.text)
                 return f'Unknown annotator (#{user_id})'
-            res_json = res.json()
             annotator_name = f'{res_json["first_name"]} {res_json["last_name"]}'
             print(f'Annotator name for user ID {user_id} is "{annotator_name}"')
             session['tator_usernames'][user_id] = annotator_name

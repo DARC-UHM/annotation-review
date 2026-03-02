@@ -10,7 +10,7 @@ import requests
 from flask import current_app, flash, render_template, redirect, request, session
 
 from . import tator_image_review_bp
-from application.image_review.tator.tator_localization_processor import TatorLocalizationProcessor
+from application.tator.tator_localization_processor import TatorLocalizationProcessor
 
 
 # view all Tator annotations (localizations) in a specified project & section

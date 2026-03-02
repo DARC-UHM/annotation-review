@@ -13,9 +13,9 @@ from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN
 from pptx.util import Inches, Pt
 
-from application.image_review.tator.tator_localization_processor import TatorLocalizationProcessor
+from application.tator.tator_localization_processor import TatorLocalizationProcessor
 from application.util.constants import TERM_NORMAL, TERM_RED
-from application.util.tator_type import TatorLocalizationType
+from application.tator.tator_type import TatorLocalizationType
 
 
 class TatorQaqcProcessor(TatorLocalizationProcessor):
@@ -557,14 +557,7 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
         for section in self.sections:
             print(f'Fetching media start times for deployment "{section.deployment_name}"...', end='')
             sys.stdout.flush()
-            res = requests.get(
-                url=f'{self.tator_url}/rest/Medias/{self.project_id}?section={section.section_id}',
-                headers={
-                    'Content-Type': 'application/json',
-                    'Authorization': f'Token {session["tator_token"]}',
-                }
-            )
-            for media in res.json():
+            for media in self.client.get_medias(self.project_id, section=section.section_id):
                 # get media start times
                 if media['id'] not in session['media_timestamps'].keys():
                     if 'Start Time' in media['attributes'].keys():

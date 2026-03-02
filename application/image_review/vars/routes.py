@@ -8,7 +8,7 @@ import requests
 from flask import current_app, request, render_template, session
 
 from . import vars_image_review_bp
-from application.image_review.vars.vars_annotation_processor import VarsAnnotationProcessor
+from application.vars.vars_annotation_processor import VarsAnnotationProcessor
 
 
 # view VARS annotations with images in a specified dive (or dives)

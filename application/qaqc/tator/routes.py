@@ -15,8 +15,9 @@ import requests
 from flask import current_app, flash, redirect, render_template, request, send_file, session
 
 from . import tator_qaqc_bp
-from .tator_qaqc_processor import TatorQaqcProcessor
-from ...util.tator_type import TatorLocalizationType
+from application.tator.tator_qaqc_processor import TatorQaqcProcessor
+from application.tator.tator_type import TatorLocalizationType
+from application.tator.tator_rest_client import TatorRestClient
 
 
 # view QA/QC checklist for a specified project & section
@@ -46,6 +47,7 @@ def tator_qaqc_checklist():
     except tator.openapi.tator_openapi.exceptions.ApiException as e:
         flash(json.loads(e.body)['message'], 'danger')
         return redirect('/')
+    tator_client = TatorRestClient(current_app.config.get('TATOR_URL'), session['tator_token'])
     localizations = []
     individual_count = 0
     with requests.get(
@@ -57,26 +59,13 @@ def tator_qaqc_checklist():
         else:
             print('ERROR: Unable to get QAQC checklist from external review server')
             checklist = {}
-    # REST is much faster than Python API for large queries
     if transect_ids:
         for i in range(0, len(transect_ids), 300):
-            batch = transect_ids[i:i + 300]
-            res = requests.get(
-                url=f'{current_app.config.get("TATOR_URL")}/rest/Localizations/{project_id}?media_id={",".join(batch)}',
-                headers={
-                    'Content-Type': 'application/json',
-                    'Authorization': f'Token {session["tator_token"]}',
-                })
-            localizations += res.json()
+            batch = [int(tid) for tid in transect_ids[i:i + 300]]
+            localizations += tator_client.get_localizations(project_id, media_id=batch)
     else:
         for section_id in section_ids:
-            res = requests.get(
-                url=f'{current_app.config.get("TATOR_URL")}/rest/Localizations/{project_id}?section={section_id}',
-                headers={
-                    'Content-Type': 'application/json',
-                    'Authorization': f'Token {session["tator_token"]}',
-                })
-            localizations += res.json()
+            localizations += tator_client.get_localizations(project_id, section=section_id)
     for localization in localizations:
         if TatorLocalizationType.is_dot(localization['type']):
             individual_count += 1
@@ -147,6 +136,7 @@ def tator_qaqc(check):
     except tator.openapi.tator_openapi.exceptions.ApiException as e:
         flash(json.loads(e.body)['message'], 'danger')
         return redirect('/')
+    tator_client = TatorRestClient(current_app.config.get('TATOR_URL'), session['tator_token'])
     # get comments and image references from external review db
     comments = {}
     image_refs = {}
@@ -183,17 +173,7 @@ def tator_qaqc(check):
         # the one case where we don't want to initialize a TatorQaqcProcessor (no need to fetch localizations)
         media_attributes = {}
         for section_id in section_ids:
-            media_attributes[section_id] = []
-            res = requests.get(  # REST API is much faster than Python API for large queries
-                url=f'{current_app.config.get("TATOR_URL")}/rest/Medias/{project_id}?section={section_id}',
-                headers={
-                    'Content-Type': 'application/json',
-                    'Authorization': f'Token {session["tator_token"]}',
-                })
-            if res.status_code != 200:
-                raise tator.openapi.tator_openapi.exceptions.ApiException
-            for media in res.json():
-                media_attributes[section_id].append(media)
+            media_attributes[section_id] = tator_client.get_medias(project_id, section=section_id)
         data['page_title'] = 'Media attributes'
         data['media_attributes'] = media_attributes
         return render_template('qaqc/tator/qaqc-tables.html', data=data)

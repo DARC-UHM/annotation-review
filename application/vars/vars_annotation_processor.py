@@ -3,7 +3,6 @@ import requests
 import sys
 
 from application.util.functions import format_annotator, parse_datetime
-from application.util.constants import TERM_RED, TERM_YELLOW, TERM_NORMAL
 from application.util.phylogeny_cache import PhylogenyCache
 
 
