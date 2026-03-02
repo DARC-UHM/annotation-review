@@ -1,7 +1,7 @@
 import requests
 import sys
 
-from application.util.functions import *
+from application.util.functions import extract_recorded_datetime, get_association, parse_datetime
 from application.image_review.vars.vars_annotation_processor import VarsAnnotationProcessor
 
 
@@ -13,7 +13,6 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
     def __init__(self, sequence_names: list, vars_dive_url: str, vars_phylogeny_url: str):
         super().__init__(sequence_names, vars_dive_url, vars_phylogeny_url)
         self.videos = []
-        self.load_phylogeny()
 
     def fetch_annotations(self, seq_name):
         """

@@ -1,11 +1,10 @@
-import json
-import os
 import pandas as pd
 import requests
 import sys
 
-from application.util.functions import *
+from application.util.functions import format_annotator, parse_datetime
 from application.util.constants import TERM_RED, TERM_YELLOW, TERM_NORMAL
+from application.util.phylogeny_cache import PhylogenyCache
 
 
 class VarsAnnotationProcessor:
@@ -18,7 +17,7 @@ class VarsAnnotationProcessor:
         self.sequence_names = sequence_names
         self.vars_dive_url = vars_dive_url
         self.vars_phylogeny_url = vars_phylogeny_url
-        self.phylogeny = {}
+        self.phylogeny = PhylogenyCache()
         self.working_records = []  # all the annotations that have images
         self.final_records = []    # the final list of annotations
         self.highest_id_ref = 0
@@ -27,7 +26,6 @@ class VarsAnnotationProcessor:
         self.vessel_name = ' '.join(temp_name)
 
     def process_sequences(self):
-        self.load_phylogeny()
         videos = []
         for name in self.sequence_names:
             print(f'Fetching annotations for sequence {name} from VARS...', end='')
@@ -38,23 +36,7 @@ class VarsAnnotationProcessor:
         sys.stdout.flush()
         self.sort_records(self.process_working_records(videos))
         print('done!')
-        self.save_phylogeny()
-
-    def load_phylogeny(self):
-        try:
-            with open(os.path.join('cache', 'phylogeny.json'), 'r') as f:
-                self.phylogeny = json.load(f)
-        except FileNotFoundError:
-            self.phylogeny = {'Animalia': {}}
-
-    def save_phylogeny(self):
-        try:
-            with open(os.path.join('cache', 'phylogeny.json'), 'w') as f:
-                json.dump(self.phylogeny, f, indent=2)
-        except FileNotFoundError:
-            os.makedirs('cache')
-            with open(os.path.join('cache', 'phylogeny.json'), 'w') as f:
-                json.dump(self.phylogeny, f, indent=2)
+        self.phylogeny.save()
 
     def fetch_media(self, sequence_name: str, videos: list):
         """
@@ -76,30 +58,6 @@ class VarsAnnotationProcessor:
             concept_name = annotation['concept']
             if annotation['image_references'] and concept_name[0].isupper():
                 self.working_records.append(annotation)
-
-    def fetch_vars_phylogeny(self, concept_name: str, no_match_records: set):
-        """
-        Fetches phylogeny for given concept from the VARS knowledge base.
-        """
-        vars_tax_res = requests.get(url=f'{self.vars_phylogeny_url}/{concept_name.replace("/", "%2F")}')
-        if vars_tax_res.status_code == 200:
-            try:
-                # this get us to phylum
-                vars_tree = vars_tax_res.json()['children'][0]['children'][0]['children'][0]['children'][0]['children'][0]
-                self.phylogeny[concept_name] = {}
-            except KeyError:
-                if concept_name not in no_match_records:
-                    no_match_records.add(concept_name)
-                    print(f'{TERM_YELLOW}WARNING: Could not find phylogeny for concept "{concept_name}" in VARS knowledge base{TERM_NORMAL}')
-                vars_tree = {}
-            while 'children' in vars_tree.keys():
-                if 'rank' in vars_tree.keys():  # sometimes it's not
-                    self.phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
-                vars_tree = vars_tree['children'][0]
-            if 'rank' in vars_tree.keys():
-                self.phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
-        else:
-            print(f'\n{TERM_RED}Unable to find record for {concept_name}{TERM_NORMAL}')
 
     def get_image_url(self, annotation: dict) -> str:
         """
@@ -146,8 +104,8 @@ class VarsAnnotationProcessor:
             identity_reference = None
             depth = None
 
-            if concept_name not in self.phylogeny.keys() and concept_name != 'none':
-                self.fetch_vars_phylogeny(concept_name, no_match_records)
+            if concept_name not in self.phylogeny.data and concept_name != 'none':
+                self.phylogeny.fetch_vars(concept_name, self.vars_phylogeny_url, no_match_records)
 
             video = self.get_video(record, videos)
 
@@ -178,10 +136,10 @@ class VarsAnnotationProcessor:
                 'depth': depth,
             }
 
-            if concept_name in self.phylogeny.keys():
-                for key in self.phylogeny[concept_name].keys():
+            if concept_name in self.phylogeny.data:
+                for key in self.phylogeny.data[concept_name].keys():
                     # split to account for worms 'Phylum (Division)' case
-                    annotation_dict[key.split(' ')[0]] = self.phylogeny[concept_name][key]
+                    annotation_dict[key.split(' ')[0]] = self.phylogeny.data[concept_name][key]
             formatted_records.append(annotation_dict)
         return formatted_records
 

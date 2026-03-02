@@ -53,10 +53,10 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
                 scientific_name = localization['attributes'].get('Scientific Name')
                 tentative_id = localization['attributes'].get('Tentative ID')
                 if scientific_name not in checked.keys():
-                    if scientific_name in self.phylogeny.keys():
+                    if scientific_name in self.phylogeny.data:
                         checked[scientific_name] = True
                     else:
-                        if self.fetch_worms_phylogeny(scientific_name):
+                        if self.phylogeny.fetch_worms(scientific_name):
                             checked[scientific_name] = True
                         else:
                             localization['problems'] = 'Scientific Name'
@@ -67,10 +67,10 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
                     flag_record = True
                 if tentative_id:
                     if tentative_id not in checked.keys():
-                        if tentative_id in self.phylogeny.keys():
+                        if tentative_id in self.phylogeny.data:
                             checked[tentative_id] = True
                         else:
-                            if self.fetch_worms_phylogeny(tentative_id):
+                            if self.phylogeny.fetch_worms(tentative_id):
                                 checked[tentative_id] = True
                             else:
                                 localization['problems'] = 'Tentative ID'
@@ -215,22 +215,22 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
         self.process_records()  # process first to make sure phylogeny is populated
         for localization in self.final_records:
             phylogeny_match = False
-            if localization['tentative_id'] not in self.phylogeny.keys():
+            if localization['tentative_id'] not in self.phylogeny.data:
                 if localization['tentative_id'] not in no_match_records:
-                    if not self.fetch_worms_phylogeny(localization['tentative_id']):
+                    if not self.phylogeny.fetch_worms(localization['tentative_id']):
                         no_match_records.add(localization['tentative_id'])
                         localization['problems'] += ' phylogeny no match'
                         continue
                 else:
                     localization['problems'] += ' phylogeny no match'
                     continue
-            for value in self.phylogeny[localization['tentative_id']].values():
+            for value in self.phylogeny.data[localization['tentative_id']].values():
                 if value == localization['scientific_name']:
                     phylogeny_match = True
                     break
             if not phylogeny_match:
                 localization['problems'] += ' phylogeny no match'
-        self.save_phylogeny()
+        self.phylogeny.save()
 
     def get_all_notes_and_remarks(self):
         """

@@ -1,6 +1,4 @@
 import datetime
-import json
-import os
 from typing import List
 
 import pandas as pd
@@ -11,9 +9,7 @@ import tator
 from flask import session
 from application.util.constants import TERM_RED, TERM_NORMAL
 from application.util.tator_localization_type import TatorLocalizationType
-from application.util.functions import flatten_taxa_tree
-
-WORMS_REST_URL = 'https://www.marinespecies.org/rest'
+from application.util.phylogeny_cache import PhylogenyCache
 
 
 class Section:
@@ -48,51 +44,7 @@ class TatorLocalizationProcessor:
         self.sections = [Section(section_id, api) for section_id in section_ids]
         self.api = api
         self.final_records = []  # final list formatted for review page
-        self.phylogeny = {}
-
-    def load_phylogeny(self):
-        try:
-            with open(os.path.join('cache', 'phylogeny.json'), 'r') as f:
-                self.phylogeny = json.load(f)
-        except FileNotFoundError:
-            self.phylogeny = {}
-
-    def save_phylogeny(self):
-        try:
-            with open(os.path.join('cache', 'phylogeny.json'), 'w') as f:
-                json.dump(self.phylogeny, f, indent=2)
-        except FileNotFoundError:
-            os.makedirs('cache')
-            with open(os.path.join('cache', 'phylogeny.json'), 'w') as f:
-                json.dump(self.phylogeny, f, indent=2)
-
-    def fetch_worms_phylogeny(self, scientific_name: str) -> bool:
-        """
-        Fetches the phylogeny of a given scientific name from WoRMS. Returns True if successful, False otherwise.
-        """
-        print(f'Fetching phylogeny for "{scientific_name}"')
-        worms_id_res = requests.get(url=f'{WORMS_REST_URL}/AphiaIDByName/{scientific_name}?marine_only=true')
-        if worms_id_res.status_code == 200 and worms_id_res.json() != -999:  # -999 means more than one matching record
-            aphia_id = worms_id_res.json()
-            worms_tree_res = requests.get(url=f'{WORMS_REST_URL}/AphiaClassificationByAphiaID/{aphia_id}')
-            if worms_tree_res.status_code == 200:
-                self.phylogeny[scientific_name] = flatten_taxa_tree(worms_tree_res.json(), {})
-                self.phylogeny[scientific_name]['aphia_id'] = aphia_id
-        else:
-            worms_name_res = requests.get(url=f'{WORMS_REST_URL}/AphiaRecordsByName/{scientific_name}?like=false&marine_only=true&offset=1')
-            if worms_name_res.status_code == 200 and len(worms_name_res.json()) > 0:
-                # just take the first accepted record
-                for record in worms_name_res.json():
-                    if record['status'] == 'accepted':
-                        worms_tree_res_2 = requests.get(url=f'{WORMS_REST_URL}/AphiaClassificationByAphiaID/{record["AphiaID"]}')
-                        if worms_tree_res_2.status_code == 200:
-                            self.phylogeny[scientific_name] = flatten_taxa_tree(worms_tree_res_2.json(), {})
-                            self.phylogeny[scientific_name]['aphia_id'] = record['AphiaID']
-                        break
-            else:
-                print(f'{TERM_RED}No accepted record found for concept name "{scientific_name}"{TERM_NORMAL}')
-                return False
-        return True
+        self.phylogeny = PhylogenyCache()
 
     def fetch_localizations(self):
         print('Fetching localizations...')
@@ -131,10 +83,10 @@ class TatorLocalizationProcessor:
                 if not TatorLocalizationType.is_relevant(localization['type']):
                     continue  # we only care about boxes and dots
                 scientific_name = localization['attributes'].get('Scientific Name')
-                cached_phylogeny = self.phylogeny.get(scientific_name)
+                cached_phylogeny = self.phylogeny.data.get(scientific_name)
                 if (cached_phylogeny is None or 'aphia_id' not in cached_phylogeny.keys())\
                         and scientific_name not in no_match_records:
-                    if not self.fetch_worms_phylogeny(scientific_name):
+                    if not self.phylogeny.fetch_worms(scientific_name):
                         no_match_records.add(scientific_name)
                 localization_dict = {
                     'elemental_id': localization['elemental_id'],
@@ -213,6 +165,9 @@ class TatorLocalizationProcessor:
                             print(f'{TERM_RED}Error fetching expedition fieldbook.{TERM_NORMAL}')
                             print(fieldbook_res.text)
                     deployment_name = section.deployment_name.replace('-', '_')  # for DOEX0087_NIU-dscm-02
+                    if section.section_id not in expedition_fieldbook.keys():
+                        print(f'{TERM_RED}No fieldbook data found for section {section.section_id}{TERM_NORMAL}')
+                        raise ValueError(f'No fieldbook data found for section {section.section_id}')
                     deployment_ctd = next((x for x in expedition_fieldbook[section.section_id] if x['deployment_name'] == deployment_name), None)
                     if deployment_ctd:
                         localization_dict['lat'] = deployment_ctd['lat']
@@ -229,10 +184,10 @@ class TatorLocalizationProcessor:
                     localization_dict['relief'] = media_substrates[media_id].get('Relief')
                     localization_dict['substrate_notes'] = media_substrates[media_id].get('Substrate Notes')
                     localization_dict['deployment_notes'] = media_substrates[media_id].get('Deployment Notes')
-                if scientific_name in self.phylogeny.keys():
-                    for key in self.phylogeny[scientific_name].keys():
+                if scientific_name in self.phylogeny.data:
+                    for key in self.phylogeny.data[scientific_name].keys():
                         # split to account for worms 'Phylum (Division)' case
-                        localization_dict[key.split(' ')[0]] = self.phylogeny[scientific_name][key]
+                        localization_dict[key.split(' ')[0]] = self.phylogeny.data[scientific_name][key]
                 formatted_localizations.append(localization_dict)
 
         if not formatted_localizations:
@@ -424,7 +379,7 @@ class TatorLocalizationProcessor:
                 'aphia_id': row['aphia_id'],
             }
             self.final_records.append({key: val for key, val in record.items() if is_populated(val)})
-        self.save_phylogeny()
+        self.phylogeny.save()
         print('processed!')
 
     def _get_annotator_name(self, user_id: int) -> str:

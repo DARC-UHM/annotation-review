@@ -1,15 +1,16 @@
 import json
-import os
-import pandas as pd
-import numpy as np
+from typing import Dict
 import requests
 import sys
 
+import pandas as pd
+import numpy as np
 from flask import session
 from json import JSONDecodeError
 
-from application.util.functions import *
+from application.util.functions import format_annotator, parse_datetime
 from application.util.constants import TERM_RED, TERM_YELLOW, TERM_NORMAL
+from application.util.phylogeny_cache import PhylogenyCache
 
 
 class CommentProcessor:
@@ -25,17 +26,11 @@ class CommentProcessor:
         self.distilled_records = []
         self.missing_records = []
         self.no_match_records = set()
+        self.phylogeny = PhylogenyCache()
         self.load_comments()
 
     def load_comments(self):
         formatted_comments = []
-        no_match_records = set()
-
-        try:
-            with open(os.path.join('cache', 'phylogeny.json'), 'r') as f:
-                phylogeny = json.load(f)
-        except FileNotFoundError:
-            phylogeny = {'Animalia': {}}
 
         print(f'Processing {len(self.comments)} comments...', end='')
         sys.stdout.flush()
@@ -157,33 +152,12 @@ class CommentProcessor:
                 else:
                     annotation = {}
                     comment_dict['all_localizations'] = [{}]
-            if concept_name and concept_name not in phylogeny.keys() and concept_name not in self.no_match_records:
-                # get the phylogeny from VARS kb
-                with requests.get(url=f'{self.vars_phylogeny_url}/{concept_name}') \
-                        as vars_tax_res:
-                    if vars_tax_res.status_code == 200:
-                        # this get us to phylum
-                        try:
-                            vars_tree = vars_tax_res.json()['children'][0]['children'][0]['children'][0]['children'][0]['children'][0]
-                            phylogeny[concept_name] = {}
-                        except KeyError:
-                            if concept_name not in no_match_records:
-                                no_match_records.add(concept_name)
-                                print(f'{TERM_YELLOW}WARNING: Could not find phylogeny for concept "{concept_name}" in VARS knowledge base{TERM_NORMAL}')
-                            vars_tree = {}
-                        while 'children' in vars_tree.keys():
-                            if 'rank' in vars_tree.keys():  # sometimes it's not
-                                phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
-                            vars_tree = vars_tree['children'][0]
-                        if 'rank' in vars_tree.keys():
-                            phylogeny[concept_name][vars_tree['rank']] = vars_tree['name']
-                    else:
-                        self.no_match_records.add(concept_name)
-                        print(f'\n{TERM_RED}Unable to find record for {concept_name}{TERM_NORMAL}')
-            if concept_name in phylogeny.keys():
-                for key in phylogeny[concept_name].keys():
+            if concept_name and concept_name not in self.phylogeny.data and concept_name not in self.no_match_records:
+                self.phylogeny.fetch_vars(concept_name, self.vars_phylogeny_url, self.no_match_records)
+            if concept_name in self.phylogeny.data:
+                for key in self.phylogeny.data[concept_name].keys():
                     # split to account for worms 'Phylum (Division)' case
-                    comment_dict[key.split(' ')[0]] = phylogeny[concept_name][key]
+                    comment_dict[key.split(' ')[0]] = self.phylogeny.data[concept_name][key]
             formatted_comments.append(comment_dict)
 
         # add to dataframe for sorting
@@ -261,11 +235,4 @@ class CommentProcessor:
                     anno_dict[key] = value
             self.distilled_records.append(anno_dict)
         print('processed!')
-
-        try:
-            with open(os.path.join('cache', 'phylogeny.json'), 'w') as f:
-                json.dump(phylogeny, f, indent=2)
-        except FileNotFoundError:
-            os.makedirs('cache')
-            with open(os.path.join('cache', 'phylogeny.json'), 'w') as f:
-                json.dump(phylogeny, f, indent=2)
+        self.phylogeny.save()

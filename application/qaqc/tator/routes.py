@@ -186,7 +186,6 @@ def tator_qaqc(check):
         tator_url=current_app.config.get('TATOR_URL'),
     )
     qaqc_annos.fetch_localizations()
-    qaqc_annos.load_phylogeny()
     match check:
         case 'names-accepted':
             qaqc_annos.check_names_accepted()
