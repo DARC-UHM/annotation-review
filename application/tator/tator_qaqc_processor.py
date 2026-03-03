@@ -569,7 +569,7 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
                 # get deployment bottom time
                 media_arrival_attribute = media['attributes'].get('Arrival')
                 if media_arrival_attribute and media_arrival_attribute.strip() != '':
-                    video_start_timestamp = datetime.datetime.fromisoformat(media['attributes']['Start Time'])
+                    video_start_timestamp = datetime.datetime.fromisoformat(media['attributes']['Start Time']).astimezone(datetime.timezone.utc)
                     if 'not observed' in media_arrival_attribute.lower():
                         arrival_frame = 0
                     else:

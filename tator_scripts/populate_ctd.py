@@ -27,7 +27,7 @@ import requests
 import sys
 import time
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from tator_script_helper_functions import get_deployment_section_id_map
 
@@ -77,7 +77,7 @@ def populate_ctd(expedition_name: str, deployment_name: str, use_underscore_name
         media_ids[media['id']] = media['attributes']['Start Time']
         media_fps[media['id']] = media.get('fps') or 30
         if media['attributes'].get('Arrival') and media['attributes']['Arrival'] != '':
-            video_start_timestamp = datetime.fromisoformat(media['attributes']['Start Time'])
+            video_start_timestamp = datetime.fromisoformat(media['attributes']['Start Time']).astimezone(timezone.utc)
             if 'not observed' in media['attributes']['Arrival'].lower():
                 bottom_time = video_start_timestamp
             else:
@@ -229,7 +229,7 @@ def populate_ctd(expedition_name: str, deployment_name: str, use_underscore_name
     # for each localization, populate the DO Temperature and DO Concentration Salin Comp attributes
     for localization in localizations:
         # get the timestamp of the localization
-        video_start_timestamp = datetime.fromisoformat(media_ids[localization['media']])
+        video_start_timestamp = datetime.fromisoformat(media_ids[localization['media']]).astimezone(timezone.utc)
         this_timestamp = video_start_timestamp + timedelta(seconds=localization['frame'] / media_fps[localization['media']])
         unix_timestamp = time.mktime(this_timestamp.timetuple())
         # find the row in the CSV that matches the timestamp

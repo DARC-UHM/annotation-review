@@ -153,7 +153,7 @@ class TatorLocalizationProcessor:
                             session.modified = True
                         media_fps = session['media_fps'][media_id] or 30
                         camera_bottom_arrival = datetime.datetime.strptime(section.bottom_time, self.BOTTOM_TIME_FORMAT).replace(tzinfo=datetime.timezone.utc)
-                        video_start_timestamp = datetime.datetime.fromisoformat(session['media_timestamps'][media_id])
+                        video_start_timestamp = datetime.datetime.fromisoformat(session['media_timestamps'][media_id]).astimezone(datetime.timezone.utc)
                         observation_timestamp = video_start_timestamp + datetime.timedelta(seconds=localization['frame'] / media_fps)
                         time_diff = observation_timestamp - camera_bottom_arrival
                         localization_dict['timestamp'] = observation_timestamp.strftime(self.BOTTOM_TIME_FORMAT)
