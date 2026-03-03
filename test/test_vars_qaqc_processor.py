@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 from application.util.functions import parse_datetime
-from application.qaqc.vars.vars_qaqc_processor import VarsQaqcProcessor
+from application.vars.vars_qaqc_processor import VarsQaqcProcessor
 from test.data.vars_responses import ex_23060001, ex_23060002
 from test.util.mock_response import MockResponse
 
@@ -24,7 +24,7 @@ class TestVarsQaqcProcessor:
         assert qaqc_processor.videos == []
         assert qaqc_processor.working_records == []
         assert qaqc_processor.final_records == []
-        assert len(qaqc_processor.phylogeny.keys()) > 0
+        assert len(qaqc_processor.phylogeny.data.keys()) > 0
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_fetch_annotations(self, _):

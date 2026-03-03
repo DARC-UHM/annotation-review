@@ -5,11 +5,14 @@ import { autocomplete } from './util/autocomplete.js';
 const TATOR_PROJECT = 26;
 const TATOR_SECTION_STORAGE_KEY = 'tatorSection';
 const TATOR_FOLDER_STORAGE_KEY = 'tatorFolder';
+const TATOR_DEPLOYMENT_STORAGE_KEY_PREFIX = 'tatorDeployment';
 
 let numSequences = 1; // VARS
 let numDeployments = 1; // TATOR
+let numTransects = 1; // TATOR sub
 let deploymentList = [];
 let tatorExpeditions = [];
+let tatorTransects = [];
 
 function checkSequence() {
     let disabled = false;
@@ -23,7 +26,7 @@ function checkSequence() {
 }
 
 async function getTatorSections() {
-    const res = await fetch(`/tator/sections/${TATOR_PROJECT}`);
+    const res = await fetch(`/tator/sections?project=${TATOR_PROJECT}`);
     tatorExpeditions = await res.json();
     if (res.status === 200) {
         $('#tatorExpedition').html('<option value="" selected disabled>Select an expedition</option>');
@@ -37,11 +40,11 @@ async function getTatorSections() {
         }
         $('#tatorExpedition').val(sectionId);
 
-        updateTatorFolders(sectionId);
+        await updateTatorFolders(sectionId);
     }
 }
 
-function updateTatorFolders(sectionId) {
+async function updateTatorFolders(sectionId) {
     if (!sectionId) {
         return;
     }
@@ -65,28 +68,64 @@ function updateTatorFolders(sectionId) {
     }
 
     $('#tatorFolder').val(folderName);
-    updateTatorDeployments(sectionId, folderName);
+    await updateTatorDeployments(sectionId, folderName);
 }
 
-function updateTatorDeployments(sectionId, folderName) {
-    const expedition = tatorExpeditions.find((expedition) => expedition.id.toString() === sectionId.toString());
-    const deployments = expedition.folders[folderName];
-    deploymentList = deployments;
+async function updateTatorDeployments(topLevelSectionId, folderName) {
+    const localStorageKey = `${TATOR_DEPLOYMENT_STORAGE_KEY_PREFIX}_${topLevelSectionId}_${folderName}`;
+    const expedition = tatorExpeditions.find((expedition) => expedition.id.toString() === topLevelSectionId.toString());
+    deploymentList = expedition.folders[folderName];
 
     $('#deployment1').html('<option value="" selected disabled>Select a deployment</option>');
 
     for (const deployment of deploymentList) {
         $('#deployment1').append(`<option value="${deployment.id}">${deployment.name}</option>`);
     }
-    $('#deployment1').val(deployments[0].id);
-    $('#load-overlay').addClass('loader-bg-hidden');
-    $('#load-overlay').removeClass('loader-bg');
+
+    // load default section from local storage
+    let deploymentSectionId = deploymentList[0]?.id;
+    if (localStorage.getItem(localStorageKey)) {
+        deploymentSectionId = localStorage.getItem(localStorageKey);
+    }
+    $('#deployment1').val(deploymentSectionId);
+
+    if (folderName === 'sub') {
+        $('#tatorTransectList').show();
+        await updateTatorTransects();
+    } else {
+        $('#tatorTransectList').hide();
+    }
+}
+
+async function updateTatorTransects() {
+    if ($('#tatorFolder').val() !== 'sub') {
+        return;
+    }
+
+    showLoader();
+    $('.addedTransectSelect').remove(); // just keep it simple and remove any added transect selects any time a deployment changes
+    numTransects = 1;
+
+    // get all selected deployment section ids
+    const deploymentSectionIds = $('.deploymentSelect').get().map(select => select.value).filter(Boolean);
+
+    // get corresponding transects for selected deployment section ids
+    const res = await fetch(`/tator/transects?project=${TATOR_PROJECT}&section=${deploymentSectionIds.join('&section=')}`);
+    if (res.status === 200) {
+        tatorTransects = await res.json();
+        $('#transect1').html('<option value="" selected disabled>Select a transect</option>');
+        for (const transect of tatorTransects) {
+            $('#transect1').append(`<option value="${transect.id}">${transect.name}</option>`);
+        }
+        $('#transect1').val(tatorTransects[0]?.id);
+    }
+
+    hideLoader();
 }
 
 async function tatorLogin() {
     event.preventDefault();
-    $('#load-overlay').addClass('loader-bg');
-    $('#load-overlay').removeClass('loader-bg-hidden');
+    showLoader();
     const formData = new FormData($('#tatorLogin')[0]);
     const res = await fetch('/tator/login', {
         method: 'POST',
@@ -104,15 +143,13 @@ async function tatorLogin() {
         updateFlashMessages('Could not log in to Tator', 'danger');
     }
 
-    $('#load-overlay').addClass('loader-bg-hidden');
-    $('#load-overlay').removeClass('loader-bg');
+    hideLoader();
 }
 
 window.tatorLogin = tatorLogin;
 
 async function showTatorForm() {
-    $('#load-overlay').addClass('loader-bg');
-    $('#load-overlay').removeClass('loader-bg-hidden');
+    showLoader();
     localStorage.setItem('annotationPlatform', 'Tator');
     $('#varsIndexForm').hide();
     $('#platformSelectBtn').html('Tator ');
@@ -125,26 +162,36 @@ async function showTatorForm() {
     } else {
         $('#tatorLogin').show();
     }
-    $('#load-overlay').addClass('loader-bg-hidden');
-    $('#load-overlay').removeClass('loader-bg');
+    hideLoader();
 }
 
 window.showTatorForm = showTatorForm;
 
 $('#tatorSelect').on('click', showTatorForm);
 
-$('#tatorExpedition').on('change', () => {
+$('#tatorExpedition').on('change', async () => {
     localStorage.setItem(TATOR_SECTION_STORAGE_KEY, $('#tatorExpedition').val());
-    updateTatorFolders($('#tatorExpedition').val());
+    await updateTatorFolders($('#tatorExpedition').val());
 });
 
-$('#tatorFolder').on('change', () => {
+$('#tatorFolder').on('change', async () => {
     localStorage.setItem(TATOR_FOLDER_STORAGE_KEY, $('#tatorFolder').val());
-    updateTatorDeployments($('#tatorExpedition').val(), $('#tatorFolder').val());
+    await updateTatorDeployments($('#tatorExpedition').val(), $('#tatorFolder').val());
 });
+
+$('#deployment1').on('change', async () => {
+    const storageKey = `${TATOR_DEPLOYMENT_STORAGE_KEY_PREFIX}_${$('#tatorExpedition').val()}_${$('#tatorFolder').val()}`;
+    localStorage.setItem(storageKey, $('#deployment1').val());
+    await onDeploymentChange();
+});
+
+async function onDeploymentChange() {
+    await updateTatorTransects();
+}
+
+window.onDeploymentChange = onDeploymentChange;
 
 $('#varsSelect').on('click', () => {
-    localStorage.setItem('annotationPlatform', 'VARS');
     $('#tatorLogin').hide();
     $('#tatorIndexForm').hide();
     $('#varsIndexForm').show();
@@ -152,8 +199,7 @@ $('#varsSelect').on('click', () => {
 });
 
 $('#logoutBtn').on('click', async () => {
-    $('#load-overlay').addClass('loader-bg');
-    $('#load-overlay').removeClass('loader-bg-hidden');
+    showLoader();
     const res = await fetch('/tator/logout');
     if (res.status === 200) {
         $('#tatorLogin').show();
@@ -162,8 +208,7 @@ $('#logoutBtn').on('click', async () => {
     } else {
         updateFlashMessages('Error logging out', 'danger');
     }
-    $('#load-overlay').addClass('loader-bg-hidden');
-    $('#load-overlay').removeClass('loader-bg');
+    hideLoader();
 });
 
 // vars plus button
@@ -202,7 +247,7 @@ $('#plusButton').on('click', () => {
     autocomplete($(`#sequence${numSequences}`), sequences);
 });
 
-$('#tatorPlusButton').on('click', () => {
+$('#tatorPlusButton').on('click', async () => {
     $('#tatorDeploymentLabel')[0].innerText = 'Deployments:';
     const inputDeployment = $(`#deployment${numDeployments}`).val();
     numDeployments++;
@@ -212,7 +257,7 @@ $('#tatorPlusButton').on('click', () => {
             <div class="row d-inline-flex">
                 <div class="col-1"></div>
                 <div class="col-10 p-0">
-                    <select id="deployment${numDeployments}" name="section" class="sequenceName"></select>
+                    <select id="deployment${numDeployments}" name="section" class="sequenceName deploymentSelect" onchange="onDeploymentChange()"></select>
                 </div>
                 <div class="col-1 ps-0">
                     <button id="xButton${numDeployments}" type="button" class="xButton">
@@ -228,41 +273,86 @@ $('#tatorPlusButton').on('click', () => {
         $(`#deployment${numDeployments}`).append(`<option value="${deployment.id}">${deployment.name}</option>`);
     }
     $(`#deployment${numDeployments}`).val(() => {
-        let index = deploymentList.findIndex((dep) => dep.id.toString() === inputDeployment.toString());
-        return index < 0 ? '' : deploymentList[index + 1].id;
+        let index = deploymentList.findIndex((dep) => dep.id?.toString() === inputDeployment?.toString());
+        return index < 0 ? '' : deploymentList[index + 1]?.id;
     });
 
     const currentNum = numDeployments;
-    $(`#xButton${numDeployments}`).on('click', () => $(`#depList${currentNum}`)[0].remove());
+    $(`#xButton${numDeployments}`).on('click', async () => {
+        $(`#depList${currentNum}`)[0].remove();
+        await updateTatorTransects();
+    });
+
+    await onDeploymentChange();
+});
+
+$('#tatorPlusTransectButton').on('click', () => {
+    const prevSelectedTransect = $(`#transect${numTransects}`).val();
+    $('#tatorTransectLabel')[0].innerText = 'Transects:';
+    numTransects++;
+
+    const newTransectSelectId = `transect${numTransects}`;
+    $('#tatorTransectList').append(`
+        <div id="tranList${numTransects}" class="addedTransectSelect">
+            <div class="row d-inline-flex">
+                <div class="col-1"></div>
+                <div class="col-10 p-0">
+                    <select id="${newTransectSelectId}" name="transect" class="sequenceName transectSelect"></select>
+                </div>
+                <div class="col-1 ps-0">
+                    <button id="xButton${numTransects}" type="button" class="xButton">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
+                          <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `);
+    for (const transect of tatorTransects) {
+        $(`#${newTransectSelectId}`).append(`<option value="${transect.id}">${transect.name}</option>`);
+    }
+    $(`#${newTransectSelectId}`).val(() => {
+        let index = tatorTransects.findIndex((trans) => trans.id?.toString() === prevSelectedTransect?.toString());
+        return index < 0 ? '' : tatorTransects[index + 1]?.id;
+    });
+
+    const currentNum = numTransects;
+    $(`#xButton${numTransects}`).on('click', () => $(`#tranList${currentNum}`)[0].remove());
 });
 
 $('#varsImageReviewButton').on('click', () => {
-    $('#load-overlay').removeClass('loader-bg-hidden');
-    $('#load-overlay').addClass('loader-bg');
+    showLoader();
 });
 
 $('#varsQaqcButton').on('click', () => {
-    $('#load-overlay').removeClass('loader-bg-hidden');
-    $('#load-overlay').addClass('loader-bg');
+    showLoader();
 });
 
 $('#tatorImageReviewButton').on('click', () => {
-    $('#load-overlay').removeClass('loader-bg-hidden');
-    $('#load-overlay').addClass('loader-bg');
+    showLoader();
 });
 
 $('#tatorQaqcButton').on('click', () => {
-    $('#load-overlay').removeClass('loader-bg-hidden');
-    $('#load-overlay').addClass('loader-bg');
+    showLoader();
 });
 
 $('a.external-review-link').on('click', () => {
-    $('#load-overlay').removeClass('loader-bg-hidden');
-    $('#load-overlay').addClass('loader-bg');
+    showLoader();
 });
 
 $('#sequence1').on('input', checkSequence);
 $('#index').on('click', checkSequence);
+
+function showLoader() {
+    $('#load-overlay').removeClass('loader-bg-hidden');
+    $('#load-overlay').addClass('loader-bg');
+}
+
+function hideLoader() {
+    $('#load-overlay').removeClass('loader-bg');
+    $('#load-overlay').addClass('loader-bg-hidden');
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
     autocomplete($('#sequence1'), sequences);
@@ -273,6 +363,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // get rid of loading screen if back button is pressed (mozilla)
 $(window).bind('pageshow', (event) => {
-    $('#load-overlay').removeClass('loader-bg');
-    $('#load-overlay').addClass('loader-bg-hidden');
+    const persisted = (event.originalEvent && event.originalEvent.persisted) || false;
+    if (!persisted) {
+        return; // Not a bfcache/back-navigation restore
+    }
+    hideLoader();
 });

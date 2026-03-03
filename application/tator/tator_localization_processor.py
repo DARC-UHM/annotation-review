@@ -1,5 +1,4 @@
 import datetime
-import json
 import os
 from typing import List
 
@@ -9,11 +8,10 @@ import sys
 import tator
 
 from flask import session
-from application.util.constants import KNOWN_ANNOTATORS, TERM_RED, TERM_NORMAL
-from application.util.tator_localization_type import TatorLocalizationType
-from application.util.functions import flatten_taxa_tree
-
-WORMS_REST_URL = 'https://www.marinespecies.org/rest'
+from application.util.constants import TERM_RED, TERM_NORMAL
+from application.tator.tator_type import TatorLocalizationType
+from application.util.phylogeny_cache import PhylogenyCache
+from application.tator.tator_rest_client import TatorRestClient
 
 
 class Section:
@@ -41,72 +39,35 @@ class TatorLocalizationProcessor:
         api: tator.api,
         tator_url: str,
         darc_review_url: str = None,
+        transect_media_ids: List[int] = None,
     ):
         self.project_id = project_id
         self.tator_url = tator_url
         self.darc_review_url = darc_review_url
         self.sections = [Section(section_id, api) for section_id in section_ids]
         self.api = api
+        self.tator_client = TatorRestClient(tator_url, session['tator_token'])
         self.final_records = []  # final list formatted for review page
-        self.phylogeny = {}
-
-    def load_phylogeny(self):
-        try:
-            with open(os.path.join('cache', 'phylogeny.json'), 'r') as f:
-                self.phylogeny = json.load(f)
-        except FileNotFoundError:
-            self.phylogeny = {}
-
-    def save_phylogeny(self):
-        try:
-            with open(os.path.join('cache', 'phylogeny.json'), 'w') as f:
-                json.dump(self.phylogeny, f, indent=2)
-        except FileNotFoundError:
-            os.makedirs('cache')
-            with open(os.path.join('cache', 'phylogeny.json'), 'w') as f:
-                json.dump(self.phylogeny, f, indent=2)
-
-    def fetch_worms_phylogeny(self, scientific_name: str) -> bool:
-        """
-        Fetches the phylogeny of a given scientific name from WoRMS. Returns True if successful, False otherwise.
-        """
-        print(f'Fetching phylogeny for "{scientific_name}"')
-        worms_id_res = requests.get(url=f'{WORMS_REST_URL}/AphiaIDByName/{scientific_name}?marine_only=true')
-        if worms_id_res.status_code == 200 and worms_id_res.json() != -999:  # -999 means more than one matching record
-            aphia_id = worms_id_res.json()
-            worms_tree_res = requests.get(url=f'{WORMS_REST_URL}/AphiaClassificationByAphiaID/{aphia_id}')
-            if worms_tree_res.status_code == 200:
-                self.phylogeny[scientific_name] = flatten_taxa_tree(worms_tree_res.json(), {})
-                self.phylogeny[scientific_name]['aphia_id'] = aphia_id
-        else:
-            worms_name_res = requests.get(url=f'{WORMS_REST_URL}/AphiaRecordsByName/{scientific_name}?like=false&marine_only=true&offset=1')
-            if worms_name_res.status_code == 200 and len(worms_name_res.json()) > 0:
-                # just take the first accepted record
-                for record in worms_name_res.json():
-                    if record['status'] == 'accepted':
-                        worms_tree_res_2 = requests.get(url=f'{WORMS_REST_URL}/AphiaClassificationByAphiaID/{record["AphiaID"]}')
-                        if worms_tree_res_2.status_code == 200:
-                            self.phylogeny[scientific_name] = flatten_taxa_tree(worms_tree_res_2.json(), {})
-                            self.phylogeny[scientific_name]['aphia_id'] = record['AphiaID']
-                        break
-            else:
-                print(f'{TERM_RED}No accepted record found for concept name "{scientific_name}"{TERM_NORMAL}')
-                return False
-        return True
+        self.phylogeny = PhylogenyCache()
+        self.transect_media_ids = set(media_id for media_id in transect_media_ids) if transect_media_ids else None
 
     def fetch_localizations(self):
         print('Fetching localizations...')
         sys.stdout.flush()
-        for section in self.sections:
-            # REST is much faster than Python API for large queries
-            res = requests.get(
-                url=f'{self.tator_url}/rest/Localizations/{self.project_id}?section={section.section_id}',
-                headers={
-                    'Content-Type': 'application/json',
-                    'Authorization': f'Token {session["tator_token"]}',
-                })
-            section.localizations = res.json()
-            print(f'Fetched {len(section.localizations)} localizations for deployment {section.deployment_name}')
+        if self.transect_media_ids:  # list of transects, fetch by media IDs instead of section
+            section_map = {int(section.section_id): section for section in self.sections}
+            media_id_list = list(self.transect_media_ids)
+            for i in range(0, len(media_id_list), 50):
+                batch = media_id_list[i:i + 50]
+                for localization in self.tator_client.get_localizations(self.project_id, media_id=batch):
+                    section = section_map.get(localization.get('master_section'), self.sections[0])
+                    section.localizations.append(localization)
+            for section in self.sections:
+                print(f'Fetched {len(section.localizations)} localizations for deployment {section.deployment_name}')
+        else:
+            for section in self.sections:
+                section.localizations = self.tator_client.get_localizations(self.project_id, section=section.section_id)
+                print(f'Fetched {len(section.localizations)} localizations for deployment {section.deployment_name}')
 
     def process_records(
         self,
@@ -120,6 +81,8 @@ class TatorLocalizationProcessor:
         formatted_localizations = []
         expedition_fieldbook = {}  # {section_id: deployments[]}
         media_substrates = {}  # {media_id: substrates}
+        if 'media_fps' not in session:
+            session['media_fps'] = {}
 
         if not no_match_records:
             no_match_records = set()
@@ -129,10 +92,10 @@ class TatorLocalizationProcessor:
                 if not TatorLocalizationType.is_relevant(localization['type']):
                     continue  # we only care about boxes and dots
                 scientific_name = localization['attributes'].get('Scientific Name')
-                cached_phylogeny = self.phylogeny.get(scientific_name)
+                cached_phylogeny = self.phylogeny.data.get(scientific_name)
                 if (cached_phylogeny is None or 'aphia_id' not in cached_phylogeny.keys())\
                         and scientific_name not in no_match_records:
-                    if not self.fetch_worms_phylogeny(scientific_name):
+                    if not self.phylogeny.fetch_worms(scientific_name):
                         no_match_records.add(scientific_name)
                 localization_dict = {
                     'elemental_id': localization['elemental_id'],
@@ -159,7 +122,7 @@ class TatorLocalizationProcessor:
                     'morphospecies': localization['attributes'].get('Morphospecies'),
                     'tentative_id': localization['attributes'].get('Tentative ID'),
                     'good_image': True if localization['attributes'].get('Good Image') else False,
-                    'annotator': KNOWN_ANNOTATORS[localization['created_by']] if localization['created_by'] in KNOWN_ANNOTATORS.keys() else f'Unknown Annotator (#{localization["created_by"]})',
+                    'annotator': self._get_annotator_name(localization['created_by']),
                     'frame': localization['frame'],
                     'frame_url': f'/tator/frame/{localization["media"]}/{localization["frame"]}',
                     'media_id': localization['media'],
@@ -183,10 +146,15 @@ class TatorLocalizationProcessor:
                         case _:
                             print(f'{TERM_RED}Unknown categorical abundance: {localization_dict["categorical_abundance"]}{TERM_NORMAL}')
                 if get_timestamp:
-                    if localization['media'] in session['media_timestamps'].keys():
+                    media_id = localization['media']
+                    if media_id in session['media_timestamps'].keys():
+                        if media_id not in session['media_fps'].keys():
+                            session['media_fps'][media_id] = self.api.get_media(media_id).fps
+                            session.modified = True
+                        media_fps = session['media_fps'][media_id] or 30
                         camera_bottom_arrival = datetime.datetime.strptime(section.bottom_time, self.BOTTOM_TIME_FORMAT).replace(tzinfo=datetime.timezone.utc)
-                        video_start_timestamp = datetime.datetime.fromisoformat(session['media_timestamps'][localization['media']])
-                        observation_timestamp = video_start_timestamp + datetime.timedelta(seconds=localization['frame'] / 30)
+                        video_start_timestamp = datetime.datetime.fromisoformat(session['media_timestamps'][media_id]).astimezone(datetime.timezone.utc)
+                        observation_timestamp = video_start_timestamp + datetime.timedelta(seconds=localization['frame'] / media_fps)
                         time_diff = observation_timestamp - camera_bottom_arrival
                         localization_dict['timestamp'] = observation_timestamp.strftime(self.BOTTOM_TIME_FORMAT)
                         localization_dict['camera_seafloor_arrival'] = camera_bottom_arrival.strftime(self.BOTTOM_TIME_FORMAT)
@@ -206,6 +174,9 @@ class TatorLocalizationProcessor:
                             print(f'{TERM_RED}Error fetching expedition fieldbook.{TERM_NORMAL}')
                             print(fieldbook_res.text)
                     deployment_name = section.deployment_name.replace('-', '_')  # for DOEX0087_NIU-dscm-02
+                    if section.section_id not in expedition_fieldbook.keys():
+                        print(f'{TERM_RED}No fieldbook data found for section {section.section_id}{TERM_NORMAL}')
+                        raise ValueError(f'No fieldbook data found for section {section.section_id}')
                     deployment_ctd = next((x for x in expedition_fieldbook[section.section_id] if x['deployment_name'] == deployment_name), None)
                     if deployment_ctd:
                         localization_dict['lat'] = deployment_ctd['lat']
@@ -222,10 +193,10 @@ class TatorLocalizationProcessor:
                     localization_dict['relief'] = media_substrates[media_id].get('Relief')
                     localization_dict['substrate_notes'] = media_substrates[media_id].get('Substrate Notes')
                     localization_dict['deployment_notes'] = media_substrates[media_id].get('Deployment Notes')
-                if scientific_name in self.phylogeny.keys():
-                    for key in self.phylogeny[scientific_name].keys():
+                if scientific_name in self.phylogeny.data:
+                    for key in self.phylogeny.data[scientific_name].keys():
                         # split to account for worms 'Phylum (Division)' case
-                        localization_dict[key.split(' ')[0]] = self.phylogeny[scientific_name][key]
+                        localization_dict[key.split(' ')[0]] = self.phylogeny.data[scientific_name][key]
                 formatted_localizations.append(localization_dict)
 
         if not formatted_localizations:
@@ -417,5 +388,20 @@ class TatorLocalizationProcessor:
                 'aphia_id': row['aphia_id'],
             }
             self.final_records.append({key: val for key, val in record.items() if is_populated(val)})
-        self.save_phylogeny()
+        self.phylogeny.save()
         print('processed!')
+
+    def _get_annotator_name(self, user_id: int) -> str:
+        if 'tator_usernames' not in session.keys():
+            session['tator_usernames'] = {}
+        if user_id not in session['tator_usernames']:
+            print(f'Fetching annotator name for user ID {user_id} from Tator...')
+            res_json = self.tator_client.get_user(user_id)
+            if 'first_name' not in res_json:
+                print(f'{TERM_RED}Error fetching annotator name for user ID {user_id}{TERM_NORMAL}')
+                return f'Unknown annotator (#{user_id})'
+            annotator_name = f'{res_json["first_name"]} {res_json["last_name"]}'
+            print(f'Annotator name for user ID {user_id} is "{annotator_name}"')
+            session['tator_usernames'][user_id] = annotator_name
+            session.modified = True
+        return session['tator_usernames'][user_id]

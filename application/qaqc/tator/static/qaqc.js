@@ -1,8 +1,6 @@
 function returnToCheckList() {
-    const url = new URL(window.location.href);
-    const projectId = url.searchParams.get('project');
-    const sectionId = url.searchParams.get('section');
-    window.location.href = `/qaqc/tator/checklist?project=${projectId}&section=${sectionId}`;
+    const url = window.location.href;
+    window.location.href = `/qaqc/tator/checklist${url.substring(url.indexOf('?'))}`;
 }
 
 function viewAttractedList() {

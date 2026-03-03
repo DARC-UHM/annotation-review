@@ -1,6 +1,11 @@
 from enum import IntEnum
 
 
+class TatorStateType(IntEnum):
+    SUBSTRATE = 846
+    SUB_MODE = 847
+
+
 class TatorLocalizationType(IntEnum):
     BOX = 48
     DOT = 49

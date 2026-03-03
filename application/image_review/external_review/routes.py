@@ -28,8 +28,9 @@ def get_external_review():
     read_comments = 0
     total_comments = 0
     if 'tator_token' in session.keys():
+        # verify we're logged in
         try:
-            api = tator.get_api(
+            tator.get_api(
                 host=current_app.config.get('TATOR_URL'),
                 token=session['tator_token'],
             )
@@ -87,13 +88,14 @@ def get_external_review():
             raise requests.exceptions.ConnectionError
         image_refs = image_ref_res.json()
     except requests.exceptions.ConnectionError:
-        _reviewers = []
+        image_refs = []
         print('\nERROR: unable to connect to external review server\n')
     comment_loader = CommentProcessor(
         comments=comments,
         annosaurus_url=current_app.config.get('ANNOSAURUS_URL'),
         vars_phylogeny_url=current_app.config.get('VARS_PHYLOGENY_URL'),
-        tator_localizations_url=f'{current_app.config.get("TATOR_URL")}/rest/Localizations',
+        tator_url=current_app.config.get('TATOR_URL'),
+        tator_token=session.get('tator_token'),
     )
     if len(comment_loader.distilled_records) < 1:
         if request.args.get('unread'):

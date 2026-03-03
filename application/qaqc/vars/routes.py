@@ -6,13 +6,13 @@ VARS-specific QA/QC endpoints
 /qaqc/vars/quick-check/<check> [GET]
 """
 
-import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import requests
 from flask import current_app, render_template, request, session
 
 from . import vars_qaqc_bp
-from .vars_qaqc_processor import VarsQaqcProcessor
+from application.vars.vars_qaqc_processor import VarsQaqcProcessor
 from application.util.constants import TERM_NORMAL, TERM_RED
 
 
@@ -36,16 +36,13 @@ def vars_qaqc_checklist():
             print('ERROR: Unable to get QAQC checklist from external review server')
             checklist = {}
     # get counts
-    threads = []
-    for sequence in sequences:
-        thread = threading.Thread(
-            target=get_sequence_counts,
-            args=(sequence, total_counts, current_app.config.get('VARS_DIVE_QUERY_URL')),
-        )
-        threads.append(thread)
-        thread.start()
-    for thread in threads:
-        thread.join()
+    vars_dive_url = current_app.config.get('VARS_DIVE_QUERY_URL')
+    with ThreadPoolExecutor(max_workers=len(sequences)) as executor:
+        futures = [executor.submit(get_sequence_counts, seq, vars_dive_url) for seq in sequences]
+        for future in as_completed(futures):
+            counts = future.result()
+            for key in total_counts:
+                total_counts[key] += counts[key]
     return render_template(
         'qaqc/vars/qaqc-checklist.html',
         annotation_count=total_counts['annotations'],
@@ -57,7 +54,7 @@ def vars_qaqc_checklist():
     )
 
 
-def get_sequence_counts(sequence_name, total_counts, vars_dive_url):
+def get_sequence_counts(sequence_name, vars_dive_url):
     identity_references = set()
     sequence_annotations = 0
     sequence_individuals = 0
@@ -66,6 +63,7 @@ def get_sequence_counts(sequence_name, total_counts, vars_dive_url):
     res = requests.get(f'{vars_dive_url}/{sequence_name.replace(" ", "%20")}')
     if res.status_code != 200:
         print(f'{TERM_RED}Failed to fetch annotations for sequence {sequence_name}{TERM_NORMAL}')
+        return {'annotations': 0, 'individuals': 0, 'true_localizations': 0, 'group_localizations': 0}
     annotations = res.json()['annotations']
     sequence_annotations += len(annotations)
     for annotation in annotations:
@@ -108,10 +106,12 @@ def get_sequence_counts(sequence_name, total_counts, vars_dive_url):
             sequence_individuals += int(pop_quantity)
             continue
         sequence_individuals += 1
-    total_counts['annotations'] += sequence_annotations
-    total_counts['individuals'] += sequence_individuals
-    total_counts['true_localizations'] += sequence_true_localizations
-    total_counts['group_localizations'] += sequence_group_localizations
+    return {
+        'annotations': sequence_annotations,
+        'individuals': sequence_individuals,
+        'true_localizations': sequence_true_localizations,
+        'group_localizations': sequence_group_localizations,
+    }
 
 
 # update vars qaqc checklist

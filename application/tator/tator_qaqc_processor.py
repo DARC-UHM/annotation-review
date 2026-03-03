@@ -13,9 +13,9 @@ from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN
 from pptx.util import Inches, Pt
 
-from application.image_review.tator.tator_localization_processor import TatorLocalizationProcessor
+from application.tator.tator_localization_processor import TatorLocalizationProcessor
 from application.util.constants import TERM_NORMAL, TERM_RED
-from application.util.tator_localization_type import TatorLocalizationType
+from application.tator.tator_type import TatorLocalizationType
 
 
 class TatorQaqcProcessor(TatorLocalizationProcessor):
@@ -30,6 +30,7 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
         api: tator.api,
         tator_url: str,
         darc_review_url: str = None,
+        transect_media_ids: List[int] = None,
     ):
         super().__init__(
             project_id=project_id,
@@ -37,6 +38,7 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
             api=api,
             darc_review_url=darc_review_url,
             tator_url=tator_url,
+            transect_media_ids=transect_media_ids,
         )
 
     def check_names_accepted(self):
@@ -53,10 +55,10 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
                 scientific_name = localization['attributes'].get('Scientific Name')
                 tentative_id = localization['attributes'].get('Tentative ID')
                 if scientific_name not in checked.keys():
-                    if scientific_name in self.phylogeny.keys():
+                    if scientific_name in self.phylogeny.data:
                         checked[scientific_name] = True
                     else:
-                        if self.fetch_worms_phylogeny(scientific_name):
+                        if self.phylogeny.fetch_worms(scientific_name):
                             checked[scientific_name] = True
                         else:
                             localization['problems'] = 'Scientific Name'
@@ -67,10 +69,10 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
                     flag_record = True
                 if tentative_id:
                     if tentative_id not in checked.keys():
-                        if tentative_id in self.phylogeny.keys():
+                        if tentative_id in self.phylogeny.data:
                             checked[tentative_id] = True
                         else:
-                            if self.fetch_worms_phylogeny(tentative_id):
+                            if self.phylogeny.fetch_worms(tentative_id):
                                 checked[tentative_id] = True
                             else:
                                 localization['problems'] = 'Tentative ID'
@@ -215,22 +217,22 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
         self.process_records()  # process first to make sure phylogeny is populated
         for localization in self.final_records:
             phylogeny_match = False
-            if localization['tentative_id'] not in self.phylogeny.keys():
+            if localization['tentative_id'] not in self.phylogeny.data:
                 if localization['tentative_id'] not in no_match_records:
-                    if not self.fetch_worms_phylogeny(localization['tentative_id']):
+                    if not self.phylogeny.fetch_worms(localization['tentative_id']):
                         no_match_records.add(localization['tentative_id'])
                         localization['problems'] += ' phylogeny no match'
                         continue
                 else:
                     localization['problems'] += ' phylogeny no match'
                     continue
-            for value in self.phylogeny[localization['tentative_id']].values():
+            for value in self.phylogeny.data[localization['tentative_id']].values():
                 if value == localization['scientific_name']:
                     phylogeny_match = True
                     break
             if not phylogeny_match:
                 localization['problems'] += ' phylogeny no match'
-        self.save_phylogeny()
+        self.phylogeny.save()
 
     def get_all_notes_and_remarks(self):
         """
@@ -415,17 +417,19 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
                     'depth_m': record.get('depth_m'),
                     'tofa_dict': {},
                 }
+            time_diff = observed_timestamp - bottom_time if observed_timestamp > bottom_time else datetime.timedelta(0)
             if unique_name not in deployment_taxa[record['video_sequence_name']]['tofa_dict'].keys():
                 # add new unique taxa to dict
                 deployment_taxa[record['video_sequence_name']]['tofa_dict'][unique_name] = {
-                    'tofa': str(observed_timestamp - bottom_time) if observed_timestamp > bottom_time else '00:00:00',
+                    'tofa': str(time_diff),
+                    'tofa_seconds': time_diff.total_seconds(),
                     'tofa_url': f'{self.tator_url}/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}',
                 }
             else:
                 # check for new tofa
-                if str(observed_timestamp - bottom_time) < deployment_taxa[record['video_sequence_name']]['tofa_dict'][unique_name]['tofa']:
-                    deployment_taxa[record['video_sequence_name']]['tofa_dict'][unique_name]['tofa'] = \
-                        str(observed_timestamp - bottom_time) if observed_timestamp > bottom_time else '00:00:00'
+                if time_diff.total_seconds() < deployment_taxa[record['video_sequence_name']]['tofa_dict'][unique_name]['tofa_seconds']:
+                    deployment_taxa[record['video_sequence_name']]['tofa_dict'][unique_name]['tofa'] = str(time_diff)
+                    deployment_taxa[record['video_sequence_name']]['tofa_dict'][unique_name]['tofa_seconds'] = time_diff.total_seconds()
                     deployment_taxa[record['video_sequence_name']]['tofa_dict'][unique_name]['tofa_url'] = \
                         f'{self.tator_url}/{self.project_id}/annotation/{record["media_id"]}?frame={record["frame"]}'
         # convert unique taxa to list for sorting
@@ -553,14 +557,7 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
         for section in self.sections:
             print(f'Fetching media start times for deployment "{section.deployment_name}"...', end='')
             sys.stdout.flush()
-            res = requests.get(
-                url=f'{self.tator_url}/rest/Medias/{self.project_id}?section={section.section_id}',
-                headers={
-                    'Content-Type': 'application/json',
-                    'Authorization': f'Token {session["tator_token"]}',
-                }
-            )
-            for media in res.json():
+            for media in self.tator_client.get_medias(self.project_id, section=section.section_id):
                 # get media start times
                 if media['id'] not in session['media_timestamps'].keys():
                     if 'Start Time' in media['attributes'].keys():
@@ -572,7 +569,7 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
                 # get deployment bottom time
                 media_arrival_attribute = media['attributes'].get('Arrival')
                 if media_arrival_attribute and media_arrival_attribute.strip() != '':
-                    video_start_timestamp = datetime.datetime.fromisoformat(media['attributes']['Start Time'])
+                    video_start_timestamp = datetime.datetime.fromisoformat(media['attributes']['Start Time']).astimezone(datetime.timezone.utc)
                     if 'not observed' in media_arrival_attribute.lower():
                         arrival_frame = 0
                     else:
@@ -583,6 +580,7 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
                                              f'Expected format like "1234" or "not observed" but got "{media["attributes"]["Arrival"]}".')
                             print(f'\n\n{TERM_RED}ERROR: {error_message}{TERM_NORMAL}')
                             raise ValueError(error_message)
-                    deployment_bottom_time = video_start_timestamp + datetime.timedelta(seconds=arrival_frame / 30)
+                    media_fps = media.get('fps') or 30
+                    deployment_bottom_time = video_start_timestamp + datetime.timedelta(seconds=arrival_frame / media_fps)
                     section.bottom_time = deployment_bottom_time.strftime(self.BOTTOM_TIME_FORMAT)
             print('fetched!')

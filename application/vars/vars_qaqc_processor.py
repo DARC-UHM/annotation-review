@@ -1,8 +1,8 @@
 import requests
 import sys
 
-from application.util.functions import *
-from application.image_review.vars.vars_annotation_processor import VarsAnnotationProcessor
+from application.util.functions import extract_recorded_datetime, get_association, parse_datetime
+from application.vars.vars_annotation_processor import VarsAnnotationProcessor
 
 
 class VarsQaqcProcessor(VarsAnnotationProcessor):
@@ -13,7 +13,6 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
     def __init__(self, sequence_names: list, vars_dive_url: str, vars_phylogeny_url: str):
         super().__init__(sequence_names, vars_dive_url, vars_phylogeny_url)
         self.videos = []
-        self.load_phylogeny()
 
     def fetch_annotations(self, seq_name):
         """
@@ -160,7 +159,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
                 base_timestamp = sorted_annotations[i]['recorded_timestamp'][:19]
                 base_annotation = sorted_annotations[i]
                 i += 1
-                while sorted_annotations[i]['recorded_timestamp'][:19] == base_timestamp:
+                while i < len(sorted_annotations) and sorted_annotations[i]['recorded_timestamp'][:19] == base_timestamp:
                     if sorted_annotations[i].get('group') != 'localization':
                         if base_timestamp not in annotations_with_same_timestamp.keys():
                             annotations_with_same_timestamp[base_timestamp] = [base_annotation]

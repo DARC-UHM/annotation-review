@@ -11,6 +11,7 @@ class Config:
     SESSION_FILE_THRESHOLD = 10
     LOCAL_APP_URL = 'http://127.0.0.1:8000'
     TATOR_URL = 'https://cloud.tator.io'
+    TATOR_PROJECT_ID = 26
     VARS_ANNOTATION_URL = f'{HURLSTOR_URL}:8082/v1/annotations'
     VARS_CONCEPT_LIST_URL = f'{HURLSTOR_URL}:8083/v1/concept'
     VARS_PHYLOGENY_URL = f'{HURLSTOR_URL}:8083/v1/phylogeny/up'
