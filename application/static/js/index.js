@@ -94,6 +94,10 @@ async function updateTatorDeployments(topLevelSectionId, folderName) {
         await updateTatorTransects();
     } else {
         $('#tatorTransectList').hide();
+        // clear transect selects and reset count in case user switched from sub to non-sub folder
+        $('.addedTransectSelect').remove();
+        $('#transect1').val(null);
+        numTransects = 1;
     }
 }
 
