@@ -146,6 +146,8 @@ class TatorLocalizationProcessor:
                         case _:
                             print(f'{TERM_RED}Unknown categorical abundance: {localization_dict["categorical_abundance"]}{TERM_NORMAL}')
                 if get_timestamp:
+                    if section.bottom_time is None:
+                        raise ValueError(f'No Arrival time found for section {section.deployment_name}. Cannot calculate timestamps.')
                     media_id = localization['media']
                     if media_id in session['media_timestamps'].keys():
                         if media_id not in session['media_fps'].keys():

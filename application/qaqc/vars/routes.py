@@ -62,6 +62,7 @@ def get_sequence_counts(sequence_name, vars_dive_url):
     sequence_group_localizations = 0
     res = requests.get(f'{vars_dive_url}/{sequence_name.replace(" ", "%20")}')
     if res.status_code != 200:
+        print(res.text)
         print(f'{TERM_RED}Failed to fetch annotations for sequence {sequence_name}{TERM_NORMAL}')
         return {'annotations': 0, 'individuals': 0, 'true_localizations': 0, 'group_localizations': 0}
     annotations = res.json()['annotations']

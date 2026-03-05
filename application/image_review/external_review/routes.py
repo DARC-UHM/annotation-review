@@ -92,7 +92,7 @@ def get_external_review():
         print('\nERROR: unable to connect to external review server\n')
     comment_loader = CommentProcessor(
         comments=comments,
-        annosaurus_url=current_app.config.get('ANNOSAURUS_URL'),
+        annosaurus_url=current_app.config.get('VARS_ANNOSAURUS_URL'),
         vars_phylogeny_url=current_app.config.get('VARS_PHYLOGENY_URL'),
         tator_url=current_app.config.get('TATOR_URL'),
         tator_token=session.get('tator_token'),
@@ -122,7 +122,7 @@ def get_external_review():
 def add_external_review():
     def add_vars_or_tator_comment(status_code):
         if not request.values.get('all_localizations'):  # VARS annotation, update VARS comment
-            annosaurus = Annosaurus(current_app.config.get('ANNOSAURUS_URL'))
+            annosaurus = Annosaurus(current_app.config.get('VARS_ANNOSAURUS_URL'))
             annosaurus.update_annotation_comment(
                 observation_uuid=request.values.get('observation_uuid'),
                 reviewers=json.loads(request.values.get('reviewers')),
@@ -210,7 +210,7 @@ def delete_external_review():
                 )
             )
         else:  # VARS annotation
-            annosaurus = Annosaurus(current_app.config.get('ANNOSAURUS_URL'))
+            annosaurus = Annosaurus(current_app.config.get('VARS_ANNOSAURUS_URL'))
             annosaurus.update_annotation_comment(
                 observation_uuid=request.values.get('uuid'),
                 reviewers=[],

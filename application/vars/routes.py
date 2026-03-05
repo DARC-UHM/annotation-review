@@ -22,7 +22,7 @@ from application.vars.annosaurus import Annosaurus
 # get a single VARS annotation
 @vars_bp.get('/annotation/<observation_uuid>')
 def get_current_associations(observation_uuid):
-    res = requests.get(url=f'{current_app.config.get("VARS_ANNOTATION_URL")}/{observation_uuid}')
+    res = requests.get(url=f'{current_app.config.get("VARS_ANNOSAURUS_URL")}/annotations/{observation_uuid}')
     if res.status_code != 200:
         return {}, res.status_code
     return res.json(), 200
@@ -31,7 +31,7 @@ def get_current_associations(observation_uuid):
 # updates annotation with a new concept name
 @vars_bp.patch('/annotation/concept')
 def update_annotation():
-    annosaurus = Annosaurus(current_app.config.get('ANNOSAURUS_URL'))
+    annosaurus = Annosaurus(current_app.config.get('VARS_ANNOSAURUS_URL'))
     updated_response = annosaurus.update_concept_name(
         observation_uuid=request.values.get('observation_uuid'),
         concept=request.values.get('concept'),
@@ -43,7 +43,7 @@ def update_annotation():
 # creates a new association for a VARS annotation
 @vars_bp.post('/association')
 def create_association():
-    annosaurus = Annosaurus(current_app.config.get('ANNOSAURUS_URL'))
+    annosaurus = Annosaurus(current_app.config.get('VARS_ANNOSAURUS_URL'))
     new_association = {
         'link_name': request.values.get('link_name'),
         'link_value': request.values.get('link_value'),
@@ -62,7 +62,7 @@ def create_association():
 # updates a VARS association
 @vars_bp.patch('/association/<uuid>')
 def update_association(uuid):
-    annosaurus = Annosaurus(current_app.config.get('ANNOSAURUS_URL'))
+    annosaurus = Annosaurus(current_app.config.get('VARS_ANNOSAURUS_URL'))
     updated_association = {
         'link_name': request.values.get('link_name'),
         'link_value': request.values.get('link_value'),
@@ -79,7 +79,7 @@ def update_association(uuid):
 # deletes a VARS association
 @vars_bp.delete('/association/<uuid>')
 def delete_association(uuid):
-    annosaurus = Annosaurus(current_app.config.get('ANNOSAURUS_URL'))
+    annosaurus = Annosaurus(current_app.config.get('VARS_ANNOSAURUS_URL'))
     deleted = annosaurus.delete_association(
         association_uuid=uuid,
         client_secret=current_app.config.get('ANNOSAURUS_CLIENT_SECRET'),

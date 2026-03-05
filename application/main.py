@@ -89,6 +89,9 @@ def server_error(e):
     requests.post(
         url=f'{app.config.get("DARC_REVIEW_URL")}/log-error',
         headers=app.config.get('DARC_REVIEW_HEADERS'),
-        json={'error': traceback.format_exc()},
+        json={
+            'url': request.url,
+            'error': traceback.format_exc(),
+        },
     )
     return render_template('errors/500.html', err=error), 500
