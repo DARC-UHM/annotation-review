@@ -20,10 +20,10 @@ class CommentProcessor:
     Fetches annotation information from the VARS db on HURLSTOR and Tator given a dict of comments (key = uuid). Merges
     fetched annotations with the data in the comment dict into an array of dicts (self.annotations).
     """
-    def __init__(self, comments: Dict, annosaurus_url: str, vars_phylogeny_url: str, tator_url: str, tator_token: str = None):
+    def __init__(self, comments: Dict, annosaurus_url: str, vars_kb_url: str, tator_url: str, tator_token: str = None):
         self.comments = comments
         self.annosaurus_url = annosaurus_url
-        self.vars_phylogeny_url = vars_phylogeny_url
+        self.vars_kb_url = vars_kb_url
         self.tator_client = TatorRestClient(tator_url, tator_token) if tator_token else None
         self.distilled_records = []
         self.missing_records = []
@@ -147,7 +147,7 @@ class CommentProcessor:
                 else:
                     comment_dict['all_localizations'] = [{}]
             if concept_name and concept_name not in self.phylogeny.data and concept_name not in self.no_match_records:
-                self.phylogeny.fetch_vars(concept_name, self.vars_phylogeny_url, self.no_match_records)
+                self.phylogeny.fetch_vars(concept_name, self.vars_kb_url, self.no_match_records)
             if concept_name in self.phylogeny.data:
                 for key in self.phylogeny.data[concept_name].keys():
                     # split to account for worms 'Phylum (Division)' case

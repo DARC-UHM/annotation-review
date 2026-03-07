@@ -12,10 +12,10 @@ class VarsAnnotationProcessor:
     the annotation data for display on the image review pages.
     """
 
-    def __init__(self, sequence_names: list, vars_dive_url: str, vars_phylogeny_url: str):
+    def __init__(self, sequence_names: list, vars_charybdis_url: str, vars_kb_url: str):
         self.sequence_names = sequence_names
-        self.vars_dive_url = vars_dive_url
-        self.vars_phylogeny_url = vars_phylogeny_url
+        self.vars_charybdis_url = vars_charybdis_url
+        self.vars_kb_url = vars_kb_url
         self.phylogeny = PhylogenyCache()
         self.working_records = []  # all the annotations that have images
         self.final_records = []    # the final list of annotations
@@ -29,7 +29,7 @@ class VarsAnnotationProcessor:
         for name in self.sequence_names:
             print(f'Fetching annotations for sequence {name} from VARS...', end='')
             sys.stdout.flush()
-            self.fetch_media(name, videos)
+            self.fetch_media_and_annotations(name, videos)
             print('fetched!')
         print('Processing annotations...', end='')
         sys.stdout.flush()
@@ -37,11 +37,11 @@ class VarsAnnotationProcessor:
         print('done!')
         self.phylogeny.save()
 
-    def fetch_media(self, sequence_name: str, videos: list):
+    def fetch_media_and_annotations(self, sequence_name: str, videos: list):
         """
         Fetches all annotations that have images and all video uris/start times from VARS.
         """
-        response = requests.get(url=f'{self.vars_dive_url}/{sequence_name.replace(" ", "%20")}').json()
+        response = requests.get(url=f'{self.vars_charybdis_url}/query/dive/{sequence_name.replace(" ", "%20")}').json()
 
         # get list of video links and start timestamps
         for video in response['media']:
@@ -104,7 +104,7 @@ class VarsAnnotationProcessor:
             depth = None
 
             if concept_name not in self.phylogeny.data and concept_name != 'none':
-                self.phylogeny.fetch_vars(concept_name, self.vars_phylogeny_url, no_match_records)
+                self.phylogeny.fetch_vars(concept_name, self.vars_kb_url, no_match_records)
 
             video = self.get_video(record, videos)
 

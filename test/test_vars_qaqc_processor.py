@@ -5,9 +5,6 @@ from application.vars.vars_qaqc_processor import VarsQaqcProcessor
 from test.data.vars_responses import ex_23060001, ex_23060002
 from test.util.mock_response import MockResponse
 
-VARS_DIVE_QUERY_URL = 'http://hurlstor.soest.hawaii.edu:8086/query/dive'
-VARS_PHYLOGENY_URL = 'http://hurlstor.soest.hawaii.edu:8083/v1/phylogeny/up'
-
 
 def mocked_requests_get(*args, **kwargs):
     return MockResponse(url=kwargs.get('url'))
@@ -17,8 +14,8 @@ class TestVarsQaqcProcessor:
     def test_init(self):
         qaqc_processor = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060001'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         assert qaqc_processor.sequence_names == ['Deep Discoverer 23060001']
         assert qaqc_processor.videos == []
@@ -30,8 +27,8 @@ class TestVarsQaqcProcessor:
     def test_fetch_annotations(self, _):
         qaqc_processor = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060001'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         assert qaqc_processor.fetch_annotations('Deep Discoverer 23060001') == ex_23060001['annotations']
         assert qaqc_processor.videos == [
@@ -53,13 +50,13 @@ class TestVarsQaqcProcessor:
     def test_find_duplicate_associations(self, _):
         qaqc_processor_okay = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060001'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         qaqc_processor_problems = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060002'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         qaqc_processor_okay.find_duplicate_associations()
         qaqc_processor_problems.find_duplicate_associations()
@@ -70,13 +67,13 @@ class TestVarsQaqcProcessor:
     def test_find_missing_s1(self, _):
         qaqc_processor_okay = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060001'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         qaqc_processor_problems = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060002'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         qaqc_processor_okay.find_missing_s1()
         qaqc_processor_problems.find_missing_s1()
@@ -87,13 +84,13 @@ class TestVarsQaqcProcessor:
     def test_find_identical_s1_s2(self, _):
         qaqc_processor_okay = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060001'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         qaqc_processor_problems = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060002'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         qaqc_processor_okay.find_identical_s1_s2()
         qaqc_processor_problems.find_identical_s1_s2()
@@ -104,13 +101,13 @@ class TestVarsQaqcProcessor:
     def test_find_duplicate_s2(self, _):
         qaqc_processor_okay = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060001'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         qaqc_processor_problems = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060002'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         qaqc_processor_okay.find_duplicate_s2()
         qaqc_processor_problems.find_duplicate_s2()
@@ -121,13 +118,13 @@ class TestVarsQaqcProcessor:
     def test_find_missing_upon_substrate(self, _):
         qaqc_processor_okay = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060001'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         qaqc_processor_problems = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060002'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         qaqc_processor_okay.find_missing_upon_substrate()
         qaqc_processor_problems.find_missing_upon_substrate()
@@ -138,13 +135,13 @@ class TestVarsQaqcProcessor:
     def test_find_mismatched_substrates(self, _):
         qaqc_processor_okay = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060001'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         qaqc_processor_problems = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060002'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         qaqc_processor_okay.find_mismatched_substrates()
         qaqc_processor_problems.find_mismatched_substrates()
@@ -155,13 +152,13 @@ class TestVarsQaqcProcessor:
     def test_find_missing_upon(self, _):
         qaqc_processor_okay = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060001'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         qaqc_processor_problems = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060002'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         qaqc_processor_okay.find_missing_upon()
         qaqc_processor_problems.find_missing_upon()
@@ -172,13 +169,13 @@ class TestVarsQaqcProcessor:
     def test_get_num_records_missing_ancillary_data(self, _):
         qaqc_processor_okay = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060001'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         qaqc_processor_problems = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060002'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         assert qaqc_processor_okay.get_num_records_missing_ancillary_data() == 0
         assert qaqc_processor_problems.get_num_records_missing_ancillary_data() == 2
@@ -187,13 +184,13 @@ class TestVarsQaqcProcessor:
     def test_find_missing_ancillary_data(self, _):
         qaqc_processor_okay = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060001'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         qaqc_processor_problems = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060002'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         qaqc_processor_okay.find_missing_ancillary_data()
         qaqc_processor_problems.find_missing_ancillary_data()
@@ -204,13 +201,13 @@ class TestVarsQaqcProcessor:
     def test_find_id_refs_different_concept_name(self, _):
         qaqc_processor_okay = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060001'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         qaqc_processor_problems = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060002'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         qaqc_processor_okay.find_id_refs_different_concept_name()
         qaqc_processor_problems.find_id_refs_different_concept_name()
@@ -221,13 +218,13 @@ class TestVarsQaqcProcessor:
     def test_find_id_refs_conflicting_associations(self, _):
         qaqc_processor_okay = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060001'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         qaqc_processor_problems = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060002'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         qaqc_processor_okay.find_id_refs_conflicting_associations()
         qaqc_processor_problems.find_id_refs_conflicting_associations()
@@ -238,13 +235,13 @@ class TestVarsQaqcProcessor:
     def test_find_blank_associations(self, _):
         qaqc_processor_okay = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060001'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         qaqc_processor_problems = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060002'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         qaqc_processor_okay.find_blank_associations()
         qaqc_processor_problems.find_blank_associations()
@@ -255,13 +252,13 @@ class TestVarsQaqcProcessor:
     def test_find_suspicious_hosts(self, _):
         qaqc_processor_okay = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060001'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         qaqc_processor_problems = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060002'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         qaqc_processor_okay.find_suspicious_hosts()
         qaqc_processor_problems.find_suspicious_hosts()
@@ -272,13 +269,13 @@ class TestVarsQaqcProcessor:
     def test_find_missing_expected_association(self, _):
         qaqc_processor_okay = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060001'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         qaqc_processor_problems = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060002'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         qaqc_processor_okay.find_missing_expected_association()
         qaqc_processor_problems.find_missing_expected_association()
@@ -309,13 +306,13 @@ class TestVarsQaqcProcessor:
     def test_find_long_host_associate_time_diff(self, _):
         qaqc_processor_okay = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060001'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         qaqc_processor_problems = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060002'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         qaqc_processor_okay.find_long_host_associate_time_diff()
         qaqc_processor_problems.find_long_host_associate_time_diff()
@@ -386,8 +383,8 @@ class TestVarsQaqcProcessor:
     def test_find_num_bounding_boxes(self, _):
         qaqc_processor = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060001'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         qaqc_processor.find_num_bounding_boxes()
         assert qaqc_processor.final_records == [{
@@ -403,8 +400,8 @@ class TestVarsQaqcProcessor:
     def test_find_unique_fields(self, _):
         qaqc_processor = VarsQaqcProcessor(
             sequence_names=['Deep Discoverer 23060001'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         qaqc_processor.find_unique_fields()
         assert qaqc_processor.final_records == [

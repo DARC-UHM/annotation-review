@@ -5,9 +5,6 @@ from application.util.functions import parse_datetime
 from test.data.vars_responses import ex_23060001
 from test.util.mock_response import MockResponse
 
-VARS_DIVE_QUERY_URL = 'http://hurlstor.soest.hawaii.edu:8086/query/dive'
-VARS_PHYLOGENY_URL = 'http://hurlstor.soest.hawaii.edu:8083/v1/phylogeny/up'
-
 
 def mocked_requests_get(*args, **kwargs):
     return MockResponse(url=kwargs.get('url'))
@@ -17,8 +14,8 @@ class TestVarsAnnotationProcessor:
     def test_init(self):
         annotation_processor = VarsAnnotationProcessor(
             sequence_names=['Deep Discoverer 23060001'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         assert annotation_processor.vessel_name == 'Deep Discoverer'
         assert annotation_processor.sequence_names == ['Deep Discoverer 23060001']
@@ -31,11 +28,11 @@ class TestVarsAnnotationProcessor:
     def test_fetch_media(self, mock_get):
         annotation_processor = VarsAnnotationProcessor(
             sequence_names=['Deep Discoverer 23060001'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         sequence_videos = []
-        annotation_processor.fetch_media(annotation_processor.sequence_names[0], sequence_videos)
+        annotation_processor.fetch_media_and_annotations(annotation_processor.sequence_names[0], sequence_videos)
         assert sequence_videos == [
             {
                 'start_timestamp': parse_datetime('2023-08-24T18:30:00Z'),
@@ -56,12 +53,12 @@ class TestVarsAnnotationProcessor:
     def test_fetch_vars_phylogeny(self, mock_get):
         annotation_processor = VarsAnnotationProcessor(
             sequence_names=['Deep Discoverer 23060001'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         annotation_processor.phylogeny.fetch_vars(
             concept_name='Pomacentridae',
-            vars_phylogeny_url='http://hurlstor.soest.hawaii.edu:8083/v1/phylogeny/up',
+            vars_kb_url=MockResponse.VARS_KB_URL,
             no_match_records=set()
         )
         assert annotation_processor.phylogeny.data['Pomacentridae'] == {
@@ -76,8 +73,8 @@ class TestVarsAnnotationProcessor:
     def test_get_image_url_only_one(self):  # only one image to choose from
         annotation_processor = VarsAnnotationProcessor(
             sequence_names=['Deep Discoverer 23060001'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         assert annotation_processor.get_image_url(ex_23060001['annotations'][1]) \
                == 'https://hurlimage.soest.hawaii.edu/SupplementalPhotos/Hphotos/NA138photos/H1920/cam1_20220419064757.png'
@@ -85,8 +82,8 @@ class TestVarsAnnotationProcessor:
     def test_get_image_url_png(self):  # multiple images to choose from, get the png
         annotation_processor = VarsAnnotationProcessor(
             sequence_names=['Deep Discoverer 23060001'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         assert annotation_processor.get_image_url(ex_23060001['annotations'][0]) \
                == 'https://hurlimage.soest.hawaii.edu/Hercules/images/1381920/20220418T202402.015Z--542830a8-ec69-4ee5-a57d-9de66a412dba.png'
@@ -95,11 +92,11 @@ class TestVarsAnnotationProcessor:
     def test_get_video(self, mock_get):
         annotation_processor = VarsAnnotationProcessor(
             sequence_names=['Deep Discoverer 23060001'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         sequence_videos = []
-        annotation_processor.fetch_media(annotation_processor.sequence_names[0], sequence_videos)
+        annotation_processor.fetch_media_and_annotations(annotation_processor.sequence_names[0], sequence_videos)
         print(sequence_videos)
         assert annotation_processor.get_video(ex_23060001['annotations'][0], sequence_videos)['uri'] \
                == 'https://hurlvideo.soest.hawaii.edu/D2/2023/EX2306_01/EX2306_01_20230824T183000Z.m4v#t=374'
@@ -108,11 +105,11 @@ class TestVarsAnnotationProcessor:
     def test_get_video_url_second_media(self, mock_get):
         annotation_processor = VarsAnnotationProcessor(
             sequence_names=['Deep Discoverer 23060001'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         sequence_videos = []
-        annotation_processor.fetch_media(annotation_processor.sequence_names[0], sequence_videos)
+        annotation_processor.fetch_media_and_annotations(annotation_processor.sequence_names[0], sequence_videos)
         assert annotation_processor.get_video(ex_23060001['annotations'][1], sequence_videos)['uri'] \
                == 'https://hurlvideo.soest.hawaii.edu/D2/2023/EX2306_01/EX2306_01_20230824T203000Z.m4v#t=3505'
 
@@ -120,11 +117,11 @@ class TestVarsAnnotationProcessor:
     def test_process_images(self, mock_get):
         annotation_processor = VarsAnnotationProcessor(
             sequence_names=['Deep Discoverer 23060001'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         sequence_videos = []
-        annotation_processor.fetch_media(annotation_processor.sequence_names[0], sequence_videos)
+        annotation_processor.fetch_media_and_annotations(annotation_processor.sequence_names[0], sequence_videos)
         assert annotation_processor.process_working_records(sequence_videos) == [
             {
                 'observation_uuid': '0059f860-4799-485f-c06c-5830e5ddd31e',
@@ -189,11 +186,11 @@ class TestVarsAnnotationProcessor:
     def test_sort_records(self, mock_get):
         annotation_processor = VarsAnnotationProcessor(
             sequence_names=['Deep Discoverer 23060001'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         sequence_videos = []
-        annotation_processor.fetch_media(annotation_processor.sequence_names[0], sequence_videos)
+        annotation_processor.fetch_media_and_annotations(annotation_processor.sequence_names[0], sequence_videos)
         annotation_processor.sort_records(annotation_processor.process_working_records(sequence_videos))
         assert annotation_processor.final_records == [
             {
@@ -260,10 +257,10 @@ class TestVarsAnnotationProcessor:
     def test_find_highest_id_refs(self, mock_get):
         annotation_processor = VarsAnnotationProcessor(
             sequence_names=['Deep Discoverer 23060001'],
-            vars_dive_url=VARS_DIVE_QUERY_URL,
-            vars_phylogeny_url=VARS_PHYLOGENY_URL,
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
         )
         sequence_videos = []
-        annotation_processor.fetch_media(annotation_processor.sequence_names[0], sequence_videos)
+        annotation_processor.fetch_media_and_annotations(annotation_processor.sequence_names[0], sequence_videos)
         annotation_processor.process_working_records(sequence_videos)
         assert annotation_processor.highest_id_ref == 13

@@ -31,11 +31,12 @@ class PhylogenyCache:
             with open(CACHE_PATH, 'w') as f:
                 json.dump(self.data, f, indent=2)
 
-    def fetch_vars(self, concept_name: str, vars_phylogeny_url: str, no_match_records: set):
+    def fetch_vars(self, concept_name: str, vars_kb_url: str, no_match_records: set):
         """
         Fetches phylogeny for a given concept from the VARS knowledge base.
         """
-        vars_tax_res = requests.get(url=f'{vars_phylogeny_url}/{concept_name.replace("/", "%2F")}')
+        print(f'Fetching phylogeny for "{concept_name}"')
+        vars_tax_res = requests.get(url=f'{vars_kb_url}/phylogeny/up/{concept_name.replace("/", "%2F")}')
         if vars_tax_res.status_code == 200:
             try:
                 # this gets us to phylum

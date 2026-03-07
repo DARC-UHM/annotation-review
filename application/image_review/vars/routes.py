@@ -31,8 +31,8 @@ def view_images():
     # get images in sequence
     image_loader = VarsAnnotationProcessor(
         sequence_names=sequences,
-        vars_dive_url=current_app.config.get('VARS_DIVE_QUERY_URL'),
-        vars_phylogeny_url=current_app.config.get('VARS_PHYLOGENY_URL'),
+        vars_charybdis_url=current_app.config.get('VARS_CHARYBDIS_URL'),
+        vars_kb_url=current_app.config.get("VARS_KNOWLEDGE_BASE_URL"),
     )
     image_loader.process_sequences()
     if len(image_loader.final_records) < 1:

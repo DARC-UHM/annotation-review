@@ -93,7 +93,7 @@ def get_external_review():
     comment_loader = CommentProcessor(
         comments=comments,
         annosaurus_url=current_app.config.get('VARS_ANNOSAURUS_URL'),
-        vars_phylogeny_url=current_app.config.get('VARS_PHYLOGENY_URL'),
+        vars_kb_url=current_app.config.get("VARS_KNOWLEDGE_BASE_URL"),
         tator_url=current_app.config.get('TATOR_URL'),
         tator_token=session.get('tator_token'),
     )

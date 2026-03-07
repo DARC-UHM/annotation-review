@@ -13,10 +13,11 @@ class Config:
     TATOR_URL = 'https://cloud.tator.io'
     TATOR_PROJECT_ID = 26
     VARS_ANNOSAURUS_URL = f'{HURLSTOR_URL}/anno/v1'
-    VARS_CONCEPT_LIST_URL = f'{HURLSTOR_URL}/kb/v1/concept'
-    VARS_PHYLOGENY_URL = f'{HURLSTOR_URL}/kb/v1/phylogeny/up'
-    VARS_SEQUENCE_LIST_URL = f'{HURLSTOR_URL}/vam/v1/videosequences/names'
-    VARS_DIVE_QUERY_URL = f'{HURLSTOR_URL}/references/v1/query/dive'
+    VARS_KNOWLEDGE_BASE_URL = f'{HURLSTOR_URL}/kb/v1'
+    VARS_VAMPIRE_SQUID_URL = f'{HURLSTOR_URL}/vam/v1'
+    # VARS_CHARYBDIS_URL = f'{HURLSTOR_URL}/references/v1'
+    # TODO remove this in favor of the endpoint above once we fix SSL for Charybdis
+    VARS_CHARYBDIS_URL = 'http://hurlstor.soest.hawaii.edu:8086'
 
     DARC_REVIEW_HEADERS = {'API-Key': os.environ.get('DARC_REVIEW_API_KEY')}
     SECRET_KEY = os.environ.get('APP_SECRET_KEY')

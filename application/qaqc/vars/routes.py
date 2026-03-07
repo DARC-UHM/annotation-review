@@ -27,7 +27,7 @@ def vars_qaqc_checklist():
         'group_localizations': 0,  # number of annotations marked 'group: localization'
     }
     with requests.get(
-            url=f'{current_app.config.get("DARC_REVIEW_URL")}/vars-qaqc-checklist/{"&".join(request.args.getlist("sequence"))}',
+            url=f'{current_app.config.get("DARC_REVIEW_URL")}/qaqc-checklist/vars/{"&".join(request.args.getlist("sequence"))}',
             headers=current_app.config.get('DARC_REVIEW_HEADERS'),
     ) as checklist_res:
         if checklist_res.status_code == 200:
@@ -36,9 +36,8 @@ def vars_qaqc_checklist():
             print('ERROR: Unable to get QAQC checklist from external review server')
             checklist = {}
     # get counts
-    vars_dive_url = current_app.config.get('VARS_DIVE_QUERY_URL')
     with ThreadPoolExecutor(max_workers=len(sequences)) as executor:
-        futures = [executor.submit(get_sequence_counts, seq, vars_dive_url) for seq in sequences]
+        futures = [executor.submit(get_sequence_counts, seq, current_app.config.get('VARS_CHARYBDIS_URL')) for seq in sequences]
         for future in as_completed(futures):
             counts = future.result()
             for key in total_counts:
@@ -60,7 +59,7 @@ def get_sequence_counts(sequence_name, vars_dive_url):
     sequence_individuals = 0
     sequence_true_localizations = 0
     sequence_group_localizations = 0
-    res = requests.get(f'{vars_dive_url}/{sequence_name.replace(" ", "%20")}')
+    res = requests.get(f'{vars_dive_url}/query/dive/{sequence_name.replace(" ", "%20")}')
     if res.status_code != 200:
         print(res.text)
         print(f'{TERM_RED}Failed to fetch annotations for sequence {sequence_name}{TERM_NORMAL}')
@@ -124,7 +123,7 @@ def patch_vars_qaqc_checklist():
         return {}, 400
     req_json.pop('sequences')
     res = requests.patch(
-        url=f'{current_app.config.get("DARC_REVIEW_URL")}/vars-qaqc-checklist/{sequences}',
+        url=f'{current_app.config.get("DARC_REVIEW_URL")}/qaqc-checklist/vars/{sequences}',
         headers=current_app.config.get('DARC_REVIEW_HEADERS'),
         json=req_json,
     )
@@ -137,8 +136,8 @@ def vars_qaqc(check):
     sequences = request.args.getlist('sequence')
     qaqc_annos = VarsQaqcProcessor(
         sequence_names=sequences,
-        vars_dive_url=current_app.config.get('VARS_DIVE_QUERY_URL'),
-        vars_phylogeny_url=current_app.config.get('VARS_PHYLOGENY_URL'),
+        vars_charybdis_url=current_app.config.get('VARS_CHARYBDIS_URL'),
+        vars_kb_url=current_app.config.get("VARS_KNOWLEDGE_BASE_URL"),
     )
     tab_title = sequences[0] if len(sequences) == 1 else f'{sequences[0]} - {sequences[-1].split(" ")[-1]}'
     data = {
@@ -211,8 +210,8 @@ def qaqc_quick(check):
     sequences = request.args.getlist('sequence')
     qaqc_annos = VarsQaqcProcessor(
         sequence_names=sequences,
-        vars_dive_url=current_app.config.get('VARS_DIVE_QUERY_URL'),
-        vars_phylogeny_url=current_app.config.get('VARS_PHYLOGENY_URL'),
+        vars_charybdis_url=current_app.config.get('VARS_CHARYBDIS_URL'),
+        vars_kb_url=current_app.config.get("VARS_KNOWLEDGE_BASE_URL"),
     )
     match check:
         case 'missing-ancillary-data':
