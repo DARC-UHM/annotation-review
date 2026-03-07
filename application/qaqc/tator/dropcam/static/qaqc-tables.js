@@ -1,4 +1,4 @@
-import { formattedNumber } from '../../../static/js/util/formattedNumber.js';
+import { formattedNumber } from '../../../../static/js/util/formattedNumber.js';
 
 const caretDownFill = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-down-fill ms-1 pt-1" viewBox="0 0 16 16">
     <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
@@ -8,13 +8,9 @@ const caretUpFill = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="
     <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z"/>
 </svg>`;
 
-let currentDeploymentIndex = 0;
-
 function returnToCheckList() {
-    const url = new URL(window.location.href);
-    const projectId = url.searchParams.get('project');
-    const sectionId = url.searchParams.get('section');
-    window.location.href = `/qaqc/tator/checklist?project=${projectId}&section=${sectionId}`;
+    const url = window.location.href;
+    window.location.href = `/qaqc/tator/dropcam/checklist${url.substring(url.indexOf('?'))}`;
 }
 
 window.returnToCheckList = returnToCheckList;
@@ -400,13 +396,13 @@ function updateHash() {
                         substrateNotes
                         ${sortKey=== 'substrate_notes' ? caretUpFill : sortKey=== 'substrate_notes-desc' ? caretDownFill : ''}
                     </div>
-                </th>   
+                </th>
                 <th scope="col" onclick="setSort('deployment_notes')" class="table-header-hover">
                     <div class="d-flex">
                         deploymentNotes
                         ${sortKey=== 'deployment_notes' ? caretUpFill : sortKey=== 'deployment_notes-desc' ? caretDownFill : ''}
                     </div>
-                </th>            
+                </th>
                 <th scope="col" style="cursor: default;">baitType</th>
 
             </tr>
@@ -603,7 +599,6 @@ function downloadTsv(headers, rows, title) {
         const row = rowArray.join('\t');
         tsvContent += row + '\n';
     });
-
     const encodedUri = encodeURI(tsvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);

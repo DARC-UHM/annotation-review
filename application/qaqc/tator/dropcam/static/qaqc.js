@@ -1,10 +1,10 @@
 function returnToCheckList() {
     const url = window.location.href;
-    window.location.href = `/qaqc/tator/checklist${url.substring(url.indexOf('?'))}`;
+    window.location.href = `/qaqc/tator/dropcam/checklist${url.substring(url.indexOf('?'))}`;
 }
 
 function viewAttractedList() {
-    window.open('/qaqc/tator/attracted-list','name','height=900,width=550');
+    window.open('/qaqc/tator/dropcam/attracted-list','name','height=900,width=550');
 }
 
 function viewImageReferences() {

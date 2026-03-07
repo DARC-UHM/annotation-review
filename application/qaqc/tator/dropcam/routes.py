@@ -1,33 +1,31 @@
 """
-Tator-specific QA/QC endpoints
+Dropcam (dscm) QA/QC endpoints
 
-/qaqc/tator/checklist [GET, PATCH]
-/qaqc/tator/check/<check> [GET]
-/qaqc/tator/attracted-list [GET]
-/qaqc/tator/attracted [POST]
-/qaqc/tator/attracted/<concept> [PATCH, DELETE]
+/qaqc/tator/dropcam/checklist [GET, PATCH]
+/qaqc/tator/dropcam/check/<check> [GET]
+/qaqc/tator/dropcam/attracted-list [GET]
+/qaqc/tator/dropcam/attracted [POST]
+/qaqc/tator/dropcam/attracted/<concept> [PATCH, DELETE]
 """
 import json
 from io import BytesIO
+from typing import List
 
 import tator
 import requests
 from flask import current_app, flash, redirect, render_template, request, send_file, session
 
-from . import tator_qaqc_bp
+from . import dropcam_qaqc_bp
 from application.tator.tator_qaqc_processor import TatorQaqcProcessor
 from application.tator.tator_type import TatorLocalizationType
 from application.tator.tator_rest_client import TatorRestClient
 
 
 # view QA/QC checklist for a specified project & section
-@tator_qaqc_bp.get('/checklist')
-def tator_qaqc_checklist():
+@dropcam_qaqc_bp.get('/checklist')
+def dropcam_qaqc_checklist():
     project_id = int(request.args.get('project'))
     section_ids = request.args.getlist('section')
-    transect_ids = request.args.getlist('transect')
-    deployment_names = []
-    expedition_name = None
     if not project_id or not section_ids:
         flash('Please select a project and section', 'info')
         return redirect('/')
@@ -35,23 +33,25 @@ def tator_qaqc_checklist():
         flash('Please log in to Tator', 'info')
         return redirect('/')
     try:
-        api = tator.get_api(
+        tator_api = tator.get_api(
             host=current_app.config.get('TATOR_URL'),
             token=session['tator_token'],
         )
-        for section_id in section_ids:
-            section = api.get_section(id=int(section_id))
-            deployment_names.append(section.name)
-            if expedition_name is None:
-                expedition_name = section.path.split('.')[0]
     except tator.openapi.tator_openapi.exceptions.ApiException as e:
         flash(json.loads(e.body)['message'], 'danger')
         return redirect('/')
+    deployment_names = []
+    expedition_name = None
+    for section_id in section_ids:
+        section = tator_api.get_section(id=int(section_id))
+        deployment_names.append(section.name)
+        if expedition_name is None:
+            expedition_name = section.path.split('.')[0]
     tator_client = TatorRestClient(current_app.config.get('TATOR_URL'), session['tator_token'])
     localizations = []
     individual_count = 0
     with requests.get(
-            url=f'{current_app.config.get("DARC_REVIEW_URL")}/tator-qaqc-checklist/{"&".join(deployment_names)}',
+            url=f'{current_app.config.get("DARC_REVIEW_URL")}/qaqc-checklist/tator-dropcam/{"&".join(deployment_names)}',
             headers=current_app.config.get('DARC_REVIEW_HEADERS'),
     ) as checklist_res:
         if checklist_res.status_code == 200:
@@ -59,13 +59,8 @@ def tator_qaqc_checklist():
         else:
             print('ERROR: Unable to get QAQC checklist from external review server')
             checklist = {}
-    if transect_ids:
-        for i in range(0, len(transect_ids), 300):
-            batch = [int(tid) for tid in transect_ids[i:i + 300]]
-            localizations += tator_client.get_localizations(project_id, media_id=batch)
-    else:
-        for section_id in section_ids:
-            localizations += tator_client.get_localizations(project_id, section=section_id)
+    for section_id in section_ids:
+        localizations += tator_client.get_localizations(project_id, section=section_id)
     for localization in localizations:
         if TatorLocalizationType.is_dot(localization['type']):
             individual_count += 1
@@ -79,9 +74,6 @@ def tator_qaqc_checklist():
                         individual_count += 500
                     case '1000+':
                         individual_count += 1000
-    if transect_ids:
-        transect_media = api.get_media_list(project_id, media_id=[int(tid) for tid in transect_ids])
-        deployment_names = [media.name for media in transect_media]
     data = {
         'title': expedition_name,
         'tab_title': deployment_names[0] if len(deployment_names) == 1 else expedition_name,
@@ -90,19 +82,19 @@ def tator_qaqc_checklist():
         'individual_count': individual_count,
         'checklist': checklist,
     }
-    return render_template('qaqc/tator/qaqc-checklist.html', data=data)
+    return render_template('qaqc/tator/dropcam/qaqc-checklist.html', data=data)
 
 
 # update tator qaqc checklist
-@tator_qaqc_bp.patch('/checklist')
-def patch_tator_qaqc_checklist():
+@dropcam_qaqc_bp.patch('/checklist')
+def patch_dropcam_qaqc_checklist():
     req_json = request.json
     deployments = req_json.get('deployments')
     if not deployments:
         return {}, 400
     req_json.pop('deployments')
     res = requests.patch(
-        url=f'{current_app.config.get("DARC_REVIEW_URL")}/tator-qaqc-checklist/{deployments}',
+        url=f'{current_app.config.get("DARC_REVIEW_URL")}/qaqc-checklist/tator-dropcam/{deployments}',
         headers=current_app.config.get('DARC_REVIEW_HEADERS'),
         json=req_json,
     )
@@ -110,13 +102,10 @@ def patch_tator_qaqc_checklist():
 
 
 # individual qaqc checks
-@tator_qaqc_bp.get('/check/<check>')
-def tator_qaqc(check):
+@dropcam_qaqc_bp.get('/check/<check>')
+def dropcam_qaqc(check):
     project_id = int(request.args.get('project'))
     section_ids = request.args.getlist('section')
-    transect_ids = request.args.getlist('transect')
-    deployment_names = []
-    expedition_name = None
     if not project_id or not section_ids:
         flash('Please select a project and section', 'info')
         return redirect('/')
@@ -124,18 +113,20 @@ def tator_qaqc(check):
         flash('Please log in to Tator', 'info')
         return redirect('/')
     try:
-        api = tator.get_api(
+        tator_api = tator.get_api(
             host=current_app.config.get('TATOR_URL'),
             token=session['tator_token'],
         )
-        for section_id in section_ids:
-            section = api.get_section(id=int(section_id))
-            deployment_names.append(section.name)
-            if expedition_name is None:
-                expedition_name = section.path.split('.')[0]
     except tator.openapi.tator_openapi.exceptions.ApiException as e:
         flash(json.loads(e.body)['message'], 'danger')
         return redirect('/')
+    deployment_names = []
+    expedition_name = None
+    for section_id in section_ids:
+        section = tator_api.get_section(id=int(section_id))
+        deployment_names.append(section.name)
+        if expedition_name is None:
+            expedition_name = section.path.split('.')[0]
     tator_client = TatorRestClient(current_app.config.get('TATOR_URL'), session['tator_token'])
     # get comments and image references from external review db
     comments = {}
@@ -148,16 +139,13 @@ def tator_qaqc(check):
             )
             if comment_res.status_code != 200:
                 raise requests.exceptions.ConnectionError
-            comments |= comment_res.json()  # merge dicts
+            comments |= comment_res.json()
         image_ref_res = requests.get(f'{current_app.config.get("DARC_REVIEW_URL")}/image-reference/quick')
         if image_ref_res.status_code != 200:
             raise requests.exceptions.ConnectionError
         image_refs = image_ref_res.json()
     except requests.exceptions.ConnectionError:
         print('\nERROR: unable to connect to external review server\n')
-    if transect_ids:
-        transect_media = api.get_media_list(project_id, media_id=[int(tid) for tid in transect_ids])
-        deployment_names = [media.name for media in transect_media]
     tab_title = deployment_names[0] if len(deployment_names) == 1 else expedition_name
     data = {
         'concepts': session.get('vars_concepts', []),
@@ -167,7 +155,6 @@ def tator_qaqc(check):
         'reviewers': session.get('reviewers', []),
         'comments': comments,
         'image_refs': image_refs,
-
     }
     if check == 'media-attributes':
         # the one case where we don't want to initialize a TatorQaqcProcessor (no need to fetch localizations)
@@ -176,14 +163,13 @@ def tator_qaqc(check):
             media_attributes[section_id] = tator_client.get_medias(project_id, section=section_id)
         data['page_title'] = 'Media attributes'
         data['media_attributes'] = media_attributes
-        return render_template('qaqc/tator/qaqc-tables.html', data=data)
+        return render_template('qaqc/tator/dropcam/qaqc-tables.html', data=data)
     qaqc_annos = TatorQaqcProcessor(
         project_id=project_id,
         section_ids=section_ids,
-        api=api,
+        api=tator_api,
         darc_review_url=current_app.config.get('DARC_REVIEW_URL'),
         tator_url=current_app.config.get('TATOR_URL'),
-        transect_media_ids=[int(tid) for tid in transect_ids] if transect_ids else None,
     )
     qaqc_annos.fetch_localizations()
     match check:
@@ -223,22 +209,22 @@ def tator_qaqc(check):
             qaqc_annos.get_unique_taxa()
             data['page_title'] = 'All unique taxa'
             data['unique_taxa'] = qaqc_annos.final_records
-            return render_template('qaqc/tator/qaqc-tables.html', data=data)
+            return render_template('qaqc/tator/dropcam/qaqc-tables.html', data=data)
         case 'summary':
             qaqc_annos.get_summary()
             data['page_title'] = 'Summary'
             data['annotations'] = qaqc_annos.final_records
-            return render_template('qaqc/tator/qaqc-tables.html', data=data)
+            return render_template('qaqc/tator/dropcam/qaqc-tables.html', data=data)
         case 'max-n':
             qaqc_annos.get_max_n()
             data['page_title'] = 'Max N'
             data['max_n'] = qaqc_annos.final_records
-            return render_template('qaqc/tator/qaqc-tables.html', data=data)
+            return render_template('qaqc/tator/dropcam/qaqc-tables.html', data=data)
         case 'tofa':
             qaqc_annos.get_tofa()
             data['page_title'] = 'Time of First Arrival'
             data['tofa'] = qaqc_annos.final_records
-            return render_template('qaqc/tator/qaqc-tables.html', data=data)
+            return render_template('qaqc/tator/dropcam/qaqc-tables.html', data=data)
         case 'image-guide':
             presentation_data = BytesIO()
             qaqc_annos.download_image_guide(current_app).save(presentation_data)
@@ -247,18 +233,18 @@ def tator_qaqc(check):
         case _:
             return render_template('errors/404.html', err=''), 404
     data['annotations'] = qaqc_annos.final_records
-    return render_template('qaqc/tator/qaqc.html', data=data)
+    return render_template('qaqc/tator/dropcam/qaqc.html', data=data)
 
 
 # view list of saved attracted/non-attracted taxa
-@tator_qaqc_bp.get('/attracted-list')
+@dropcam_qaqc_bp.get('/attracted-list')
 def attracted_list():
     res = requests.get(url=f'{current_app.config.get("DARC_REVIEW_URL")}/attracted')
-    return render_template('qaqc/tator/attracted-list.html', attracted_concepts=res.json()), 200
+    return render_template('qaqc/tator/dropcam/attracted-list.html', attracted_concepts=res.json()), 200
 
 
 # add a new concept to the attracted collection
-@tator_qaqc_bp.post('/attracted')
+@dropcam_qaqc_bp.post('/attracted')
 def add_attracted():
     res = requests.post(
         url=f'{current_app.config.get("DARC_REVIEW_URL")}/attracted',
@@ -276,14 +262,12 @@ def add_attracted():
 
 
 # update an existing attracted concept
-@tator_qaqc_bp.patch('/attracted/<concept>')
+@dropcam_qaqc_bp.patch('/attracted/<concept>')
 def update_attracted(concept):
     res = requests.patch(
         url=f'{current_app.config.get("DARC_REVIEW_URL")}/attracted/{concept}',
         headers=current_app.config.get('DARC_REVIEW_HEADERS'),
-        data={
-            'attracted': request.values.get('attracted'),
-        }
+        data={'attracted': request.values.get('attracted')},
     )
     if res.status_code == 200:
         flash(f'Updated {concept}', 'success')
@@ -291,7 +275,7 @@ def update_attracted(concept):
 
 
 # delete an attracted concept
-@tator_qaqc_bp.delete('/attracted/<concept>')
+@dropcam_qaqc_bp.delete('/attracted/<concept>')
 def delete_attracted(concept):
     res = requests.delete(
         url=f'{current_app.config.get("DARC_REVIEW_URL")}/attracted/{concept}',

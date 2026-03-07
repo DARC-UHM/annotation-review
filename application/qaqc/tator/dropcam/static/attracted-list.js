@@ -1,10 +1,10 @@
-import { updateFlashMessages } from '../../../static/js/util/updateFlashMessages.js';
-import { getWormsAutocomplete } from '../../../static/js/util/wormsAutocomplete.js';
+import { updateFlashMessages } from '../../../../static/js/util/updateFlashMessages.js';
+import { getWormsAutocomplete } from '../../../../static/js/util/wormsAutocomplete.js';
 
 async function addAttractedConcept() {
     event.preventDefault();
     const formData = new FormData($('#addAttractedConceptForm')[0]);
-    const response = await fetch('/qaqc/tator/attracted', {
+    const response = await fetch('/qaqc/tator/dropcam/attracted', {
         method: 'POST',
         body: formData,
     });
@@ -18,7 +18,7 @@ async function addAttractedConcept() {
 async function editAttractedConcept() {
     event.preventDefault();
     const formData = new FormData($('#editAttractedConceptForm')[0]);
-    const response = await fetch(`/qaqc/tator/attracted/${$('#conceptToEdit').val()}`, {
+    const response = await fetch(`/qaqc/tator/dropcam/attracted/${$('#conceptToEdit').val()}`, {
         method: 'PATCH',
         body: formData,
     });
@@ -31,7 +31,7 @@ async function editAttractedConcept() {
 
 async function deleteAttractedConcept() {
     event.preventDefault();
-    const response = await fetch(`/qaqc/tator/attracted/${$('#conceptToDelete').val()}`, {
+    const response = await fetch(`/qaqc/tator/dropcam/attracted/${$('#conceptToDelete').val()}`, {
         method: 'DELETE',
     });
     if (response.ok) {

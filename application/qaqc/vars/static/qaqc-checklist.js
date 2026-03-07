@@ -1,17 +1,5 @@
-import { updateCheckbox } from '../../static/qaqcCheckboxes.js';
+import { getCheckboxName, updateCheckbox, updateTaskCount } from '../../static/qaqcCheckboxes.js';
 import { formattedNumber } from '../../../static/js/util/formattedNumber.js';
-
-function updateTaskCount() {
-    const tasksComplete = Object.values(checklist).reduce((accumulator, currentValue) => currentValue === 2 ? accumulator + 1 : accumulator, 0);
-    $('#tasksComplete').html(tasksComplete);
-    if (tasksComplete === Object.keys(checklist).length) {
-        $('#fireworks').show();
-        $('#fireworksToggleButton').show();
-    } else {
-        $('#fireworks').hide();
-        $('#fireworksToggleButton').hide();
-    }
-}
 
 function showLoader() {
     $('#load-overlay').removeClass('loader-bg-hidden');
@@ -46,14 +34,12 @@ document.addEventListener('DOMContentLoaded',  (event) => {
     }
 
     for (const checkbox of Object.keys(checklist)) { // checklist was passed from the server
-        const checkboxName = checkbox.split('_').map((word, index) => {
-            return index > 0 ? word.charAt(0).toUpperCase() + word.slice(1) : word;
-        }).join('') + 'Checkbox';
+        const checkboxName = getCheckboxName(checkbox);
         $(`#${checkboxName}`).html(updateCheckbox(checklist[checkbox]));
         $(`#${checkboxName}`).on('click', async () => {
             checklist[checkbox] = checklist[checkbox] < 2 ? checklist[checkbox] + 1 : 0;
             $(`#${checkboxName}`).html(updateCheckbox(checklist[checkbox]));
-            updateTaskCount();
+            updateTaskCount(checklist);
             const res = await fetch('/qaqc/vars/checklist', {
                 method: 'PATCH',
                 headers: {
@@ -68,7 +54,7 @@ document.addEventListener('DOMContentLoaded',  (event) => {
                 console.error('Error updating checklist');
             }
         });
-        updateTaskCount();
+        updateTaskCount(checklist);
     }
 
     $('#fireworksToggleButton').on('click', () => {

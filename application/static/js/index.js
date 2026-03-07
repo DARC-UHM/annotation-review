@@ -3,6 +3,7 @@ import { autocomplete } from './util/autocomplete.js';
 
 // just hardcoding 26 (NGS-ExTech Project) as I suspect it will never change. easy enough to update if it does
 const TATOR_PROJECT = 26;
+const ANNOTATION_PLATFORM_STORAGE_KEY = 'annotationPlatform';
 const TATOR_SECTION_STORAGE_KEY = 'tatorSection';
 const TATOR_FOLDER_STORAGE_KEY = 'tatorFolder';
 const TATOR_DEPLOYMENT_STORAGE_KEY_PREFIX = 'tatorDeployment';
@@ -154,7 +155,7 @@ window.tatorLogin = tatorLogin;
 
 async function showTatorForm() {
     showLoader();
-    localStorage.setItem('annotationPlatform', 'Tator');
+    localStorage.setItem(ANNOTATION_PLATFORM_STORAGE_KEY, 'Tator');
     $('#varsIndexForm').hide();
     $('#platformSelectBtn').html('Tator ');
     const res = await fetch('/tator/token');
@@ -196,6 +197,7 @@ async function onDeploymentChange() {
 window.onDeploymentChange = onDeploymentChange;
 
 $('#varsSelect').on('click', () => {
+    localStorage.setItem(ANNOTATION_PLATFORM_STORAGE_KEY, 'VARS');
     $('#tatorLogin').hide();
     $('#tatorIndexForm').hide();
     $('#varsIndexForm').show();
@@ -360,7 +362,7 @@ function hideLoader() {
 
 document.addEventListener('DOMContentLoaded', async () => {
     autocomplete($('#sequence1'), sequences);
-    if (localStorage.getItem('annotationPlatform') === 'Tator' || window.location.search.includes('login=tator')) {
+    if (localStorage.getItem(ANNOTATION_PLATFORM_STORAGE_KEY) === 'Tator' || window.location.search.includes('login=tator')) {
         await showTatorForm();
     }
 });
