@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}{{ data.tab_title }} QA/QC Checklist | DARC QA/QC{% endblock title %}
+{% block content %}
+{% include 'components/back-to-home-button.html' %}
+{% include 'components/flash-container.html' %}
+{% include 'components/loading-fish.html' %}
+<div class="text-center my-3 mx-5">
+    <div class="col mt-4 m-auto" style="max-width: 800px;">
+        <div class="row m-auto mb-3">
+            <div class="col-9 text-start">
+                <h1 class="mt-4">WORK IN PROGRESS</h1>
+                <h2 class="mb-4">This page is not ready to be used yet :)</h2>
+                <h3 class="m-0 p-0" style="font-weight: 600;">{{ data.title }}</h3>
+                <div class="mb-2" id="deploymentList"></div>
+                <div style="font-weight: 600;">QA/QC Checklist</div>
+            </div>
+            <div class="col text-end mt-auto small">
+                <span>Total Localizations:&nbsp;&nbsp;<span id="localizationCount" style="font-weight: 600;"></span></span><br>
+                <span>Total Individuals:&nbsp;&nbsp;<span id="individualCount" style="font-weight: 600;"></span></span><br>
+                <span>Checks Complete:&nbsp;&nbsp;<span style="font-weight: 600;"><span id="tasksComplete">0</span> / <span>11</span></span></span>
+            </div>
+        </div>
+    </div>
+    <div class="position-absolute top-0 end-0 mt-3 me-4" style="rotate: 45deg; opacity: 50%;">
+        <button id="fireworksToggleButton" class="plusButton">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor">
+                <path d="M40-440v-80h240v80H40Zm270-154-84-84 56-56 84 84-56 56Zm130-86v-240h80v240h-80Zm210 86-56-56 84-84 56 56-84 84Zm30 154v-80h240v80H680Zm-200 80q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm198 134-84-84 56-56 84 84-56 56Zm-396 0-56-56 84-84 56 56-84 84ZM440-40v-240h80v240h-80Z"/>
+            </svg>
+        </button>
+    </div>
+    <div id="404" style="display: none;" class="my-5">
+        <h3>No records found for given transect<br></h3>
+    </div>
+    <div class="m-auto" style="max-width: 800px;">
+        <div>
+            <table id="checklistTable" class="table text-start">
+                <tbody style="border-top: solid 2px var(--darc-border);">
+                    <tr>
+                        <td><a id="namesAcceptedAnchor" class="aquaLink">1. All scientific names and tentative IDs are accepted in WoRMS</a></td>
+                        <td id="namesAcceptedCheckbox" class="qaqcCheckbox"></td>
+                    </tr>
+                    <tr>
+                        <td><a id="missingQualifierAnchor" class="aquaLink">2. All records classified higher than species have a qualifier</a></td>
+                        <td id="missingQualifierCheckbox" class="qaqcCheckbox"></td>
+                    </tr>
+                    <tr>
+                        <td><a id="stetReasonAnchor" class="aquaLink">3. All records with a qualifier of "stet" have a "reason"</a></td>
+                        <td id="stetReasonCheckbox" class="qaqcCheckbox"></td>
+                    </tr>
+                    <tr>
+                        <td><a id="substratePresentAnchor" class="aquaLink">4. A substrate state exists at/before each localization frame</a></td>
+                        <td id="substratePresentCheckbox" class="qaqcCheckbox"></td>
+                    </tr>
+                    <tr>
+                        <td><a id="uponPresentAnchor" class="aquaLink">5. All dot localizations have "Upon" populated</a></td>
+                        <td id="uponPresentCheckbox" class="qaqcCheckbox"></td>
+                    </tr>
+                    <tr>
+                        <td><a id="suspiciousHostsAnchor" class="aquaLink">6. No records where "Upon" matches the scientific name</a></td>
+                        <td id="suspiciousHostsCheckbox" class="qaqcCheckbox"></td>
+                    </tr>
+                    <tr>
+                        <td><a id="hostTimestampAnchor" class="aquaLink">7. Host/timestamp frame differences are within expected range</a></td>
+                        <td id="hostTimestampCheckbox" class="qaqcCheckbox"></td>
+                    </tr>
+                    <tr>
+                        <td><a id="tentativeIdAnchor" class="aquaLink">8. Review all records with a tentative ID</a></td>
+                        <td id="tentativeIdCheckbox" class="qaqcCheckbox"></td>
+                    </tr>
+                    <tr>
+                        <td><a id="notesRemarksAnchor" class="aquaLink">9. Review all records with notes and/or remarks</a></td>
+                        <td id="notesRemarksCheckbox" class="qaqcCheckbox"></td>
+                    </tr>
+                    <tr>
+                        <td><a id="reExaminedAnchor" class="aquaLink">10. Review all records marked "to be re-examined"</a></td>
+                        <td id="reExaminedCheckbox" class="qaqcCheckbox"></td>
+                    </tr>
+                    <tr>
+                        <td><a id="uniqueTaxaAnchor" class="aquaLink">11. Review all unique taxa</a></td>
+                        <td id="uniqueTaxaCheckbox" class="qaqcCheckbox"></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="mt-4 pt-2">
+                <a id="allSizesAnchor" class="aquaLink mx-3">All Sizes</a>
+                <a id="exploratorySegmentsAnchor" class="aquaLink mx-3">Exploratory Segments</a>
+                <a id="summaryAnchor" class="aquaLink mx-3">Summary</a>
+            </div>
+            <div class="my-4">
+                <a id="imageGuideAnchor" class="aquaLink" target="_blank">Download Animal Guide PPT</a>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="fireworks" class="pyro" style="display: none;">
+    <div class="before"></div>
+    <div class="after"></div>
+</div>
+{% endblock content %}
+{% block scripts %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/fireworks.css') }}" />
+<script>
+    const localizationCount = {{ data.localization_count }};
+    const individualCount = {{ data.individual_count }};
+    const checklist = {{ data.checklist|safe }};
+    const mediaNames = {{ data.media_names|safe }};
+    const transectIds = {{ data.transect_ids|safe }};
+</script>
+<script type="module" src="{{ url_for('qaqc.tator_qaqc.sub_qaqc.static', filename='qaqc-checklist.js') }}"></script>
+{% endblock scripts %}

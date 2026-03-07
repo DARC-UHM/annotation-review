@@ -340,6 +340,8 @@ $('#tatorImageReviewButton').on('click', () => {
 });
 
 $('#tatorQaqcButton').on('click', () => {
+    const isSub = $('#tatorFolder').val() === 'sub';
+    $('#tatorQaqcButton').attr('formaction', isSub ? '/qaqc/tator/sub/checklist' : '/qaqc/tator/dropcam/checklist');
     showLoader();
 });
 
