@@ -144,7 +144,7 @@ def transects():
         media_name_id_list = []
         media_list = tator_api.get_media_list(project_id, media_id=list(transect_media_ids))
         for media in media_list:
-            media_name_id_list.append({ 'name': media.name, 'id': media.id })
+            media_name_id_list.append({'name': media.name, 'id': media.id})
         return media_name_id_list, 200
     except tator.openapi.tator_openapi.exceptions.ApiException as e:
         print(f'{TERM_RED}ERROR: Unable to fetch transects list from Tator:{TERM_NORMAL} {e}')

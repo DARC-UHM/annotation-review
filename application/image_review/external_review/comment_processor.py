@@ -112,7 +112,7 @@ class CommentProcessor:
                     annotation = next((loco for loco in localizations if loco['elemental_id'] == comment), None)
                     if annotation is None:
                         problem_comment = self.comments[comment]
-                        problem_comment['timestamp'] = f'No timestamp available'
+                        problem_comment['timestamp'] = 'No timestamp available'
                         print(f'{TERM_RED}ERROR: Could not find annotation with UUID {comment} in Tator ({problem_comment["sequence"]}, {problem_comment["timestamp"]}){TERM_NORMAL}')
                         self.missing_records.append(problem_comment)
                         continue

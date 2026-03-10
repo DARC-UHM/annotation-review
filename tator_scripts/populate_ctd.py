@@ -90,7 +90,7 @@ def populate_ctd(expedition_name: str, deployment_name: str, use_underscore_name
         exit(1)
 
     # get all localizations in deployment
-    print(f'Fetching localizations from Tator...', end='')
+    print('Fetching localizations from Tator...', end='')
     sys.stdout.flush()
     localizations = []
     get_localization_res = requests.get(
@@ -108,7 +108,7 @@ def populate_ctd(expedition_name: str, deployment_name: str, use_underscore_name
     print()
 
     # get the csv for the deployment
-    print(f'Fetching CTD CSV file from Dropbox...', end='')
+    print('Fetching CTD CSV file from Dropbox...', end='')
     sys.stdout.flush()
     dbx = dropbox.Dropbox(os.getenv('DROPBOX_ACCESS_TOKEN'))  # create a Dropbox client instance
     path = None
@@ -187,7 +187,7 @@ def populate_ctd(expedition_name: str, deployment_name: str, use_underscore_name
         exit(1)
 
     print(f'\nCalculated bottom arrival time from sensor data (unix): {bottom_row["timestamp"]}')
-    print(f'Recommend double-checking this timestamp in the CSV file ^^^^^^^^^^')
+    print('Recommend double-checking this timestamp in the CSV file ^^^^^^^^^^')
 
     offset = camera_bottom_unix_timestamp - bottom_row['timestamp']
 

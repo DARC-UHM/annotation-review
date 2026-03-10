@@ -27,7 +27,7 @@ def get_deployment_section_id_map() -> dict:
     return deployment_section_id_map
 
 
-def print_progress_bar (iteration: int, total: int, prefix: str = '', suffix: str = ''):
+def print_progress_bar(iteration: int, total: int, prefix: str = '', suffix: str = ''):
     """
     Call in a loop to create terminal progress bar
     """
@@ -36,7 +36,7 @@ def print_progress_bar (iteration: int, total: int, prefix: str = '', suffix: st
     term_normal = '\033[1;37;0m'
     percent = round((100 * (iteration / float(total))), 1)
     filled_length = int(length * iteration // total)
-    bar = f'█' * filled_length + '-' * (length - filled_length)
+    bar = '█' * filled_length + '-' * (length - filled_length)
     print(f'\r{prefix} {term_blue}|{bar}|{term_normal} {percent}% {suffix}', end='\r')
     if iteration == total:
         print()

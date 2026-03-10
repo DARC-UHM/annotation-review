@@ -66,7 +66,7 @@ with open(CSV_FILE, newline='') as file:
             continue
         print(f'\nFound {len(media_ids)} media files. Updating each media file\'s attributes...')
         # update attributes for each media id
-        print_progress_bar(0, len(media_ids), prefix = f'  0 / {len(media_ids)}', suffix = 'Complete')
+        print_progress_bar(0, len(media_ids), prefix=f'  0 / {len(media_ids)}', suffix='Complete')
         for index, media_id in enumerate(media_ids):
             sys.stdout.flush()
             req = requests.patch(
@@ -82,7 +82,7 @@ with open(CSV_FILE, newline='') as file:
             if req.status_code != 200:
                 print(f'Error updating media id {media_id}: {req.text}')
                 exit(1)
-            print_progress_bar(index + 1, len(media_ids), prefix = f'  {index} / {len(media_ids)}', suffix = 'Complete')
+            print_progress_bar(index + 1, len(media_ids), prefix=f'  {index} / {len(media_ids)}', suffix='Complete')
 
         print()
         print(f'{deployment_name} complete!')

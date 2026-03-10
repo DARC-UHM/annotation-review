@@ -390,9 +390,9 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
                     observation_time = extract_recorded_datetime(associate_record)
                     found = False
                     for j in range(i + 10, -1, -1):
-                        """ 
-                        Checks backward, looking for the most recent host w/ matching name. We start at i + 10 because 
-                        there can be multiple records with the exact same timestamp, and one of those records could be 
+                        """
+                        Checks backward, looking for the most recent host w/ matching name. We start at i + 10 because
+                        there can be multiple records with the exact same timestamp, and one of those records could be
                         the 'upon'
                         """
                         # to catch index out of range exception
@@ -430,7 +430,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
                 f'({greater_than_five_mins[uuid].seconds // 60 % 60} mins, {greater_than_five_mins[uuid].seconds % 60} seconds)'
         for uuid in not_found:
             next((x for x in self.final_records if x['observation_uuid'] == uuid), None)['status'] = \
-                f'Host not found in previous records'
+                'Host not found in previous records'
 
     def find_num_bounding_boxes(self):
         """

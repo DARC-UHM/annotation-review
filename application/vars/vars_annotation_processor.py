@@ -92,6 +92,7 @@ class VarsAnnotationProcessor:
         """
         if 'recorded_timestamp' not in annotation.keys():
             return {}
+        # we use timestamps instead of annotation['video_reference_uuid'] to match videos because some video_reference_uuids are incorrect
         timestamp = parse_datetime(annotation['recorded_timestamp'])
         timestamp.isoformat()
         matching_video = self.videos[0]  # default to first video (videos are sorted by timestamp)
@@ -105,7 +106,7 @@ class VarsAnnotationProcessor:
             first_video_start_time = self.videos[0]['start_timestamp']
             last_video_end_time = self.videos[-1]['start_timestamp'] + datetime.timedelta(milliseconds=self.videos[-1]['duration_millis'])
             print(f'{TERM_YELLOW}WARNING: Unable to find video for annotation {annotation["observation_uuid"]} (concept name "{annotation["concept"]}"){TERM_NORMAL}')
-            print(f'Annotation timestamp is {annotation['recorded_timestamp']}, but videos start at '
+            print(f'Annotation timestamp is {annotation["recorded_timestamp"]}, but videos start at '
                   f'{first_video_start_time.isoformat()}Z and end at {last_video_end_time.isoformat()}Z')
             return {}
         return {

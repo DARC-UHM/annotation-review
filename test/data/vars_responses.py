@@ -562,16 +562,16 @@ ex_23060002 = {
                     'mime_type': 'text/plain'
                 },
             ],
-                'image_references': [],
-                'ancillary_data': {
-                    'altitude': 0.20000000298023224,
-                    'depth_meters': 4256.0888671875,
-                    'latitude': 56.92335858355786,
-                    'longitude': -149.5563359228375,
-                    'oxygen_ml_l': 3.0899999141693115,
-                    'salinity': 34.6781005859375,
-                    'temperature_celsius': 1.4814000129699707,
-                    'uuid': 'f769daac-0f90-4ebb-526a-96dbbd2ee91e'
+            'image_references': [],
+            'ancillary_data': {
+                'altitude': 0.20000000298023224,
+                'depth_meters': 4256.0888671875,
+                'latitude': 56.92335858355786,
+                'longitude': -149.5563359228375,
+                'oxygen_ml_l': 3.0899999141693115,
+                'salinity': 34.6781005859375,
+                'temperature_celsius': 1.4814000129699707,
+                'uuid': 'f769daac-0f90-4ebb-526a-96dbbd2ee91e'
             }
         },
         # annotations[2]: missing ancillary data, id ref different concept name, id ref conflicting associations, long host associate time diff, duplicate s1/s2

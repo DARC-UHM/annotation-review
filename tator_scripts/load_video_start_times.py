@@ -86,7 +86,7 @@ def process_folder(folder_path):
 
 
 """
-This was to rename all the files in a folder when the were named incorrectly. Keeping this just 
+This was to rename all the files in a folder when the were named incorrectly. Keeping this just
 in case we need to do something like this again in the future.
 
 def change_names(folder_path):
@@ -153,7 +153,7 @@ total_media_ids = get_tator_media_ids(
 )
 print(f'fetched data for {total_media_ids} media files!')
 
-print(f'Fetching video metadata XML files from DropBox...')
+print('Fetching video metadata XML files from DropBox...')
 total_xml_files = process_folder(
     folder_path=f'{os.getenv("DROPBOX_FOLDER_PATH")}/{dropbox_folder_deployment_name}'
 )
