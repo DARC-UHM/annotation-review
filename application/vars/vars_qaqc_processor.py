@@ -1,7 +1,4 @@
-import requests
-import sys
-
-from application.util.functions import extract_recorded_datetime, get_association, parse_datetime
+from application.util.functions import extract_recorded_datetime, get_association
 from application.vars.vars_annotation_processor import VarsAnnotationProcessor
 
 
@@ -12,35 +9,13 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
 
     def __init__(self, sequence_names: list, vars_charybdis_url: str, vars_kb_url: str):
         super().__init__(sequence_names, vars_charybdis_url, vars_kb_url)
-        self.videos = []
-
-    def fetch_annotations(self, seq_name):
-        """
-        Fetches annotations for a given sequence name from VARS
-        """
-        print(f'Fetching annotations for sequence {seq_name} from VARS...', end='')
-        sys.stdout.flush()
-
-        res = requests.get(url=f'{self.vars_charybdis_url}/query/dive/{seq_name.replace(" ", "%20")}')
-        dive_json = res.json()
-        print('fetched!')
-
-        for video in dive_json['media']:
-            if 'urn:imagecollection:org' not in video['uri']:
-                self.videos.append({
-                    'start_timestamp': parse_datetime(video['start_timestamp']),
-                    'uri': video['uri'].replace('http://hurlstor.soest.hawaii.edu/videoarchive', 'https://hurlvideo.soest.hawaii.edu'),
-                    'sequence_name': video['video_sequence_name'],
-                    'video_reference_uuid': video['video_reference_uuid'],
-                })
-        return dive_json['annotations']
 
     def find_duplicate_associations(self):
         """
         Finds annotations that have more than one of the same association besides s2
         """
         for name in self.sequence_names:
-            for annotation in self.fetch_annotations(name):
+            for annotation in self.fetch_media_and_annotations(name, images_only=False):
                 if annotation.get('group') == 'localization':
                     continue
                 # get list of associations
@@ -56,27 +31,27 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
                         break
                 if duplicate_associations:
                     self.working_records.append(annotation)
-        self.sort_records(self.process_working_records(self.videos))
+        self.sort_records(self.process_working_records())
 
     def find_missing_s1(self):
         """
         Finds annotations that are missing s1 (ignores 'none' records)
         """
         for name in self.sequence_names:
-            for annotation in self.fetch_annotations(name):
+            for annotation in self.fetch_media_and_annotations(name, images_only=False):
                 if annotation['concept'] == 'none' or annotation.get('group') == 'localization':
                     continue
                 s1 = get_association(annotation, 's1')
                 if not s1:
                     self.working_records.append(annotation)
-        self.sort_records(self.process_working_records(self.videos))
+        self.sort_records(self.process_working_records())
 
     def find_identical_s1_s2(self):
         """
         Finds annotations that have an s2 association that is the same as its s1 association
         """
         for name in self.sequence_names:
-            for annotation in self.fetch_annotations(name):
+            for annotation in self.fetch_media_and_annotations(name, images_only=False):
                 if annotation.get('group') == 'localization':
                     continue
                 s2s = []
@@ -88,14 +63,14 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
                         s2s.append(association['to_concept'])
                 if s1 in s2s:
                     self.working_records.append(annotation)
-        self.sort_records(self.process_working_records(self.videos))
+        self.sort_records(self.process_working_records())
 
     def find_duplicate_s2(self):
         """
         Finds annotations that have multiple s2 associations with the same value
         """
         for name in self.sequence_names:
-            for annotation in self.fetch_annotations(name):
+            for annotation in self.fetch_media_and_annotations(name, images_only=False):
                 if annotation.get('group') == 'localization':
                     continue
                 duplicate_s2s = False
@@ -109,7 +84,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
                             s2_set.add(association['to_concept'])
                 if duplicate_s2s:
                     self.working_records.append(annotation)
-        self.sort_records(self.process_working_records(self.videos))
+        self.sort_records(self.process_working_records())
 
     def find_missing_upon_substrate(self):
         """
@@ -117,7 +92,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
         any s2
         """
         for name in self.sequence_names:
-            for annotation in self.fetch_annotations(name):
+            for annotation in self.fetch_media_and_annotations(name, images_only=False):
                 if annotation.get('group') == 'localization':
                     continue
                 upon = None
@@ -141,7 +116,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
                             break
                 if missing_upon:
                     self.working_records.append(annotation)
-        self.sort_records(self.process_working_records(self.videos))
+        self.sort_records(self.process_working_records())
 
     def find_mismatched_substrates(self):
         """
@@ -149,7 +124,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
         """
         for name in self.sequence_names:
             annotations_with_same_timestamp = {}
-            sorted_annotations = sorted(self.fetch_annotations(name), key=lambda d: d['recorded_timestamp'])
+            sorted_annotations = sorted(self.fetch_media_and_annotations(name, images_only=False), key=lambda d: d['recorded_timestamp'])
             # loop through all annotations, add ones with same timestamp to dict
             i = 0
             while i < len(sorted_annotations) - 2:
@@ -183,19 +158,19 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
                 if base_substrates != check_substrates:
                     for annotation in annotations_with_same_timestamp[timestamp_key]:
                         self.working_records.append(annotation)
-        self.sort_records(self.process_working_records(self.videos))
+        self.sort_records(self.process_working_records())
 
     def find_missing_upon(self):
         """
         Finds annotations that are missing upon (ignores 'none' records)
         """
         for name in self.sequence_names:
-            for annotation in self.fetch_annotations(name):
+            for annotation in self.fetch_media_and_annotations(name, images_only=False):
                 if annotation['concept'] == 'none' or annotation.get('group') == 'localization':
                     continue
                 if not get_association(annotation, 'upon'):
                     self.working_records.append(annotation)
-        self.sort_records(self.process_working_records(self.videos))
+        self.sort_records(self.process_working_records())
 
     def get_num_records_missing_ancillary_data(self):
         """
@@ -203,7 +178,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
         """
         num_records_missing = 0
         for name in self.sequence_names:
-            for annotation in self.fetch_annotations(name):
+            for annotation in self.fetch_media_and_annotations(name, images_only=False):
                 if 'ancillary_data' not in annotation.keys():
                     num_records_missing += 1
         return num_records_missing
@@ -213,10 +188,10 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
         Finds annotations that are missing ancillary data (can be very slow)
         """
         for name in self.sequence_names:
-            for annotation in self.fetch_annotations(name):
+            for annotation in self.fetch_media_and_annotations(name, images_only=False):
                 if 'ancillary_data' not in annotation.keys():
                     self.working_records.append(annotation)
-        self.sort_records(self.process_working_records(self.videos))
+        self.sort_records(self.process_working_records())
 
     def find_id_refs_different_concept_name(self):
         """
@@ -225,7 +200,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
         for name in self.sequence_names:
             id_ref_names = {}  # dict of {id_ref: {name_1, name_2}} to check for more than one name
             id_ref_annotations = {}  # dict of all annotations per id_ref: {id_ref: [annotation_1, annotation_2]}
-            for annotation in self.fetch_annotations(name):
+            for annotation in self.fetch_media_and_annotations(name, images_only=False):
                 if annotation.get('group') == 'localization':
                     continue
                 for association in annotation['associations']:
@@ -240,7 +215,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
                 if len(name_set) > 1:
                     for annotation in id_ref_annotations[id_ref]:
                         self.working_records.append(annotation)
-        self.sort_records(self.process_working_records(self.videos))
+        self.sort_records(self.process_working_records())
 
     def find_id_refs_conflicting_associations(self):
         """
@@ -250,7 +225,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
         for name in self.sequence_names:
             id_ref_associations = {}  # dict of {id_ref: {ass_1_name: ass_1_val, ass_2_name: ass_2_val}}
             id_ref_annotations = {}  # dict of all annotations per id_ref: {id_ref: [annotation_1, annotation_2]}
-            for annotation in self.fetch_annotations(name):
+            for annotation in self.fetch_media_and_annotations(name, images_only=False):
                 if annotation.get('group') == 'localization':
                     continue
                 id_ref = get_association(annotation, 'identity-reference')
@@ -314,33 +289,33 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
                 if id_ref_associations[id_ref]['flag']:
                     for annotation in id_ref_annotations[id_ref]:
                         self.working_records.append(annotation)
-        self.sort_records(self.process_working_records(self.videos))
+        self.sort_records(self.process_working_records())
 
     def find_blank_associations(self):
         """
         Finds all records that have associations with a link value of ""
         """
         for name in self.sequence_names:
-            for annotation in self.fetch_annotations(name):
+            for annotation in self.fetch_media_and_annotations(name, images_only=False):
                 if annotation.get('group') == 'localization':
                     continue
                 for association in annotation['associations']:
                     if association['link_value'] == '' and association['to_concept'] == 'self':
                         self.working_records.append(annotation)
-        self.sort_records(self.process_working_records(self.videos))
+        self.sort_records(self.process_working_records())
 
     def find_suspicious_hosts(self):
         """
         Finds annotations that have an upon that is the same concept as itself
         """
         for name in self.sequence_names:
-            for annotation in self.fetch_annotations(name):
+            for annotation in self.fetch_media_and_annotations(name, images_only=False):
                 if annotation.get('group') == 'localization':
                     continue
                 upon = get_association(annotation, 'upon')
                 if upon and upon['to_concept'] == annotation['concept']:
                     self.working_records.append(annotation)
-        self.sort_records(self.process_working_records(self.videos))
+        self.sort_records(self.process_working_records())
 
     def find_missing_expected_association(self):
         """
@@ -382,11 +357,11 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
         genera = ['Henricia']
         concepts = ['Hydroidolina']
         for name in self.sequence_names:
-            for annotation in self.fetch_annotations(name):
+            for annotation in self.fetch_media_and_annotations(name, images_only=False):
                 if annotation.get('group') == 'localization':
                     continue
                 self.working_records.append(annotation)
-        self.sort_records(self.process_working_records(self.videos))
+        self.sort_records(self.process_working_records())
         temp_records = self.final_records
         self.final_records = []
         for record in temp_records:
@@ -405,7 +380,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
         greater_than_five_mins = {}
         not_found = []
         for name in self.sequence_names:
-            sorted_annotations = sorted(self.fetch_annotations(name), key=lambda d: d['recorded_timestamp'])
+            sorted_annotations = sorted(self.fetch_media_and_annotations(name, images_only=False), key=lambda d: d['recorded_timestamp'])
             for i in range(len(sorted_annotations)):
                 associate_record = sorted_annotations[i]
                 upon = get_association(sorted_annotations[i], 'upon')
@@ -444,7 +419,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
                     if not found:
                         not_found.append(associate_record['observation_uuid'])
                         self.working_records.append(associate_record)
-        self.sort_records(self.process_working_records(self.videos))
+        self.sort_records(self.process_working_records())
         for uuid in greater_than_one_min.keys():
             next((x for x in self.final_records if x['observation_uuid'] == uuid), None)['status'] = \
                 'Time between record and closest previous matching host record greater than one minute ' \
@@ -465,7 +440,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
         total_count_annos = 0
         total_count_boxes = 0
         for name in self.sequence_names:
-            for annotation in self.fetch_annotations(name):
+            for annotation in self.fetch_media_and_annotations(name, images_only=False):
                 total_count_annos += 1
                 if annotation['concept'] not in bounding_box_counts.keys():
                     bounding_box_counts[annotation['concept']] = {
@@ -489,7 +464,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
         records that have a bounding box association but are not in the "localization" group.
         """
         for name in self.sequence_names:
-            for annotation in self.fetch_annotations(name):
+            for annotation in self.fetch_media_and_annotations(name, images_only=False):
                 has_box = False
                 for association in annotation['associations']:
                     if association['link_name'] == 'bounding box':
@@ -500,7 +475,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
                         self.working_records.append(annotation)
                 elif has_box:
                     self.working_records.append(annotation)
-        self.sort_records(self.process_working_records(self.videos))
+        self.sort_records(self.process_working_records())
 
     def find_unique_fields(self):
         def load_dict(field_name, unique_dict, individual_count):
@@ -524,7 +499,7 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
         unique_occurrence_remarks = {}
 
         for name in self.sequence_names:
-            for annotation in self.fetch_annotations(name):
+            for annotation in self.fetch_media_and_annotations(name, images_only=False):
                 substrates = []
                 upon = None
                 comment = None

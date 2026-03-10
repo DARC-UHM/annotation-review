@@ -256,7 +256,7 @@ function updateHash() {
             }
         });
         let videoUrl = annotation.video_url;
-        videoUrl = `${videoUrl.split('#t=')[0]}&time=${videoUrl.split('#t=')[1]}`;
+        videoUrl = videoUrl ? `${videoUrl.split('#t=')[0]}&time=${videoUrl.split('#t=')[1]}` : null;
         const imageUrl = annotation.image_url ? annotation.image_url : `http://${window.location.host}/vars/video-frame?url=${videoUrl}`;
         $('#annotationTable').find('tbody').append(`
         <tr>

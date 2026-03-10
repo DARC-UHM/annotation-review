@@ -20,6 +20,7 @@ class TestVarsAnnotationProcessor:
         assert annotation_processor.vessel_name == 'Deep Discoverer'
         assert annotation_processor.sequence_names == ['Deep Discoverer 23060001']
         assert annotation_processor.highest_id_ref == 0
+        assert annotation_processor.videos == []
         assert annotation_processor.working_records == []
         assert annotation_processor.final_records == []
         assert len(annotation_processor.phylogeny.data.keys()) > 0
@@ -31,24 +32,25 @@ class TestVarsAnnotationProcessor:
             vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
             vars_kb_url=MockResponse.VARS_KB_URL,
         )
-        sequence_videos = []
-        annotation_processor.fetch_media_and_annotations(annotation_processor.sequence_names[0], sequence_videos)
-        assert sequence_videos == [
+        annotation_processor.process_sequences()
+        assert annotation_processor.videos == [
             {
                 'start_timestamp': parse_datetime('2023-08-24T18:30:00Z'),
                 'uri': 'https://hurlvideo.soest.hawaii.edu/D2/2023/EX2306_01/EX2306_01_20230824T183000Z.m4v',
                 'sequence_name': 'Deep Discoverer 23060001',
                 'video_reference_uuid': 'dda3dc62-9f78-4dbb-91cd-5015026e0434',
+                'duration_millis': 7199993,
             },
             {
                 'start_timestamp':  parse_datetime('2023-08-24T20:30:00Z'),
                 'uri': 'https://hurlvideo.soest.hawaii.edu/D2/2023/EX2306_01/EX2306_01_20230824T203000Z.m4v',
                 'sequence_name': 'Deep Discoverer 23060001',
                 'video_reference_uuid': 'd955c4ef-94e0-4f0d-83f5-d0144a09a933',
+                'duration_millis': 7199993,
             },
         ]
-        assert len(annotation_processor.working_records) == 3
 
+    # TODO move to PhylogenyCache test
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_fetch_vars_phylogeny(self, mock_get):
         annotation_processor = VarsAnnotationProcessor(
@@ -71,21 +73,11 @@ class TestVarsAnnotationProcessor:
         }
 
     def test_get_image_url_only_one(self):  # only one image to choose from
-        annotation_processor = VarsAnnotationProcessor(
-            sequence_names=['Deep Discoverer 23060001'],
-            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
-            vars_kb_url=MockResponse.VARS_KB_URL,
-        )
-        assert annotation_processor.get_image_url(ex_23060001['annotations'][1]) \
+        assert VarsAnnotationProcessor.get_image_url(ex_23060001['annotations'][1]) \
                == 'https://hurlimage.soest.hawaii.edu/SupplementalPhotos/Hphotos/NA138photos/H1920/cam1_20220419064757.png'
 
     def test_get_image_url_png(self):  # multiple images to choose from, get the png
-        annotation_processor = VarsAnnotationProcessor(
-            sequence_names=['Deep Discoverer 23060001'],
-            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
-            vars_kb_url=MockResponse.VARS_KB_URL,
-        )
-        assert annotation_processor.get_image_url(ex_23060001['annotations'][0]) \
+        assert VarsAnnotationProcessor.get_image_url(ex_23060001['annotations'][0]) \
                == 'https://hurlimage.soest.hawaii.edu/Hercules/images/1381920/20220418T202402.015Z--542830a8-ec69-4ee5-a57d-9de66a412dba.png'
 
     @patch('requests.get', side_effect=mocked_requests_get)
@@ -95,10 +87,8 @@ class TestVarsAnnotationProcessor:
             vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
             vars_kb_url=MockResponse.VARS_KB_URL,
         )
-        sequence_videos = []
-        annotation_processor.fetch_media_and_annotations(annotation_processor.sequence_names[0], sequence_videos)
-        print(sequence_videos)
-        assert annotation_processor.get_video(ex_23060001['annotations'][0], sequence_videos)['uri'] \
+        annotation_processor.process_sequences()
+        assert annotation_processor.get_video(ex_23060001['annotations'][0])['uri'] \
                == 'https://hurlvideo.soest.hawaii.edu/D2/2023/EX2306_01/EX2306_01_20230824T183000Z.m4v#t=374'
 
     @patch('requests.get', side_effect=mocked_requests_get)
@@ -108,9 +98,8 @@ class TestVarsAnnotationProcessor:
             vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
             vars_kb_url=MockResponse.VARS_KB_URL,
         )
-        sequence_videos = []
-        annotation_processor.fetch_media_and_annotations(annotation_processor.sequence_names[0], sequence_videos)
-        assert annotation_processor.get_video(ex_23060001['annotations'][1], sequence_videos)['uri'] \
+        annotation_processor.process_sequences()
+        assert annotation_processor.get_video(ex_23060001['annotations'][1])['uri'] \
                == 'https://hurlvideo.soest.hawaii.edu/D2/2023/EX2306_01/EX2306_01_20230824T203000Z.m4v#t=3505'
 
     @patch('requests.get', side_effect=mocked_requests_get)
@@ -120,9 +109,8 @@ class TestVarsAnnotationProcessor:
             vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
             vars_kb_url=MockResponse.VARS_KB_URL,
         )
-        sequence_videos = []
-        annotation_processor.fetch_media_and_annotations(annotation_processor.sequence_names[0], sequence_videos)
-        assert annotation_processor.process_working_records(sequence_videos) == [
+        annotation_processor.process_sequences()
+        assert annotation_processor.process_working_records() == [
             {
                 'observation_uuid': '0059f860-4799-485f-c06c-5830e5ddd31e',
                 'concept': 'Pomacentridae',
@@ -189,9 +177,7 @@ class TestVarsAnnotationProcessor:
             vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
             vars_kb_url=MockResponse.VARS_KB_URL,
         )
-        sequence_videos = []
-        annotation_processor.fetch_media_and_annotations(annotation_processor.sequence_names[0], sequence_videos)
-        annotation_processor.sort_records(annotation_processor.process_working_records(sequence_videos))
+        annotation_processor.process_sequences()
         assert annotation_processor.final_records == [
             {
                 'observation_uuid': '0059f860-4799-485f-c06c-5830e5ddd31e',
@@ -260,7 +246,5 @@ class TestVarsAnnotationProcessor:
             vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
             vars_kb_url=MockResponse.VARS_KB_URL,
         )
-        sequence_videos = []
-        annotation_processor.fetch_media_and_annotations(annotation_processor.sequence_names[0], sequence_videos)
-        annotation_processor.process_working_records(sequence_videos)
+        annotation_processor.process_sequences()
         assert annotation_processor.highest_id_ref == 13

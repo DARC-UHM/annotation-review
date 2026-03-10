@@ -1,7 +1,10 @@
+import datetime
+
 import pandas as pd
 import requests
 import sys
 
+from application.util.constants import TERM_YELLOW, TERM_NORMAL
 from application.util.functions import format_annotator, parse_datetime
 from application.util.phylogeny_cache import PhylogenyCache
 
@@ -17,6 +20,7 @@ class VarsAnnotationProcessor:
         self.vars_charybdis_url = vars_charybdis_url
         self.vars_kb_url = vars_kb_url
         self.phylogeny = PhylogenyCache()
+        self.videos = []
         self.working_records = []  # all the annotations that have images
         self.final_records = []    # the final list of annotations
         self.highest_id_ref = 0
@@ -25,19 +29,18 @@ class VarsAnnotationProcessor:
         self.vessel_name = ' '.join(temp_name)
 
     def process_sequences(self):
-        videos = []
         for name in self.sequence_names:
             print(f'Fetching annotations for sequence {name} from VARS...', end='')
             sys.stdout.flush()
-            self.fetch_media_and_annotations(name, videos)
+            self.working_records = self.fetch_media_and_annotations(name, images_only=True)
             print('fetched!')
         print('Processing annotations...', end='')
         sys.stdout.flush()
-        self.sort_records(self.process_working_records(videos))
+        self.sort_records(self.process_working_records())
         print('done!')
         self.phylogeny.save()
 
-    def fetch_media_and_annotations(self, sequence_name: str, videos: list):
+    def fetch_media_and_annotations(self, sequence_name: str, images_only: bool):
         """
         Fetches all annotations that have images and all video uris/start times from VARS.
         """
@@ -46,19 +49,29 @@ class VarsAnnotationProcessor:
         # get list of video links and start timestamps
         for video in response['media']:
             if 'urn:imagecollection:org' not in video['uri']:
-                videos.append({
+                self.videos.append({
                     'start_timestamp': parse_datetime(video['start_timestamp']),
                     'uri': video['uri'].replace('http://hurlstor.soest.hawaii.edu/videoarchive', 'https://hurlvideo.soest.hawaii.edu'),
                     'sequence_name': video['video_sequence_name'],
                     'video_reference_uuid': video['video_reference_uuid'],
+                    'duration_millis': video['duration_millis'],
                 })
-        # get all annotations that have images
+
+        self.videos.sort(key=lambda x: x['start_timestamp'])
+
+        if not images_only:
+            return response['annotations']  # return all annotations
+
+        # only return annotations that have images
+        annotations_with_images = []
         for annotation in response['annotations']:
             concept_name = annotation['concept']
             if annotation['image_references'] and concept_name[0].isupper():
-                self.working_records.append(annotation)
+                annotations_with_images.append(annotation)
+        return annotations_with_images
 
-    def get_image_url(self, annotation: dict) -> str:
+    @staticmethod
+    def get_image_url(annotation: dict) -> str:
         """
         Gets the correct image url from the given annotation record. Preferentially selects a png image if available
         (higher quality).
@@ -72,7 +85,7 @@ class VarsAnnotationProcessor:
                 break
         return image_url.replace('http://hurlstor.soest.hawaii.edu/imagearchive', 'https://hurlimage.soest.hawaii.edu')
 
-    def get_video(self, annotation: dict, videos: list) -> dict:
+    def get_video(self, annotation: dict) -> dict:
         """
         Gets the video url and sequence name for the given annotation record. Selects the video from the list of
         sequence videos that contains the annotation and adds offset to the video url.
@@ -80,18 +93,27 @@ class VarsAnnotationProcessor:
         if 'recorded_timestamp' not in annotation.keys():
             return {}
         timestamp = parse_datetime(annotation['recorded_timestamp'])
-        matching_video = videos[0]  # default to first video
-        for video in videos:
+        timestamp.isoformat()
+        matching_video = self.videos[0]  # default to first video (videos are sorted by timestamp)
+        for video in self.videos:
             if video['start_timestamp'] > timestamp:
                 break
             matching_video = video
         time_diff = timestamp - matching_video['start_timestamp']
+        # if the annotation timestamp is before the start of the video or after the end of the video, return empty dict (no video)
+        if time_diff.total_seconds() < 0 or time_diff.total_seconds() * 1000 > matching_video['duration_millis']:
+            first_video_start_time = self.videos[0]['start_timestamp']
+            last_video_end_time = self.videos[-1]['start_timestamp'] + datetime.timedelta(milliseconds=self.videos[-1]['duration_millis'])
+            print(f'{TERM_YELLOW}WARNING: Unable to find video for annotation {annotation["observation_uuid"]} (concept name "{annotation["concept"]}"){TERM_NORMAL}')
+            print(f'Annotation timestamp is {annotation['recorded_timestamp']}, but videos start at '
+                  f'{first_video_start_time.isoformat()}Z and end at {last_video_end_time.isoformat()}Z')
+            return {}
         return {
             'uri': f'{matching_video["uri"]}#t={int(time_diff.total_seconds())}',
             'sequence_name': matching_video['sequence_name'],
         }
 
-    def process_working_records(self, videos: list):
+    def process_working_records(self):
         """
         Cleans and formats the working records into a list of dicts.
         """
@@ -103,10 +125,10 @@ class VarsAnnotationProcessor:
             identity_reference = None
             depth = None
 
-            if concept_name not in self.phylogeny.data and concept_name != 'none':
+            if concept_name not in self.phylogeny.data and concept_name != 'none' and concept_name not in no_match_records:
                 self.phylogeny.fetch_vars(concept_name, self.vars_kb_url, no_match_records)
 
-            video = self.get_video(record, videos)
+            video = self.get_video(record)
 
             if record.get('associations'):
                 for association in record['associations']:
