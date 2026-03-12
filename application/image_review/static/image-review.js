@@ -652,6 +652,9 @@ document.addEventListener('DOMContentLoaded', function(event) {
     $('#scientificNameAutocompleteSpinner').hide();
     $('#editScientificName').on('input', () =>
         getWormsAutocomplete('editScientificName', 'scientificNameAutocompleteSpinner', 'editTatorLocaModalSubmitButton'));
+    $('#tentativeIdAutocompleteSpinner').hide();
+    $('#editTentativeId').on('input', () =>
+        getWormsAutocomplete('editTentativeId', 'tentativeIdAutocompleteSpinner', 'editTatorLocaModalSubmitButton'));
 
     if (sessionStorage.getItem(`scrollPos${queryAndHash}`)) {
         window.scrollTo({
