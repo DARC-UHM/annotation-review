@@ -94,7 +94,6 @@ def dropcam_qaqc(check):
         return err
     transect_media, deployment_names, expedition_name = _get_deployment_info(tator_api, project_id, section_ids, transect_ids)
     media_names = [media.name for media in transect_media]
-    tator_client = TatorRestClient(current_app.config.get('TATOR_URL'), session['tator_token'])
     comments, image_refs = get_comments_and_image_refs(deployment_names)
     tab_title = media_names[0] if len(media_names) == 1 else expedition_name
     data = {
@@ -106,10 +105,12 @@ def dropcam_qaqc(check):
         'reviewers': session.get('reviewers', []),
         'comments': comments,
         'image_refs': image_refs,
+        'qaqc_js': 'qaqc.tator_qaqc.sub_qaqc.static',
     }
     qaqc_annos = TatorSubQaqcProcessor(
         project_id=project_id,
         section_ids=section_ids,
+        transect_media_ids=[int(transect_id) for transect_id in transect_ids],
         api=tator_api,
         darc_review_url=current_app.config.get('DARC_REVIEW_URL'),
         tator_url=current_app.config.get('TATOR_URL'),

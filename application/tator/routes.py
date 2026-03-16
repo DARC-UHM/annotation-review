@@ -187,8 +187,9 @@ def update_tator_localization():
         'Morphospecies': request.values.get('morphospecies'),
         'Identified By': request.values.get('identified_by'),
         'Notes': request.values.get('notes'),
-        'Attracted': request.values.get('attracted'),
     }
+    if attracted := request.values.get('attracted'):
+        attributes['Attracted'] = attracted
     try:
         for localization in localization_id_types:
             this_attributes = attributes.copy()
@@ -205,7 +206,8 @@ def update_tator_localization():
                     attributes=this_attributes,
                 )
             )
-    except tator.openapi.tator_openapi.exceptions.ApiException:
+    except tator.openapi.tator_openapi.exceptions.ApiException as e:
+        print(f'{TERM_RED}ERROR: Unable to update Tator localization:{TERM_NORMAL} {e.body}')
         return {}, 500
     return {}, 200
 

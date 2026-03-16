@@ -119,6 +119,7 @@ def dropcam_qaqc(check):
         'reviewers': session.get('reviewers', []),
         'comments': comments,
         'image_refs': image_refs,
+        'qaqc_js': 'qaqc.tator_qaqc.dropcam_qaqc.static',
     }
     if check == 'media-attributes':
         # the one case where we don't want to initialize a TatorDropcamQaqcProcessor (no need to fetch localizations)

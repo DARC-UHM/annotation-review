@@ -9,9 +9,11 @@ function showLoader() {
 document.addEventListener('DOMContentLoaded', (event) => {
     const url = new URL(window.location.href);
     const projectId = url.searchParams.get('project');
+    const sectionIds = url.searchParams.getAll('section');
     const transectIds = url.searchParams.getAll('transect');
+    const sectionParam = sectionIds.map(id => `section=${id}`).join('&');
     const transectParam = transectIds.map(id => `transect=${id}`).join('&');
-    const urlParams = `project=${projectId}&${transectParam}`;
+    const urlParams = `project=${projectId}&${sectionParam}&${transectParam}`;
 
     $('#localizationCount').html(formattedNumber(localizationCount));
     $('#individualCount').html(formattedNumber(individualCount));
