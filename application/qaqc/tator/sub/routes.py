@@ -2,7 +2,7 @@
 Sub/transect QA/QC endpoints
 
 /qaqc/tator/sub/checklist [GET, PATCH]
-TODO /qaqc/tator/dropcam/check/<check> [GET]
+/qaqc/tator/sub/check/<check> [GET]
 """
 import requests
 from flask import current_app, flash, redirect, render_template, request, session
@@ -14,15 +14,15 @@ from application.tator.tator_type import TatorLocalizationType
 from application.qaqc.tator.util import init_tator_api, get_comments_and_image_refs
 
 
-def _get_deployment_info(tator_api, project_id, section_ids, transect_ids):
+def _get_deployment_info(tator_client: TatorRestClient, section_ids: list[str], transect_ids: list[str]):
     deployment_names = []
     expedition_name = None
     for section_id in section_ids:
-        section = tator_api.get_section(id=int(section_id))
-        deployment_names.append(section.name)
+        section = tator_client.get_section_by_id(section_id)
+        deployment_names.append(section['name'])
         if expedition_name is None:
-            expedition_name = section.path.split('.')[0]
-    transect_media = tator_api.get_media_list(project_id, media_id=[int(tid) for tid in transect_ids])
+            expedition_name = section['path'].split('.')[0]
+    transect_media = [tator_client.get_media_by_id(transect_id) for transect_id in transect_ids]
     return transect_media, deployment_names, expedition_name
 
 
@@ -34,13 +34,14 @@ def sub_qaqc_checklist():
     if not project_id or not section_ids or not transect_ids:
         flash('Please select a project, section, and transect', 'info')
         return redirect('/')
-    tator_api, err = init_tator_api()
-    if err:
-        return err
-    transect_media, _, expedition_name = _get_deployment_info(tator_api, project_id, section_ids, transect_ids)
-    media_names = [media.name for media in transect_media]
-    localizations = []
     tator_client = TatorRestClient(current_app.config.get('TATOR_URL'), session['tator_token'])
+    transect_media, _, expedition_name = _get_deployment_info(
+        tator_client=tator_client,
+        section_ids=section_ids,
+        transect_ids=transect_ids,
+    )
+    media_names = [media['name'] for media in transect_media]
+    localizations = []
     for i in range(0, len(transect_ids), 300):
         batch = [int(tid) for tid in transect_ids[i:i + 50]]
         localizations += tator_client.get_localizations(project_id, media_id=batch)
@@ -82,7 +83,7 @@ def patch_sub_qaqc_checklist():
 
 # individual qaqc checks
 @sub_qaqc_bp.get('/check/<check>')
-def dropcam_qaqc(check):
+def sub_qaqc(check):
     project_id = request.args.get('project', type=int)
     section_ids = request.args.getlist('section')
     transect_ids = request.args.getlist('transect')
@@ -92,8 +93,13 @@ def dropcam_qaqc(check):
     tator_api, err = init_tator_api()
     if err:
         return err
-    transect_media, deployment_names, expedition_name = _get_deployment_info(tator_api, project_id, section_ids, transect_ids)
-    media_names = [media.name for media in transect_media]
+    tator_client = TatorRestClient(current_app.config.get('TATOR_URL'), session['tator_token'])
+    transect_media, deployment_names, expedition_name = _get_deployment_info(
+        tator_client=tator_client,
+        section_ids=section_ids,
+        transect_ids=transect_ids,
+    )
+    media_names = [media['name'] for media in transect_media]
     comments, image_refs = get_comments_and_image_refs(deployment_names)
     tab_title = media_names[0] if len(media_names) == 1 else expedition_name
     data = {

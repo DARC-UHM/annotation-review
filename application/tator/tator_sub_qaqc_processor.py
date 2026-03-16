@@ -1,6 +1,7 @@
 import tator
 
 from application.tator.tator_base_qaqc_processor import TatorBaseQaqcProcessor
+from application.tator.tator_type import TatorLocalizationType
 
 
 class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
@@ -21,6 +22,31 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
             tator_url=tator_url,
             transect_media_ids=transect_media_ids,
         )
+
+    def get_unique_taxa(self):
+        self.process_records()
+        unique_taxa = {}
+        for record in self.final_records:
+            scientific_name = record.get('scientific_name')
+            tentative_id = record.get('tentative_id', '')
+            morphospecies = record.get('morphospecies', '')
+            key = f'{scientific_name}:{tentative_id}:{morphospecies}'
+            if key not in unique_taxa.keys():
+                # add new unique taxa to dict
+                unique_taxa[key] = {
+                    'scientific_name': scientific_name,
+                    'tentative_id': tentative_id,
+                    'morphospecies': morphospecies,
+                    'box_count': 0,
+                    'dot_count': 0,
+                }
+            for localization in record['all_localizations']:
+                # increment box/dot counts
+                if TatorLocalizationType.is_box(localization['type']):
+                    unique_taxa[key]['box_count'] += 1
+                elif TatorLocalizationType.is_dot(localization['type']):
+                    unique_taxa[key]['dot_count'] += 1
+        self.final_records = unique_taxa
 
     def get_summary(self):
         raise NotImplementedError('TatorSubQaqcProcessor does not implement get_summary')

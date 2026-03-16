@@ -38,8 +38,20 @@ class TatorRestClient:
         res.raise_for_status()
         return res.json()
 
-    def get_medias(self, project_id: int, section: str) -> list:
+    def get_section_by_id(self, section_id: str) -> dict:
+        url = f'{self.base_url}/rest/Section/{section_id}'
+        res = requests.get(url=url, headers=self._headers)
+        res.raise_for_status()
+        return res.json()
+
+    def get_medias_for_section(self, project_id: int, section: str) -> list:
         url = f'{self.base_url}/rest/Medias/{project_id}?section={section}'
+        res = requests.get(url=url, headers=self._headers)
+        res.raise_for_status()
+        return res.json()
+
+    def get_media_by_id(self, media_id: str) -> dict:
+        url = f'{self.base_url}/rest/Media/{media_id}'
         res = requests.get(url=url, headers=self._headers)
         res.raise_for_status()
         return res.json()
