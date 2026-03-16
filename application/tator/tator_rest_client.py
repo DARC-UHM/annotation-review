@@ -1,5 +1,4 @@
 import base64
-from typing import List
 
 import requests
 
@@ -28,7 +27,7 @@ class TatorRestClient:
         res.raise_for_status()
         return res.json()['token']
 
-    def get_localizations(self, project_id: int, section: str = None, media_id: List[int] = None) -> list:
+    def get_localizations(self, project_id: int, section: str = None, media_id: list[int] = None) -> list:
         if media_id is not None:
             url = f'{self.base_url}/rest/Localizations/{project_id}?media_id={",".join(str(m) for m in media_id)}'
         elif section is not None:

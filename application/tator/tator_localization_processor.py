@@ -1,6 +1,5 @@
 import datetime
 import os
-from typing import List
 
 import pandas as pd
 import requests
@@ -35,11 +34,11 @@ class TatorLocalizationProcessor:
     def __init__(
         self,
         project_id: int,
-        section_ids: List[str],
+        section_ids: list[str],
         api: tator.api,
         tator_url: str,
         darc_review_url: str = None,
-        transect_media_ids: List[int] = None,
+        transect_media_ids: list[int] = None,
     ):
         self.project_id = project_id
         self.tator_url = tator_url
@@ -47,7 +46,7 @@ class TatorLocalizationProcessor:
         self.sections = [Section(section_id, api) for section_id in section_ids]
         self.api = api
         self.tator_client = TatorRestClient(tator_url, session['tator_token'])
-        self.final_records = []  # final list formatted for review page
+        self.final_records: list[dict]|dict = []  # final list formatted for review page
         self.phylogeny = PhylogenyCache()
         self.transect_media_ids = set(media_id for media_id in transect_media_ids) if transect_media_ids else None
 

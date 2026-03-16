@@ -1,5 +1,4 @@
 import json
-from typing import Dict
 import requests
 import sys
 
@@ -20,7 +19,7 @@ class CommentProcessor:
     Fetches annotation information from the VARS db on HURLSTOR and Tator given a dict of comments (key = uuid). Merges
     fetched annotations with the data in the comment dict into an array of dicts (self.annotations).
     """
-    def __init__(self, comments: Dict, annosaurus_url: str, vars_kb_url: str, tator_url: str, tator_token: str = None):
+    def __init__(self, comments: dict, annosaurus_url: str, vars_kb_url: str, tator_url: str, tator_token: str = None):
         self.comments = comments
         self.annosaurus_url = annosaurus_url
         self.vars_kb_url = vars_kb_url

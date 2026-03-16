@@ -1,6 +1,5 @@
 import re
 from datetime import datetime, timedelta
-from typing import Dict, Optional
 
 
 def parse_datetime(timestamp: str) -> datetime:
@@ -15,7 +14,7 @@ def parse_datetime(timestamp: str) -> datetime:
     return datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%SZ')
 
 
-def extract_recorded_datetime(json_object: Dict) -> Optional[datetime]:
+def extract_recorded_datetime(json_object: dict) -> datetime | None:
     """
     Returns a datetime object of the recorded timestamp given a JSON annotation record.
 
@@ -32,7 +31,7 @@ def extract_recorded_datetime(json_object: Dict) -> Optional[datetime]:
     return datetime.strptime(json_object['recorded_timestamp'], '%Y-%m-%dT%H:%M:%SZ')
 
 
-def get_association(annotation: Dict, link_name: str) -> dict:
+def get_association(annotation: dict, link_name: str) -> dict:
     """
     Obtains an association value from the annotation data structure.
 
@@ -61,7 +60,7 @@ def format_annotator(annotator: str) -> str:
         return re.sub('([a-zA-Z]+)([A-Z])', r'\1 \2', annotator)
 
 
-def flatten_taxa_tree(tree: Dict, flat: Dict):
+def flatten_taxa_tree(tree: dict, flat: dict):
     """
     Recursive function taking a taxonomy tree returned from WoRMS API and flattening it into a single dictionary.
 

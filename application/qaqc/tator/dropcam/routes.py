@@ -9,7 +9,6 @@ Dropcam (dscm) QA/QC endpoints
 """
 import json
 from io import BytesIO
-from typing import List
 
 import tator
 import requests

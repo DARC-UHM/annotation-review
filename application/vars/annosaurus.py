@@ -1,8 +1,6 @@
 import requests
 import json
 
-from typing import Dict
-
 
 class AuthenticationError(Exception):
     """
@@ -55,7 +53,7 @@ class JWTAuthentication(object):
             print(f'-- BAD Authentication: {url} returned: \n{res.text}')
             return ''
 
-    def _auth_header(self, jwt: str) -> Dict:
+    def _auth_header(self, jwt: str) -> dict:
         """
         Format
         """
@@ -72,7 +70,7 @@ class Annosaurus(JWTAuthentication):
 
     def create_association(self,
                            observation_uuid: str,
-                           association: Dict,
+                           association: dict,
                            client_secret: str = None,
                            jwt: str = None) -> dict:
 
@@ -95,7 +93,7 @@ class Annosaurus(JWTAuthentication):
 
     def update_association(self,
                            association_uuid: str,
-                           association: Dict,
+                           association: dict,
                            client_secret: str = None,
                            jwt: str = None) -> dict:
 
