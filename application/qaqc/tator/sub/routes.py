@@ -107,6 +107,11 @@ def dropcam_qaqc(check):
         'image_refs': image_refs,
         'qaqc_js': 'qaqc.tator_qaqc.sub_qaqc.static',
     }
+    if check == 'media-attributes':
+        # the one case where we don't want to initialize a TatorSubQaqcProcessor (no need to fetch localizations)
+        data['page_title'] = 'Media attributes'
+        data['media_attributes'] = transect_media
+        return render_template('qaqc/tator/qaqc-tables.html', data=data)
     qaqc_annos = TatorSubQaqcProcessor(
         project_id=project_id,
         section_ids=section_ids,
@@ -126,6 +131,24 @@ def dropcam_qaqc(check):
         case 'stet-missing-reason':
             qaqc_annos.check_stet_reason()
             data['page_title'] = 'Records with a qualifier of \'stet\' missing \'Reason\''
+
+        case 'all-tentative-ids':
+            qaqc_annos.get_all_tentative_ids_and_morphospecies()
+            data['page_title'] = 'Records with a tentative ID or morphospecies'
+            data['subtitle'] = '(also checks phylogeny vs. scientific name)'
+        case 'notes-and-remarks':
+            qaqc_annos.get_all_notes_and_remarks()
+            data['page_title'] = 'Records with notes and/or remarks'
+        case 're-examined':
+            qaqc_annos.get_re_examined()
+            data['page_title'] = 'Records marked "to be re-examined"'
+
+        case 'unique-taxa':
+            qaqc_annos.get_unique_taxa()
+            data['page_title'] = 'All unique taxa'
+            data['unique_taxa'] = qaqc_annos.final_records
+            return render_template('qaqc/tator/qaqc-tables.html', data=data)
+
         case _:
             return render_template('errors/404.html', err=''), 404
     data['annotations'] = qaqc_annos.final_records

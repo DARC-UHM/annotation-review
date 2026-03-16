@@ -23,7 +23,7 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
         )
 
     def get_summary(self):
-        pass
+        raise NotImplementedError('TatorSubQaqcProcessor does not implement get_summary')
 
-    def download_image_guide(self):
-        pass
+    def download_image_guide(self, app):
+        raise NotImplementedError('TatorSubQaqcProcessor does not implement download_image_guide')

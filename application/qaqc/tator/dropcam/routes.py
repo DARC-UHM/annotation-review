@@ -128,7 +128,7 @@ def dropcam_qaqc(check):
             media_attributes[section_id] = tator_client.get_medias(project_id, section=section_id)
         data['page_title'] = 'Media attributes'
         data['media_attributes'] = media_attributes
-        return render_template('qaqc/tator/dropcam/qaqc-tables.html', data=data)
+        return render_template('qaqc/tator/qaqc-tables.html', data=data)
     qaqc_annos = TatorDropcamQaqcProcessor(
         project_id=project_id,
         section_ids=section_ids,
@@ -177,22 +177,22 @@ def dropcam_qaqc(check):
             qaqc_annos.get_unique_taxa()
             data['page_title'] = 'All unique taxa'
             data['unique_taxa'] = qaqc_annos.final_records
-            return render_template('qaqc/tator/dropcam/qaqc-tables.html', data=data)
+            return render_template('qaqc/tator/qaqc-tables.html', data=data)
         case 'summary':
             qaqc_annos.get_summary()
             data['page_title'] = 'Summary'
             data['annotations'] = qaqc_annos.final_records
-            return render_template('qaqc/tator/dropcam/qaqc-tables.html', data=data)
+            return render_template('qaqc/tator/qaqc-tables.html', data=data)
         case 'max-n':
             qaqc_annos.get_max_n()
             data['page_title'] = 'Max N'
             data['max_n'] = qaqc_annos.final_records
-            return render_template('qaqc/tator/dropcam/qaqc-tables.html', data=data)
+            return render_template('qaqc/tator/qaqc-tables.html', data=data)
         case 'tofa':
             qaqc_annos.get_tofa()
             data['page_title'] = 'Time of First Arrival'
             data['tofa'] = qaqc_annos.final_records
-            return render_template('qaqc/tator/dropcam/qaqc-tables.html', data=data)
+            return render_template('qaqc/tator/qaqc-tables.html', data=data)
         case 'image-guide':
             presentation_data = BytesIO()
             qaqc_annos.download_image_guide(current_app).save(presentation_data)
