@@ -51,12 +51,12 @@ document.addEventListener('DOMContentLoaded', (event) => {
         $('#fireworks').toggle();
     });
 
-    // $('#namesAcceptedAnchor').attr('href', `/qaqc/tator/sub/check/names-accepted?${urlParams}`);
-    // $('#namesAcceptedAnchor').on('click', () => showLoader());
-    // $('#missingQualifierAnchor').attr('href', `/qaqc/tator/sub/check/missing-qualifier?${urlParams}`);
-    // $('#missingQualifierAnchor').on('click', () => showLoader());
-    // $('#stetReasonAnchor').attr('href', `/qaqc/tator/sub/check/stet-missing-reason?${urlParams}`);
-    // $('#stetReasonAnchor').on('click', () => showLoader());
+    $('#namesAcceptedAnchor').attr('href', `/qaqc/tator/sub/check/names-accepted?${urlParams}`);
+    $('#namesAcceptedAnchor').on('click', () => showLoader());
+    $('#missingQualifierAnchor').attr('href', `/qaqc/tator/sub/check/missing-qualifier?${urlParams}`);
+    $('#missingQualifierAnchor').on('click', () => showLoader());
+    $('#stetReasonAnchor').attr('href', `/qaqc/tator/sub/check/stet-missing-reason?${urlParams}`);
+    $('#stetReasonAnchor').on('click', () => showLoader());
     // $('#substratePresentAnchor').attr('href', `/qaqc/tator/sub/check/substrate-present?${urlParams}`);
     // $('#substratePresentAnchor').on('click', () => showLoader());
     // $('#uponPresentAnchor').attr('href', `/qaqc/tator/sub/check/upon-present?${urlParams}`);

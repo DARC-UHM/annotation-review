@@ -273,9 +273,6 @@ class TatorDropcamQaqcProcessor(TatorBaseQaqcProcessor):
         }
 
     def get_summary(self):
-        """
-        Returns a summary of the final records.
-        """
         self.fetch_start_times()
         for section in self.sections:
             section.localizations = [
@@ -284,9 +281,6 @@ class TatorDropcamQaqcProcessor(TatorBaseQaqcProcessor):
         self.process_records(get_timestamp=True, get_ctd=True, get_substrates=True)
 
     def download_image_guide(self, app) -> Presentation:
-        """
-        Finds all records marked as "good" images, saves them to a ppt.
-        """
         for section in self.sections:
             records_of_interest = []
             for localization in section.localizations:
