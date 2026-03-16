@@ -7,10 +7,8 @@ Dropcam (dscm) QA/QC endpoints
 /qaqc/tator/dropcam/attracted [POST]
 /qaqc/tator/dropcam/attracted/<concept> [PATCH, DELETE]
 """
-import json
 from io import BytesIO
 
-import tator
 import requests
 from flask import current_app, flash, redirect, render_template, request, send_file, session
 
@@ -18,6 +16,18 @@ from . import dropcam_qaqc_bp
 from application.tator.tator_dropcam_qaqc_processor import TatorDropcamQaqcProcessor
 from application.tator.tator_type import TatorLocalizationType
 from application.tator.tator_rest_client import TatorRestClient
+from application.qaqc.tator.util import init_tator_api, get_comments_and_image_refs
+
+
+def _get_deployment_info(tator_api, section_ids):
+    deployment_names = []
+    expedition_name = None
+    for section_id in section_ids:
+        section = tator_api.get_section(id=int(section_id))
+        deployment_names.append(section.name)
+        if expedition_name is None:
+            expedition_name = section.path.split('.')[0]
+    return deployment_names, expedition_name
 
 
 # view QA/QC checklist for a specified project & section
@@ -28,24 +38,10 @@ def dropcam_qaqc_checklist():
     if not project_id or not section_ids:
         flash('Please select a project and section', 'info')
         return redirect('/')
-    if 'tator_token' not in session.keys():
-        flash('Please log in to Tator', 'info')
-        return redirect('/')
-    try:
-        tator_api = tator.get_api(
-            host=current_app.config.get('TATOR_URL'),
-            token=session['tator_token'],
-        )
-    except tator.openapi.tator_openapi.exceptions.ApiException as e:
-        flash(json.loads(e.body)['message'], 'danger')
-        return redirect('/')
-    deployment_names = []
-    expedition_name = None
-    for section_id in section_ids:
-        section = tator_api.get_section(id=int(section_id))
-        deployment_names.append(section.name)
-        if expedition_name is None:
-            expedition_name = section.path.split('.')[0]
+    tator_api, err = init_tator_api()
+    if err:
+        return err
+    deployment_names, expedition_name = _get_deployment_info(tator_api, section_ids)
     tator_client = TatorRestClient(current_app.config.get('TATOR_URL'), session['tator_token'])
     localizations = []
     individual_count = 0
@@ -108,43 +104,12 @@ def dropcam_qaqc(check):
     if not project_id or not section_ids:
         flash('Please select a project and section', 'info')
         return redirect('/')
-    if 'tator_token' not in session.keys():
-        flash('Please log in to Tator', 'info')
-        return redirect('/')
-    try:
-        tator_api = tator.get_api(
-            host=current_app.config.get('TATOR_URL'),
-            token=session['tator_token'],
-        )
-    except tator.openapi.tator_openapi.exceptions.ApiException as e:
-        flash(json.loads(e.body)['message'], 'danger')
-        return redirect('/')
-    deployment_names = []
-    expedition_name = None
-    for section_id in section_ids:
-        section = tator_api.get_section(id=int(section_id))
-        deployment_names.append(section.name)
-        if expedition_name is None:
-            expedition_name = section.path.split('.')[0]
+    tator_api, err = init_tator_api()
+    if err:
+        return err
+    deployment_names, expedition_name = _get_deployment_info(tator_api, section_ids)
     tator_client = TatorRestClient(current_app.config.get('TATOR_URL'), session['tator_token'])
-    # get comments and image references from external review db
-    comments = {}
-    image_refs = {}
-    try:
-        for deployment in deployment_names:
-            comment_res = requests.get(
-                    url=f'{current_app.config.get("DARC_REVIEW_URL")}/comment/sequence/{deployment}',
-                    headers=current_app.config.get('DARC_REVIEW_HEADERS'),
-            )
-            if comment_res.status_code != 200:
-                raise requests.exceptions.ConnectionError
-            comments |= comment_res.json()
-        image_ref_res = requests.get(f'{current_app.config.get("DARC_REVIEW_URL")}/image-reference/quick')
-        if image_ref_res.status_code != 200:
-            raise requests.exceptions.ConnectionError
-        image_refs = image_ref_res.json()
-    except requests.exceptions.ConnectionError:
-        print('\nERROR: unable to connect to external review server\n')
+    comments, image_refs = get_comments_and_image_refs(deployment_names)
     tab_title = deployment_names[0] if len(deployment_names) == 1 else expedition_name
     data = {
         'concepts': session.get('vars_concepts', []),
@@ -235,7 +200,7 @@ def dropcam_qaqc(check):
         case _:
             return render_template('errors/404.html', err=''), 404
     data['annotations'] = qaqc_annos.final_records
-    return render_template('qaqc/tator/dropcam/qaqc.html', data=data)
+    return render_template('qaqc/tator/qaqc.html', data=data)
 
 
 # view list of saved attracted/non-attracted taxa

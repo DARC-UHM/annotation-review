@@ -4,15 +4,26 @@ Sub/transect QA/QC endpoints
 /qaqc/tator/sub/checklist [GET, PATCH]
 TODO /qaqc/tator/dropcam/check/<check> [GET]
 """
-import json
-
-import tator
 import requests
 from flask import current_app, flash, redirect, render_template, request, session
 
+from application.tator.tator_sub_qaqc_processor import TatorSubQaqcProcessor
 from . import sub_qaqc_bp
 from application.tator.tator_rest_client import TatorRestClient
 from application.tator.tator_type import TatorLocalizationType
+from application.qaqc.tator.util import init_tator_api, get_comments_and_image_refs
+
+
+def _get_deployment_info(tator_api, project_id, section_ids, transect_ids):
+    deployment_names = []
+    expedition_name = None
+    for section_id in section_ids:
+        section = tator_api.get_section(id=int(section_id))
+        deployment_names.append(section.name)
+        if expedition_name is None:
+            expedition_name = section.path.split('.')[0]
+    transect_media = tator_api.get_media_list(project_id, media_id=[int(tid) for tid in transect_ids])
+    return transect_media, deployment_names, expedition_name
 
 
 @sub_qaqc_bp.get('/checklist')
@@ -23,19 +34,10 @@ def sub_qaqc_checklist():
     if not project_id or not section_ids or not transect_ids:
         flash('Please select a project, section, and transect', 'info')
         return redirect('/')
-    if 'tator_token' not in session.keys():
-        flash('Please log in to Tator', 'info')
-        return redirect('/')
-    try:
-        tator_api = tator.get_api(
-            host=current_app.config.get('TATOR_URL'),
-            token=session['tator_token'],
-        )
-    except tator.openapi.tator_openapi.exceptions.ApiException as e:
-        flash(json.loads(e.body)['message'], 'danger')
-        return redirect('/')
-    expedition_name = tator_api.get_section(section_ids[0]).path.split('.')[0]
-    transect_media = tator_api.get_media_list(project_id, media_id=[int(tid) for tid in transect_ids])
+    tator_api, err = init_tator_api()
+    if err:
+        return err
+    transect_media, _, expedition_name = _get_deployment_info(tator_api, project_id, section_ids, transect_ids)
     media_names = [media.name for media in transect_media]
     localizations = []
     tator_client = TatorRestClient(current_app.config.get('TATOR_URL'), session['tator_token'])
@@ -77,3 +79,53 @@ def patch_sub_qaqc_checklist():
         json=req_json,
     )
     return res.json(), res.status_code
+
+# individual qaqc checks
+@sub_qaqc_bp.get('/check/<check>')
+def dropcam_qaqc(check):
+    project_id = request.args.get('project', type=int)
+    section_ids = request.args.getlist('section')
+    transect_ids = request.args.getlist('transect')
+    if not project_id or not section_ids or not transect_ids:
+        flash('Please select a project, section, and transect', 'info')
+        return redirect('/')
+    tator_api, err = init_tator_api()
+    if err:
+        return err
+    transect_media, deployment_names, expedition_name = _get_deployment_info(tator_api, project_id, section_ids, transect_ids)
+    media_names = [media.name for media in transect_media]
+    tator_client = TatorRestClient(current_app.config.get('TATOR_URL'), session['tator_token'])
+    comments, image_refs = get_comments_and_image_refs(deployment_names)
+    tab_title = media_names[0] if len(media_names) == 1 else expedition_name
+    data = {
+        'concepts': session.get('vars_concepts', []),
+        'title': check.replace('-', ' ').title(),
+        'tab_title': f'{tab_title} {check.replace("-", " ").title()}',
+        'media_names': media_names,
+        'transect_ids': transect_ids,
+        'reviewers': session.get('reviewers', []),
+        'comments': comments,
+        'image_refs': image_refs,
+    }
+    qaqc_annos = TatorSubQaqcProcessor(
+        project_id=project_id,
+        section_ids=section_ids,
+        api=tator_api,
+        darc_review_url=current_app.config.get('DARC_REVIEW_URL'),
+        tator_url=current_app.config.get('TATOR_URL'),
+    )
+    qaqc_annos.fetch_localizations()
+    match check:
+        case 'names-accepted':
+            qaqc_annos.check_names_accepted()
+            data['page_title'] = 'Scientific names/tentative IDs not accepted in WoRMS'
+        case 'missing-qualifier':
+            qaqc_annos.check_missing_qualifier()
+            data['page_title'] = 'Records classified higher than species missing qualifier'
+        case 'stet-missing-reason':
+            qaqc_annos.check_stet_reason()
+            data['page_title'] = 'Records with a qualifier of \'stet\' missing \'Reason\''
+        case _:
+            return render_template('errors/404.html', err=''), 404
+    data['annotations'] = qaqc_annos.final_records
+    return render_template('qaqc/tator/qaqc.html', data=data)
