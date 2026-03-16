@@ -16,7 +16,7 @@ import requests
 from flask import current_app, flash, redirect, render_template, request, send_file, session
 
 from . import dropcam_qaqc_bp
-from application.tator.tator_qaqc_processor import TatorQaqcProcessor
+from application.tator.tator_dropcam_qaqc_processor import TatorDropcamQaqcProcessor
 from application.tator.tator_type import TatorLocalizationType
 from application.tator.tator_rest_client import TatorRestClient
 
@@ -157,14 +157,14 @@ def dropcam_qaqc(check):
         'image_refs': image_refs,
     }
     if check == 'media-attributes':
-        # the one case where we don't want to initialize a TatorQaqcProcessor (no need to fetch localizations)
+        # the one case where we don't want to initialize a TatorDropcamQaqcProcessor (no need to fetch localizations)
         media_attributes = {}
         for section_id in section_ids:
             media_attributes[section_id] = tator_client.get_medias(project_id, section=section_id)
         data['page_title'] = 'Media attributes'
         data['media_attributes'] = media_attributes
         return render_template('qaqc/tator/dropcam/qaqc-tables.html', data=data)
-    qaqc_annos = TatorQaqcProcessor(
+    qaqc_annos = TatorDropcamQaqcProcessor(
         project_id=project_id,
         section_ids=section_ids,
         api=tator_api,
