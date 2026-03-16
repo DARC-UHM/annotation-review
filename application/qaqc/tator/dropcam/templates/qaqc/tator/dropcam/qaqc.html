@@ -13,12 +13,11 @@
         <div class="row m-auto">
             <div class="col-9 text-start">
                 <h4 class="m-0 p-0 pb-2" style="font-weight: 600;">{{ data.page_title }}</h4>
-                <div id="attractedNotAttractedSubHeading" class="mb-2 d-flex justify-content-between w-100" style="display: none !important;">
-                    (also flags records with taxa that can be either)
+                {% if data.subtitle %}
+                <div class="mb-2 d-flex justify-content-between w-100">
+                    {{ data.subtitle }}
                 </div>
-                <div id="imageRefSubHeading" class="mb-2 d-flex justify-content-between w-100" style="display: none !important;">
-                    (also flags records that have both a tentative ID and a morphospecies)
-                </div>
+                {% endif %}
                 <div id="deploymentList"></div>
             </div>
             <div class="col-3 text-end mt-auto">

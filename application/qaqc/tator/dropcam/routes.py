@@ -186,10 +186,12 @@ def dropcam_qaqc(check):
             attracted_concepts = requests.get(url=f'{current_app.config.get("DARC_REVIEW_URL")}/attracted').json()
             qaqc_annos.check_attracted_not_attracted(attracted_concepts)
             data['page_title'] = 'Attracted/not attracted match expected taxa list'
+            data['subtitle'] = '(also flags records with taxa that can be either)'
             data['attracted_concepts'] = attracted_concepts
         case 'exists-in-image-references':
             qaqc_annos.check_exists_in_image_references(image_refs)
             data['page_title'] = 'Records that do not exist in image references'
+            data['subtitle'] = '(also flags records that have both a tentative ID and a morphospecies)'
         case 'same-name-qualifier':
             qaqc_annos.check_same_name_qualifier()
             data['page_title'] = 'Records with the same scientific name/tentative ID but different qualifiers'
@@ -197,8 +199,9 @@ def dropcam_qaqc(check):
             qaqc_annos.check_non_target_not_attracted()
             data['page_title'] = '"Non-target" records marked as "attracted"'
         case 'all-tentative-ids':
-            qaqc_annos.get_all_tentative_ids()
-            data['page_title'] = 'Records with a tentative ID (also checks phylogeny vs. scientific name)'
+            qaqc_annos.get_all_tentative_ids_and_morphospecies()
+            data['page_title'] = 'Records with a tentative ID or morphospecies'
+            data['subtitle'] = '(also checks phylogeny vs. scientific name)'
         case 'notes-and-remarks':
             qaqc_annos.get_all_notes_and_remarks()
             data['page_title'] = 'Records with notes and/or remarks'

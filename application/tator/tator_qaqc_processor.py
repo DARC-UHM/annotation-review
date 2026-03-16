@@ -200,9 +200,9 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
             section.localizations = records_of_interest
         self.process_records()
 
-    def get_all_tentative_ids(self):
+    def get_all_tentative_ids_and_morphospecies(self):
         """
-        Finds every record with a tentative ID. Also checks whether or not the tentative ID is in the same
+        Finds every record with a tentative ID or morphospecies. Also checks whether or not the tentative ID is in the same
         phylogenetic group as the scientific name.
         """
         no_match_records = set()
@@ -210,9 +210,18 @@ class TatorQaqcProcessor(TatorLocalizationProcessor):
         for section in self.sections:
             for localization in section.localizations:
                 tentative_id = localization['attributes'].get('Tentative ID')
+                morphospecies = localization['attributes'].get('Morphospecies')
+                is_record_of_interest = False
+                localization_problems = ''
                 if tentative_id and tentative_id not in ['--', '-', '']:
-                    localization['problems'] = 'Tentative ID'
+                    is_record_of_interest = True
+                    localization_problems += 'Tentative ID'
+                if morphospecies and morphospecies not in ['--', '-', '']:
+                    is_record_of_interest = True
+                    localization_problems += ' Morphospecies'
+                if is_record_of_interest:
                     records_of_interest.append(localization)
+                    localization['problems'] = localization_problems
             section.localizations = records_of_interest
         self.process_records()  # process first to make sure phylogeny is populated
         for localization in self.final_records:
