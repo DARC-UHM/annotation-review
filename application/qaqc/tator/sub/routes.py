@@ -141,6 +141,9 @@ def sub_qaqc(check):
         case 'missing-ancillary-data':
             qaqc_annos.check_missing_ancillary_data()
             data['page_title'] = 'Records missing ancillary data'
+        case 'missing-upon':
+            qaqc_annos.check_missing_upon_and_not_fish()
+            data['page_title'] = 'Records missing upon and not a fish'
 
         case 'all-tentative-ids':
             qaqc_annos.get_all_tentative_ids_and_morphospecies()

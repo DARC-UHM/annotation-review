@@ -40,6 +40,18 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
                 actual_final_records.append(record)
         self.final_records = actual_final_records
 
+    def check_missing_upon_and_not_fish(self):
+        """
+        Finds records that are missing the "upon" attribute and are not a fish.
+        """
+        self.process_records()
+        actual_final_records = []
+        for record in self.final_records:
+            if not record.get('upon') or ('water' in record['upon'].lower() and record['phylum'] != 'Chordata'):
+                record['problems'] = 'Upon'
+                actual_final_records.append(record)
+        self.final_records = actual_final_records
+
     def get_unique_taxa(self):
         self.process_records()
         unique_taxa = {}
