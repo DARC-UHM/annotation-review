@@ -59,8 +59,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
     $('#missingQualifierAnchor').on('click', () => showLoader());
     $('#stetReasonAnchor').attr('href', `/qaqc/tator/sub/check/stet-missing-reason?${urlParams}`);
     $('#stetReasonAnchor').on('click', () => showLoader());
-    // $('#missingAncillaryAnchor').attr('href', `/qaqc/tator/sub/check/substrate-present?${urlParams}`);
-    // $('#missingAncillaryAnchor').on('click', () => showLoader());
+    $('#missingAncillaryAnchor').attr('href', `/qaqc/tator/sub/check/missing-ancillary-data?${urlParams}`);
+    $('#missingAncillaryAnchor').on('click', () => showLoader());
     // $('#missingUponAnchor').attr('href', `/qaqc/tator/sub/check/upon-present?${urlParams}`);
     // $('#missingUponAnchor').on('click', () => showLoader());
     // $('#uponSubstrateAnchor').attr('href', `/qaqc/tator/sub/check/upon-present?${urlParams}`);

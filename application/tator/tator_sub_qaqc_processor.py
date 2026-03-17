@@ -23,6 +23,23 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
             transect_media_ids=transect_media_ids,
         )
 
+    def check_missing_ancillary_data(self):
+        """
+        Finds records that are missing ancillary data attributes:
+
+        * "DO Temperature (celsius)" (do_temp_c)
+        * "DO Concentration Salin Comp (mol per L)" (do_concentration_salin_comp_mol_L)
+        * "Depth" (depth_m)
+        """
+        self.process_records()
+        actual_final_records = []
+        for record in self.final_records:
+            if (not record.get('do_temp_c')
+                    or not record.get('do_concentration_salin_comp_mol_L')
+                    or not record.get('depth_m')):
+                actual_final_records.append(record)
+        self.final_records = actual_final_records
+
     def get_unique_taxa(self):
         self.process_records()
         unique_taxa = {}
