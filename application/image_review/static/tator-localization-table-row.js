@@ -66,24 +66,38 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                         ${localization.count || '-'}<br>
                     </div>
                 </div>
-                <div class="row" style="${localization.problems?.includes('Attracted') ? 'color: yellow;' : ''}">
-                    <div class="col-4">
-                        Attracted:
-                    </div>
-                    <div class="col values">
-                        ${localization.attracted || '-'} <span class="small" style="color: var(--darc-text); font-weight: normal">
-                            ${attractedConcepts
-                                ? `${attractedConcepts[localization.scientific_name] === 0 ? '(Expected not attracted)'
-                                        : attractedConcepts[localization.scientific_name] === 1 ? '(Expected attracted)'
-                                            : attractedConcepts[localization.scientific_name] === 2 ? '(Expected either)'
-                                                : '(Unknown - not in list)'
-                                    }`
-                                : ''
-                            }
-                        </span><br>
-
-                    </div>
-                </div>
+                ${localization.attracted
+                    ? `<div class="row" style="${localization.problems?.includes('Attracted') ? 'color: yellow;' : ''}">
+                        <div class="col-4">
+                            Attracted:
+                        </div>
+                        <div class="col values">
+                            ${localization.attracted} <span class="small" style="color: var(--darc-text); font-weight: normal">
+                                ${attractedConcepts
+                                    ? `${attractedConcepts[localization.scientific_name] === 0 ? '(Expected not attracted)'
+                                            : attractedConcepts[localization.scientific_name] === 1 ? '(Expected attracted)'
+                                                : attractedConcepts[localization.scientific_name] === 2 ? '(Expected either)'
+                                                    : '(Unknown - not in list)'
+                                        }`
+                                    : ''
+                                }
+                            </span><br>
+    
+                        </div>
+                    </div>`
+                    : ''
+                }
+                ${localization.upon
+                    ? `<div class="row" style="${localization.problems?.includes('Upon') ? 'color: yellow;' : ''}">
+                        <div class="col-4">
+                            Upon:
+                        </div>
+                        <div class="col values">
+                            ${localization.upon}<br>
+                        </div>
+                    </div>`
+                    : ''
+                }
                 <div class="row" style="${localization.problems?.includes('Qualifier') ? 'color: yellow;' : ''}">
                     <div class="col-4">
                         Qualifier:

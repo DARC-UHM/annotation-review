@@ -14,6 +14,10 @@ class TatorLocalizationType(IntEnum):
 
     @classmethod
     def is_relevant(cls, localization_type: int) -> bool:
+        """
+        Returns whether the given localization type is one of the types that we consider relevant for processing
+        (box, dot, sub-box, sub-dot).
+        """
         return localization_type in cls._value2member_map_
 
     @classmethod
