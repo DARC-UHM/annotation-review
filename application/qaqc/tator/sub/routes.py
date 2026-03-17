@@ -115,6 +115,7 @@ def sub_qaqc(check):
     }
     if check == 'media-attributes':
         # the one case where we don't want to initialize a TatorSubQaqcProcessor (no need to fetch localizations)
+        data['substrates'] = tator_client.get_substrates_for_medias(project_id, transect_ids, transect_media)
         data['page_title'] = 'Media attributes'
         data['media_attributes'] = transect_media
         return render_template('qaqc/tator/qaqc-tables.html', data=data)

@@ -2,6 +2,8 @@ import base64
 
 import requests
 
+from application.tator.tator_type import TatorStateType
+
 
 class TatorRestClient:
     """
@@ -56,6 +58,27 @@ class TatorRestClient:
         res.raise_for_status()
         return res.json()
 
+    def get_substrates_for_medias(self, project_id: int, media_ids: list[str], transect_media: list[dict]) -> list[dict]:
+        """Returns substrates grouped by media ID, each group's entries sorted by frame number."""
+        states_url = f'{self.base_url}/rest/States/{project_id}?media_id={",".join(media_ids)}'
+        states_res = requests.get(url=states_url, headers=self._headers)
+        states_res.raise_for_status()
+        states = states_res.json()
+        grouped: dict[int, list] = {}
+        fps_map = {media['id']: media['fps'] for media in transect_media}
+        for state in states:
+            if state['type'] == TatorStateType.SUBSTRATE:
+                media_id = state['media'][0]
+                grouped.setdefault(media_id, []).append(
+                    {
+                        **state['attributes'],
+                        'timestamp': self._format_timestamp(state['frame'] / fps_map[media_id]) if media_id in fps_map else None,
+                    }
+                )
+        for entries in grouped.values():
+            entries.sort(key=lambda entry: (entry['timestamp'] is None, entry['timestamp']))
+        return [{'media_id': media_id, 'substrates': entries} for media_id, entries in grouped.items()]
+
     def get_user(self, user_id: int) -> dict:
         url = f'{self.base_url}/rest/User/{user_id}'
         res = requests.get(url=url, headers=self._headers)
@@ -80,3 +103,8 @@ class TatorRestClient:
         res.raise_for_status()
         base64_image = base64.b64encode(res.content).decode('utf-8')
         return base64.b64decode(base64_image)
+
+    @staticmethod
+    def _format_timestamp(seconds: float) -> str:
+        total = round(seconds)
+        return f'{total // 60:02d}:{total % 60:02d}'

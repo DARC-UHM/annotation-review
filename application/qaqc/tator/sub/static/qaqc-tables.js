@@ -38,30 +38,45 @@ function updateHash() {
         }
     } else if (Object.keys(mediaAttributes).length) {
         // media table
+
+        const substratesByMediaId = Object.fromEntries(substrates.map(group => [group.media_id, group.substrates]));
         let totalMedia = 0;
+
         $('#downloadTsvButton').hide();
         $('#annotationTable').find('thead').html(`
             <tr class="text-start sticky-top" style="background-color: #1c2128; color: #eee;">
                 <th scope="col">Media Name</th>
                 <th scope="col">Megahabitat</th>
-                <th scope="col">Substrate</th>
+                <th scope="col">Substrates</th>
                 <th scope="col">Quality</th>
                 <th scope="col">Quality Notes</th>
             </tr>
         `);
+
         for (const media of mediaAttributes) {
             const megahabitat = media.attributes.Megahabitat;
+            const mediaSubstrates = substratesByMediaId[media.id] ?? [];
+            const substrateHtml = mediaSubstrates.map(substrate => `
+                <div class="mb-2">
+                    <div><strong>${substrate.timestamp ?? '??:??'}</strong></div>
+                    <div class="ms-2">
+                        <div><span>Primary:</span> ${substrate['Primary Substrate']}</div>
+                        <div><span>Secondary:</span> ${substrate['Secondary Substrate']}</div>
+                        <div><span>Relief:</span> ${substrate['Relief']} &nbsp;|&nbsp; <span>Bedforms:</span> ${substrate['Bedforms']}</div>
+                    </div>
+                </div>`).join('');
             totalMedia++;
             $('#annotationTable').find('tbody').append(`
                 <tr class="text-start">
                     <td>${media.name}</td>
                     <td style="${megahabitat === undefined || megahabitat === 'Unset' ? 'color: yellow;' : ''}">${media.attributes.Megahabitat}</td>
-                    <td>${media.attributes.Substrate}</td>
+                    <td>${substrateHtml}</td>
                     <td>${media.attributes['Video Quality']}</td>
                     <td>${media.attributes['Quality Notes']}</td>
                 </tr>
             `);
         }
+
         $('#countLabel').html('Total Media:&nbsp;&nbsp;');
         $('#totalCount').html(formattedNumber(totalMedia));
     }

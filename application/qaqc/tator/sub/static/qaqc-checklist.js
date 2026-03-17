@@ -59,8 +59,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
     $('#missingQualifierAnchor').on('click', () => showLoader());
     $('#stetReasonAnchor').attr('href', `/qaqc/tator/sub/check/stet-missing-reason?${urlParams}`);
     $('#stetReasonAnchor').on('click', () => showLoader());
-    // $('#missingSubstrateAnchor').attr('href', `/qaqc/tator/sub/check/substrate-present?${urlParams}`);
-    // $('#missingSubstrateAnchor').on('click', () => showLoader());
     // $('#missingAncillaryAnchor').attr('href', `/qaqc/tator/sub/check/substrate-present?${urlParams}`);
     // $('#missingAncillaryAnchor').on('click', () => showLoader());
     // $('#missingUponAnchor').attr('href', `/qaqc/tator/sub/check/upon-present?${urlParams}`);
@@ -79,7 +77,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     $('#reExaminedAnchor').on('click', () => showLoader());
     // $('#reviewSizesAnchor').attr('href', `/qaqc/tator/sub/check/re-examined?${urlParams}`);
     // $('#reviewSizesAnchor').on('click', () => showLoader());
-    // TODO add counts check to external review schema, remove megahabitat check
+    // TODO add counts check to external review schema, remove megahabitat check, remove substrate check
     // $('#reviewCountsAnchor').attr('href', `/qaqc/tator/sub/check/re-examined?${urlParams}`);
     // $('#reviewCountsAnchor').on('click', () => showLoader());
     // $('#reviewExploratorySegmentsAnchor').attr('href', `/qaqc/tator/sub/check/exploratory-segments?${urlParams}`);
