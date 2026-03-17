@@ -43,17 +43,19 @@ function updateHash() {
         $('#annotationTable').find('thead').html(`
             <tr class="text-start sticky-top" style="background-color: #1c2128; color: #eee;">
                 <th scope="col">Media Name</th>
+                <th scope="col">Megahabitat</th>
                 <th scope="col">Substrate</th>
                 <th scope="col">Quality</th>
                 <th scope="col">Quality Notes</th>
             </tr>
         `);
         for (const media of mediaAttributes) {
-            console.log(media)
+            const megahabitat = media.attributes.Megahabitat;
             totalMedia++;
             $('#annotationTable').find('tbody').append(`
                 <tr class="text-start">
                     <td>${media.name}</td>
+                    <td style="${megahabitat === undefined || megahabitat === 'Unset' ? 'color: yellow;' : ''}">${media.attributes.Megahabitat}</td>
                     <td>${media.attributes.Substrate}</td>
                     <td>${media.attributes['Video Quality']}</td>
                     <td>${media.attributes['Quality Notes']}</td>
