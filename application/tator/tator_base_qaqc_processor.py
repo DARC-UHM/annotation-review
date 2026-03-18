@@ -110,8 +110,8 @@ class TatorBaseQaqcProcessor(TatorLocalizationProcessor, ABC):
         phylogenetic group as the scientific name.
         """
         no_match_records = set()
-        records_of_interest = []
         for section in self.sections:
+            records_of_interest = []
             for localization in section.localizations:
                 tentative_id = localization['attributes'].get('Tentative ID')
                 morphospecies = localization['attributes'].get('Morphospecies')
@@ -151,8 +151,8 @@ class TatorBaseQaqcProcessor(TatorLocalizationProcessor, ABC):
         """
         Finds every record with a note or remark.
         """
-        records_of_interest = []
         for section in self.sections:
+            records_of_interest = []
             for localization in section.localizations:
                 notes = localization['attributes'].get('Notes')
                 id_remarks = localization['attributes'].get('IdentificationRemarks')
@@ -174,8 +174,8 @@ class TatorBaseQaqcProcessor(TatorLocalizationProcessor, ABC):
         """
         Finds all records that have a reason of "to be re-examined"
         """
-        records_of_interest = []
         for section in self.sections:
+            records_of_interest = []
             for localization in section.localizations:
                 if localization['attributes'].get('Reason') == 'To be re-examined':
                     records_of_interest.append(localization)

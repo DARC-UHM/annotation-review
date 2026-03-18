@@ -19,10 +19,12 @@ from application.tator.tator_rest_client import TatorRestClient
 from application.qaqc.tator.util import init_tator_api, get_comments_and_image_refs
 
 
+# TODO this is dumb. Cache this or at least call on different threads
 def _get_deployment_info(tator_api, section_ids):
     deployment_names = []
     expedition_name = None
     for section_id in section_ids:
+        print(f'Getting deployment info for section {section_id}')
         section = tator_api.get_section(id=int(section_id))
         deployment_names.append(section.name)
         if expedition_name is None:

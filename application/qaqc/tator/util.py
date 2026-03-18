@@ -20,11 +20,13 @@ def init_tator_api():
         return None, redirect('/')
 
 
+# TODO - either update review server to allow batch requests by sequence, or use threading to make this faster
 def get_comments_and_image_refs(deployment_names: list[str]) -> tuple[dict, dict]:
     comments = {}
     image_refs = {}
     try:
         for deployment in deployment_names:
+            print(f'Getting comments for deployment {deployment}...')
             comment_res = requests.get(
                 url=f'{current_app.config.get("DARC_REVIEW_URL")}/comment/sequence/{deployment}',
                 headers=current_app.config.get('DARC_REVIEW_HEADERS'),
