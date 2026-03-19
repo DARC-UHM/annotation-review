@@ -94,6 +94,8 @@ class VarsAnnotationProcessor:
             return {}
         # we use timestamps instead of annotation['video_reference_uuid'] to match videos because some video_reference_uuids are incorrect
         timestamp = parse_datetime(annotation['recorded_timestamp'])
+        if len(self.videos) == 0:
+            return {}
         matching_video = self.videos[0]  # default to first video (videos are sorted by timestamp)
         for video in self.videos:
             if video['start_timestamp'] > timestamp:
