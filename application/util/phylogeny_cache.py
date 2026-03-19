@@ -35,7 +35,7 @@ class PhylogenyCache:
         """
         Fetches phylogeny for a given concept from the VARS knowledge base.
         """
-        print(f'Fetching phylogeny for "{concept_name}"')
+        print(f'Fetching phylogeny for "{concept_name}" from VARS')
         vars_tax_res = requests.get(url=f'{vars_kb_url}/phylogeny/up/{concept_name.replace("/", "%2F")}')
         if vars_tax_res.status_code == 200:
             try:
@@ -60,7 +60,7 @@ class PhylogenyCache:
         """
         Fetches phylogeny for a given scientific name from WoRMS. Returns True if successful, False otherwise.
         """
-        print(f'Fetching phylogeny for "{scientific_name}"')
+        print(f'Fetching phylogeny for "{scientific_name}" from WoRMS')
         worms_id_res = requests.get(url=f'{WORMS_REST_URL}/AphiaIDByName/{scientific_name}?marine_only=true')
         if worms_id_res.status_code == 200 and worms_id_res.json() != -999:  # -999 means more than one matching record
             aphia_id = worms_id_res.json()

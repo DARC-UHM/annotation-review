@@ -1,6 +1,7 @@
 import json
 import requests
 import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import pandas as pd
 import numpy as np
@@ -36,7 +37,7 @@ class CommentProcessor:
         print(f'Processing {len(self.comments)} comments...', end='')
         sys.stdout.flush()
 
-        # get all the tator localizations first, because each tator call takes forever
+        # get all tator localizations
         media_ids = set()
         localizations = []
         if self.tator_client:
@@ -48,6 +49,16 @@ class CommentProcessor:
             for i in range(0, len(media_ids), 300):
                 chunk = list(media_ids)[i:i + 300]
                 localizations += self.tator_client.get_localizations(current_app.config.get('TATOR_PROJECT_ID'), media_id=chunk)
+
+        # fetch all VARS annotations in parallel
+        vars_uuids = [comment for comment in self.comments if self.is_vars_annotation(comment)]
+        vars_annotations = {}
+
+        with ThreadPoolExecutor(max_workers=20) as executor:
+            futures = {executor.submit(self.fetch_vars_annotation, uuid): uuid for uuid in vars_uuids}
+            for future in as_completed(futures):
+                uuid, annotation = future.result()
+                vars_annotations[uuid] = annotation
 
         # add formatted comments to list
         for comment in self.comments:
@@ -69,11 +80,10 @@ class CommentProcessor:
                 identity_reference = None
                 depth = None
                 vars_comment = None
-                vars_res = requests.get(url=f'{self.annosaurus_url}/annotations/{comment}')
+                annotation = vars_annotations.get(comment)
                 try:
-                    annotation = vars_res.json()
                     concept_name = annotation['concept']
-                except (JSONDecodeError, KeyError):
+                except (TypeError, KeyError):
                     problem_comment = self.comments[comment]
                     print(f'{TERM_RED}ERROR: Could not find annotation with UUID {comment} in VARS ({problem_comment["sequence"]}, {problem_comment["timestamp"]}){TERM_NORMAL}')
                     self.missing_records.append(problem_comment)
@@ -146,7 +156,7 @@ class CommentProcessor:
                 else:
                     comment_dict['all_localizations'] = [{}]
             if concept_name and concept_name not in self.phylogeny.data and concept_name not in self.no_match_records:
-                self.phylogeny.fetch_vars(concept_name, self.vars_kb_url, self.no_match_records)
+                self.phylogeny.fetch_worms(concept_name)
             if concept_name in self.phylogeny.data:
                 for key in self.phylogeny.data[concept_name].keys():
                     # split to account for worms 'Phylum (Division)' case
@@ -229,3 +239,14 @@ class CommentProcessor:
             self.distilled_records.append(anno_dict)
         print('processed!')
         self.phylogeny.save()
+
+    def is_vars_annotation(self, comment):
+        return self.comments[comment].get('all_localizations') in (None, '')
+
+    def fetch_vars_annotation(self, uuid):
+        res = requests.get(url=f'{self.annosaurus_url}/annotations/{uuid}')
+        try:
+            print(f'Fetched VARS annotation {uuid}')
+            return uuid, res.json()
+        except JSONDecodeError:
+            return uuid, None
