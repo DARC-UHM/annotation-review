@@ -58,12 +58,9 @@ class TatorRestClient:
         res.raise_for_status()
         return res.json()
 
-    def get_substrates_for_medias(self, project_id: int, media_ids: list[str], transect_media: list[dict]) -> list[dict]:
-        """Returns substrates grouped by media ID, each group's entries sorted by frame number."""
-        states_url = f'{self.base_url}/rest/States/{project_id}?media_id={",".join(media_ids)}'
-        states_res = requests.get(url=states_url, headers=self._headers)
-        states_res.raise_for_status()
-        states = states_res.json()
+    def get_substrates_for_medias(self, project_id: int, transect_media: list[dict]) -> list[dict]:
+        """Returns substrates grouped by media ID, sorted by timestamp."""
+        states = self._get_states(project_id, [str(media['id']) for media in transect_media])
         grouped: dict[int, list] = {}
         fps_map = {media['id']: media['fps'] for media in transect_media}
         for state in states:
@@ -73,11 +70,18 @@ class TatorRestClient:
                     {
                         **state['attributes'],
                         'timestamp': self._format_timestamp(state['frame'] / fps_map[media_id]) if media_id in fps_map else None,
+                        'frame': state['frame'],
                     }
                 )
         for entries in grouped.values():
             entries.sort(key=lambda entry: (entry['timestamp'] is None, entry['timestamp']))
         return [{'media_id': media_id, 'substrates': entries} for media_id, entries in grouped.items()]
+
+    def _get_states(self, project_id: int, media_ids: list[str]):
+        states_url = f'{self.base_url}/rest/States/{project_id}?media_id={",".join(media_ids)}'
+        states_res = requests.get(url=states_url, headers=self._headers)
+        states_res.raise_for_status()
+        return states_res.json()
 
     def get_user(self, user_id: int) -> dict:
         url = f'{self.base_url}/rest/User/{user_id}'

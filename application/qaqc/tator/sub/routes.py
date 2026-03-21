@@ -115,7 +115,7 @@ def sub_qaqc(check):
     }
     if check == 'media-attributes':
         # the one case where we don't want to initialize a TatorSubQaqcProcessor (no need to fetch localizations)
-        data['substrates'] = tator_client.get_substrates_for_medias(project_id, transect_ids, transect_media)
+        data['substrates'] = tator_client.get_substrates_for_medias(project_id, transect_media)
         data['page_title'] = 'Media attributes'
         data['media_attributes'] = transect_media
         return render_template('qaqc/tator/qaqc-tables.html', data=data)
@@ -144,7 +144,9 @@ def sub_qaqc(check):
         case 'missing-upon':
             qaqc_annos.check_missing_upon_and_not_fish()
             data['page_title'] = 'Records missing upon and not a fish'
-
+        case 'upon-not-substrate':
+            qaqc_annos.check_upons_are_current_substrate_or_previous_animal(transect_media=transect_media)
+            data['page_title'] = 'Records where upon is not the current substrate or an animal that was previously recorded'
         case 'all-tentative-ids':
             qaqc_annos.get_all_tentative_ids_and_morphospecies()
             data['page_title'] = 'Records with a tentative ID or morphospecies'

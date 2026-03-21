@@ -47,10 +47,68 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
         self.process_records()
         actual_final_records = []
         for record in self.final_records:
-            if not record.get('upon') or ('water' in record['upon'].lower() and record['phylum'] != 'Chordata'):
+            if (not record.get('upon')
+                    or record['upon'] in {'--', '-', ''}
+                    or ('water' in record['upon'].lower() and record['phylum'] != 'Chordata')):
                 record['problems'] = 'Upon'
                 actual_final_records.append(record)
         self.final_records = actual_final_records
+
+    def check_upons_are_current_substrate_or_previous_animal(self, transect_media: list[dict]):
+        self.process_records()
+        substrates = {
+            substrate['media_id']: substrate['substrates']
+            for substrate in
+            self.tator_client.get_substrates_for_medias(project_id=self.project_id, transect_media=transect_media)
+        }
+        for media_id, substrate_entries in substrates.items():
+            print(f'Substrates for media {media_id}:')
+            for substrate in substrate_entries:
+                print(f'  Frame {substrate["frame"]}: { {k: v for k, v in substrate.items() if k not in ("frame", "timestamp")} }')
+        self.final_records.sort(key=lambda _record: (_record['media_id'], _record['frame']))
+        actual_final_records = []
+        seen_animals: dict[int, set] = {}  # media_id -> set of scientific names seen so far in that media
+        for record in self.final_records:
+            media_id = record['media_id']
+            frame = record['frame']
+            upon = record.get('upon')
+            if upon and 'water' not in upon.lower():
+                is_upon_in_current_substrate = self._upon_matches_substrate(upon, substrates.get(media_id, []), frame)
+                is_upon_is_previous_animal = upon in seen_animals.get(media_id, set())
+                if is_upon_is_previous_animal:
+                    print(f'Matched upon "{upon}" for record at frame {frame} to previously seen animal')
+                if not is_upon_in_current_substrate and not is_upon_is_previous_animal:
+                    print(f'No match found for upon "{upon}" for record at frame {frame}')
+                    record['problems'] = 'Upon'
+                    record['substrate'] = self._get_substrate_for_frame(substrates.get(media_id, []), frame)
+                    actual_final_records.append(record)
+            seen_animals.setdefault(media_id, set()).add(record['scientific_name'])
+        self.final_records = actual_final_records
+
+    @staticmethod
+    def _upon_matches_substrate(upon: str, substrate_entries: list[dict], frame: int) -> bool:
+        """Returns True if upon is a substring of any substrate value in the current substrate state at the given frame."""
+        invalid_values = {'--', '-', '', 'Not Set', 'None'}
+        current_substrate = TatorSubQaqcProcessor._get_substrate_for_frame(substrate_entries, frame)
+        if current_substrate is None:
+            return False
+        for key, val in current_substrate.items():
+            if key in ('frame', 'timestamp'):
+                continue
+            if val not in invalid_values and upon.lower() in val.lower():
+                print(f'Matched upon "{upon}" for record at frame {frame} to current {key} "{val}"')
+                return True
+        return False
+
+    @staticmethod
+    def _get_substrate_for_frame(substrate_entries: list[dict], frame: int) -> dict:
+        """Returns the substrate state at the given frame, or None if there is no substrate state at or before that frame."""
+        current_substrate = None
+        for substrate in substrate_entries:
+            if substrate['frame'] > frame:
+                break
+            current_substrate = substrate
+        return current_substrate
 
     def get_unique_taxa(self):
         self.process_records()

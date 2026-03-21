@@ -2,6 +2,10 @@ import { updateFlashMessages } from '../../static/js/util/updateFlashMessages.js
 import { TatorLocalizationType } from '../../static/js/util/tatorLocalizationType.js';
 import { externalReviewNoteSection } from './external-review-note-section.js';
 
+const substrateSvg = `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor">
+                                <path d="M80-80h800L640-400l-200-80-120-160H80v560Zm80-80v-64l80 26 361-120 119 158H160Zm80-122-80-27v-75l80 26 158-52 96 43-254 85Zm500-118 180-80v-160l-180-40-100 80v120l100 80Zm-500-42-80-27v-91h120l65 83-105 35Zm512-51-32-25v-44l40-32 80 18v44l-88 39ZM480-640l200-80v-200l-200-40-120 80v160l120 80Zm9-90-49-33v-74l57-38 103 21v80l-111 44Z"/>
+                            </svg>`;
+
 export const tatorLocalizationRow = (localization, externalComment) => {
     const previewFrameUrl = localization.frame_url ? `${localization.frame_url}?preview=true` : localization.image_url;
     let localizationBoxId = null;
@@ -258,6 +262,26 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                                     }
                                     return `<span class="position-absolute tator-dot" style="top: ${loco.points[1] * 100}%; left: ${loco.points[0] * 100}%;"></span>`;
                                 }).join('')}
+                                </div>
+                                <div class="position-absolute" style="left: 0; bottom: 0; width: 2rem; height: 2rem;">
+                                    ${localization.substrate
+                                        ? `
+                                            <div
+                                                data-toggle="tooltip"
+                                                data-bs-placement="right"
+                                                data-bs-html="true"
+                                                title="<div class='text-start' style='max-width: none; white-space: nowrap;'>
+                                                       Primary: ${localization.substrate['Primary Substrate'] ?? 'N/A'}<br><br>
+                                                       Secondary: ${localization.substrate['Secondary Substrate'] ?? 'N/A'}<br><br>
+                                                       Bedforms: ${localization.substrate['Bedforms'] ?? 'N/A'}<br><br>
+                                                       Relief: ${localization.substrate['Relief'] ?? 'N/A'}<br>
+                                                     </div>"
+                                                style="opacity: 70%; color: var(--darc-text);"
+                                           >
+                                               ${substrateSvg}
+                                           </div>
+                                        ` : ''
+                                    }
                                 </div>
                                 <div class="tator-loader-container">
                                     <div id="${localization.observation_uuid}_loading" class="tator-loader"></div>
