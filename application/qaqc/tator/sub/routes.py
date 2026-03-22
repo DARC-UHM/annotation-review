@@ -147,6 +147,9 @@ def sub_qaqc(check):
         case 'upon-not-substrate':
             qaqc_annos.check_upons_are_current_substrate_or_previous_animal(transect_media=transect_media)
             data['page_title'] = 'Records where upon is not the current substrate or an animal that was previously recorded'
+        case 'suspicious-hosts':
+            qaqc_annos.get_suspicious_records()
+            data['page_title'] = 'Records with a suspicious upon (host upon itself)'
         case 'all-tentative-ids':
             qaqc_annos.get_all_tentative_ids_and_morphospecies()
             data['page_title'] = 'Records with a tentative ID or morphospecies'

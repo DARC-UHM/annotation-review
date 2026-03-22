@@ -55,6 +55,11 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
         self.final_records = actual_final_records
 
     def check_upons_are_current_substrate_or_previous_animal(self, transect_media: list[dict]):
+        """
+        Finds records where the "upon" attribute is not a substring of any value in the current substrate
+        at the record's frame, and is not the scientific name of any animal previously recorded in the same
+        media (skips upons with "water").
+        """
         self.process_records()
         substrates = {
             substrate['media_id']: substrate['substrates']
@@ -87,7 +92,9 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
 
     @staticmethod
     def _upon_matches_substrate(upon: str, substrate_entries: list[dict], frame: int) -> bool:
-        """Returns True if upon is a substring of any substrate value in the current substrate state at the given frame."""
+        """
+        Returns True if upon is a substring of any substrate value in the current substrate state at the given frame.
+        """
         invalid_values = {'--', '-', '', 'Not Set', 'None'}
         current_substrate = TatorSubQaqcProcessor._get_substrate_for_frame(substrate_entries, frame)
         if current_substrate is None:
@@ -102,13 +109,27 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
 
     @staticmethod
     def _get_substrate_for_frame(substrate_entries: list[dict], frame: int) -> dict:
-        """Returns the substrate state at the given frame, or None if there is no substrate state at or before that frame."""
+        """
+        Returns the substrate state at the given frame, or None if there is no substrate state at or before that frame.
+        """
         current_substrate = None
         for substrate in substrate_entries:
             if substrate['frame'] > frame:
                 break
             current_substrate = substrate
         return current_substrate
+
+    def get_suspicious_records(self):
+        """
+        Finds records where the "upon" attribute is suspicious, i.e. the same as the scientific name.
+        """
+        self.process_records()
+        actual_final_records = []
+        for record in self.final_records:
+            if record['scientific_name'] == record.get('upon'):
+                record['problems'] = 'Scientific Name,Upon'
+                actual_final_records.append(record)
+        self.final_records = actual_final_records
 
     def get_unique_taxa(self):
         self.process_records()

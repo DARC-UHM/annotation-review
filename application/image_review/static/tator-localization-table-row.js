@@ -37,7 +37,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                     <div class="col values">
                         <button
                             class="m-0 p-0 values"
-                            style="background: none; color: #eee; border: none; cursor: text; user-select: text; width: fit-content;"
+                            style="background: none; color: ${localization.problems?.includes('Scientific Name') ? 'yellow' : '#eee'}; border: none; cursor: text; user-select: text; width: fit-content;"
                             data-toggle="tooltip"
                             data-bs-placement="right"
                             data-bs-html="true"
