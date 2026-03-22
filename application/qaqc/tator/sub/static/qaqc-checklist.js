@@ -77,7 +77,13 @@ document.addEventListener('DOMContentLoaded', (event) => {
     $('#reExaminedAnchor').on('click', () => showLoader());
     // $('#reviewSizesAnchor').attr('href', `/qaqc/tator/sub/check/re-examined?${urlParams}`);
     // $('#reviewSizesAnchor').on('click', () => showLoader());
-    // TODO on external review server: add counts check to external review schema, remove megahabitat check, remove substrate check, update uponNotSubstrate name
+    // TODO
+    //   * on external review server:
+    //      * add counts check to external review schema
+    //      * remove megahabitat check
+    //      * remove substrate check
+    //      * update uponNotSubstrate name
+    //   * add 'upon' to edit tator localization modal if type is sub
     // $('#reviewCountsAnchor').attr('href', `/qaqc/tator/sub/check/re-examined?${urlParams}`);
     // $('#reviewCountsAnchor').on('click', () => showLoader());
     // $('#reviewExploratorySegmentsAnchor').attr('href', `/qaqc/tator/sub/check/exploratory-segments?${urlParams}`);

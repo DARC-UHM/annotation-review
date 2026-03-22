@@ -11,4 +11,8 @@ export class TatorLocalizationType {
     static isDot(localizationType) {
         return localizationType === this.DOT || localizationType === this.SUB_DOT;
     }
+
+    static isSub(localizationType) {
+        return localizationType === this.SUB_BOX || localizationType === this.SUB_DOT;
+    }
 }

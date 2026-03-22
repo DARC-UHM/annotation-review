@@ -190,6 +190,8 @@ def update_tator_localization():
     }
     if attracted := request.values.get('attracted'):
         attributes['Attracted'] = attracted
+    if upon := request.values.get('upon'):
+        attributes['Upon'] = upon
     try:
         for localization in localization_id_types:
             this_attributes = attributes.copy()

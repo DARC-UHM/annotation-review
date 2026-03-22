@@ -801,8 +801,19 @@ $(document).ready(()=> {
         const localization = $(e.relatedTarget).data('anno');
         const scientificNameField = $(this).find('#editScientificName');
 
+        if (TatorLocalizationType.isSub(localization.type)) {
+            $('#uponInputContainer').show();
+            $('#attractedSelectContainer').hide();
+            $(this).find('#editUpon').val(localization.upon);
+            $(this).find('#editAttracted').val(null);
+        } else {
+            $('#attractedSelectContainer').show();
+            $('#uponInputContainer').hide();
+            $(this).find('#editAttracted').val(localization.attracted);
+            $(this).find('#editUpon').val(null);
+        }
+
         scientificNameField.val(localization.scientific_name);
-        $(this).find('#editAttracted').val(localization.attracted);
         $(this).find('#editQualifier').val(localization.qualifier);
         $(this).find('#editCatAbundance').val(localization.categorical_abundance || '--');
         $(this).find('#editReason').val(localization.reason);
