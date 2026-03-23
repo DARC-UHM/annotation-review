@@ -46,8 +46,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 console.error('Error updating checklist');
             }
         });
-        updateTaskCount(checklist);
     }
+    updateTaskCount(checklist);
 
     $('#fireworksToggleButton').on('click', () => {
         $('#fireworks').toggle();

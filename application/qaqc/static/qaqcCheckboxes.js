@@ -24,7 +24,6 @@ export function updateCheckbox(num) {
 
 /** Counts number of completed tasks and updates the task count display. If all tasks are complete, shows fireworks */
 export function updateTaskCount(checklist) {
-    console.log(checklist);
     const tasksComplete = Object.values(checklist).reduce((accumulator, currentValue) => currentValue === 2 ? accumulator + 1 : accumulator, 0);
     $('#tasksComplete').html(tasksComplete);
     if (tasksComplete === Object.keys(checklist).length) {
