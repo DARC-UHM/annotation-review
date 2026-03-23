@@ -98,6 +98,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                         </div>
                         <div class="col values">
                             ${localization.upon}<br>
+                            ${localization.host_upon_time_diff ? `<div style="color: yellow;">${localization.host_upon_time_diff}</div>` : ''}
                         </div>
                     </div>`
                     : ''

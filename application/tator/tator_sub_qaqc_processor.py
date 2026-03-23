@@ -131,6 +131,48 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
                 actual_final_records.append(record)
         self.final_records = actual_final_records
 
+    def find_long_host_associate_time_diff(self):
+        """
+        Finds records where the "upon" attribute is an organism and there is either no previous record of that
+        organism in the same media, or the closest previous record of that organism in the same media is more
+        than one minute before the record.
+        """
+        self.process_records()
+        media = self.tator_client.get_media_by_id(self.final_records[0]['media_id'])
+        fps = media['fps']  # assume all media in a deployment are the same FPS
+        actual_final_records = []
+        self.final_records.sort(key=lambda _record: (_record['media_id'], _record['frame']))
+        for i, record in enumerate(self.final_records):
+            upon = record.get('upon')
+            if not upon or 'Non-uniform values across dots' in upon:
+                # check_missing_upon_and_not_fish handles missing upons
+                # check_upons_are_current_substrate_or_previous_animal handles non-uniform dots
+                continue
+            if upon[0].isupper():  # expect substrates to be lowercase, scientific IDs to be capitalized
+                most_recent_matching_host = None
+                # start a lil ahead because we can have multiple localizations at the same timestamp
+                j = min(i + 10, len(self.final_records) - 1)
+                # make sure we're only looking at the current media_id and same timestamps
+                while (j >= i and
+                       (self.final_records[j]['media_id'] != record['media_id']
+                        or self.final_records[j]['frame'] > record['frame'])):
+                    j -= 1
+                while j >= 0 and self.final_records[j]['media_id'] == record['media_id']:
+                    if self.final_records[j]['scientific_name'] == upon:
+                        most_recent_matching_host = self.final_records[j]
+                        break
+                    j -= 1
+                if not most_recent_matching_host:
+                    record['host_upon_time_diff'] = 'Unable to find matching host in previous records'
+                    actual_final_records.append(record)
+                    continue
+                time_diff_seconds = int((record['frame'] - most_recent_matching_host['frame']) / fps)
+                if time_diff_seconds > 60:
+                    record['host_upon_time_diff'] = \
+                        f'Most recent occurrence of "{upon}" more than 1 minute ago ({time_diff_seconds} seconds)'
+                    actual_final_records.append(record)
+        self.final_records = actual_final_records
+
     def get_unique_taxa(self):
         self.process_records()
         unique_taxa = {}

@@ -150,6 +150,9 @@ def sub_qaqc(check):
         case 'suspicious-hosts':
             qaqc_annos.get_suspicious_records()
             data['page_title'] = 'Records with a suspicious upon (host upon itself)'
+        case 'host-associate-time-diff':
+            qaqc_annos.find_long_host_associate_time_diff()
+            data['page_title'] = 'Records where host recorded more than one minute ago or cannot be found'
         case 'all-tentative-ids':
             qaqc_annos.get_all_tentative_ids_and_morphospecies()
             data['page_title'] = 'Records with a tentative ID or morphospecies'

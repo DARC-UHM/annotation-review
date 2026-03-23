@@ -67,8 +67,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
     $('#uponNotSubstrateAnchor').on('click', () => showLoader());
     $('#suspiciousHostAnchor').attr('href', `/qaqc/tator/sub/check/suspicious-hosts?${urlParams}`);
     $('#suspiciousHostAnchor').on('click', () => showLoader());
-    // $('#timeDiffHostUponAnchor').attr('href', `/qaqc/tator/sub/check/host-timestamp?${urlParams}`);
-    // $('#timeDiffHostUponAnchor').on('click', () => showLoader());
+    $('#timeDiffHostUponAnchor').attr('href', `/qaqc/tator/sub/check/host-associate-time-diff?${urlParams}`);
+    $('#timeDiffHostUponAnchor').on('click', () => showLoader());
     $('#tentativeIdAnchor').attr('href', `/qaqc/tator/sub/check/all-tentative-ids?${urlParams}`);
     $('#tentativeIdAnchor').on('click', () => showLoader());
     $('#notesRemarksAnchor').attr('href', `/qaqc/tator/sub/check/notes-and-remarks?${urlParams}`);
