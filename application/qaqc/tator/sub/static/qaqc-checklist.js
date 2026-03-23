@@ -101,4 +101,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
 $(window).bind('pageshow', (event) => {
     $('#load-overlay').removeClass('loader-bg');
     $('#load-overlay').addClass('loader-bg-hidden');
+
+    $('[data-toggle="tooltip"]').tooltip();
 });
