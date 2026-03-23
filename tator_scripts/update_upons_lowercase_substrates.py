@@ -56,7 +56,7 @@ for localization in localizations:
         update_json = update_res.json()
         print(update_json['message'])
         if update_res.status_code != 200:
-            print(f"ERROR: Unable to update localization {localization["id"]}")
+            print(f'ERROR: Unable to update localization {localization["id"]}')
             exit(1)
         print('New upon:', update_json['object']['attributes']['Upon'])
         print()
