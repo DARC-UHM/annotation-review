@@ -149,6 +149,16 @@ def transects():
     except tator.openapi.tator_openapi.exceptions.ApiException as e:
         print(f'{TERM_RED}ERROR: Unable to fetch transects list from Tator:{TERM_NORMAL} {e}')
         return {'500': 'Error fetching Tator transects'}, 500
+    except tator.openapi.tator_openapi.exceptions.ApiTypeError as e:
+        print(f'{TERM_RED}ERROR: Unable to fetch transects list from Tator:{TERM_NORMAL} {e}')
+        print()
+        print('Update your version of the Python Tator client:')
+        print('  1. Stop this program (CTRL + C)')
+        print('  2. cd into the annotation-review directory')
+        print('  3. Run the command "pip3 install -r requirements.txt"')
+        print('  4. Restart the program')
+        print()
+        return {'500': 'Update Tator version (see terminal for details)'}, 500
 
 
 # view tator video frame (not cropped)
