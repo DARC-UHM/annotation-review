@@ -15,10 +15,11 @@ class VarsAnnotationProcessor:
     the annotation data for display on the image review pages.
     """
 
-    def __init__(self, sequence_names: list, vars_charybdis_url: str, vars_kb_url: str):
+    def __init__(self, sequence_names: list, vars_charybdis_url: str, vars_kb_url: str, vars_vam_url: str=None):
         self.sequence_names = sequence_names
         self.vars_charybdis_url = vars_charybdis_url
         self.vars_kb_url = vars_kb_url
+        self.vars_vam_url = vars_vam_url
         self.phylogeny = PhylogenyCache()
         self.videos = []
         self.working_records = []  # all the annotations that have images
@@ -57,6 +58,10 @@ class VarsAnnotationProcessor:
                     'duration_millis': video['duration_millis'],
                 })
 
+        if len(self.videos) == 0:
+            self._fetch_vam_media(sequence_name)
+            print(self.videos)
+
         self.videos.sort(key=lambda x: x['start_timestamp'])
 
         if not images_only:
@@ -69,6 +74,24 @@ class VarsAnnotationProcessor:
             if annotation['image_references'] and concept_name[0].isupper():
                 annotations_with_images.append(annotation)
         return annotations_with_images
+
+    def _fetch_vam_media(self, sequence_name: str):
+        """
+        Sometimes, VARS doesn't include videos in the media response. Fetch them directly from VAM instead.
+        """
+        if not self.vars_vam_url:
+            return
+        response = requests.get(url=f'{self.vars_vam_url}/videos/videosequence/name/{sequence_name.replace(" ", "%20")}').json()
+        for video in response:
+            video_ref = video['video_references'][0]
+            if 'urn:imagecollection:org' not in video_ref['uri']:
+                self.videos.append({
+                    'start_timestamp': parse_datetime(video['start_timestamp']),
+                    'uri': video_ref['uri'].replace('http://hurlstor.soest.hawaii.edu/videoarchive', 'https://hurlvideo.soest.hawaii.edu'),
+                    'sequence_name': sequence_name,
+                    'video_reference_uuid': video_ref['uuid'],
+                    'duration_millis': video['duration_millis'],
+                })
 
     @staticmethod
     def get_image_url(annotation: dict) -> str:

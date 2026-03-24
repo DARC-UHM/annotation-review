@@ -32,7 +32,8 @@ def view_images():
     image_loader = VarsAnnotationProcessor(
         sequence_names=sequences,
         vars_charybdis_url=current_app.config.get('VARS_CHARYBDIS_URL'),
-        vars_kb_url=current_app.config.get("VARS_KNOWLEDGE_BASE_URL"),
+        vars_kb_url=current_app.config.get('VARS_KNOWLEDGE_BASE_URL'),
+        vars_vam_url=current_app.config.get('VARS_VAMPIRE_SQUID_URL'),
     )
     image_loader.process_sequences()
     if len(image_loader.final_records) < 1:

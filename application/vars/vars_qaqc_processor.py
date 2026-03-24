@@ -7,8 +7,8 @@ class VarsQaqcProcessor(VarsAnnotationProcessor):
     Filters and formats annotations for the various DARC QA/QC checks.
     """
 
-    def __init__(self, sequence_names: list, vars_charybdis_url: str, vars_kb_url: str):
-        super().__init__(sequence_names, vars_charybdis_url, vars_kb_url)
+    def __init__(self, sequence_names: list, vars_charybdis_url: str, vars_kb_url: str, vars_vam_url: str=None):
+        super().__init__(sequence_names, vars_charybdis_url, vars_kb_url, vars_vam_url)
 
     def find_duplicate_associations(self):
         """

@@ -137,7 +137,8 @@ def vars_qaqc(check):
     qaqc_annos = VarsQaqcProcessor(
         sequence_names=sequences,
         vars_charybdis_url=current_app.config.get('VARS_CHARYBDIS_URL'),
-        vars_kb_url=current_app.config.get("VARS_KNOWLEDGE_BASE_URL"),
+        vars_kb_url=current_app.config.get('VARS_KNOWLEDGE_BASE_URL'),
+        vars_vam_url=current_app.config.get('VARS_VAMPIRE_SQUID_URL'),
     )
     tab_title = sequences[0] if len(sequences) == 1 else f'{sequences[0]} - {sequences[-1].split(" ")[-1]}'
     data = {
@@ -211,7 +212,8 @@ def qaqc_quick(check):
     qaqc_annos = VarsQaqcProcessor(
         sequence_names=sequences,
         vars_charybdis_url=current_app.config.get('VARS_CHARYBDIS_URL'),
-        vars_kb_url=current_app.config.get("VARS_KNOWLEDGE_BASE_URL"),
+        vars_kb_url=current_app.config.get('VARS_KNOWLEDGE_BASE_URL'),
+        vars_vam_url=current_app.config.get('VARS_VAMPIRE_SQUID_URL'),
     )
     match check:
         case 'missing-ancillary-data':
