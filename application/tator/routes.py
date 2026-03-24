@@ -117,6 +117,11 @@ def tator_sections():
                 'id': section.id,
                 'name': section.name,
             })
+        # sort deployment list by name
+        for section_attributes in sections.values():
+            if len(section_attributes['folders']) > 0:
+                for deployment_list in section_attributes['folders'].values():
+                    deployment_list.sort(key=lambda x: x['name'])
         return list(sections.values()), 200
     except tator.openapi.tator_openapi.exceptions.ApiException as e:
         print(f'{TERM_RED}ERROR: Unable to fetch Tator sections:{TERM_NORMAL} {e}')
