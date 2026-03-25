@@ -525,6 +525,16 @@ ex_23060002 = {
             'recorded_timestamp': '2023-08-25T21:05:43.805Z',
             'group': 'ROV',
             'activity': 'cruise',
+            'image_references': [
+                {
+                    'uuid': 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+                    'description': 'uncompressed image',
+                    'url': 'http://hurlstor.soest.hawaii.edu/imagearchive/D2/2023/EX2306_02/image.png',
+                    'format': 'image/png',
+                    'width_pixels': 1920,
+                    'height_pixels': 1080
+                }
+            ],
             'associations': [
                 {
                     'uuid': '001adc93-d793-4032-e462-b91c4998e81e',
@@ -562,7 +572,6 @@ ex_23060002 = {
                     'mime_type': 'text/plain'
                 },
             ],
-            'image_references': [],
             'ancillary_data': {
                 'altitude': 0.20000000298023224,
                 'depth_meters': 4256.0888671875,

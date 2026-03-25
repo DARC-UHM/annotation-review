@@ -309,7 +309,7 @@ class TestVarsQaqcProcessor:
                 'genus': None,
                 'species': None,
                 'identity_reference': None,
-                'image_url': '',
+                'image_url': 'https://hurlimage.soest.hawaii.edu/D2/2023/EX2306_02/image.png',
                 'video_url': 'https://hurlvideo.soest.hawaii.edu/D2/2023/EX2306_02/EX2306_02_20230825T195000Z.m4v#t=4543',
                 'recorded_timestamp': '25 Aug 23 21:05:43 UTC',
                 'video_sequence_name': 'Deep Discoverer 23060002',

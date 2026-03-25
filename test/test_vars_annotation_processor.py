@@ -240,6 +240,19 @@ class TestVarsAnnotationProcessor:
         ]
 
     @patch('requests.get', side_effect=mocked_requests_get)
+    def test_process_multiple_sequences(self, mock_get):
+        annotation_processor = VarsAnnotationProcessor(
+            sequence_names=['Deep Discoverer 23060001', 'Deep Discoverer 23060002'],
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
+        )
+        annotation_processor.process_sequences()
+        # assert result includes annotations from all dives
+        sequence_names = {record['video_sequence_name'] for record in annotation_processor.final_records}
+        assert 'Deep Discoverer 23060001' in sequence_names
+        assert 'Deep Discoverer 23060002' in sequence_names
+
+    @patch('requests.get', side_effect=mocked_requests_get)
     def test_find_highest_id_refs(self, mock_get):
         annotation_processor = VarsAnnotationProcessor(
             sequence_names=['Deep Discoverer 23060001'],
