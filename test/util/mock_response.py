@@ -10,7 +10,6 @@ class MockResponse:
         self.status_code = 200
 
     def json(self):
-        print(self.url)
         match self.url:
             case 'https://my.little.charybdis/query/dive/Deep%20Discoverer%2023060001':
                 return ex_23060001
