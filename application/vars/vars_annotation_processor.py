@@ -33,7 +33,7 @@ class VarsAnnotationProcessor:
         for name in self.sequence_names:
             print(f'Fetching annotations for sequence {name} from VARS...', end='')
             sys.stdout.flush()
-            self.working_records = self.fetch_media_and_annotations(name, images_only=True)
+            self.working_records.extend(self.fetch_media_and_annotations(name, images_only=True))
             print('fetched!')
         print('Processing annotations...', end='')
         sys.stdout.flush()
@@ -60,7 +60,6 @@ class VarsAnnotationProcessor:
 
         if len(self.videos) == 0:
             self._fetch_vam_media(sequence_name)
-            print(self.videos)
 
         self.videos.sort(key=lambda x: x['start_timestamp'])
 
