@@ -87,8 +87,8 @@ def server_error(e):
     print(error)
     print(traceback.format_exc())
     requests.post(
-        url=f'{app.config.get("DARC_REVIEW_URL")}/log-error',
-        headers=app.config.get('DARC_REVIEW_HEADERS'),
+        url=f'{current_app.config.get("DARC_REVIEW_URL")}/log-error',
+        headers=current_app.config.get('DARC_REVIEW_HEADERS'),
         json={
             'url': request.url,
             'error': traceback.format_exc(),
