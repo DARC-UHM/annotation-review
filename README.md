@@ -77,7 +77,7 @@ The image reference page (`/image-reference`) provides a library of reference im
 
 If you encounter the following error when attempting to start the application:
 ```
-[2024-04-17 09:47:44 -1000] [47269] [INFO] Starting gunicorn 21.2.0
+[2024-04-17 09:47:44 -1000] [47269] [INFO] Starting gunicorn 25.2.0
 [2024-04-17 09:47:44 -1000] [47269] [ERROR] Connection in use: ('127.0.0.1', 8000)
 [2024-04-17 09:47:44 -1000] [47269] [ERROR] Retrying in 1 second.
 [2024-04-17 09:47:45 -1000] [47269] [ERROR] Connection in use: ('127.0.0.1', 8000)

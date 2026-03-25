@@ -1,10 +1,10 @@
 import os
 from pathlib import Path
+from time import time
 
 from dotenv import load_dotenv
 from flask import Flask
 from flask_session import Session
-from time import time
 
 
 def create_app():
