@@ -1,10 +1,10 @@
 import pytest
-from application import app
+from application import create_app
 
 
 @pytest.fixture
 def app():
-    # Create a test version of your Flask app
+    app = create_app()
     app.config.update({'TESTING': True})
     yield app
 
