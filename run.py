@@ -1,9 +1,20 @@
 import os
+import webbrowser
 
-from application import app
+from application import create_app
+from application.util.constants import TERM_NORMAL, TERM_GREEN
+
+app = create_app()
 
 if __name__ == '__main__':
-    if os.environ.get('_FLASK_ENV') == 'development' or os.environ.get('_FLASK_ENV') == 'no_server_edits':
-        app.run(debug=True, port=8000)
+    print('\nLaunching application...')
+
+    PORT = 8000
+    env = os.environ.get('_FLASK_ENV')
+
+    if env in ('development', 'no_server_edits'):
+        app.run(debug=True, port=PORT)
     else:
-        app.run()
+        webbrowser.open_new(f'http://127.0.0.1:{PORT}')
+        print(f'\n{TERM_GREEN}Application running. Press CTRL + C to stop.{TERM_NORMAL}\n')
+        app.run(port=PORT)

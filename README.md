@@ -31,7 +31,7 @@ DARC_REVIEW_API_KEY = '...'
       alias ir="echo 'Checking for updates...'
                 [COMMAND TO START PYTHON VIRTUAL ENV (e.g. conda activate darc)]
                 git -C [PATH TO LOCAL REPOSITORY] pull
-                gunicorn --chdir [PATH TO LOCAL REPOSITORY] run:app --threads 3"
+                gunicorn --chdir [PATH TO LOCAL REPOSITORY] 'application:create_app()' --workers 1 --threads 3"
       ```
 2. Enter a sequence number in the text field.
    1. To select multiple dives, select the `+` icon to the right of the sequence number text field.

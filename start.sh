@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-gunicorn run:app --workers 1 --threads 3
+gunicorn 'application:create_app()' --workers 1 --threads 3

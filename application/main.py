@@ -3,18 +3,20 @@ import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from json import JSONDecodeError
 
-from flask import flash, render_template, request, session
+from flask import Blueprint, current_app, flash, render_template, request, session
 
-from application import app
 from application.util.constants import TERM_NORMAL, TERM_RED
 
 
-@app.route('/favicon.ico')
+main_bp = Blueprint('main_bp', __name__)
+
+
+@main_bp.route('/favicon.ico')
 def favicon():
-    return app.send_static_file('img/favicon.ico')
+    return current_app.send_static_file('img/favicon.ico')
 
 
-@app.route('/')
+@main_bp.route('/')
 def index():
     def fetch_json(url, headers=None):
         try:
@@ -31,10 +33,10 @@ def index():
             return None, msg
 
     http_requests = [
-        dict(name='reviewers', url=f'{app.config["DARC_REVIEW_URL"]}/reviewer/all', headers=app.config['DARC_REVIEW_HEADERS']),
-        dict(name='stats', url=f'{app.config["DARC_REVIEW_URL"]}/stats', headers=app.config['DARC_REVIEW_HEADERS']),
-        dict(name='sequences', url=f'{app.config["VARS_VAMPIRE_SQUID_URL"]}/videosequences/names'),
-        dict(name='concepts', url=f'{app.config["VARS_KNOWLEDGE_BASE_URL"]}/concept')
+        dict(name='reviewers', url=f'{current_app.config["DARC_REVIEW_URL"]}/reviewer/all', headers=current_app.config['DARC_REVIEW_HEADERS']),
+        dict(name='stats', url=f'{current_app.config["DARC_REVIEW_URL"]}/stats', headers=current_app.config['DARC_REVIEW_HEADERS']),
+        dict(name='sequences', url=f'{current_app.config["VARS_VAMPIRE_SQUID_URL"]}/videosequences/names'),
+        dict(name='concepts', url=f'{current_app.config["VARS_KNOWLEDGE_BASE_URL"]}/concept')
     ]
     results = {}
     errors = []
@@ -69,18 +71,16 @@ def index():
 
 
 # video player
-@app.get('/video')
+@main_bp.get('/video')
 def video():
     data = {'link': request.args.get('link'), 'time': request.args.get('time')}
     return render_template('video.html', data=data), 200
 
 
-@app.errorhandler(404)
 def page_not_found(e):
     return render_template('errors/404.html', err=''), 404
 
 
-@app.errorhandler(Exception)
 def server_error(e):
     error = f'{type(e).__name__}: {e}'
     print('\nApplication error 😔')
