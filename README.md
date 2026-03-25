@@ -1,5 +1,5 @@
 # DARC Annotation Review
-Streamlined QA/QC and image review for annotations made in [VARS](https://github.com/mbari-org/vars-annotation) and [Tator](https://github.com/cvisionai/tator).
+Streamlined QA/QC and image review for annotations made in [VARS](https://github.com/mbari-org/vars-annotation) and [Tator](https://github.com/mbari-org/tator).
 
 [![Tests Status](https://darc-uhm.github.io/annotation-review/junit/junit.svg)](https://darc-uhm.github.io/annotation-review/junit/report.html)
 [![Coverage Status](https://darc-uhm.github.io/annotation-review/coverage/coverage.svg)](https://darc-uhm.github.io/annotation-review/coverage/)
@@ -33,14 +33,33 @@ DARC_REVIEW_API_KEY = '...'
                 git -C [PATH TO LOCAL REPOSITORY] pull
                 gunicorn --chdir [PATH TO LOCAL REPOSITORY] 'application:create_app()' --workers 1 --threads 3"
       ```
-2. Enter a sequence number in the text field.
+2. Select a platform (VARS or Tator) using the toggle at the top of the page.
+
+#### VARS
+
+3. Enter a sequence number in the text field.
    1. To select multiple dives, select the `+` icon to the right of the sequence number text field.
-   2. To view annotations added for external review, select `External Image Review` in the top right corner.
-3. After entering the appropriate dives, select either `QA/QC` or `Image Review`.
+4. Select either `QA/QC` or `Image Review`.
    1. `QA/QC`: A checklist of QA/QC items will be displayed. Each item has a link to the specific check and a checkbox to keep track of progress. Checkbox progress is saved locally and persists after the application is shut down.
    2. `Image Review`: Every annotation record in the selected dive(s) that has an image reference will be displayed. Filtering and sorting these records is possible through the options at the top left and right of the screen.
 
-Both the `QA/QC` and `Image Review` sections have the ability to edit annotations: edits can be done directly in the browser without having to go through VARS.
+#### Tator
+
+3. Log in with your Tator username and password.
+4. Select an **Expedition** from the dropdown.
+5. Select a **Folder** (deployment type):
+   - `dscm` — dropcam deployments
+   - `sub` — sub/transect deployments
+6. Select a **Deployment** from the dropdown. For sub/transect, also select a **Transect**.
+7. Select either `QA/QC` or `Image Review`.
+
+Both the `QA/QC` and `Image Review` sections have the ability to edit annotations directly in the browser.
+
+To view annotations added for external review, select `External Image Review` in the top right corner.
+
+### Image Reference
+
+The image reference page (`/image-reference`) provides a library of reference images for species concepts. These can be used during annotation QA/QC to verify identifications.
 
 ### External Review
 
