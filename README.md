@@ -13,7 +13,9 @@ _Requirements: Python ≥ 3.10_
 
 1. Clone this repository.
 2. Activate your Python virtual environment (optional).
-3. `cd` into the root of the repository and run the command `pip3 install -r requirements.txt`.
+3. Install dependencies:
+   - **macOS:** Double-click `install.command`, or run `pip install -r requirements.txt` in the terminal.
+   - **Windows:** Double-click `install.bat`, or run `pip install -r requirements.txt` in the terminal.
 4. Set environment variables. Without these, the app will not be able to access the VARS server or the DARC external review server. Environment variables can be set by creating a file named `.env` in the root of the repository with the following content (replace the `...` with the appropriate values):
 
 ```python
@@ -25,14 +27,9 @@ DARC_REVIEW_API_KEY = '...'
 
 ### Usage
 
-1. From the root directory of the repository, run the command `./start.sh`. The application will automatically open in your web browser.
-   1. Alternatively, you can set up an alias in your command line for an easier startup. Suggested alias (for MacOS):
-      ```bash
-      alias ir="echo 'Checking for updates...'
-                [COMMAND TO START PYTHON VIRTUAL ENV (e.g. conda activate darc)]
-                git -C [PATH TO LOCAL REPOSITORY] pull
-                gunicorn --chdir [PATH TO LOCAL REPOSITORY] 'application:create_app()' --workers 1 --threads 3"
-      ```
+1. Start the application:
+   - **macOS:** Double-click `start.command`. The app will pull the latest changes and open in your web browser automatically.
+   - **Windows:** Double-click `start.bat`. The app will pull the latest changes and open in your web browser automatically.
 2. Select a platform (VARS or Tator) using the toggle at the top of the page.
 
 #### VARS
@@ -84,7 +81,7 @@ If you encounter the following error when attempting to start the application:
 [2024-04-17 09:47:45 -1000] [47269] [ERROR] Retrying in 1 second.
 ```
 
-This means that port 8000 is already being used by another application (another instance of the review application) - the terminal was probably closed without hitting `CTRL + C` first. To fix:
+This means that port 8000 is already being used by another application (another instance of the review application). To fix:
 
 1) Find the process that is running the app by entering `ps aux | grep gunicorn` in the terminal. This will print a list of running processes on the machine that match the name `gunicorn`. There will most likely be 3 processes listed, the ones of interest end in `--threads 3`.
 2) Try to kill each `--threads 3` process by entering `kill PROCESS_NUMBER` where `PROCESS_NUMBER` is the first number from the left on the line of the process.
