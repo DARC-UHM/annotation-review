@@ -803,14 +803,18 @@ $(document).ready(()=> {
 
         if (TatorLocalizationType.isSub(localization.type)) {
             $('#uponInputContainer').show();
+            $('#sizeSelectContainer').show();
             $('#attractedSelectContainer').hide();
             $(this).find('#editUpon').val(localization.upon);
+            $(this).find('#editSize').val(localization.size);
             $(this).find('#editAttracted').val(null);
         } else {
             $('#attractedSelectContainer').show();
             $('#uponInputContainer').hide();
+            $('#sizeSelectContainer').hide();
             $(this).find('#editAttracted').val(localization.attracted);
             $(this).find('#editUpon').val(null);
+            $(this).find('#editSize').val(null);
         }
 
         scientificNameField.val(localization.scientific_name);

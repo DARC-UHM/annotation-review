@@ -103,6 +103,18 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                     </div>`
                     : ''
                 }
+                ${localization.size
+                    ? `<div class="row">
+                        <div class="col-4">
+                            Size:
+                        </div>
+                        <div class="col values">
+                            <!-- displayed as ">100 cm" but value is "100+ cm" to maintain consistency with Tator API/UI --> 
+                            ${localization.size === '100+ cm' ? '>100 cm' : localization.size}<br>
+                        </div>
+                    </div>`
+                    : ''
+                }
                 <div class="row" style="${localization.problems?.includes('Qualifier') ? 'color: yellow;' : ''}">
                     <div class="col-4">
                         Qualifier:
