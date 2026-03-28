@@ -272,6 +272,7 @@ class TatorLocalizationProcessor:
             'scientific_name',
             'tentative_id',
             'morphospecies',
+            'upon',
             'type',
         ], dropna=False).agg({
             'elemental_id': 'first',
@@ -282,7 +283,6 @@ class TatorLocalizationProcessor:
             'all_localizations': collect_localizations,
             'count': 'sum',
             'attracted': first_if_all_same,
-            'upon': first_if_all_same,
             'size': first_if_all_same,
             'categorical_abundance': first_if_all_same,
             'identification_remarks': first_if_all_same,
