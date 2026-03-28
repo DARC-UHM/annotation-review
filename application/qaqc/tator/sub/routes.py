@@ -163,6 +163,11 @@ def sub_qaqc(check):
         case 're-examined':
             qaqc_annos.get_re_examined()
             data['page_title'] = 'Records marked "to be re-examined"'
+        case 'sizes':
+            qaqc_annos.get_all_sizes()
+            data['page_title'] = 'All unique taxa sizes'
+            data['sizes'] = qaqc_annos.final_records
+            return render_template('qaqc/tator/qaqc-tables.html', data=data)
 
         case 'unique-taxa':
             qaqc_annos.get_unique_taxa()

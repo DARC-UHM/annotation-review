@@ -31,7 +31,6 @@ function updateHash() {
     $('#annotationTable').find('tbody').html('');
     if (Object.keys(uniqueTaxa).length) {
         // unique taxa table
-        $('#downloadTsvButton').hide();
         $('#countLabel').html('Unique Taxa:&nbsp;&nbsp;');
         $('#totalCount').html(formattedNumber(Object.keys(uniqueTaxa).length));
         $('#subheader').html('Highlights taxa that have a box occur before the first dot or do not have both a box and a dot');
@@ -79,7 +78,6 @@ function updateHash() {
     } else if (Object.keys(mediaAttributes).length) {
         // media table
         let totalMedia = 0;
-        $('#downloadTsvButton').hide();
         $('#annotationTable').find('thead').html(`
             <tr class="text-start sticky-top" style="background-color: #1c2128; color: #eee;">
                 <th scope="col">Media Name</th>

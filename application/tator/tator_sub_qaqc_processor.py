@@ -173,6 +173,29 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
                     actual_final_records.append(record)
         self.final_records = actual_final_records
 
+    def get_all_sizes(self):
+        self.process_records()
+        unique_taxa = {}
+        for record in self.final_records:
+            scientific_name = record.get('scientific_name')
+            tentative_id = record.get('tentative_id', '')
+            morphospecies = record.get('morphospecies', '')
+            size = record.get('size', '')
+            key = f'{scientific_name}:{tentative_id}:{morphospecies}:{size}'
+            if key not in unique_taxa.keys():
+                # add new unique taxa to dict
+                unique_taxa[key] = {
+                    'scientific_name': scientific_name,
+                    'tentative_id': tentative_id,
+                    'morphospecies': morphospecies,
+                    'size': size,
+                    'count': 0,
+                }
+            unique_taxa[key]['count'] += 1
+        self.final_records = unique_taxa
+        for key, val in unique_taxa.items():
+            print(f'{key}: {val}')
+
     def get_unique_taxa(self):
         self.process_records()
         unique_taxa = {}

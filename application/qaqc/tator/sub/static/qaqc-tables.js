@@ -9,9 +9,33 @@ window.returnToCheckList = returnToCheckList;
 
 function updateHash() {
     $('#annotationTable').find('tbody').html('');
-    if (Object.keys(uniqueTaxa).length) {
+    if (Object.keys(sizes).length) {
+        // size table
+        $('#countLabel').html('Unique Size/Taxa Combinations:&nbsp;&nbsp;');
+        $('#totalCount').html(formattedNumber(Object.keys(sizes).length));
+
+        $('#annotationTable').find('thead').html(`
+            <tr class="thead-dark sticky-top" style="background-color: #1c2128; color: #eee;">
+                <th scope="col">Scientific Name</th>
+                <th scope="col">Tentative ID</th>
+                <th scope="col">Morphospecies</th>
+                <th scope="col">Size</th>
+                <th scope="col">Count</th>
+            </tr>
+        `);
+        for (const taxa of Object.keys(sizes).sort()) {
+            $('#annotationTable').find('tbody').append(`
+                <tr class="text-start">
+                    <td>${sizes[taxa].scientific_name}</td>
+                    <td>${sizes[taxa].tentative_id}</td>
+                    <td>${sizes[taxa].morphospecies}</td>
+                    <td>${sizes[taxa].size}</td>
+                    <td>${sizes[taxa].count}</td>
+                </tr>
+            `);
+        }
+    } else if (Object.keys(uniqueTaxa).length) {
         // unique taxa table
-        $('#downloadTsvButton').hide();
         $('#countLabel').html('Unique Taxa:&nbsp;&nbsp;');
         $('#totalCount').html(formattedNumber(Object.keys(uniqueTaxa).length));
         $('#subheader').html('Highlights taxa that do not have both a box and a dot');
@@ -42,7 +66,6 @@ function updateHash() {
         const substratesByMediaId = Object.fromEntries(substrates.map(group => [group.media_id, group.substrates]));
         let totalMedia = 0;
 
-        $('#downloadTsvButton').hide();
         $('#annotationTable').find('thead').html(`
             <tr class="text-start sticky-top" style="background-color: #1c2128; color: #eee;">
                 <th scope="col">Media Name</th>

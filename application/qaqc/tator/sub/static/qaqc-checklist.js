@@ -75,8 +75,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
     $('#notesRemarksAnchor').on('click', () => showLoader());
     $('#reExaminedAnchor').attr('href', `/qaqc/tator/sub/check/re-examined?${urlParams}`);
     $('#reExaminedAnchor').on('click', () => showLoader());
-    // $('#reviewSizesAnchor').attr('href', `/qaqc/tator/sub/check/re-examined?${urlParams}`);
-    // $('#reviewSizesAnchor').on('click', () => showLoader());
+    $('#reviewSizesAnchor').attr('href', `/qaqc/tator/sub/check/sizes?${urlParams}`);
+    $('#reviewSizesAnchor').on('click', () => showLoader());
     // $('#reviewCountsAnchor').attr('href', `/qaqc/tator/sub/check/re-examined?${urlParams}`);
     // $('#reviewCountsAnchor').on('click', () => showLoader());
     // $('#reviewExploratorySegmentsAnchor').attr('href', `/qaqc/tator/sub/check/exploratory-segments?${urlParams}`);
