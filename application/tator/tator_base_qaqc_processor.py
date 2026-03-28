@@ -1,10 +1,10 @@
 from abc import abstractmethod, ABC
 
 import sys
+
 import tator
 
-from pptx import Presentation
-
+from application.tator.image_guide_presentation import ImageGuidePresentation
 from application.tator.tator_localization_processor import TatorLocalizationProcessor
 
 
@@ -196,9 +196,13 @@ class TatorBaseQaqcProcessor(TatorLocalizationProcessor, ABC):
         """
         pass
 
-    @abstractmethod
-    def download_image_guide(self, app) -> Presentation:
-        """
-        Finds all records marked as "good" images, saves them to a ppt.
-        """
-        pass
+    def download_image_guide(self):
+        for section in self.sections:
+            records_of_interest = []
+            for localization in section.localizations:
+                if localization['attributes'].get('Good Image'):
+                    records_of_interest.append(localization)
+            section.localizations = records_of_interest
+            print(f'{len(section.localizations)} good images in section {section.deployment_name}')
+        self.process_records()
+        return ImageGuidePresentation(self.tator_client).build(self.final_records)

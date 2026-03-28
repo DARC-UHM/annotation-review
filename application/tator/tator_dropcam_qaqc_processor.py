@@ -1,15 +1,9 @@
 import datetime
 import math
 import sys
-from io import BytesIO
 
-import requests
 import tator
 from flask import session
-from pptx import Presentation
-from pptx.dml.color import RGBColor
-from pptx.enum.text import PP_ALIGN
-from pptx.util import Inches, Pt
 
 from application.tator.tator_base_qaqc_processor import TatorBaseQaqcProcessor
 from application.util.constants import TERM_NORMAL, TERM_RED
@@ -321,78 +315,6 @@ class TatorDropcamQaqcProcessor(TatorBaseQaqcProcessor):
                 localization for localization in section.localizations if not TatorLocalizationType.is_box(localization['type'])
             ]
         self.process_records(get_timestamp=True, get_ctd=True, get_substrates=True)
-
-    def download_image_guide(self, app) -> Presentation:
-        for section in self.sections:
-            records_of_interest = []
-            for localization in section.localizations:
-                if localization['attributes'].get('Good Image'):
-                    records_of_interest.append(localization)
-            section.localizations = records_of_interest
-        self.process_records()
-        pres = Presentation()
-        image_slide_layout = pres.slide_layouts[6]
-
-        i = 0
-        while i < len(self.final_records):
-            slide = pres.slides.add_slide(image_slide_layout)
-            current_phylum = self.final_records[i].get('phylum')
-            if current_phylum is None:
-                current_phylum = 'UNKNOWN PHYLUM'
-            phylum_text_box = slide.shapes.add_textbox(Inches(0.5), Inches(0.5), Inches(9), Inches(0.5))
-            phylum_text_frame = phylum_text_box.text_frame
-            phylum_paragraph = phylum_text_frame.paragraphs[0]
-            phylum_paragraph.alignment = PP_ALIGN.CENTER
-            phylum_run = phylum_paragraph.add_run()
-            phylum_run.text = ' '.join(list(current_phylum.upper()))
-            phylum_font = phylum_run.font
-            phylum_font.name = 'Arial'
-            phylum_font.size = Pt(32)
-            phylum_font.color.rgb = RGBColor(0, 0, 0)
-            for j in range(4):
-                # add four images to slide
-                localization = self.final_records[i]
-                if localization['phylum'] != current_phylum and current_phylum != 'UNKNOWN PHYLUM':
-                    break
-                localization_id = localization['all_localizations'][0]['id']
-                response = requests.get(f'{app.config.get("LOCAL_APP_URL")}/tator/localization-image/{localization_id}?token={session["tator_token"]}')
-                if response.status_code != 200:
-                    print(f'Error fetching image for record {localization["observation_uuid"]}')
-                    continue
-                image_data = BytesIO(response.content)
-                top = Inches(1.5 if j < 2 else 4)
-                left = Inches(1 if j % 2 == 0 else 5)
-                picture = slide.shapes.add_picture(image_data, left, top, height=Inches(2.5))
-                line = picture.line
-                line.color.rgb = RGBColor(0, 0, 0)
-                line.width = Pt(1.5)
-                # add text box
-                width = Inches(2)
-                height = Inches(1)
-                text_box = slide.shapes.add_textbox(left, top, width, height)
-                text_frame = text_box.text_frame
-                paragraph = text_frame.paragraphs[0]
-                run = paragraph.add_run()
-                run.text = f'{localization["scientific_name"]}{" (" + localization["tentative_id"] + "?)" if localization.get("tentative_id") else ""}'
-                font = run.font
-                font.name = 'Arial'
-                font.size = Pt(18)
-                font.color.rgb = RGBColor(0xff, 0xff, 0xff)
-                font.italic = True
-                if localization['attracted'] == 'Not Attracted':
-                    text_frame.add_paragraph()
-                    paragraph = text_frame.paragraphs[1]
-                    run_2 = paragraph.add_run()
-                    run_2.text = 'NOT ATTRACTED'
-                    font = run_2.font
-                    font.name = 'Arial'
-                    font.size = Pt(18)
-                    font.color.rgb = RGBColor(0xff, 0x0, 0x0)
-                    font.italic = False
-                i += 1
-                if i >= len(self.final_records):
-                    break
-        return pres
 
     def fetch_start_times(self):
         if 'media_timestamps' not in session.keys():

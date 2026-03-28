@@ -111,7 +111,10 @@ def dropcam_qaqc(check):
         return err
     deployment_names, expedition_name = _get_deployment_info(tator_api, section_ids)
     tator_client = TatorRestClient(current_app.config.get('TATOR_URL'), session['tator_token'])
-    comments, image_refs = get_comments_and_image_refs(deployment_names)
+    comments = None
+    image_refs = None
+    if check not in ['unique-taxa', 'max-n', 'tofa', 'summary', 'image-guide']:
+        comments, image_refs = get_comments_and_image_refs(deployment_names)
     tab_title = deployment_names[0] if len(deployment_names) == 1 else expedition_name
     data = {
         'concepts': session.get('vars_concepts', []),
@@ -197,7 +200,7 @@ def dropcam_qaqc(check):
             return render_template('qaqc/tator/qaqc-tables.html', data=data)
         case 'image-guide':
             presentation_data = BytesIO()
-            qaqc_annos.download_image_guide(current_app).save(presentation_data)
+            qaqc_annos.download_image_guide().save(presentation_data)
             presentation_data.seek(0)
             return send_file(presentation_data, as_attachment=True, download_name='image-guide.pptx')
         case _:
