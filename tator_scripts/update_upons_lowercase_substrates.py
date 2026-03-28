@@ -17,6 +17,9 @@ import sys
 UPONS_TO_RENAME = {'Sand', 'Cobble', 'Boulder', 'Rock'}  # add any other upons to rename
 TATOR_REST_URL = 'https://cloud.tator.io/rest'
 
+updated_upons = {}
+skipped_upons = {}
+
 if len(sys.argv) != 2:
     print('Usage: python update_upons_lowercase_substrates.py <media_id>')
     exit(1)
@@ -43,7 +46,7 @@ localizations = res.json()
 for localization in localizations:
     upon = localization['attributes']['Upon']
     if upon in UPONS_TO_RENAME or ('water' in upon and 'column' in upon and upon[0].isupper()):
-        print(f'updating upon {upon}')
+        print(f'Updating upon "{upon}"...')
         update_res = requests.patch(
             url=f'{TATOR_REST_URL}/Localization/{localization["id"]}',
             headers=headers,
@@ -58,8 +61,29 @@ for localization in localizations:
         if update_res.status_code != 200:
             print(f'ERROR: Unable to update localization {localization["id"]}')
             exit(1)
-        print('New upon:', update_json['object']['attributes']['Upon'])
+        if upon not in updated_upons:
+            updated_upons[upon] = 0
+        updated_upons[upon] += 1
+        print(f'New upon: "{update_json["object"]["attributes"]["Upon"]}"')
         print()
     else:
-        print(f'skipping upon {upon}')
+        if upon not in skipped_upons:
+            skipped_upons[upon] = 0
+        skipped_upons[upon] += 1
+        print(f'Skipping upon: "{upon}"')
         print()
+
+print('=================================')
+print()
+print('Updated upons:')
+if not updated_upons:
+    print('None')
+for key, value in updated_upons.items():
+    print(f'"{key}": {value}')
+print()
+
+print('Skipped upons:')
+if not skipped_upons:
+    print('None')
+for key, value in skipped_upons.items():
+    print(f'"{key}": {value}')
