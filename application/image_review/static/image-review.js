@@ -4,6 +4,7 @@ import { updateFlashMessages } from '../../static/js/util/updateFlashMessages.js
 import { varsAnnotationTableRow } from './vars-annotation-table-row.js';
 import { tatorLocalizationRow } from './tator-localization-table-row.js';
 import { TatorLocalizationType } from '../../static/js/util/tatorLocalizationType.js';
+import * as Icons from '../../static/js/icons.js';
 
 const guidePhotoVals = ['1 best', '2 good', '3 okay', ''];
 const sequences = [];
@@ -329,25 +330,17 @@ export function updateHash() {
                         ${url.toString().includes('/tator') || url.toString().includes('/external-review') ? tatorFilterOptions : ''}
                     </select>
                     <span class="position-absolute dropdown-chev">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
-                          <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
-                        </svg>
+                        ${Icons.chevronDown}
                     </span>
                 </span>
                 <input type="text" id="imageFilterEntry" name="blank" placeholder="Enter phylum" autocomplete="off">
                 <button id="saveFilterButton" type="submit" class="plusButton">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-check" viewBox="0 0 16 16">
-                      <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
-                    </svg>
+                    ${Icons.checkMark}
                 </button>
             </form>
         </span>
         <button id="addFilterButton" type="button" class="plusButton ms-2" onclick="showAddFilter()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-plus"
-                 viewBox="0 0 16 16">
-                <path
-                    d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
-            </svg>
+            ${Icons.plus}
         </button>
     `);
     autocomplete($('#imageFilterEntry'), allConcepts);

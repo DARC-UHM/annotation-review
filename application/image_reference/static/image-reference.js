@@ -1,4 +1,5 @@
 import { updateFlashMessages } from '../../static/js/util/updateFlashMessages.js';
+import * as Icons from '../../static/js/icons.js';
 
 const slideshows = {}; // { fullName: { currentIndex, maxIndex, depths } }
 const taxonRanks = ['phylum', 'class', 'order', 'family', 'genus'];
@@ -218,9 +219,7 @@ function updateImageGrid() {
                                             ? `
                                                 <div class="position-absolute" style="left: 0; top: 0;">
                                                     <a href="${photoRecord.video_url}" target="_blank" class="video-overlay-link px-2 py-1">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                                            <path fill-rule="evenodd" d="M0 5a2 2 0 0 1 2-2h7.5a2 2 0 0 1 1.983 1.738l3.11-1.382A1 1 0 0 1 16 4.269v7.462a1 1 0 0 1-1.406.913l-3.111-1.382A2 2 0 0 1 9.5 13H2a2 2 0 0 1-2-2zm11.5 5.175 3.5 1.556V4.269l-3.5 1.556zM2 4a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h7.5a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1z"/>
-                                                        </svg>
+                                                        ${Icons.videoCamera}
                                                     </a>
                                                 </div>
                                             ` : ''
@@ -325,9 +324,7 @@ function addPhylogenyFilterSelect(taxonRank, selectedValue) {
                     )}
                 </select>
                 <span class="position-absolute dropdown-chev">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
-                      <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
-                    </svg>
+                    ${Icons.chevronDown}
                 </span>
             </span>
         </span>

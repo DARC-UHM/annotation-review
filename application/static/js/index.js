@@ -1,5 +1,6 @@
 import { updateFlashMessages } from './util/updateFlashMessages.js';
 import { autocomplete } from './util/autocomplete.js';
+import * as Icons from './icons.js';
 
 // just hardcoding 26 (NGS-ExTech Project) as I suspect it will never change. easy enough to update if it does
 const TATOR_PROJECT = 26;
@@ -233,11 +234,7 @@ $('#plusButton').on('click', () => {
                         </div>
                     </div>
                     <div class="col-1 ps-0">
-                        <button id="xButton${numSequences}" type="button" class="xButton">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
-                              <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
-                            </svg>
-                        </button>
+                        <button id="xButton${numSequences}" type="button" class="xButton">${Icons.x}</button>
                     </div>
                 </div>
             </div>
@@ -266,11 +263,7 @@ $('#tatorPlusButton').on('click', async () => {
                     <select id="deployment${numDeployments}" name="section" class="sequenceName deploymentSelect" onchange="onDeploymentChange()"></select>
                 </div>
                 <div class="col-1 ps-0">
-                    <button id="xButton${numDeployments}" type="button" class="xButton">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
-                          <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
-                        </svg>
-                    </button>
+                    <button id="xButton${numDeployments}" type="button" class="xButton">${Icons.x}</button>
                 </div>
             </div>
         </div>
@@ -306,11 +299,7 @@ $('#tatorPlusTransectButton').on('click', () => {
                     <select id="${newTransectSelectId}" name="transect" class="sequenceName transectSelect"></select>
                 </div>
                 <div class="col-1 ps-0">
-                    <button id="xButton${numTransects}" type="button" class="xButton">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
-                          <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
-                        </svg>
-                    </button>
+                    <button id="xButton${numTransects}" type="button" class="xButton">${Icons.x}</button>
                 </div>
             </div>
         </div>
