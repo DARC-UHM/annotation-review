@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     $('#mediaAttributesAnchor').on('click', () => showLoader());
     // $('#summaryAnchor').attr('href', `/qaqc/tator/sub/check/summary?${urlParams}`);
     // $('#summaryAnchor').on('click', () => showLoader());
-    // $('#imageGuideAnchor').attr('href', `/qaqc/tator/sub/check/image-guide?${urlParams}`);
+    $('#imageGuideAnchor').attr('href', `/qaqc/tator/sub/check/image-guide?${urlParams}`);
 });
 
 // get rid of loading screen if back button is pressed (mozilla)

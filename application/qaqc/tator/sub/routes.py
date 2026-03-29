@@ -4,8 +4,10 @@ Sub/transect QA/QC endpoints
 /qaqc/tator/sub/checklist [GET, PATCH]
 /qaqc/tator/sub/check/<check> [GET]
 """
+from io import BytesIO
+
 import requests
-from flask import current_app, flash, redirect, render_template, request, session
+from flask import current_app, flash, redirect, render_template, request, session, send_file
 
 from application.tator.tator_sub_qaqc_processor import TatorSubQaqcProcessor
 from . import sub_qaqc_bp
@@ -99,8 +101,11 @@ def sub_qaqc(check):
         section_ids=section_ids,
         transect_ids=transect_ids,
     )
+    comments = None
+    image_refs = None
+    if check not in ['unique-taxa', 'sizes', 'image-guide']:
+        comments, image_refs = get_comments_and_image_refs(deployment_names)
     media_names = [media['name'] for media in transect_media]
-    comments, image_refs = get_comments_and_image_refs(deployment_names)
     tab_title = media_names[0] if len(media_names) == 1 else expedition_name
     data = {
         'concepts': session.get('vars_concepts', []),
@@ -174,7 +179,11 @@ def sub_qaqc(check):
             data['page_title'] = 'All unique taxa'
             data['unique_taxa'] = qaqc_annos.final_records
             return render_template('qaqc/tator/qaqc-tables.html', data=data)
-
+        case 'image-guide':
+            presentation_data = BytesIO()
+            qaqc_annos.download_image_guide().save(presentation_data)
+            presentation_data.seek(0)
+            return send_file(presentation_data, as_attachment=True, download_name='image-guide.pptx')
         case _:
             return render_template('errors/404.html', err=''), 404
     data['annotations'] = qaqc_annos.final_records

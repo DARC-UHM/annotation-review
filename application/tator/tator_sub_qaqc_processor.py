@@ -193,8 +193,6 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
                 }
             unique_taxa[key]['count'] += 1
         self.final_records = unique_taxa
-        for key, val in unique_taxa.items():
-            print(f'{key}: {val}')
 
     def get_unique_taxa(self):
         self.process_records()

@@ -19,7 +19,7 @@ class ImageGuidePresentation:
     IMAGE_ASPECT_RATIO = 16 / 9
     IMAGE_WIDTH = Inches(3.0)
     IMAGE_HEIGHT = Inches(3.0 / IMAGE_ASPECT_RATIO)
-    IMAGE_HEADER_HEIGHT = Inches(0.4)
+    IMAGE_HEADER_HEIGHT = Inches(0.45)
     ROW_TOPS = [Inches(1.5), Inches(4.25)]  # header top for each row
     BORDER_WIDTH = Pt(1.5)
 
@@ -97,15 +97,20 @@ class ImageGuidePresentation:
 
         paragraph.alignment = PP_ALIGN.CENTER
         tentative_id = localization.get('tentative_id')
+        morphospecies = localization.get('morphospecies')
         self._make_run(paragraph, localization['scientific_name'], italic=bool(localization.get('genus')))
         if localization.get('genus') and not localization.get('species'):
             self._make_run(paragraph, ' sp.', italic=False)
-        if tentative_id:
+        if tentative_id or morphospecies:
+            extra_id = tentative_id or morphospecies
             self._make_run(paragraph, ' (', italic=False)
-            self._make_run(paragraph, tentative_id, italic=bool(localization.get('family')))
-            if localization.get('family'):
+            self._make_run(paragraph, extra_id, italic=bool(localization.get('family')))
+            if localization.get('family') and not morphospecies:
                 self._make_run(paragraph, ' sp.', italic=False)
-            self._make_run(paragraph, '?)', italic=False)
+            if tentative_id:
+                self._make_run(paragraph, '?)', italic=False)
+            else:
+                self._make_run(paragraph, ')', italic=False)
 
     def _add_not_attracted_overlay(self, slide, left, image_top):
         overlay_height = Inches(0.35)
@@ -126,7 +131,7 @@ class ImageGuidePresentation:
         run = paragraph.add_run()
         run.text = text
         run.font.name = 'Arial'
-        run.font.size = Pt(14)
+        run.font.size = Pt(12)
         run.font.color.rgb = RGBColor(0xff, 0xff, 0xff)
         run.font.italic = italic
         return run
