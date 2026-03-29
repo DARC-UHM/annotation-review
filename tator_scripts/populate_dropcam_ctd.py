@@ -11,10 +11,14 @@ CTD data that corresponds to each localization.
 
 To run this script, you must have a .env file in the root of the repository with the following variables:
     - DROPBOX_ACCESS_TOKEN: Access token for the Dropbox API (https://www.dropbox.com/developers/apps)
-    - DROPBOX_FOLDER_PATH: Path to the folder in Dropbox containing the deployment's video files
     - TATOR_TOKEN: Tator API token
 
-Usage: python populate_ctd.py <expedition_name> <deployment_name> [--use-underscore-folder-names]
+Usage: python populate_dropcam_ctd.py <expedition_name> <deployment_name> [--use-underscore-folder-names] [--dropcam-timestamp-override <timestamp>] [--dry-run]
+
+Examples:
+    python populate_dropcam_ctd.py DOEX0112_Tuvalu TUV_2025_dscm_01
+    python populate_dropcam_ctd.py DOEX0112_Tuvalu TUV_2025_dscm_01 --use-underscore-folder-names
+    python populate_dropcam_ctd.py DOEX0112_Tuvalu TUV_2025_dscm_01 --dropcam-timestamp-override 1602 --dry-run
 """
 
 import argparse
@@ -38,7 +42,13 @@ TERM_NORMAL = '\033[1;37;0m'
 PROJECT_ID = 26
 
 
-def populate_ctd(expedition_name: str, deployment_name: str, use_underscore_names: bool, dry_run: bool):
+def populate_ctd(
+        expedition_name: str,
+        deployment_name: str,
+        use_underscore_names: bool,
+        bottom_time_dropcam_timestamp: int | None,
+        dry_run: bool,
+):
     if dry_run:
         print('\n\n========= DRY RUN =========\n\n')
     if use_underscore_names:
@@ -171,23 +181,40 @@ def populate_ctd(expedition_name: str, deployment_name: str, use_underscore_name
     if before_length != len(df):
         print(f'\nRemoved {before_length - len(df)} rows with wonky timestamps')
 
-    # find the point at which the depths stop increasing
-    bottom_row = None
-    depth = None
-    rolling_avg = df['depth'].rolling(window=20).mean()
-    for i in range(250, len(rolling_avg)):  # assuming it takes at least 250 seconds to reach the bottom
-        diff = rolling_avg[i] - rolling_avg[i - 1]
-        if abs(diff) < 0.1 and df['depth'][i] > 200:
-            bottom_row = df.iloc[rolling_avg.index[i] - 20]
-            depth = bottom_row['depth']
-            break
-
-    if bottom_row is None:
-        print(f'{TERM_RED}Could not find bottom arrival time{TERM_NORMAL}')
-        exit(1)
-
-    print(f'\nCalculated bottom arrival time from sensor data (unix): {bottom_row["timestamp"]}')
-    print('Recommend double-checking this timestamp in the CSV file ^^^^^^^^^^')
+    if bottom_time_dropcam_timestamp is None:
+        # find the point at which the depths stop increasing
+        bottom_row = None
+        depth = None
+        rolling_avg = df['depth'].rolling(window=20).mean()
+        for i in range(250, len(rolling_avg)):  # assuming it takes at least 250 seconds to reach the bottom
+            diff = rolling_avg[i] - rolling_avg[i - 1]
+            if abs(diff) < 0.1 and df['depth'][i] > 200:
+                bottom_row = df.iloc[rolling_avg.index[i] - 20]
+                depth = bottom_row['depth']
+                break
+        if bottom_row is None:
+            print(f'{TERM_RED}Could not find bottom arrival time{TERM_NORMAL}')
+            exit(1)
+        print(f'\nDepth at calculated bottom arrival time: {depth}m')
+        print(f'{TERM_YELLOW}DOES THIS BOTTOM DEPTH MAKE SENSE?       ^^^^^^^^^{TERM_NORMAL}')
+        print(f'Calculated bottom arrival time from sensor data (unix): {bottom_row["timestamp"]}')
+        print(f'{TERM_YELLOW}DOUBLE-CHECK THE TIMESTAMP IN THE CSV FILE ON DROPBOX   ^^^^^^^^{TERM_NORMAL}')
+        print()
+        print('If the timestamp/depth doesn\'t match, use the "--dropcam-timestamp-override" flag to override the script\'s estimated bottom time with the correct timestamp (e.g. "--dropcam-timestamp-override 1602")')
+        print()
+        user_input = input('If the timestamp looks correct, enter "y" to continue with syncing. Otherwise, enter "n" to exit: ').strip().lower()
+        if user_input != 'y':
+            print('Exiting script.')
+            exit(0)
+    else:
+        print(f'\nUsing dropcam timestamp override: {bottom_time_dropcam_timestamp}')
+        bottom_row = df[df['timestamp'] == bottom_time_dropcam_timestamp]
+        if bottom_row.empty:
+            print(f'{TERM_RED}No row found with timestamp {bottom_time_dropcam_timestamp}{TERM_NORMAL}')
+            exit(1)
+        bottom_row = bottom_row.iloc[0]
+        depth = bottom_row['depth']
+        print(f'Depth at dropcam timestamp override: {depth}m')
 
     offset = camera_bottom_unix_timestamp - bottom_row['timestamp']
 
@@ -405,6 +432,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Syncs CTD data from Dropbox to Tator')
     parser.add_argument('expedition_name', type=str, help='Name of the expedition (e.g. DOEX0112_Tuvalu)')
     parser.add_argument('deployment_name', type=str, help='Name of the deployment (e.g. TUV_2025_dscm_01)')
+    parser.add_argument('--bottom-time-dropcam-timestamp', type=int, help='Override the script\'s estimated bottom time (e.g. 1602)')
     parser.add_argument('--use-underscore-folder-names', action='store_true', help='Use old Dropbox folder naming format (underscores)')
     parser.add_argument('--dry-run', action='store_true', help='Do not update Tator, just print the changes (for development)')
     args = parser.parse_args()
@@ -413,7 +441,8 @@ if __name__ == '__main__':
         expedition_name=args.expedition_name,
         deployment_name=args.deployment_name,
         use_underscore_names=args.use_underscore_folder_names,
+        bottom_time_dropcam_timestamp=args.bottom_time_dropcam_timestamp,
         dry_run=args.dry_run,
     )
 
-    os.system('say "Deployment CTD synced."')
+    os.system('say "Deployment C T D synced."')

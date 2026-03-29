@@ -74,11 +74,11 @@ _To run the script:_
    
 The script will iterate over each deployment in the CSV and update all the media files in Tator with the corresponding substrate information. This will take quite a while.
 
-## populate_ctd.py
+## populate_dropcam_ctd.py
 
-This script loads dissolved oxygen values (temperature and concentration) from the sensor CSV files on the Dropbox into Tator. This should be run after an expedition has been completely annotated.
+This script loads dissolved oxygen values (temperature and concentration) from the sensor CSV files on the Dropbox into Tator for dropcam deployments. This should be run after an expedition has been completely annotated.
 
-The script currently does not rely on timestamps to sync CTD data with annotations, but instead uses the bottom times noted in Tator and the "leveling out" time in the sensor CSV. Because of this, each deployment's sensor file should be checked manually to ensure the script found the correct leveling out time (for PLW, it was correct on all deployments except for one where the camera hit bottom, but then slid down a slope for a few minutes).
+The script currently does not rely on timestamps to sync CTD data with annotations, but instead uses the bottom times noted in Tator and the "leveling out" time in the sensor CSV. Because of this, each deployment's sensor file should be checked manually to ensure the script found the correct leveling out time (for PLW, it was correct on all deployments except for one where the camera hit bottom, but then slid down a slope for a few minutes). If the calculated leveling out time is incorrect based on what you see in the CSV, you can use the arg "--bottom-time-dropcam-timestamp" to manually specify the timestamp of the row where the camera hits bottom instead of relying on the script to calculate it. This timestamp can be found by looking for the row where the depth values start to level out at the maximum depth for that deployment.
 
 A Dropbox access token is required to run this script. To obtain one, head to https://www.dropbox.com/developers/apps and select `Create app`. After creating the app, you can generate an access token by selecting `Generate` under "Generated access token" on the app page. This token only lasts about 4 hours or so, so you may have to regenerate the access token a few times. Once you have an access token, add it and the Dropbox folder path to the `.env` at the root of the repository:
 
@@ -90,21 +90,31 @@ A Tator token is also required to run this script - see above in the `populate_s
 
 _To run the script:_
 
-1) Get the project/section IDs from Tator - see above in the `populate_substrates.py` section.
-2) Open a terminal window and activate the DARC virtual environment (`conda activate darc`).
-3) `cd` into this directory.
-4) Run the command:
+1) Open a terminal window and activate the DARC virtual environment (`conda activate darc`).
+2) `cd` into this directory.
+3) Run the command:
 
    ```
-   python populate_ctd.py <EXPEDITION NAME> <DEPLOYMENT NAME>
+   python populate_dropcam_ctd.py <EXPEDITION NAME> <DEPLOYMENT NAME>
    ```
    
    Example:
 
    ```
-   python populate_ctd.py DOEX0112_Tuvalu TUV_2025_dscm_01
+   python populate_dropcam_ctd.py DOEX0112_Tuvalu TUV_2025_dscm_01
    ```
    
-5) (Optional) Check the timestamp printed on the line `Sensor bottom data arrival time unix:` against the timestamp that you see the depths leveling out on bottom in the sensor CSV file. The depth at the printed timestamp should also approximately match the depth recorded for this deployment in the fieldbook. 
+    Note: You can use the flag `--dry-run` to run through the script without actually updating anything in Tator. This can be useful for checking that everything looks correct before performing the sync. Example:
+
+   ```
+   python populate_dropcam_ctd.py DOEX0112_Tuvalu TUV_2025_dscm_01 --dry-run
+   ```
+4) Check the timestamp printed on the line `Sensor bottom data arrival time unix:` against the timestamp that you see the depths leveling out on bottom in the sensor CSV file. The depth at the printed timestamp should also approximately match the depth recorded for this deployment in the fieldbook.
+  * If the timestamp looks correct, enter 'y' to continue with the script.
+  * If the timestamp looks incorrect, enter 'n' and then re-run the script with the `--bottom-time-dropcam-timestamp` argument, providing the correct timestamp for when the camera hits bottom. Example:
+
+     ```
+     python populate_dropcam_ctd.py DOEX0112_Tuvalu TUV_2025_dscm_01 --bottom-time-dropcam-timestamp 1920
+     ```
 
 The script will go through each localization for the deployment and upload the matching DO values to Tator. For each localization that is updated, a server response is printed. 
