@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     const sectionParam = sectionIds.map(id => `section=${id}`).join('&');
     const transectParam = transectIds.map(id => `transect=${id}`).join('&');
     const urlParams = `project=${projectId}&${sectionParam}&${transectParam}`;
+    const qaqcCheckRoute = '/qaqc/tator/sub/check';
 
     $('#localizationCount').html(formattedNumber(localizationCount));
     $('#individualCount').html(formattedNumber(individualCount));
@@ -53,41 +54,41 @@ document.addEventListener('DOMContentLoaded', (event) => {
         $('#fireworks').toggle();
     });
 
-    $('#namesAcceptedAnchor').attr('href', `/qaqc/tator/sub/check/names-accepted?${urlParams}`);
+    $('#namesAcceptedAnchor').attr('href', `${qaqcCheckRoute}/names-accepted?${urlParams}`);
     $('#namesAcceptedAnchor').on('click', () => showLoader());
-    $('#missingQualifierAnchor').attr('href', `/qaqc/tator/sub/check/missing-qualifier?${urlParams}`);
+    $('#missingQualifierAnchor').attr('href', `${qaqcCheckRoute}/missing-qualifier?${urlParams}`);
     $('#missingQualifierAnchor').on('click', () => showLoader());
-    $('#stetReasonAnchor').attr('href', `/qaqc/tator/sub/check/stet-missing-reason?${urlParams}`);
+    $('#stetReasonAnchor').attr('href', `${qaqcCheckRoute}/stet-missing-reason?${urlParams}`);
     $('#stetReasonAnchor').on('click', () => showLoader());
-    $('#missingAncillaryAnchor').attr('href', `/qaqc/tator/sub/check/missing-ancillary-data?${urlParams}`);
+    $('#missingAncillaryAnchor').attr('href', `${qaqcCheckRoute}/missing-ancillary-data?${urlParams}`);
     $('#missingAncillaryAnchor').on('click', () => showLoader());
-    $('#missingUponAnchor').attr('href', `/qaqc/tator/sub/check/missing-upon?${urlParams}`);
+    $('#missingUponAnchor').attr('href', `${qaqcCheckRoute}/missing-upon?${urlParams}`);
     $('#missingUponAnchor').on('click', () => showLoader());
-    $('#uponNotSubstrateAnchor').attr('href', `/qaqc/tator/sub/check/upon-not-substrate?${urlParams}`);
+    $('#uponNotSubstrateAnchor').attr('href', `${qaqcCheckRoute}/upon-not-substrate?${urlParams}`);
     $('#uponNotSubstrateAnchor').on('click', () => showLoader());
-    $('#suspiciousHostAnchor').attr('href', `/qaqc/tator/sub/check/suspicious-hosts?${urlParams}`);
+    $('#suspiciousHostAnchor').attr('href', `${qaqcCheckRoute}/suspicious-hosts?${urlParams}`);
     $('#suspiciousHostAnchor').on('click', () => showLoader());
-    $('#timeDiffHostUponAnchor').attr('href', `/qaqc/tator/sub/check/host-associate-time-diff?${urlParams}`);
+    $('#timeDiffHostUponAnchor').attr('href', `${qaqcCheckRoute}/host-associate-time-diff?${urlParams}`);
     $('#timeDiffHostUponAnchor').on('click', () => showLoader());
-    $('#tentativeIdAnchor').attr('href', `/qaqc/tator/sub/check/all-tentative-ids?${urlParams}`);
+    $('#tentativeIdAnchor').attr('href', `${qaqcCheckRoute}/all-tentative-ids?${urlParams}`);
     $('#tentativeIdAnchor').on('click', () => showLoader());
-    $('#notesRemarksAnchor').attr('href', `/qaqc/tator/sub/check/notes-and-remarks?${urlParams}`);
+    $('#notesRemarksAnchor').attr('href', `${qaqcCheckRoute}/notes-and-remarks?${urlParams}`);
     $('#notesRemarksAnchor').on('click', () => showLoader());
-    $('#reExaminedAnchor').attr('href', `/qaqc/tator/sub/check/re-examined?${urlParams}`);
+    $('#reExaminedAnchor').attr('href', `${qaqcCheckRoute}/re-examined?${urlParams}`);
     $('#reExaminedAnchor').on('click', () => showLoader());
-    $('#reviewSizesAnchor').attr('href', `/qaqc/tator/sub/check/sizes?${urlParams}`);
+    $('#reviewSizesAnchor').attr('href', `${qaqcCheckRoute}/sizes?${urlParams}`);
     $('#reviewSizesAnchor').on('click', () => showLoader());
-    // $('#reviewCountsAnchor').attr('href', `/qaqc/tator/sub/check/re-examined?${urlParams}`);
+    // $('#reviewCountsAnchor').attr('href', `${qaqcCheckRoute}/re-examined?${urlParams}`);
     // $('#reviewCountsAnchor').on('click', () => showLoader());
-    // $('#reviewExploratorySegmentsAnchor').attr('href', `/qaqc/tator/sub/check/exploratory-segments?${urlParams}`);
+    // $('#reviewExploratorySegmentsAnchor').attr('href', `${qaqcCheckRoute}/exploratory-segments?${urlParams}`);
     // $('#reviewExploratorySegmentsAnchor').on('click', () => showLoader());
-    $('#uniqueTaxaAnchor').attr('href', `/qaqc/tator/sub/check/unique-taxa?${urlParams}`);
+    $('#uniqueTaxaAnchor').attr('href', `${qaqcCheckRoute}/unique-taxa?${urlParams}`);
     $('#uniqueTaxaAnchor').on('click', () => showLoader());
-    $('#mediaAttributesAnchor').attr('href', `/qaqc/tator/sub/check/media-attributes?${urlParams}`);
+    $('#mediaAttributesAnchor').attr('href', `${qaqcCheckRoute}/media-attributes?${urlParams}`);
     $('#mediaAttributesAnchor').on('click', () => showLoader());
-    // $('#summaryAnchor').attr('href', `/qaqc/tator/sub/check/summary?${urlParams}`);
-    // $('#summaryAnchor').on('click', () => showLoader());
-    $('#imageGuideAnchor').attr('href', `/qaqc/tator/sub/check/image-guide?${urlParams}`);
+    $('#summaryAnchor').attr('href', `${qaqcCheckRoute}/summary?${urlParams}`);
+    $('#summaryAnchor').on('click', () => showLoader());
+    $('#imageGuideAnchor').attr('href', `${qaqcCheckRoute}/image-guide?${urlParams}`);
 });
 
 // get rid of loading screen if back button is pressed (mozilla)

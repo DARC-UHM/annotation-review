@@ -12,7 +12,7 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
             api: tator.api,
             tator_url: str,
             darc_review_url: str = None,
-            transect_media_ids: list[int] = None,
+            transect_media: list[dict] = None,
     ):
         super().__init__(
             project_id=project_id,
@@ -20,8 +20,9 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
             api=api,
             darc_review_url=darc_review_url,
             tator_url=tator_url,
-            transect_media_ids=transect_media_ids,
+            transect_media_ids=[int(media['id']) for media in transect_media] if transect_media else None,
         )
+        self.transect_media = transect_media
 
     def check_missing_ancillary_data(self):
         """
@@ -54,7 +55,7 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
                 actual_final_records.append(record)
         self.final_records = actual_final_records
 
-    def check_upons_are_current_substrate_or_previous_animal(self, transect_media: list[dict]):
+    def check_upons_are_current_substrate_or_previous_animal(self):
         """
         Finds records where the "upon" attribute is not a substring of any value in the current substrate
         at the record's frame, and is not the scientific name of any animal previously recorded in the same
@@ -64,7 +65,7 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
         substrates = {
             substrate['media_id']: substrate['substrates']
             for substrate in
-            self.tator_client.get_substrates_for_medias(project_id=self.project_id, transect_media=transect_media)
+            self.tator_client.get_substrates_for_medias(project_id=self.project_id, transect_media=self.transect_media)
         }
         for media_id, substrate_entries in substrates.items():
             print(f'Substrates for media {media_id}:')
@@ -106,18 +107,6 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
                 print(f'Matched upon "{upon}" for record at frame {frame} to current {key} "{val}"')
                 return True
         return False
-
-    @staticmethod
-    def _get_substrate_for_frame(substrate_entries: list[dict], frame: int) -> dict:
-        """
-        Returns the substrate state at the given frame, or None if there is no substrate state at or before that frame.
-        """
-        current_substrate = None
-        for substrate in substrate_entries:
-            if substrate['frame'] > frame:
-                break
-            current_substrate = substrate
-        return current_substrate
 
     def get_suspicious_records(self):
         """
@@ -220,4 +209,13 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
         self.final_records = unique_taxa
 
     def get_summary(self):
-        raise NotImplementedError('TatorSubQaqcProcessor does not implement get_summary')
+        substrates = {
+            substrate['media_id']: substrate['substrates']
+            for substrate in
+            self.tator_client.get_substrates_for_medias(project_id=self.project_id, transect_media=self.transect_media)
+        }
+        for section in self.sections:
+            section.localizations = [
+                localization for localization in section.localizations if not TatorLocalizationType.is_box(localization['type'])
+            ]
+        self.process_records(transect_substrates=substrates)

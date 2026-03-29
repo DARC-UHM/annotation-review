@@ -74,6 +74,7 @@ class TatorLocalizationProcessor:
         get_timestamp: bool = False,
         get_ctd: bool = False,
         get_substrates: bool = False,
+        transect_substrates: dict = None,
     ):
         print('Processing localizations...', end='')
         sys.stdout.flush()
@@ -190,12 +191,12 @@ class TatorLocalizationProcessor:
                     media_id = localization['media']
                     if not media_substrates.get(media_id):
                         media_substrates[media_id] = self.api.get_media(media_id).attributes
-                    localization_dict['primary_substrate'] = media_substrates[media_id].get('Primary Substrate')
-                    localization_dict['secondary_substrate'] = media_substrates[media_id].get('Secondary Substrate')
-                    localization_dict['bedforms'] = media_substrates[media_id].get('Bedforms')
-                    localization_dict['relief'] = media_substrates[media_id].get('Relief')
-                    localization_dict['substrate_notes'] = media_substrates[media_id].get('Substrate Notes')
-                    localization_dict['deployment_notes'] = media_substrates[media_id].get('Deployment Notes')
+                    self._load_substrates(localization_dict, media_substrates[media_id])
+                elif transect_substrates:
+                    media_id = localization['media']
+                    substrates = self._get_substrate_for_frame(transect_substrates[media_id], localization['frame'])
+                    if substrates:
+                        self._load_substrates(localization_dict, substrates)
                 if scientific_name in self.phylogeny.data:
                     for key in self.phylogeny.data[scientific_name].keys():
                         # split to account for worms 'Phylum (Division)' case
@@ -414,3 +415,24 @@ class TatorLocalizationProcessor:
             session['tator_usernames'][user_id] = annotator_name
             session.modified = True
         return session['tator_usernames'][user_id]
+
+    @staticmethod
+    def _load_substrates(localization_dict: dict, substrate_dict: dict):
+        localization_dict['primary_substrate'] = substrate_dict.get('Primary Substrate')
+        localization_dict['secondary_substrate'] = substrate_dict.get('Secondary Substrate')
+        localization_dict['bedforms'] = substrate_dict.get('Bedforms')
+        localization_dict['relief'] = substrate_dict.get('Relief')
+        localization_dict['substrate_notes'] = substrate_dict.get('Substrate Notes')
+        localization_dict['deployment_notes'] = substrate_dict.get('Deployment Notes')
+
+    @staticmethod
+    def _get_substrate_for_frame(substrate_entries: list[dict], frame: int) -> dict:
+        """
+        Returns the substrate state at the given frame, or None if there is no substrate state at or before that frame.
+        """
+        current_substrate = None
+        for substrate in substrate_entries:
+            if substrate['frame'] > frame:
+                break
+            current_substrate = substrate
+        return current_substrate

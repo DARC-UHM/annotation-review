@@ -1,12 +1,6 @@
 import { formattedNumber } from '../../../../static/js/util/formattedNumber.js';
-
-const caretDownFill = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-down-fill ms-1 pt-1" viewBox="0 0 16 16">
-    <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
-</svg>`;
-
-const caretUpFill = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-up-fill ms-1 pt-1" viewBox="0 0 16 16">
-    <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z"/>
-</svg>`;
+import { downloadTsv } from '../../../static/downloadTsv.js';
+import { caretDownFill, caretUpFill } from '../../../../static/js/icons.js';
 
 function returnToCheckList() {
     const url = window.location.href;
@@ -588,21 +582,6 @@ function downloadTofaTsv() {
         return row;
     });
     downloadTsv(headers, rows, 'tofa');
-}
-
-function downloadTsv(headers, rows, title) {
-    let tsvContent = 'data:text/tsv;charset=utf-8,';
-    tsvContent += headers.join('\t') + '\n';
-    rows.forEach((rowArray) => {
-        const row = rowArray.join('\t');
-        tsvContent += row + '\n';
-    });
-    const encodedUri = encodeURI(tsvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `${title}.tsv`);
-    document.body.appendChild(link);
-    link.click();
 }
 
 document.addEventListener('DOMContentLoaded', () => {

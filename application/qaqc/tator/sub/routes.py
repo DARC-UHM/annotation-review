@@ -127,7 +127,7 @@ def sub_qaqc(check):
     qaqc_annos = TatorSubQaqcProcessor(
         project_id=project_id,
         section_ids=section_ids,
-        transect_media_ids=[int(transect_id) for transect_id in transect_ids],
+        transect_media=transect_media,
         api=tator_api,
         darc_review_url=current_app.config.get('DARC_REVIEW_URL'),
         tator_url=current_app.config.get('TATOR_URL'),
@@ -150,7 +150,7 @@ def sub_qaqc(check):
             qaqc_annos.check_missing_upon_and_not_fish()
             data['page_title'] = 'Records missing upon and not a fish'
         case 'upon-not-substrate':
-            qaqc_annos.check_upons_are_current_substrate_or_previous_animal(transect_media=transect_media)
+            qaqc_annos.check_upons_are_current_substrate_or_previous_animal()
             data['page_title'] = 'Records where upon is not the current substrate or an animal that was previously recorded'
         case 'suspicious-hosts':
             qaqc_annos.get_suspicious_records()
@@ -178,6 +178,11 @@ def sub_qaqc(check):
             qaqc_annos.get_unique_taxa()
             data['page_title'] = 'All unique taxa'
             data['unique_taxa'] = qaqc_annos.final_records
+            return render_template('qaqc/tator/qaqc-tables.html', data=data)
+        case 'summary':
+            qaqc_annos.get_summary()
+            data['page_title'] = 'Summary'
+            data['annotations'] = qaqc_annos.final_records
             return render_template('qaqc/tator/qaqc-tables.html', data=data)
         case 'image-guide':
             presentation_data = BytesIO()
