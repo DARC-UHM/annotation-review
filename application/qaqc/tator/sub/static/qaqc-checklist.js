@@ -80,8 +80,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
     $('#reviewSizesAnchor').on('click', () => showLoader());
     // $('#reviewCountsAnchor').attr('href', `${qaqcCheckRoute}/re-examined?${urlParams}`);
     // $('#reviewCountsAnchor').on('click', () => showLoader());
-    // $('#reviewExploratorySegmentsAnchor').attr('href', `${qaqcCheckRoute}/exploratory-segments?${urlParams}`);
-    // $('#reviewExploratorySegmentsAnchor').on('click', () => showLoader());
     $('#uniqueTaxaAnchor').attr('href', `${qaqcCheckRoute}/unique-taxa?${urlParams}`);
     $('#uniqueTaxaAnchor').on('click', () => showLoader());
     $('#mediaAttributesAnchor').attr('href', `${qaqcCheckRoute}/media-attributes?${urlParams}`);
