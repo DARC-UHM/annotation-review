@@ -163,25 +163,29 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
         self.final_records = actual_final_records
 
     def get_all_sizes(self):
+        """
+        Finds all unique combinations of scientific name, tentative ID, morphospecies, and size, and counts how
+        many records there are of each combination.
+        """
         self.process_records()
-        unique_taxa = {}
+        unique_taxa_size_counts = {}
         for record in self.final_records:
             scientific_name = record.get('scientific_name')
             tentative_id = record.get('tentative_id', '')
             morphospecies = record.get('morphospecies', '')
             size = record.get('size', '')
             key = f'{scientific_name}:{tentative_id}:{morphospecies}:{size}'
-            if key not in unique_taxa.keys():
+            if key not in unique_taxa_size_counts.keys():
                 # add new unique taxa to dict
-                unique_taxa[key] = {
+                unique_taxa_size_counts[key] = {
                     'scientific_name': scientific_name,
                     'tentative_id': tentative_id,
                     'morphospecies': morphospecies,
                     'size': size,
                     'count': 0,
                 }
-            unique_taxa[key]['count'] += 1
-        self.final_records = unique_taxa
+            unique_taxa_size_counts[key]['count'] += 1
+        self.final_records = unique_taxa_size_counts
 
     def get_unique_taxa(self):
         self.process_records()
@@ -199,6 +203,7 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
                     'morphospecies': morphospecies,
                     'box_count': 0,
                     'dot_count': 0,
+                    'max_count': record.get('count', 0),
                 }
             for localization in record['all_localizations']:
                 # increment box/dot counts
@@ -206,6 +211,8 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
                     unique_taxa[key]['box_count'] += 1
                 elif TatorLocalizationType.is_dot(localization['type']):
                     unique_taxa[key]['dot_count'] += 1
+                if record.get('count', 0) > unique_taxa[key]['max_count']:
+                    unique_taxa[key]['max_count'] = record['count']
         self.final_records = unique_taxa
 
     def get_summary(self):

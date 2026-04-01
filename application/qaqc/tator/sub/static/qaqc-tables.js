@@ -49,6 +49,7 @@ function updateHash() {
                 <th scope="col">Morphospecies</th>
                 <th scope="col">Dots</th>
                 <th scope="col">Boxes</th>
+                <th scope="col">Max Count</th>
             </tr>
         `);
         for (const taxa of Object.keys(uniqueTaxa).sort()) {
@@ -59,6 +60,7 @@ function updateHash() {
                     <td>${uniqueTaxa[taxa].morphospecies}</td>
                     <td style="${uniqueTaxa[taxa].dot_count === 0 ? 'color: yellow; font-weight: bold;' : ''}">${uniqueTaxa[taxa].dot_count}</td>
                     <td style="${uniqueTaxa[taxa].box_count === 0 ? 'color: yellow; font-weight: bold;' : ''}">${uniqueTaxa[taxa].box_count}</td>
+                    <td>${uniqueTaxa[taxa].max_count}</td>
                 </tr>
             `);
         }

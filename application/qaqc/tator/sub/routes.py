@@ -173,10 +173,9 @@ def sub_qaqc(check):
             data['page_title'] = 'All unique taxa sizes'
             data['sizes'] = qaqc_annos.final_records
             return render_template('qaqc/tator/qaqc-tables.html', data=data)
-
         case 'unique-taxa':
             qaqc_annos.get_unique_taxa()
-            data['page_title'] = 'All unique taxa'
+            data['page_title'] = 'All unique taxa and counts'
             data['unique_taxa'] = qaqc_annos.final_records
             return render_template('qaqc/tator/qaqc-tables.html', data=data)
         case 'summary':

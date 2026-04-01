@@ -78,8 +78,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
     $('#reExaminedAnchor').on('click', () => showLoader());
     $('#reviewSizesAnchor').attr('href', `${qaqcCheckRoute}/sizes?${urlParams}`);
     $('#reviewSizesAnchor').on('click', () => showLoader());
-    // $('#reviewCountsAnchor').attr('href', `${qaqcCheckRoute}/re-examined?${urlParams}`);
-    // $('#reviewCountsAnchor').on('click', () => showLoader());
     $('#uniqueTaxaAnchor').attr('href', `${qaqcCheckRoute}/unique-taxa?${urlParams}`);
     $('#uniqueTaxaAnchor').on('click', () => showLoader());
     $('#mediaAttributesAnchor').attr('href', `${qaqcCheckRoute}/media-attributes?${urlParams}`);
