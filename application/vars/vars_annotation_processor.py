@@ -25,6 +25,7 @@ class VarsAnnotationProcessor:
         self.working_records = []  # all the annotations that have images
         self.final_records = []    # the final list of annotations
         self.highest_id_ref = 0
+        self._vam_fetched_sequences = set()
         temp_name = sequence_names[0].split()
         temp_name.pop()
         self.vessel_name = ' '.join(temp_name)
@@ -45,25 +46,29 @@ class VarsAnnotationProcessor:
         """
         Fetches all annotations that have images and all video uris/start times from VARS.
         """
-        response = requests.get(url=f'{self.vars_charybdis_url}/query/dive/{sequence_name.replace(" ", "%20")}').json()
+        div_res = requests.get(url=f'{self.vars_charybdis_url}/query/dive/{sequence_name.replace(" ", "%20")}')
 
-        # get list of video links and start timestamps
-        for video in response['media']:
-            if 'urn:imagecollection:org' not in video['uri']:
-                self.videos.append({
-                    'start_timestamp': parse_datetime(video['start_timestamp']),
-                    'uri': video['uri'].replace('http://hurlstor.soest.hawaii.edu/videoarchive', 'https://hurlvideo.soest.hawaii.edu'),
-                    'sequence_name': video['video_sequence_name'],
-                    'video_reference_uuid': video['video_reference_uuid'],
-                    'duration_millis': video['duration_millis'],
-                })
+        if div_res.status_code != 200:
+            print(f'{TERM_YELLOW}WARNING: Unable to fetch annotations for sequence {sequence_name} from VARS{TERM_NORMAL}')
+            return []
 
-        if len(self.videos) == 0:
-            self._fetch_vam_media(sequence_name)
+        response = div_res.json()
+        videos = [video for video in response['media'] if 'urn:imagecollection:org' not in video.get('uri')]
+
+        for video in videos:
+            self.videos.append({
+                'start_timestamp': parse_datetime(video['start_timestamp']),
+                'uri': video['uri'].replace('http://hurlstor.soest.hawaii.edu/videoarchive', 'https://hurlvideo.soest.hawaii.edu'),
+                'sequence_name': video['video_sequence_name'],
+                'video_reference_uuid': video['video_reference_uuid'],
+                'duration_millis': video['duration_millis'],
+            })
 
         self.videos.sort(key=lambda x: x['start_timestamp'])
 
         if not images_only:
+            for annotation in response['annotations']:
+                annotation['sequence_name'] = sequence_name
             return response['annotations']  # return all annotations
 
         # only return annotations that have images
@@ -71,26 +76,31 @@ class VarsAnnotationProcessor:
         for annotation in response['annotations']:
             concept_name = annotation['concept']
             if annotation['image_references'] and concept_name[0].isupper():
+                annotation['sequence_name'] = sequence_name
                 annotations_with_images.append(annotation)
         return annotations_with_images
 
-    def _fetch_vam_media(self, sequence_name: str):
+    def _fetch_vam_media(self, sequence_name: str) -> list[dict]:
         """
         Sometimes, VARS doesn't include videos in the media response. Fetch them directly from VAM instead.
         """
         if not self.vars_vam_url:
-            return
-        response = requests.get(url=f'{self.vars_vam_url}/videos/videosequence/name/{sequence_name.replace(" ", "%20")}').json()
-        for video in response:
-            video_ref = video['video_references'][0]
-            if 'urn:imagecollection:org' not in video_ref['uri']:
-                self.videos.append({
-                    'start_timestamp': parse_datetime(video['start_timestamp']),
-                    'uri': video_ref['uri'].replace('http://hurlstor.soest.hawaii.edu/videoarchive', 'https://hurlvideo.soest.hawaii.edu'),
-                    'sequence_name': sequence_name,
-                    'video_reference_uuid': video_ref['uuid'],
-                    'duration_millis': video['duration_millis'],
-                })
+            return []
+        res = requests.get(url=f'{self.vars_vam_url}/videos/videosequence/name/{sequence_name.replace(" ", "%20")}')
+        if res.status_code != 200:
+            print(f'{TERM_YELLOW}WARNING: Unable to fetch videos for sequence {sequence_name} from VAM{TERM_NORMAL}')
+            return []
+        response = res.json()
+        return [
+            {
+                'start_timestamp': parse_datetime(video['start_timestamp']),
+                'uri': ref['uri'].replace('http://hurlstor.soest.hawaii.edu/videoarchive', 'https://hurlvideo.soest.hawaii.edu'),
+                'sequence_name': sequence_name,
+                'video_reference_uuid': ref['uuid'],
+                'duration_millis': video['duration_millis'],
+            }
+            for video in response for ref in video.get('video_references', [])[:1] if 'urn:imagecollection:org' not in ref['uri']
+        ]
 
     @staticmethod
     def get_image_url(annotation: dict) -> str:
@@ -126,11 +136,6 @@ class VarsAnnotationProcessor:
         time_diff = timestamp - matching_video['start_timestamp']
         # if the annotation timestamp is before the start of the video or after the end of the video, return empty dict (no video)
         if time_diff.total_seconds() < 0 or time_diff.total_seconds() * 1000 > matching_video['duration_millis']:
-            first_video_start_time = self.videos[0]['start_timestamp']
-            last_video_end_time = self.videos[-1]['start_timestamp'] + datetime.timedelta(milliseconds=self.videos[-1]['duration_millis'])
-            print(f'{TERM_YELLOW}WARNING: Unable to find video for annotation {annotation["observation_uuid"]} (concept name "{annotation["concept"]}"){TERM_NORMAL}')
-            print(f'Annotation timestamp is {annotation["recorded_timestamp"]}, but videos start at '
-                  f'{first_video_start_time.isoformat()}Z and end at {last_video_end_time.isoformat()}Z')
             return {}
         return {
             'uri': f'{matching_video["uri"]}#t={int(time_diff.total_seconds())}',
@@ -153,6 +158,28 @@ class VarsAnnotationProcessor:
                 self.phylogeny.fetch_vars(concept_name, self.vars_kb_url, no_match_records)
 
             video = self.get_video(record)
+
+            if not video and self.vars_vam_url:
+                seq_name = record.get('sequence_name')
+                if seq_name and seq_name not in self._vam_fetched_sequences:
+                    print(f'{TERM_YELLOW}WARNING: Charybdis missing videos for sequence "{seq_name}", falling back to VAM{TERM_NORMAL}')
+                    self._vam_fetched_sequences.add(seq_name)
+                    existing_uuids = {v['video_reference_uuid'] for v in self.videos}
+                    for vam_video in self._fetch_vam_media(seq_name):
+                        if vam_video['video_reference_uuid'] not in existing_uuids:
+                            self.videos.append(vam_video)
+                    self.videos.sort(key=lambda x: x['start_timestamp'])
+                    video = self.get_video(record)
+
+            if not video:
+                seq_name = record.get('sequence_name')
+                seq_videos = [v for v in self.videos if v['sequence_name'] == seq_name]
+                if seq_videos:
+                    first_video_start_time = seq_videos[0]['start_timestamp']
+                    last_video_end_time = seq_videos[-1]['start_timestamp'] + datetime.timedelta(milliseconds=seq_videos[-1]['duration_millis'])
+                    print(f'{TERM_YELLOW}WARNING: Unable to find video for annotation {record["observation_uuid"]} (concept name "{record["concept"]}"){TERM_NORMAL}')
+                    print(f'Annotation timestamp is {record["recorded_timestamp"]}, but videos for sequence "{seq_name}" start at '
+                          f'{first_video_start_time.isoformat()}Z and end at {last_video_end_time.isoformat()}Z')
 
             if record.get('associations'):
                 for association in record['associations']:

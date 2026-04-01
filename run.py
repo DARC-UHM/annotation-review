@@ -15,6 +15,6 @@ if __name__ == '__main__':
     if env in ('development', 'no_server_edits'):
         app.run(debug=True, port=PORT)
     else:
-        webbrowser.open_new(f'http://127.0.0.1:{PORT}')
+        webbrowser.open_new(f'http://localhost:{PORT}')
         print(f'\n{TERM_GREEN}Application running. Press CTRL + C to stop.{TERM_NORMAL}\n')
         app.run(port=PORT)

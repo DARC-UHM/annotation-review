@@ -9,7 +9,6 @@ class Config:
     SESSION_PERMANENT = False
     SESSION_USE_SIGNER = True
     SESSION_FILE_THRESHOLD = 10
-    LOCAL_APP_URL = 'http://127.0.0.1:8000'
     TATOR_URL = 'https://cloud.tator.io'
     TATOR_PROJECT_ID = 26
     VARS_ANNOSAURUS_URL = f'{HURLSTOR_URL}/anno/v1'
