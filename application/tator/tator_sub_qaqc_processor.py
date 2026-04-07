@@ -50,7 +50,7 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
         for record in self.final_records:
             if (not record.get('upon')
                     or record['upon'] in {'--', '-', ''}
-                    or ('water' in record['upon'].lower() and record['phylum'] != 'Chordata')):
+                    or ('water' in record['upon'].lower() and record.get('phylum') != 'Chordata')):
                 record['problems'] = 'Upon'
                 actual_final_records.append(record)
         self.final_records = actual_final_records
