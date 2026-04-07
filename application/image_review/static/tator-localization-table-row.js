@@ -67,7 +67,7 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                         ${localization.count || '-'}<br>
                     </div>
                 </div>
-                ${localization.attracted
+                ${TatorLocalizationType.isDropcam(localization.type)
                     ? `<div class="row" style="${localization.problems?.includes('Attracted') ? 'color: yellow;' : ''}">
                         <div class="col-4">
                             Attracted:
@@ -88,13 +88,13 @@ export const tatorLocalizationRow = (localization, externalComment) => {
                     </div>`
                     : ''
                 }
-                ${localization.upon
+                ${TatorLocalizationType.isSub(localization.type)
                     ? `<div class="row" style="${localization.problems?.includes('Upon') ? 'color: yellow;' : ''}">
                         <div class="col-4">
                             Upon:
                         </div>
                         <div class="col values">
-                            ${localization.upon}<br>
+                            ${localization.upon || '-'}<br>
                             ${localization.host_upon_time_diff ? `<div style="color: yellow;">${localization.host_upon_time_diff}</div>` : ''}
                         </div>
                     </div>`

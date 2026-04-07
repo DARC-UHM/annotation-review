@@ -15,4 +15,8 @@ export class TatorLocalizationType {
     static isSub(localizationType) {
         return localizationType === this.SUB_BOX || localizationType === this.SUB_DOT;
     }
+
+    static isDropcam(localizationType) {
+        return localizationType === this.BOX || localizationType === this.DOT;
+    }
 }
