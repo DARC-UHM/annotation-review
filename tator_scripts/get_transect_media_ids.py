@@ -12,7 +12,7 @@ import os
 import dotenv
 import sys
 
-from tator_script_helper_functions import get_transect_media_ids
+from tator_script_helper_functions import get_transect_media
 
 TATOR_REST_URL = 'https://cloud.tator.io/rest'
 
@@ -32,9 +32,9 @@ HEADERS = {
 with open(FILE_NAME) as f:
     MEDIA_NAMES = f.read().strip().split('\n')
 
-for media_name, media_id in get_transect_media_ids(
+for media in get_transect_media(
     expedition_name=EXPEDITION_NAME,
     media_names=MEDIA_NAMES,
     tator_token=os.getenv('TATOR_TOKEN'),
-).items():
-    print(media_name, media_id)
+):
+    print(media['name'], media['id'])

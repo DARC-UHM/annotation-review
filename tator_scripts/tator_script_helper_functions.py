@@ -46,7 +46,7 @@ def print_progress_bar(iteration: int, total: int, prefix: str = '', suffix: str
         print()
 
 
-def get_transect_media_ids(expedition_name: str, media_names: list[str], tator_token: str):
+def get_transect_media(expedition_name: str, media_names: list[str], tator_token: str) -> list[dict]:
     headers = {
         'Content-Type': 'application/json',
         'Authorization': f'Token {tator_token}',
@@ -79,4 +79,10 @@ def get_transect_media_ids(expedition_name: str, media_names: list[str], tator_t
         print('Error connecting to Tator', media_res.json())
         exit(1)
 
-    return {media['name']: media['id'] for media in media_res.json() if media['name'] in media_names}
+    return [
+        {
+            'name': media['name'],
+            'id': media['id'],
+            'start_time': media['attributes']['Start Time'],
+            'fps': media['fps'],
+        } for media in media_res.json() if media['name'] in media_names]
