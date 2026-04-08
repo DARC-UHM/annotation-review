@@ -10,9 +10,9 @@ Example: python get_transect_media_ids.py TUV_2025 media_names.txt
 import os
 
 import dotenv
-import requests
 import sys
 
+from tator_script_helper_functions import get_transect_media_ids
 
 TATOR_REST_URL = 'https://cloud.tator.io/rest'
 
@@ -32,27 +32,9 @@ HEADERS = {
 with open(FILE_NAME) as f:
     MEDIA_NAMES = f.read().strip().split('\n')
 
-section_res = requests.get(f'{TATOR_REST_URL}/Sections/26', headers=HEADERS)
-
-if section_res.status_code != 200:
-    print('Error connecting to Tator', section_res.json())
-    exit(1)
-
-section_ids = []
-
-for section in section_res.json():
-    parts = section['path'].split('.')
-    if len(parts) != 3:
-        continue
-    if parts[0] == EXPEDITION_NAME and parts[1] == 'sub':
-        section_ids.append(str(section['id']))
-
-media_res = requests.get(f'{TATOR_REST_URL}/Medias/26?multi_section={",".join(section_ids)}', headers=HEADERS)
-
-if section_res.status_code != 200:
-    print('Error connecting to Tator', media_res.json())
-    exit(1)
-
-for media in media_res.json():
-    if media['name'] in MEDIA_NAMES:
-        print(media['id'])
+for media_name, media_id in get_transect_media_ids(
+    expedition_name=EXPEDITION_NAME,
+    media_names=MEDIA_NAMES,
+    tator_token=os.getenv('TATOR_TOKEN'),
+).items():
+    print(media_name, media_id)

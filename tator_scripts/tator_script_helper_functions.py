@@ -1,6 +1,10 @@
 import os
 import sys
+
+import requests
 import tator
+
+TATOR_URL = 'https://cloud.tator.io'
 
 
 def get_deployment_section_id_map() -> dict:
@@ -11,7 +15,7 @@ def get_deployment_section_id_map() -> dict:
 
     try:
         section_list = tator.get_api(
-            host='https://cloud.tator.io',
+            host=TATOR_URL,
             token=os.getenv('TATOR_TOKEN'),
         ).get_section_list(26)  # hardcoded NGS-ExTech Project
         for section in section_list:
@@ -40,3 +44,39 @@ def print_progress_bar(iteration: int, total: int, prefix: str = '', suffix: str
     print(f'\r{prefix} {term_blue}|{bar}|{term_normal} {percent}% {suffix}', end='\r')
     if iteration == total:
         print()
+
+
+def get_transect_media_ids(expedition_name: str, media_names: list[str], tator_token: str):
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Token {tator_token}',
+    }
+
+    section_res = requests.get(
+        url=f'{TATOR_URL}/rest/Sections/26',
+        headers=headers,
+    )
+
+    if section_res.status_code != 200:
+        print('Error connecting to Tator', section_res.json())
+        exit(1)
+
+    section_ids = []
+
+    for section in section_res.json():
+        parts = section['path'].split('.')
+        if len(parts) != 3:
+            continue
+        if parts[0] == expedition_name and parts[1] == 'sub':
+            section_ids.append(str(section['id']))
+
+    media_res = requests.get(
+        url=f'{TATOR_URL}/rest/Medias/26?multi_section={",".join(section_ids)}',
+        headers=headers,
+    )
+
+    if section_res.status_code != 200:
+        print('Error connecting to Tator', media_res.json())
+        exit(1)
+
+    return {media['name']: media['id'] for media in media_res.json() if media['name'] in media_names}
