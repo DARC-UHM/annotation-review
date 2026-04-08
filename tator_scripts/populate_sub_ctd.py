@@ -83,7 +83,7 @@ def populate_ctd(expedition_name: str, dry_run: bool):
         for localization in localizations:
             localization_media = next((media for media in media_list if media['id'] == localization['media']), None)
             if localization_media is None:
-                print(f'\n{TERM_RED}Could not find media with ID {localization['media']} in media list{TERM_NORMAL}')
+                print(f'\n{TERM_RED}Could not find media with ID {localization["media"]} in media list{TERM_NORMAL}')
                 exit(1)
             media_start_time = datetime.datetime.fromisoformat(localization_media['start_time'])
             localization_timestamp = media_start_time + datetime.timedelta(seconds=localization['frame'] / localization_media['fps'])

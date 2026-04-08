@@ -85,4 +85,5 @@ def get_transect_media(expedition_name: str, media_names: list[str], tator_token
             'id': media['id'],
             'start_time': media['attributes']['Start Time'],
             'fps': media['fps'],
-        } for media in media_res.json() if media['name'] in media_names]
+        } for media in media_res.json() if media['name'] in media_names
+    ]
