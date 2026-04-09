@@ -87,7 +87,7 @@ def populate_ctd(expedition_name: str, days_offset: int, dry_run: bool):
             exit(1)
 
         for index, media in enumerate(deployment_media):
-            print(f'\nProcessing {index + 1}/{len(deployment_media)} transects for this deployment...')
+            print(f'\nProcessing {media["name"]} (transect {index + 1}/{len(deployment_media)} for this deployment)...')
             media_row = transect_rows_df[transect_rows_df['filename'] == media['name']]
             start_time = media_row.iloc[0]['qinsy_timestamp']
 
@@ -111,7 +111,7 @@ def populate_ctd(expedition_name: str, days_offset: int, dry_run: bool):
                 depth_m = matched_row['Depth']
 
                 patch_localization_ctd(
-                    localization_id=localization['id'],
+                    localization=localization,
                     lat=lat,
                     long=long,
                     temp_c=temp_c,
@@ -197,12 +197,13 @@ def parse_coord(coord_str: str) -> float:
     return decimal
 
 
-def patch_localization_ctd(localization_id: int, lat: float, long: float, temp_c: float, depth_m: float, dry_run: bool):
+def patch_localization_ctd(localization: dict, lat: float, long: float, temp_c: float, depth_m: float, dry_run: bool):
     if dry_run:
-        print(f'\n{TERM_YELLOW}DRY RUN: Would update localization {localization_id} with Position=({lat}, {long}), DO Temperature={temp_c}C, Depth={depth_m}m{TERM_NORMAL}')
+        print(f'\n{TERM_YELLOW}DRY RUN: Would update localization {localization["id"]} at frame {localization["frame"]}'
+              f' with Position=({lat}, {long}), DO Temperature={temp_c}C, Depth={depth_m}m{TERM_NORMAL}')
         return
     res = requests.patch(
-        url=f'{TATOR_URL}/rest/Localization/{localization_id}',
+        url=f'{TATOR_URL}/rest/Localization/{localization["id"]}',
         headers={
             'Content-Type': 'application/json',
             'Authorization': f'Token {TATOR_TOKEN}',
@@ -216,7 +217,7 @@ def patch_localization_ctd(localization_id: int, lat: float, long: float, temp_c
         }
     )
     if res.status_code != 200:
-        print(f'\n{TERM_RED}Error updating localization {localization_id} in Tator: {res.json()}{TERM_NORMAL}')
+        print(f'\n{TERM_RED}Error updating localization {localization["id"]} in Tator: {res.json()}{TERM_NORMAL}')
         exit(1)
     print(res.json()['message'])
 
