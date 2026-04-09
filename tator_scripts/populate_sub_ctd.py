@@ -1,17 +1,27 @@
 """
-Populates the 'DO Temperature (celsius)' and the 'DO Concentration Salin Comp (mol per L)' attributes of localizations
-in Tator with values pulled from a CSV file located in the Dropbox. Start timestamps must be synced in Tator before
-running this script.
+Populates CTD (position, temperature, depth) attributes on Tator localizations for
+sub/transect deployments, using sensor data (Qinsy CSV files) stored in Dropbox.
+
+For each transect in the expedition metadata, the script:
+  1. Fetches the Qinsy sensor CSV from Dropbox
+  2. Fetches all localizations for the transect from Tator
+  3. Matches each localization to the nearest Qinsy row by timestamp
+  4. Patches the localization's Position, DO Temperature, and Depth attributes in Tator
 
 To run this script, you must have a .env file in the root of the repository with the following variables:
     - DROPBOX_ACCESS_TOKEN: Access token for the Dropbox API (https://www.dropbox.com/developers/apps)
     - TATOR_TOKEN: Tator API token
 
-Usage: python populate_sub_ctd.py <expedition_name> [--dry-run]
+Usage: python populate_sub_ctd.py <expedition_name> [--days-offset <int>] [--dry-run]
+
+Arguments:
+    expedition_name     Name of the expedition (e.g. TUV_2025)
+    --days-offset       Number of days to offset localization timestamps to align with Qinsy data (default: 0)
+    --dry-run           Print changes without writing to Tator
 
 Examples:
     python populate_sub_ctd.py TUV_2025
-    python populate_sub_ctd.py TUV_2025 --dry-run
+    python populate_sub_ctd.py TUV_2025 --days-offset 1 --dry-run
 """
 
 import argparse
@@ -35,7 +45,7 @@ PROJECT_ID = 26
 TATOR_URL = 'https://cloud.tator.io'
 
 
-def populate_ctd(expedition_name: str, dry_run: bool):
+def populate_ctd(expedition_name: str, days_offset: int, dry_run: bool):
     if dry_run:
         print('\n\n========= DRY RUN =========\n\n')
 
@@ -52,25 +62,22 @@ def populate_ctd(expedition_name: str, dry_run: bool):
         print(f'\n{TERM_RED}No expedition metadata file found in Dropbox{TERM_NORMAL}')
         exit(1)
 
-    transect_rows = metadata_df[metadata_df['transect'] == True][['filename', 'ps_site_id', 'time_start_qinsy']]
-    print(f'Found {len(transect_rows)} transect deployments.')
+    transect_rows_df = metadata_df[metadata_df['transect'] == True][['filename', 'ps_site_id', 'local_date', 'time_start_qinsy']]
+    transect_rows_df['qinsy_timestamp'] = pd.to_datetime(transect_rows_df['local_date'].astype(str) + ' ' + transect_rows_df['time_start_qinsy'].astype(str))
+    print(f'Found {len(transect_rows_df)} deployments containing transects.')
 
-    deployment_names = transect_rows['ps_site_id'].unique()
-    file_names = transect_rows['filename'].unique()
+    deployment_names = transect_rows_df['ps_site_id'].unique()
+    file_names = transect_rows_df['filename'].unique()
     media_list = get_transect_media(expedition_name, file_names, TATOR_TOKEN)
 
-    # for each folder in the sub
+    # for each deployment that has a transect
     for deployment in deployment_names:
         print(f'\nProcessing deployment {deployment}...')
 
         # get matching file names for this deployment
-        deployment_file_names = transect_rows[transect_rows['ps_site_id'] == deployment]['filename'].unique()
-        deployment_media_ids = [media['id'] for media in media_list if media['name'] in deployment_file_names]
+        deployment_file_names = transect_rows_df[transect_rows_df['ps_site_id'] == deployment]['filename'].unique()
+        deployment_media = [media for media in media_list if media['name'] in deployment_file_names]
         print(f'Found {len(deployment_file_names)} transects for this deployment.')
-
-        # grab all localizations from tator for the deployment
-        localizations = get_localizations(deployment_media_ids)
-        print(f'Found {len(localizations)} localizations across these transects.')
 
         # grab qinsy file for deployment
         deployment_qinsy_folder_path = f'{expedition_sub_folder_path}/{deployment.replace("_", "-")}/Qinsy'
@@ -79,23 +86,38 @@ def populate_ctd(expedition_name: str, dry_run: bool):
             print(f'\n{TERM_RED}No Qinsy file found for deployment {deployment} in Dropbox{TERM_NORMAL}')
             exit(1)
 
-        print(qinsy_df)
-        for localization in localizations:
-            localization_media = next((media for media in media_list if media['id'] == localization['media']), None)
-            if localization_media is None:
-                print(f'\n{TERM_RED}Could not find media with ID {localization["media"]} in media list{TERM_NORMAL}')
-                exit(1)
-            media_start_time = datetime.datetime.fromisoformat(localization_media['start_time'])
-            localization_timestamp = media_start_time + datetime.timedelta(seconds=localization['frame'] / localization_media['fps'])
-            print(localization_timestamp)
-            exit(1)
-            # todo find the closest qinsy timestamp to the localization timestamp, populate CTD
+        for index, media in enumerate(deployment_media):
+            print(f'\nProcessing {index + 1}/{len(deployment_media)} transects for this deployment...')
+            media_row = transect_rows_df[transect_rows_df['filename'] == media['name']]
+            start_time = media_row.iloc[0]['qinsy_timestamp']
 
-    # pau
-    marine_emojis = ['🦈', '🐠', '🐬', '🐋', '🐙', '🦑', '🦐', '🦞', '🦀', '🐚', '🌊']
-    print()
-    print(f'{expedition_name} complete {random.choice(marine_emojis)}')
-    print()
+            # get all localizations from tator for this transect
+            localizations = get_localizations(media['id'])
+
+            for localization in localizations:
+                localization_timestamp = start_time + datetime.timedelta(
+                    days=days_offset,
+                    seconds=localization['frame'] / media['fps'],
+                )
+                localization_timestamp = pd.Timestamp(localization_timestamp).round('s').to_pydatetime()
+                localization_timestamp = localization_timestamp.replace(tzinfo=None)
+                if localization_timestamp not in qinsy_df.index:
+                    print(f'{TERM_RED}No Qinsy data for timestamp {localization_timestamp} (localization {localization["id"]}), exiting{TERM_NORMAL}')
+                    exit(1)
+                matched_row = qinsy_df.loc[localization_timestamp]
+                lat = parse_coord(matched_row['Steered Node Latitude'])
+                long = parse_coord(matched_row['Steered Node Longitude'])
+                temp_c = matched_row['TMP Value']
+                depth_m = matched_row['Depth']
+
+                patch_localization_ctd(
+                    localization_id=localization['id'],
+                    lat=lat,
+                    long=long,
+                    temp_c=temp_c,
+                    depth_m=depth_m,
+                    dry_run=dry_run,
+                )
 
 
 def get_metadata_df(dropbox_client: dropbox.Dropbox, expedition_sub_folder_path: str):
@@ -145,11 +167,15 @@ def get_qinsy_df(dropbox_client: dropbox.Dropbox, qinsy_folder_path: str):
             print(f'\n{TERM_RED}Sensor CSV not in expected format: Missing column with header "{expected_col_header}"{TERM_NORMAL}')
             print(f'See CSV file here: https://www.dropbox.com/home{qinsy_folder_path}')
             exit(1)
-    return df[['Date', 'Time', 'Steered Node Latitude', 'Steered Node Longitude', 'TMP Value']]
+    # just using pressure for depth, it's close enough
+    df = df.rename(columns={'PRS Value': 'Depth'})
+    df['Timestamp'] = pd.to_datetime(df['Date'] + ' ' + df['Time'], format='%m/%d/%Y %H:%M:%S')
+    df = df.set_index('Timestamp')
+    return df[['Steered Node Latitude', 'Steered Node Longitude', 'TMP Value', 'Depth']]
 
 
-def get_localizations(media_ids: list[int]) -> list[dict]:
-    url = f'{TATOR_URL}/rest/Localizations/{PROJECT_ID}?media_id={",".join(str(m) for m in media_ids)}'
+def get_localizations(media_id: int) -> list[dict]:
+    url = f'{TATOR_URL}/rest/Localizations/{PROJECT_ID}?media_id={media_id}'
     res = requests.get(url=url, headers={
         'Content-Type': 'application/json',
         'Authorization': f'Token {TATOR_TOKEN}',
@@ -158,21 +184,58 @@ def get_localizations(media_ids: list[int]) -> list[dict]:
     return res.json()
 
 
+def parse_coord(coord_str: str) -> float:
+    """
+    Parse a coordinate string in 'degrees;decimal_minutes + hemisphere' format.
+    Example: '5;37.9663846S' → -5.6328, '176;03.6874366E' → 176.0614
+    """
+    hemisphere = coord_str[-1]
+    degrees, minutes = coord_str[:-1].split(';')
+    decimal = float(degrees) + float(minutes) / 60
+    if hemisphere in ('S', 'W'):
+        decimal = -decimal
+    return decimal
+
+
+def patch_localization_ctd(localization_id: int, lat: float, long: float, temp_c: float, depth_m: float, dry_run: bool):
+    if dry_run:
+        print(f'\n{TERM_YELLOW}DRY RUN: Would update localization {localization_id} with Position=({lat}, {long}), DO Temperature={temp_c}C, Depth={depth_m}m{TERM_NORMAL}')
+        return
+    res = requests.patch(
+        url=f'{TATOR_URL}/rest/Localization/{localization_id}',
+        headers={
+            'Content-Type': 'application/json',
+            'Authorization': f'Token {TATOR_TOKEN}',
+        },
+        json={
+            'attributes': {
+                'Position': [lat, long],
+                'DO Temperature (celsius)': temp_c,
+                'Depth': depth_m,
+            },
+        }
+    )
+    if res.status_code != 200:
+        print(f'\n{TERM_RED}Error updating localization {localization_id} in Tator: {res.json()}{TERM_NORMAL}')
+        exit(1)
+    print(res.json()['message'])
+
+
 if __name__ == '__main__':
     dotenv.load_dotenv()
     TATOR_TOKEN = os.getenv('TATOR_TOKEN')
 
-    print('not ready yet :)')
-    exit(0)
-
     parser = argparse.ArgumentParser(description='Syncs CTD data from Dropbox to Tator')
     parser.add_argument('expedition_name', type=str, help='Name of the expedition (e.g. DOEX0112_Tuvalu)')
+    parser.add_argument('--days-offset', type=int, default=0, help='Number of days to offset the localization timestamps (default: 0)')
     parser.add_argument('--dry-run', action='store_true', help='Do not update Tator, just print the changes (for development)')
     args = parser.parse_args()
 
-    populate_ctd(
-        expedition_name=args.expedition_name,
-        dry_run=args.dry_run,
-    )
+    populate_ctd(expedition_name=args.expedition_name, days_offset=args.days_offset, dry_run=args.dry_run)
 
-    # os.system('say "Expedition C T D synced."')
+    # pau
+    marine_emojis = ['🦈', '🐠', '🐬', '🐋', '🐙', '🦑', '🦐', '🦞', '🦀', '🐚', '🌊']
+    print()
+    print(f'{args.expedition_name} complete {random.choice(marine_emojis)}')
+    print()
+    os.system('say "Expedition C T D synced."')
