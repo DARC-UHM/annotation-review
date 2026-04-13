@@ -210,7 +210,7 @@ def patch_localization_ctd(localization: dict, lat: float, long: float, temp_c: 
         },
         json={
             'attributes': {
-                'Position': [lat, long],
+                'Position': [long, lat],
                 'DO Temperature (celsius)': temp_c,
                 'Depth': depth_m,
             },
