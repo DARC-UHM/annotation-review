@@ -184,6 +184,7 @@ function sortBy(key) {
     key = key.replaceAll('%20', ' ');
     if (key === 'Default') {
         annotationsToDisplay = [...annotations];
+        $('#sortSelect').val(key);
         return;
     }
     if (key === 'Timestamp') {
@@ -290,7 +291,10 @@ export function updateHash() {
     for (const key of Object.keys(filter)) {
         $('#filterList').append(`
             <span class="small filter-pill position-relative">
-                <span style="text-transform: capitalize;">${key.replaceAll('_', ' ')}:</span> ${filter[key].replaceAll('%20', ' ')}
+                <span style="text-transform: capitalize;">
+                    ${key.replaceAll('_', ' ')}:
+                </span>
+                ${filter[key].replaceAll('%20', ' ').replaceAll('%22', '"')}
                 <button type="button" class="position-absolute filter-x" onclick="removeFilter('${key}', '${filter[key]}')">×</button>
             </span>
         `);
@@ -345,89 +349,7 @@ export function updateHash() {
     `);
     autocomplete($('#imageFilterEntry'), allConcepts);
 
-    // Global filters
-    if (filter.phylum) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.phylum?.toLowerCase() === filter.phylum.toLowerCase());
-    }
-    if (filter.class) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.class?.toLowerCase() === filter.class.toLowerCase());
-    }
-    if (filter.order) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.order?.toLowerCase() === filter.order.toLowerCase());
-    }
-    if (filter.family) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.family?.toLowerCase() === filter.family.toLowerCase());
-    }
-    if (filter.genus) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.genus?.toLowerCase() === filter.genus.toLowerCase());
-    }
-    if (filter.species) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.species?.toLowerCase() === filter.species.toLowerCase().replaceAll('%20', ' '));
-    }
-    if (filter.annotator) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.annotator?.toLowerCase().includes(filter.annotator.toLowerCase().replaceAll('%20', ' ')));
-    }
-    if (filter.video_sequence || filter.deployment) {
-        const sequence = filter.video_sequence ? filter.video_sequence : filter.deployment;
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.video_sequence_name?.toLowerCase().includes(sequence.toLowerCase().replaceAll('%20', ' ')));
-    }
-
-    // VARS-specific filters
-    if (filter.id_certainty) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.identity_certainty?.toLowerCase().includes(filter.id_certainty.toLowerCase().replaceAll('%20', ' ')));
-    }
-    if (filter.comment) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.comment?.toLowerCase().includes(filter.comment.toLowerCase().replaceAll('%20', ' ')));
-    }
-    if (filter.concept) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.concept?.toLowerCase().includes(filter.concept.toLowerCase().replaceAll('%20', ' ')));
-    }
-    if (filter.guide_photo) {
-        if (filter.guide_photo?.toLowerCase() === 'any') {
-            annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.guide_photo);
-        } else {
-            annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.guide_photo?.toLowerCase().includes(filter.guide_photo.toLowerCase().replaceAll('%20', ' ')));
-        }
-    }
-
-    // Tator-specific filters
-    if (filter.attracted) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.attracted?.toLowerCase() === filter.attracted.toLowerCase().replaceAll('%20', ' '));
-    }
-    if (filter.good_image) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.good_image);
-    }
-    if (filter.identified_by) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.identified_by?.toLowerCase().includes(filter.identified_by.toLowerCase().replaceAll('%20', ' ')));
-    }
-    if (filter.morphospecies) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.morphospecies?.toLowerCase().includes(filter.morphospecies.toLowerCase().replaceAll('%20', ' ')));
-    }
-    if (filter.notes) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.notes?.toLowerCase().includes(filter.notes.toLowerCase().replaceAll('%20', ' ')));
-    }
-    if (filter.qualifier) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.qualifier?.toLowerCase().includes(filter.qualifier.toLowerCase().replaceAll('%20', ' ')));
-    }
-    if (filter.reason) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.reason?.toLowerCase().includes(filter.reason.toLowerCase().replaceAll('%20', ' ')));
-    }
-    if (filter.tentative_id) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.tentative_id?.toLowerCase().includes(filter.tentative_id.toLowerCase().replaceAll('%20', ' ')));
-    }
-    if (filter.scientific_name) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => anno.scientific_name?.toLowerCase().includes(filter.scientific_name.toLowerCase().replaceAll('%20', ' ')));
-    }
-    if (filter.localization_type) {
-        const isBox = filter.localization_type.toLowerCase().includes('box');
-        annotationsToDisplay = annotationsToDisplay.filter((anno) => isBox
-            ? TatorLocalizationType.isBox(anno.all_localizations[0].type)
-            : TatorLocalizationType.isDot(anno.all_localizations[0].type));
-    }
-    if (filterTatorCtdNotes) {
-        annotationsToDisplay = annotationsToDisplay.filter((anno) =>
-            !(anno.notes?.includes('Temperature and oxygen data collected') && !(anno.notes?.includes('|') || anno.notes?.includes(';'))));
-    }
+    annotationsToDisplay = applyFilters(annotationsToDisplay, filter, filterTatorCtdNotes);
 
     if (!annotationsToDisplay.length) {
         $('#404').show();
@@ -451,6 +373,74 @@ export function updateHash() {
     $('#totalPageNum').html(pageCount);
     $('#totalPageNumBottom').html(pageCount);
 }
+
+function applyFilters(annotationList, filterObj, filterCtdNotes) {
+    const filterMap = {
+        phylum: 'phylum',
+        class: 'class',
+        order: 'order',
+        family: 'family',
+        genus: 'genus',
+        species: 'species',
+        attracted: 'attracted',
+        annotator: 'annotator',
+        id_certainty: 'identity_certainty',
+        comment: 'comment',
+        concept: 'concept',
+        identified_by: 'identified_by',
+        morphospecies: 'morphospecies',
+        notes: 'notes',
+        qualifier: 'qualifier',
+        reason: 'reason',
+        tentative_id: 'tentative_id',
+        scientific_name: 'scientific_name',
+    };
+    for (const [key, annoKey] of Object.entries(filterMap)) {
+        if (filterObj[key]) {
+            annotationList = annotationList.filter((anno) => matchValue(anno[annoKey], filterObj[key]));
+        }
+    }
+
+    // special cases
+    if (filterObj.video_sequence || filterObj.deployment) {
+        const val = filterObj.video_sequence ?? filterObj.deployment;
+        annotationList = annotationList.filter((anno) => matchValue(anno.video_sequence_name, val));
+    }
+    if (filterObj.guide_photo) {
+        if (filterObj.guide_photo.toLowerCase() === 'any') {
+            annotationList = annotationList.filter((anno) => anno.guide_photo);
+        } else {
+            annotationList = annotationList.filter((anno) => matchValue(anno.guide_photo, filterObj.guide_photo));
+        }
+    }
+    if (filterObj.good_image) {
+        annotationList = annotationList.filter((anno) => anno.good_image);
+    }
+    if (filterObj.localization_type) {
+        const isBox = filterObj.localization_type.toLowerCase().includes('box');
+        annotationList = annotationList.filter((anno) => isBox
+            ? TatorLocalizationType.isBox(anno.all_localizations[0].type)
+            : TatorLocalizationType.isDot(anno.all_localizations[0].type));
+    }
+    if (filterCtdNotes) {
+        annotationList = annotationList.filter((anno) =>
+            !(anno.notes?.includes('Temperature and oxygen data collected') && !(anno.notes?.includes('|') || anno.notes?.includes(';'))));
+    }
+
+    return annotationList;
+}
+
+const matchValue = (annotationValue, filterInput) => {
+    const checkValue = filterInput.toLowerCase()
+        .replaceAll('%20', ' ')
+        .replaceAll('%22', '"');
+    return isExactFilter(checkValue)
+        ? annotationValue?.toLowerCase() === checkValue.slice(1, -1)
+        : annotationValue?.toLowerCase().includes(checkValue);
+};
+
+// Quoted values (e.g. "Porifera") use exact match, unquoted values use substring match
+const isExactFilter = (filterInput) => filterInput.startsWith('"') && filterInput.endsWith('"') && filterInput.length > 2;
 
 async function deleteAssociation(associationUuid) {
     const res = await fetch(`/vars/association/${associationUuid}`, {
@@ -651,8 +641,8 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
     if (sessionStorage.getItem(`scrollPos${queryAndHash}`)) {
         window.scrollTo({
-            top: 0,
-            left: Number(sessionStorage.getItem(`scrollPos${queryAndHash}`)),
+            top: Number(sessionStorage.getItem(`scrollPos${queryAndHash}`)),
+            left: 0,
             behavior: 'instant',
         });
     }
