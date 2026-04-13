@@ -1,4 +1,13 @@
 export const externalReviewNoteSection = (externalComment, uuid) => {
+    let reviewerResponded = false;
+    if (externalComment) {
+        for (const comment of externalComment.reviewer_comments) {
+            if (comment.comment || comment.id_consensus) {
+                reviewerResponded = true;
+                break;
+            }
+        }
+    }
     return `
         <div class="row mt-2">
             <div class="col-4">
@@ -11,7 +20,12 @@ export const externalReviewNoteSection = (externalComment, uuid) => {
                         <button class="editButton" onclick="markCommentRead('${uuid}')">
                             Mark read
                         </button>
-                    ` : ''
+                    ` : reviewerResponded 
+                        ? `
+                            <button class="editButton" onclick="markCommentUnread('${uuid}')">
+                                Mark unread
+                            </button>
+                        ` : ''
                 }
             </div>
             <div class="col values">
