@@ -12,10 +12,15 @@ To run this script, you must have a .env file in the root of the repository with
     - DROPBOX_ACCESS_TOKEN: Access token for the Dropbox API (https://www.dropbox.com/developers/apps)
     - TATOR_TOKEN: Tator API token
 
-Usage: python populate_sub_ctd.py <expedition_name> [--days-offset <int>] [--dry-run]
+Usage: python populate_sub_ctd.py \
+  --expedition-name <expedition_name> \
+  [--dive-name <dive_name>] \
+  [--days-offset <int>] \
+  [--dry-run]
 
 Arguments:
-    expedition_name     Name of the expedition (e.g. TUV_2025)
+    --expedition-name   Name of the expedition (e.g. TUV_2025)
+    --dive-name         (Optional) Name of the dive (e.g. TUV_2025_sub_03). If not provided, the script will process all dives in the expedition.
     --days-offset       Number of days to offset localization timestamps to align with Qinsy data (default: 0)
     --dry-run           Print changes without writing to Tator
 
@@ -45,7 +50,7 @@ PROJECT_ID = 26
 TATOR_URL = 'https://cloud.tator.io'
 
 
-def populate_ctd(expedition_name: str, days_offset: int, dry_run: bool):
+def populate_ctd(expedition_name: str, dive_name: str|None, days_offset: int, dry_run: bool):
     if dry_run:
         print('\n\n========= DRY RUN =========\n\n')
 
@@ -66,7 +71,7 @@ def populate_ctd(expedition_name: str, days_offset: int, dry_run: bool):
     transect_rows_df['qinsy_timestamp'] = pd.to_datetime(transect_rows_df['local_date'].astype(str) + ' ' + transect_rows_df['time_start_qinsy'].astype(str))
     print(f'Found {len(transect_rows_df)} deployments containing transects.')
 
-    deployment_names = transect_rows_df['ps_site_id'].unique()
+    deployment_names = [dive_name] if dive_name else transect_rows_df['ps_site_id'].unique()
     file_names = transect_rows_df['filename'].unique()
     media_list = get_transect_media(expedition_name, file_names, TATOR_TOKEN)
 
@@ -158,6 +163,10 @@ def get_qinsy_df(dropbox_client: dropbox.Dropbox, qinsy_folder_path: str):
     except dropbox.exceptions.AuthError as e:
         print(f'\n\n{TERM_RED}Error connecting to Dropbox: {e}{TERM_NORMAL}')
         exit(1)
+    if df is None:
+        print(f'\n{TERM_RED}No Qinsy CSV file found in Dropbox{TERM_NORMAL}')
+        print(f'See Dropbox folder here: https://www.dropbox.com/home{qinsy_folder_path}')
+        exit(1)
     for expected_col_header in [
         'Steered Node Latitude',
         'Steered Node Longitude',
@@ -200,7 +209,7 @@ def parse_coord(coord_str: str) -> float:
 def patch_localization_ctd(localization: dict, lat: float, long: float, temp_c: float, depth_m: float, dry_run: bool):
     if dry_run:
         print(f'\n{TERM_YELLOW}DRY RUN: Would update localization {localization["id"]} at frame {localization["frame"]}'
-              f' with Position=({lat}, {long}), DO Temperature={temp_c}C, Depth={depth_m}m{TERM_NORMAL}')
+              f' with Position=(long={long}, lat={lat}), DO Temperature={temp_c}C, Depth={depth_m}m{TERM_NORMAL}')
         return
     res = requests.patch(
         url=f'{TATOR_URL}/rest/Localization/{localization["id"]}',
@@ -227,16 +236,22 @@ if __name__ == '__main__':
     TATOR_TOKEN = os.getenv('TATOR_TOKEN')
 
     parser = argparse.ArgumentParser(description='Syncs CTD data from Dropbox to Tator')
-    parser.add_argument('expedition_name', type=str, help='Name of the expedition (e.g. DOEX0112_Tuvalu)')
+    parser.add_argument('--expedition-name', type=str, help='Name of the expedition (e.g. DOEX0112_Tuvalu)')
+    parser.add_argument('--dive-name', type=str, help='Name of the dive (e.g. TUV_2025_sub_03)')
     parser.add_argument('--days-offset', type=int, default=0, help='Number of days to offset the localization timestamps (default: 0)')
     parser.add_argument('--dry-run', action='store_true', help='Do not update Tator, just print the changes (for development)')
     args = parser.parse_args()
 
-    populate_ctd(expedition_name=args.expedition_name, days_offset=args.days_offset, dry_run=args.dry_run)
+    populate_ctd(
+        expedition_name=args.expedition_name,
+        dive_name=args.dive_name,
+        days_offset=args.days_offset,
+        dry_run=args.dry_run,
+    )
 
     # pau
     marine_emojis = ['🦈', '🐠', '🐬', '🐋', '🐙', '🦑', '🦐', '🦞', '🦀', '🐚', '🌊']
     print()
-    print(f'{args.expedition_name} complete {random.choice(marine_emojis)}')
+    print(f'{args.dive_name if args.dive_name else args.expedition_name} complete {random.choice(marine_emojis)}')
     print()
-    os.system('say "Expedition C T D synced."')
+    os.system('say "C T D synced."')
