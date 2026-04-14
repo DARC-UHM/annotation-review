@@ -91,7 +91,8 @@ class TatorLocalizationProcessor:
             for localization in section.localizations:
                 if not TatorLocalizationType.is_relevant(localization['type']):
                     continue  # we only care about boxes and dots
-                scientific_name = localization['attributes'].get('Scientific Name')
+                attributes = localization['attributes']
+                scientific_name = attributes.get('Scientific Name')
                 cached_phylogeny = self.phylogeny.data.get(scientific_name)
                 if (cached_phylogeny is None or 'aphia_id' not in cached_phylogeny.keys())\
                         and scientific_name not in no_match_records:
@@ -112,27 +113,30 @@ class TatorLocalizationProcessor:
                     'video_sequence_name': section.deployment_name,
                     'scientific_name': scientific_name,
                     'count': 0 if TatorLocalizationType.is_box(localization['type']) else 1,
-                    'attracted': localization['attributes'].get('Attracted'),
-                    'upon': localization['attributes'].get('Upon'),
-                    'size': localization['attributes'].get('Size'),
-                    'categorical_abundance': localization['attributes'].get('Categorical Abundance'),
-                    'identification_remarks': localization['attributes'].get('IdentificationRemarks'),
-                    'identified_by': localization['attributes'].get('Identified By'),
-                    'notes': localization['attributes'].get('Notes'),
-                    'qualifier': localization['attributes'].get('Qualifier'),
-                    'reason': localization['attributes'].get('Reason'),
-                    'morphospecies': localization['attributes'].get('Morphospecies'),
-                    'tentative_id': localization['attributes'].get('Tentative ID'),
-                    'good_image': True if localization['attributes'].get('Good Image') else False,
+                    'attracted': attributes.get('Attracted'),
+                    'upon': attributes.get('Upon'),
+                    'size': attributes.get('Size'),
+                    'categorical_abundance': attributes.get('Categorical Abundance'),
+                    'identification_remarks': attributes.get('IdentificationRemarks'),
+                    'identified_by': attributes.get('Identified By'),
+                    'notes': attributes.get('Notes'),
+                    'qualifier': attributes.get('Qualifier'),
+                    'reason': attributes.get('Reason'),
+                    'morphospecies': attributes.get('Morphospecies'),
+                    'tentative_id': attributes.get('Tentative ID'),
+                    'good_image': True if attributes.get('Good Image') else False,
                     'annotator': self._get_annotator_name(localization['created_by']),
                     'frame': localization['frame'],
                     'frame_url': f'/tator/frame/{localization["media"]}/{localization["frame"]}',
                     'media_id': localization['media'],
                     'problems': localization['problems'] if 'problems' in localization.keys() else None,
-                    'do_temp_c': localization['attributes'].get('DO Temperature (celsius)'),
-                    'do_concentration_salin_comp_mol_L': localization['attributes'].get('DO Concentration Salin Comp (mol per L)'),
-                    'depth_m': localization['attributes'].get('Depth'),
+                    'do_temp_c': attributes.get('DO Temperature (celsius)'),
+                    'do_concentration_salin_comp_mol_L': attributes.get('DO Concentration Salin Comp (mol per L)'),
+                    'depth_m': attributes.get('Depth'),
                 }
+                if attributes.get('Position'):
+                    localization_dict['lat'] = round(attributes['Position'][1], 4)
+                    localization_dict['long'] = round(attributes['Position'][0], 4)
                 if localization_dict['categorical_abundance'] and localization_dict['categorical_abundance'] != '--':
                     match localization_dict['categorical_abundance']:
                         case '1-19':

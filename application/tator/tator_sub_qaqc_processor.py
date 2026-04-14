@@ -28,16 +28,17 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
         """
         Finds records that are missing ancillary data attributes:
 
-        * "DO Temperature (celsius)" (do_temp_c)
-        * "DO Concentration Salin Comp (mol per L)" (do_concentration_salin_comp_mol_L)
-        * "Depth" (depth_m)
+        * Depth (depth_m)
+        * Lat/long (position)
+        * Temperature (do_temp_c)
         """
         self.process_records()
         actual_final_records = []
         for record in self.final_records:
-            if (not record.get('do_temp_c')
-                    or not record.get('do_concentration_salin_comp_mol_L')
-                    or not record.get('depth_m')):
+            if (not record.get('depth_m')
+                    or not record.get('lat')
+                    or not record.get('long')
+                    or not record.get('do_temp_c')):
                 actual_final_records.append(record)
         self.final_records = actual_final_records
 
