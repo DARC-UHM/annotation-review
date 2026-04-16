@@ -27,3 +27,7 @@ class TatorLocalizationType(IntEnum):
     @classmethod
     def is_dot(cls, localization_type: int) -> bool:
         return localization_type == cls.DOT or localization_type == cls.SUB_DOT
+
+    @classmethod
+    def is_dropcam(cls, localization_type: int) -> bool:
+        return localization_type == cls.BOX or localization_type == cls.DOT

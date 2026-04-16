@@ -8,6 +8,7 @@ from pptx.enum.text import MSO_ANCHOR, PP_ALIGN
 from pptx.util import Inches, Pt
 
 from application.tator.tator_rest_client import TatorRestClient
+from application.tator.tator_type import TatorLocalizationType
 
 
 class ImageGuidePresentation:
@@ -53,7 +54,8 @@ class ImageGuidePresentation:
                 left = Inches(0.5 + (j % 3) * 3.0)
                 self._add_image_header(slide, localization, left, header_top)
                 self._add_image(slide, image_data, left, image_top)
-                if localization.get('attracted') is None or localization.get('attracted') == 'Not Attracted':
+                if (TatorLocalizationType.is_dropcam(localization.get('type')) and
+                        (localization.get('attracted') is None or localization['attracted'] == 'Not Attracted')):
                     self._add_not_attracted_overlay(slide, left, image_top)
                 i += 1
         return pres

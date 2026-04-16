@@ -202,7 +202,7 @@ def dropcam_qaqc(check):
             presentation_data = BytesIO()
             qaqc_annos.download_image_guide().save(presentation_data)
             presentation_data.seek(0)
-            return send_file(presentation_data, as_attachment=True, download_name='image-guide.pptx')
+            return send_file(presentation_data, as_attachment=True, download_name=f'{tab_title} Dropcam Image Guide.pptx')
         case _:
             return render_template('errors/404.html', err=''), 404
     data['annotations'] = qaqc_annos.final_records
