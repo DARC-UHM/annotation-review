@@ -448,6 +448,9 @@ async function addToImageReferences() {
     if (localizationToAddToImageReferences.do_concentration_salin_comp_mol_L) {
         formData.append('salinity_m_l', localizationToAddToImageReferences.do_concentration_salin_comp_mol_L);
     }
+    if (localizationToAddToImageReferences.attracted) {
+        formData.append('attracted', localizationToAddToImageReferences.attracted);
+    }
     if (localizationToAddToImageReferences.morphospecies) {
         formData.append('morphospecies', localizationToAddToImageReferences.morphospecies);
     }

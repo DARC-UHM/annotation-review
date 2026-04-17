@@ -40,6 +40,7 @@ def add_image_reference():
                 'depth_m': request.form.get('depth_m'),
                 'temp_c': request.form.get('temp_c'),
                 'salinity_m_l': request.form.get('salinity_m_l'),
+                'attracted': request.form.get('attracted'),
             },
         )
     return res.json(), res.status_code
