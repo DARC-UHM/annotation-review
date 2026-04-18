@@ -20,9 +20,8 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
             api=api,
             darc_review_url=darc_review_url,
             tator_url=tator_url,
-            transect_media_ids=[int(media['id']) for media in transect_media] if transect_media else None,
+            transect_media=transect_media,
         )
-        self.transect_media = transect_media
 
     def check_missing_ancillary_data(self):
         """
@@ -226,4 +225,4 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
             section.localizations = [
                 localization for localization in section.localizations if not TatorLocalizationType.is_box(localization['type'])
             ]
-        self.process_records(transect_substrates=substrates)
+        self.process_records(transect_substrates=substrates, get_timestamp=True)

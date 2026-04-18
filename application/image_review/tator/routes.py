@@ -34,7 +34,7 @@ def tator_image_review():
             section_ids=section_ids,
             api=api,
             tator_url=current_app.config.get('TATOR_URL'),
-            transect_media_ids=(int(transect_id) for transect_id in transect_ids) if transect_ids else None,
+            transect_media=[{'id': int(transect_id)} for transect_id in transect_ids] if transect_ids else None,
         )
         localization_processor.fetch_localizations()
         localization_processor.process_records()

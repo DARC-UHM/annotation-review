@@ -7,7 +7,7 @@ import sys
 import tator
 
 from flask import session
-from application.util.constants import TERM_RED, TERM_NORMAL
+from application.util.constants import TERM_RED, TERM_NORMAL, TERM_YELLOW
 from application.tator.tator_type import TatorLocalizationType
 from application.util.phylogeny_cache import PhylogenyCache
 from application.tator.tator_rest_client import TatorRestClient
@@ -38,7 +38,7 @@ class TatorLocalizationProcessor:
         api: tator.api,
         tator_url: str,
         darc_review_url: str = None,
-        transect_media_ids: list[int] = None,
+        transect_media: list[dict] = None,
     ):
         self.project_id = project_id
         self.tator_url = tator_url
@@ -48,16 +48,16 @@ class TatorLocalizationProcessor:
         self.tator_client = TatorRestClient(tator_url, session['tator_token'])
         self.final_records: list[dict]|dict = []  # final list formatted for review page
         self.phylogeny = PhylogenyCache()
-        self.transect_media_ids = set(media_id for media_id in transect_media_ids) if transect_media_ids else None
+        self.transect_media = transect_media
 
     def fetch_localizations(self):
         print('Fetching localizations...')
         sys.stdout.flush()
-        if self.transect_media_ids:  # list of transects, fetch by media IDs instead of section
+        if self.transect_media:  # list of transects, fetch by media IDs instead of section
             section_map = {int(section.section_id): section for section in self.sections}
-            media_id_list = list(self.transect_media_ids)
-            for i in range(0, len(media_id_list), 50):
-                batch = media_id_list[i:i + 50]
+            transect_media_ids = [int(media['id']) for media in self.transect_media]
+            for i in range(0, len(transect_media_ids), 50):
+                batch = transect_media_ids[i:i + 50]
                 for localization in self.tator_client.get_localizations(self.project_id, media_id=batch):
                     section = section_map.get(localization.get('master_section'), self.sections[0])
                     section.localizations.append(localization)
@@ -81,11 +81,15 @@ class TatorLocalizationProcessor:
         formatted_localizations = []
         expedition_fieldbook = {}  # {section_id: deployments[]}
         media_substrates = {}  # {media_id: substrates}
+        transect_media = {}  # {media_id: media}
         if 'media_fps' not in session:
             session['media_fps'] = {}
 
         if not no_match_records:
             no_match_records = set()
+
+        if self.transect_media:
+            transect_media = {int(media['id']): media for media in self.transect_media}
 
         for section in self.sections:
             for localization in section.localizations:
@@ -152,24 +156,34 @@ class TatorLocalizationProcessor:
                         case _:
                             print(f'{TERM_RED}Unknown categorical abundance: {localization_dict["categorical_abundance"]}{TERM_NORMAL}')
                 if get_timestamp:
-                    if section.bottom_time is None:
-                        raise ValueError(f'No Arrival time found for section {section.deployment_name}. Cannot calculate timestamps.')
-                    media_id = localization['media']
-                    if media_id in session['media_timestamps'].keys():
-                        if media_id not in session['media_fps'].keys():
-                            session['media_fps'][media_id] = self.api.get_media(media_id).fps
-                            session.modified = True
-                        media_fps = session['media_fps'][media_id] or 30
-                        camera_bottom_arrival = datetime.datetime.strptime(section.bottom_time, self.BOTTOM_TIME_FORMAT).replace(tzinfo=datetime.timezone.utc)
-                        video_start_timestamp = datetime.datetime.fromisoformat(session['media_timestamps'][media_id]).astimezone(datetime.timezone.utc)
-                        observation_timestamp = video_start_timestamp + datetime.timedelta(seconds=localization['frame'] / media_fps)
-                        time_diff = observation_timestamp - camera_bottom_arrival
-                        localization_dict['timestamp'] = observation_timestamp.strftime(self.BOTTOM_TIME_FORMAT)
-                        localization_dict['camera_seafloor_arrival'] = camera_bottom_arrival.strftime(self.BOTTOM_TIME_FORMAT)
-                        localization_dict['animal_arrival'] = str(datetime.timedelta(
-                            days=time_diff.days,
-                            seconds=time_diff.seconds
-                        )) if observation_timestamp > camera_bottom_arrival else '00:00:00'
+                    if TatorLocalizationType.is_sub(localization_dict['type']):
+                        media = transect_media[localization['media']]
+                        fps = media['fps'] or 30
+                        if media['attributes'].get('Start Time'):
+                            media_start_time = datetime.datetime.fromisoformat(media['attributes']['Start Time']).astimezone(datetime.timezone.utc)
+                            observation_timestamp = media_start_time + datetime.timedelta(seconds=localization['frame'] / fps)
+                            localization_dict['timestamp'] = observation_timestamp.strftime(self.BOTTOM_TIME_FORMAT)
+                        else:
+                            print(f'{TERM_YELLOW}No start time found for media {media["name"]}. Cannot calculate timestamps.{TERM_NORMAL}')
+                    else:
+                        if section.bottom_time is None:
+                            raise ValueError(f'No Arrival time found for section {section.deployment_name}. Cannot calculate timestamps.')
+                        media_id = localization['media']
+                        if media_id in session['media_timestamps'].keys():
+                            if media_id not in session['media_fps'].keys():
+                                session['media_fps'][media_id] = self.api.get_media(media_id).fps
+                                session.modified = True
+                            media_fps = session['media_fps'][media_id] or 30
+                            camera_bottom_arrival = datetime.datetime.strptime(section.bottom_time, self.BOTTOM_TIME_FORMAT).replace(tzinfo=datetime.timezone.utc)
+                            video_start_timestamp = datetime.datetime.fromisoformat(session['media_timestamps'][media_id]).astimezone(datetime.timezone.utc)
+                            observation_timestamp = video_start_timestamp + datetime.timedelta(seconds=localization['frame'] / media_fps)
+                            time_diff = observation_timestamp - camera_bottom_arrival
+                            localization_dict['timestamp'] = observation_timestamp.strftime(self.BOTTOM_TIME_FORMAT)
+                            localization_dict['camera_seafloor_arrival'] = camera_bottom_arrival.strftime(self.BOTTOM_TIME_FORMAT)
+                            localization_dict['animal_arrival'] = str(datetime.timedelta(
+                                days=time_diff.days,
+                                seconds=time_diff.seconds
+                            )) if observation_timestamp > camera_bottom_arrival else '00:00:00'
                 if get_ctd:
                     if not expedition_fieldbook.get(section.section_id):
                         fieldbook_res = requests.get(
