@@ -52,6 +52,7 @@
     const maxN = {{ data.max_n|safe or {} }};
     const tofa = {{ data.tofa|safe or {} }};
     const mediaAttributes = {{ data.media_attributes|safe or {} }};
+    const mediaIdNames = {{ data.media_id_names|safe or {} }}
     const annotations = {{ data.annotations|safe or {} }};
     const deploymentNames = {{ data.deployment_names|safe or None }};
     const mediaNames = {{ data.media_names|safe or None }};

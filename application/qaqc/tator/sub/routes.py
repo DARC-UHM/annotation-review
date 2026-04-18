@@ -182,6 +182,7 @@ def sub_qaqc(check):
             qaqc_annos.get_summary()
             data['page_title'] = 'Summary'
             data['annotations'] = qaqc_annos.final_records
+            data['media_id_names'] = {media['id']: media['name'] for media in transect_media}
             return render_template('qaqc/tator/qaqc-tables.html', data=data)
         case 'image-guide':
             presentation_data = BytesIO()
