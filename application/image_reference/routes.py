@@ -44,3 +44,24 @@ def add_image_reference():
             },
         )
     return res.json(), res.status_code
+
+
+@image_reference_bp.delete('')
+def delete_image_reference():
+    url = f'{current_app.config.get("DARC_REVIEW_URL")}/image-reference/{request.values.get("scientific_name")}'
+    if request.values.get('elemental_id'):
+        url += f'/{request.values.get("elemental_id")}'
+    if request.values.get('morphospecies'):
+        url += f'?morphospecies={request.values.get("morphospecies")}'
+    elif request.values.get('tentative_id'):
+        url += f'?tentative_id={request.values.get("tentative_id")}'
+    res = requests.delete(
+        url=url,
+        headers=current_app.config.get('DARC_REVIEW_HEADERS'),
+        data={
+            'scientific_name': request.values.get('scientific_name'),
+            'morphospecies': request.values.get('morphospecies'),
+            'tentative_id': request.values.get('tentative_id'),
+        },
+    )
+    return res.json(), res.status_code
