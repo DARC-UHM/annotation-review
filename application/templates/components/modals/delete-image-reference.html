@@ -1,0 +1,21 @@
+<div class="modal fade" id="deleteImageReferenceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form id="deleteFromImageReferenceForm" onsubmit="deleteFromImageReferences()" autocomplete="off">
+            <div class="modal-content">
+                <div class="modal-header text-center">
+                    <h5 id="deleteImageRefTitle" class="modal-title mt-1 ms-4" style="font-weight: 600;"></h5>
+                    <button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div id="deleteFromImageReferenceBody" class="modal-body text-start mx-4"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary modal-button" data-bs-dismiss="modal">Cancel</button>
+                    <input type="hidden" id="imageRefDeleteScientificName" name="scientific_name">
+                    <input type="hidden" id="imageRefDeleteTentativeId" name="tentative_id">
+                    <input type="hidden" id="imageRefDeleteMorphospecies" name="morphospecies">
+                    <input type="hidden" id="imageRefDeleteElementalId" name="elemental_id">
+                    <input type="submit" id="imageRefModalDeleteButton" class="btn btn-danger modal-button" value="Delete">
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

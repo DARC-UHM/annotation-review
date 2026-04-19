@@ -4,6 +4,9 @@
 <link rel="stylesheet" href="https://darc.soest.hawaii.edu/static/css/image-reference.css" />
 {% endblock css %}
 {% block content %}
+{% include 'components/flash-container.html' %}
+{% include 'components/loading-fish.html' %}
+{% include 'components/modals/delete-image-reference.html' %}
 <style>
     #keywordFilterInput:focus {
         outline: none;
@@ -161,16 +164,7 @@
     const True = true;
     const False = false;
     const imageReferences = {{ image_references|safe or None }};
-
-    window.canEdit = true;
-
-    window.onDeleteImageReference = (imageRef) => {
-        console.log(`Deleting image reference with ID ${imageRef.id} and scientific name ${imageRef.scientific_name}`);
-    };
-
-    window.onDeletePhotoRecord = (imageRef, tatorElementalId) => {
-        console.log(`Deleting photo record with Tator elemental ID ${tatorElementalId} from image reference with ID ${imageRef.id} and scientific name ${imageRef.scientific_name}`);
-    };
 </script>
+<script type="module" src="{{ url_for('image_reference.static', filename='image-references.js') }}"></script>
 <script type="module" src="https://darc.soest.hawaii.edu/static/js/image-references.js"></script>
 {% endblock scripts %}
