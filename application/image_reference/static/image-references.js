@@ -20,6 +20,26 @@ $('#deleteImageReferenceModal').on('show.bs.modal', function (e) {
     $('#imageRefDeleteElementalId').val(elementalIdToDelete);
 });
 
+async function refreshImageReference(imageReferenceId) {
+    $('#load-overlay').removeClass('loader-bg-hidden');
+    $('#load-overlay').addClass('loader-bg');
+    const res = await fetch(`/image-reference/refresh/${imageReferenceId}`);
+    if (res.status === 200) {
+        const updatedImageReference = await res.json();
+        const indexToUpdate = imageReferences.findIndex(imageReference => imageReference.id === updatedImageReference.id);
+        imageReferences[indexToUpdate] = updatedImageReference;
+        updateFlashMessages('Successfully refreshed image reference', 'success');
+        updateImageGrid();
+    } else {
+        const errorJson = await res.json();
+        updateFlashMessages(errorJson.error, 'danger');
+    }
+    $('#load-overlay').addClass('loader-bg-hidden');
+    $('#load-overlay').removeClass('loader-bg');
+}
+
+window.refreshImageReference = refreshImageReference;
+
 // Deletes an entire image reference or a specific photo from the image reference db
 async function deleteFromImageReferences() {
     event.preventDefault();

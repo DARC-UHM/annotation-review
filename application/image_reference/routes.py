@@ -46,6 +46,15 @@ def add_image_reference():
     return res.json(), res.status_code
 
 
+@image_reference_bp.get('/refresh/<image_reference_id>')
+def refresh_image_reference(image_reference_id):
+    res = requests.get(
+        url=f'{current_app.config.get("DARC_REVIEW_URL")}/image-reference/refresh/{image_reference_id}',
+        headers=current_app.config.get('DARC_REVIEW_HEADERS'),
+    )
+    return res.json(), res.status_code
+
+
 @image_reference_bp.delete('')
 def delete_image_reference():
     url = f'{current_app.config.get("DARC_REVIEW_URL")}/image-reference/{request.values.get("scientific_name")}'
