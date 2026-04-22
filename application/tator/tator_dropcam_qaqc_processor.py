@@ -18,7 +18,8 @@ class TatorDropcamQaqcProcessor(TatorBaseQaqcProcessor):
             api: tator.api,
             tator_url: str,
             darc_review_url: str = None,
-            transect_media_ids: list[int] = None,
+            transect_media: list[dict] = None,
+
     ):
         super().__init__(
             project_id=project_id,
@@ -26,7 +27,8 @@ class TatorDropcamQaqcProcessor(TatorBaseQaqcProcessor):
             api=api,
             darc_review_url=darc_review_url,
             tator_url=tator_url,
-            transect_media_ids=transect_media_ids,
+            transect_media=transect_media
+
         )
 
     def check_attracted_not_attracted(self, attracted_dict: dict):
