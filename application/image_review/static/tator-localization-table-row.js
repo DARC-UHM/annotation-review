@@ -457,6 +457,10 @@ async function addToImageReferences() {
     if (localizationToAddToImageReferences.tentative_id) {
         formData.append('tentative_id', localizationToAddToImageReferences.tentative_id);
     }
+    if (localizationToAddToImageReferences.lat && localizationToAddToImageReferences.long) {
+        formData.append('lat', localizationToAddToImageReferences.lat);
+        formData.append('long', localizationToAddToImageReferences.long);
+    }
 
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');

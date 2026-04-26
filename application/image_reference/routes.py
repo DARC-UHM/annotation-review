@@ -37,6 +37,8 @@ def add_image_reference():
                 'localization_type': request.form.get('localization_type'),
                 'normalized_top_left_x_y': (request.form.get('x'), request.form.get('y')),
                 'normalized_dimensions': (request.form.get('width'), request.form.get('height')),
+                'lat': request.form.get('lat'),
+                'long': request.form.get('long'),
                 'depth_m': request.form.get('depth_m'),
                 'temp_c': request.form.get('temp_c'),
                 'salinity_m_l': request.form.get('salinity_m_l'),
