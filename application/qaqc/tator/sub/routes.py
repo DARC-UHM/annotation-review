@@ -47,7 +47,21 @@ def sub_qaqc_checklist():
     for i in range(0, len(transect_ids), 300):
         batch = [int(tid) for tid in transect_ids[i:i + 50]]
         localizations += tator_client.get_localizations(project_id, media_id=batch)
-    individual_count = sum(1 for loco in localizations if TatorLocalizationType.is_dot(loco['type']))
+    individual_count = 0
+    for localization in localizations:
+        if TatorLocalizationType.is_dot(localization['type']):
+            individual_count += 1
+            if localization['attributes'].get('Categorical Abundance', '--') != '--':
+                print(localization['attributes']['Categorical Abundance'])
+                match localization['attributes']['Categorical Abundance']:
+                    case '20-49':
+                        individual_count += 35
+                    case '50-99':
+                        individual_count += 75
+                    case '100-999':
+                        individual_count += 500
+                    case '1000+':
+                        individual_count += 1000
     with requests.get(
             url=f'{current_app.config.get("DARC_REVIEW_URL")}/qaqc-checklist/tator-sub/{"&".join(transect_ids)}',
             headers=current_app.config.get('DARC_REVIEW_HEADERS'),
