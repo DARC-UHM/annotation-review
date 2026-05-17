@@ -67,8 +67,9 @@ def tator_logout():
 @tator_bp.get('/sections')
 def tator_sections():
     def should_skip(section_path):
-        section_path_lower = section_path.lower()
-        return 'test' in section_path_lower or 'toplevelsectionname' in section_path_lower
+        skip_substrings = ('test', 'toplevelsectionname', 'bad_imports')
+        section_path_lower = (section_path or '').lower()
+        return any(skip_substring in section_path_lower for skip_substring in skip_substrings)
 
     project_id = request.args.get('project')
     try:
@@ -80,7 +81,6 @@ def tator_sections():
         # just doing two passes to simplify the logic
         for section in section_list:  # first pass - get top-level sections
             if should_skip(section.path):
-                print(f'Skipping section with test path: "{section.path}" and name: "{section.name}"')
                 continue
             path_parts = section.path.split('.')
             if len(path_parts) != 1:
@@ -100,71 +100,65 @@ def tator_sections():
             if should_skip(section.path):
                 continue
             path_parts = section.path.split('.')
-            if len(path_parts) == 1:
+            if len(path_parts) <= 2:
                 continue
-            if len(path_parts) != 3:
-                if path_parts[1] == 'dscm' or path_parts[1] == 'sub':
+            if len(path_parts) == 3:  # expect these to all be dropcam deployments
+                parent_name, folder_name, _ = path_parts
+                if folder_name == 'sub':
+                    continue  # expedition.sub.exploratory|transect are subfolder markers, not deployments
+                if sections.get(parent_name) is None:
+                    print(f'{TERM_YELLOW}WARNING: Skipping sub-section "{section.name}" because parent section "{parent_name}" was not found{TERM_NORMAL}')
                     continue
+                if sections[parent_name]['folders'].get(folder_name) is None:
+                    sections[parent_name]['folders'][folder_name] = []
+                sections[parent_name]['folders'][folder_name].append({'id': section.id, 'name': section.name})
+            elif len(path_parts) == 4:  # sub structure: expedition.sub.exploratory|transect.deployment
+                parent_name, folder_name, sub_folder_name, _ = path_parts
+                if folder_name != 'sub':
+                    print(f'Skipping section with unexpected 4-level path format: "{section.path}"')
+                    continue
+                if sections.get(parent_name) is None:
+                    print(f'{TERM_YELLOW}WARNING: Skipping sub-section "{section.name}" because parent section "{parent_name}" was not found{TERM_NORMAL}')
+                    continue
+                if sections[parent_name]['folders'].get('sub') is None:
+                    sections[parent_name]['folders']['sub'] = {}
+                if sections[parent_name]['folders']['sub'].get(sub_folder_name) is None:
+                    sections[parent_name]['folders']['sub'][sub_folder_name] = []
+                sections[parent_name]['folders']['sub'][sub_folder_name].append({'id': section.id, 'name': section.name})
+            else:
                 print(f'Skipping section with unexpected path format: "{section.path}"')
-                continue
-            parent_name, folder_name, _ = path_parts
-            if sections.get(parent_name) is None:
-                print(f'{TERM_YELLOW}WARNING: Skipping sub-section "{section.name}" because parent section "{parent_name}" was not found{TERM_NORMAL}')
-                continue
-            if sections[parent_name]['folders'].get(folder_name) is None:
-                sections[parent_name]['folders'][folder_name] = []
-            sections[parent_name]['folders'][folder_name].append({
-                'id': section.id,
-                'name': section.name,
-            })
-        # sort deployment list by name
+        # sort deployment lists by name
         for section_attributes in sections.values():
             if len(section_attributes['folders']) > 0:
-                for deployment_list in section_attributes['folders'].values():
-                    deployment_list.sort(key=lambda x: x['name'])
+                for folder_data in section_attributes['folders'].values():
+                    if isinstance(folder_data, dict):
+                        for sub_list in folder_data.values():
+                            sub_list.sort(key=lambda x: x['name'])
+                    else:
+                        folder_data.sort(key=lambda x: x['name'])
         return list(sections.values()), 200
     except tator.openapi.tator_openapi.exceptions.ApiException as e:
         print(f'{TERM_RED}ERROR: Unable to fetch Tator sections:{TERM_NORMAL} {e}')
         return {'500': 'Error fetching Tator sections'}, 500
 
 
-# get a list of media ids marked as "transect" given a section id
-@tator_bp.get('/transects')
-def transects():
+# get all media for one or more sections
+@tator_bp.get('/media')
+def section_media():
     project_id = request.values.get('project')
     section_ids = request.values.getlist('section')
+    if not project_id or not section_ids:
+        return {'error': 'project and section are required'}, 400
+    tator_client = TatorRestClient(current_app.config.get('TATOR_URL'), session.get('tator_token'))
     try:
-        tator_api = tator.get_api(
-            host=current_app.config.get('TATOR_URL'),
-            token=session.get('tator_token'),
-        )
-        transect_media_ids = set()
-        state_list = tator_api.get_state_list(project_id, multi_section=section_ids)
-        for state in state_list:
-            if state.attributes.get('Mode') == 'Transect':
-                transect_media_ids.update(state.media)
-        if len(transect_media_ids) == 0:
-            print(f'{TERM_YELLOW}WARNING: No media ids marked as "transect" found for sections {section_ids}{TERM_NORMAL}')
-            return [], 200
-        media_name_id_list = []
-        media_list = tator_api.get_media_list(project_id, media_id=list(transect_media_ids))
-        for media in media_list:
-            media_name_id_list.append({'name': media.name, 'id': media.id})
-        media_name_id_list.sort(key=lambda x: x['name'])
-        return media_name_id_list, 200
-    except tator.openapi.tator_openapi.exceptions.ApiException as e:
-        print(f'{TERM_RED}ERROR: Unable to fetch transects list from Tator:{TERM_NORMAL} {e}')
-        return {'500': 'Error fetching Tator transects'}, 500
-    except tator.openapi.tator_openapi.exceptions.ApiTypeError as e:
-        print(f'{TERM_RED}ERROR: Unable to fetch transects list from Tator:{TERM_NORMAL} {e}')
-        print()
-        print('Update your version of the Python Tator client:')
-        print('  1. Stop this program (CTRL + C)')
-        print('  2. cd into the annotation-review directory')
-        print('  3. Run the command "pip3 install -r requirements.txt"')
-        print('  4. Restart the program')
-        print()
-        return {'500': 'Update Tator version (see terminal for details)'}, 500
+        media_list = []
+        for section_id in section_ids:
+            media_list += tator_client.get_medias_for_section(project_id=int(project_id), sections=[int(section_id)])
+        media_list.sort(key=lambda x: x['name'])
+        return [{'name': m['name'], 'id': m['id']} for m in media_list], 200
+    except Exception as e:
+        print(f'{TERM_RED}ERROR: Unable to fetch media list from Tator:{TERM_NORMAL} {e}')
+        return {'500': 'Error fetching Tator media'}, 500
 
 
 # view tator video frame (not cropped)

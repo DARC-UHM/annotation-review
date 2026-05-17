@@ -8,13 +8,14 @@ const ANNOTATION_PLATFORM_STORAGE_KEY = 'annotationPlatform';
 const TATOR_SECTION_STORAGE_KEY = 'tatorSection';
 const TATOR_FOLDER_STORAGE_KEY = 'tatorFolder';
 const TATOR_DEPLOYMENT_STORAGE_KEY_PREFIX = 'tatorDeployment';
+const TATOR_SUBFOLDER_STORAGE_KEY = 'tatorSubFolder';
 
 let numSequences = 1; // VARS
 let numDeployments = 1; // TATOR
-let numTransects = 1; // TATOR sub
+let numMedia = 1; // TATOR sub
 let deploymentList = [];
 let tatorExpeditions = [];
-let tatorTransects = [];
+let tatorMedia = [];
 
 function checkSequence() {
     let disabled = false;
@@ -74,12 +75,66 @@ async function updateTatorFolders(sectionId) {
 }
 
 async function updateTatorDeployments(topLevelSectionId, folderName) {
-    const localStorageKey = `${TATOR_DEPLOYMENT_STORAGE_KEY_PREFIX}_${topLevelSectionId}_${folderName}`;
     const expedition = tatorExpeditions.find((expedition) => expedition.id.toString() === topLevelSectionId.toString());
-    deploymentList = expedition.folders[folderName];
+    const folderData = expedition.folders[folderName];
 
+    $('.addedDeploymentSelect').remove();
+    numDeployments = 1;
+    $('#tatorDeploymentLabel')[0].innerText = 'Deployment:';
+
+    if (folderName === 'sub') {
+        // sub structure: subfolder (exploratory/transect) -> deployments
+        const subFolderNames = Object.keys(folderData);
+        if (subFolderNames.length === 0) {
+            $('#tatorSubFolderContainer').hide();
+            $('#deployment1').html('<option value="" selected disabled>No deployments found</option>');
+            return;
+        }
+        $('#tatorSubFolder').html('');
+        for (const subFolderName of subFolderNames) {
+            $('#tatorSubFolder').append(`<option value="${subFolderName}">${subFolderName}</option>`);
+        }
+        let subFolderName = subFolderNames[0];
+        const stored = localStorage.getItem(TATOR_SUBFOLDER_STORAGE_KEY);
+        if (stored && subFolderNames.includes(stored)) {
+            subFolderName = stored;
+        }
+        $('#tatorSubFolder').val(subFolderName);
+        $('#tatorSubFolderContainer').show();
+        await updateSubDeployments(topLevelSectionId, folderData, subFolderName);
+    } else {
+        // dropcam structure: deployments directly under folder
+        $('#tatorSubFolderContainer').hide();
+        $('#tatorMediaList').hide();
+        deploymentList = folderData || [];
+
+        if (deploymentList.length === 0) {
+            $('#deployment1').html('<option value="" selected disabled>No deployments found</option>');
+            return;
+        }
+        $('#deployment1').html('<option value="" selected disabled>Select a deployment</option>');
+        for (const deployment of deploymentList) {
+            $('#deployment1').append(`<option value="${deployment.id}">${deployment.name}</option>`);
+        }
+        const localStorageKey = `${TATOR_DEPLOYMENT_STORAGE_KEY_PREFIX}_${topLevelSectionId}_${folderName}`;
+        let deploymentSectionId = deploymentList[0]?.id;
+        if (localStorage.getItem(localStorageKey)) {
+            deploymentSectionId = localStorage.getItem(localStorageKey);
+        }
+        $('#deployment1').val(deploymentSectionId);
+    }
+}
+
+async function updateSubDeployments(topLevelSectionId, subFolderData, subFolderName) {
+    deploymentList = subFolderData[subFolderName] || [];
+    const localStorageKey = `${TATOR_DEPLOYMENT_STORAGE_KEY_PREFIX}_${topLevelSectionId}_sub_${subFolderName}`;
+
+    if (deploymentList.length === 0) {
+        $('#deployment1').html('<option value="" selected disabled>No deployments found</option>');
+        $('#tatorMediaList').hide();
+        return;
+    }
     $('#deployment1').html('<option value="" selected disabled>Select a deployment</option>');
-
     for (const deployment of deploymentList) {
         $('#deployment1').append(`<option value="${deployment.id}">${deployment.name}</option>`);
     }
@@ -90,44 +145,44 @@ async function updateTatorDeployments(topLevelSectionId, folderName) {
         deploymentSectionId = localStorage.getItem(localStorageKey);
     }
     $('#deployment1').val(deploymentSectionId);
-
-    if (folderName === 'sub') {
-        $('#tatorTransectList').show();
-        await updateTatorTransects();
-    } else {
-        $('#tatorTransectList').hide();
-        // clear transect selects and reset count in case user switched from sub to non-sub folder
-        $('.addedTransectSelect').remove();
-        $('#transect1').val(null);
-        numTransects = 1;
-    }
+    await updateTatorMedia();
 }
 
-async function updateTatorTransects() {
+async function updateTatorMedia() {
     if ($('#tatorFolder').val() !== 'sub') {
         return;
     }
-
     showLoader();
-    $('.addedTransectSelect').remove(); // just keep it simple and remove any added transect selects any time a deployment changes
-    numTransects = 1;
-
-    // get all selected deployment section ids
+    $('.addedMediaSelect').remove();
+    numMedia = 1;
+    $('#tatorMediaLabel')[0].innerText = 'Media:';
     const deploymentSectionIds = $('.deploymentSelect').get().map(select => select.value).filter(Boolean);
-
-    // get corresponding transects for selected deployment section ids
-    const res = await fetch(`/tator/transects?project=${TATOR_PROJECT}&section=${deploymentSectionIds.join('&section=')}`);
-    if (res.status === 200) {
-        tatorTransects = await res.json();
-        $('#transect1').html('<option value="" selected disabled>Select a transect</option>');
-        for (const transect of tatorTransects) {
-            $('#transect1').append(`<option value="${transect.id}">${transect.name}</option>`);
-        }
-        $('#transect1').val(tatorTransects[0]?.id);
+    if (!deploymentSectionIds || deploymentSectionIds.length === 0) {
+        $('#tatorMediaList').hide();
+        hideLoader();
+        return;
     }
 
+    // get corresponding transects for selected deployment section ids
+    const res = await fetch(`/tator/media?project=${TATOR_PROJECT}&section=${deploymentSectionIds.join('&section=')}`);
+    if (res.status === 200) {
+        tatorMedia = await res.json();
+        if (tatorMedia.length === 0) {
+            $('#tatorMediaList').hide();
+            hideLoader();
+            return;
+        }
+        $('#media1').html('<option value="" selected disabled>Select media</option>');
+        for (const media of tatorMedia) {
+            $('#media1').append(`<option value="${media.id}">${media.name}</option>`);
+        }
+        $('#media1').val(tatorMedia[0]?.id);
+        $('#tatorMediaList').show();
+    }
     hideLoader();
 }
+
+window.updateTatorMedia = updateTatorMedia;
 
 async function tatorLogin() {
     event.preventDefault();
@@ -185,17 +240,26 @@ $('#tatorFolder').on('change', async () => {
     await updateTatorDeployments($('#tatorExpedition').val(), $('#tatorFolder').val());
 });
 
-$('#deployment1').on('change', async () => {
-    const storageKey = `${TATOR_DEPLOYMENT_STORAGE_KEY_PREFIX}_${$('#tatorExpedition').val()}_${$('#tatorFolder').val()}`;
-    localStorage.setItem(storageKey, $('#deployment1').val());
-    await onDeploymentChange();
+$('#tatorSubFolder').on('change', () => {
+    const subFolderName = $('#tatorSubFolder').val();
+    localStorage.setItem(TATOR_SUBFOLDER_STORAGE_KEY, subFolderName);
+    const expedition = tatorExpeditions.find((exp) => exp.id.toString() === $('#tatorExpedition').val().toString());
+    updateSubDeployments($('#tatorExpedition').val(), expedition.folders['sub'], subFolderName);
 });
 
-async function onDeploymentChange() {
-    await updateTatorTransects();
-}
-
-window.onDeploymentChange = onDeploymentChange;
+$('#deployment1').on('change', async () => {
+    const folderName = $('#tatorFolder').val();
+    const subFolderName = $('#tatorSubFolder').val();
+    const storageKey = (folderName === 'sub' && subFolderName)
+        ? `${TATOR_DEPLOYMENT_STORAGE_KEY_PREFIX}_${$('#tatorExpedition').val()}_sub_${subFolderName}`
+        : `${TATOR_DEPLOYMENT_STORAGE_KEY_PREFIX}_${$('#tatorExpedition').val()}_${folderName}`;
+    localStorage.setItem(storageKey, $('#deployment1').val());
+    if (folderName === 'sub') {
+        $('.addedDeploymentSelect').remove();
+        numDeployments = 1;
+        await updateTatorMedia();
+    }
+});
 
 $('#varsSelect').on('click', () => {
     localStorage.setItem(ANNOTATION_PLATFORM_STORAGE_KEY, 'VARS');
@@ -256,11 +320,12 @@ $('#tatorPlusButton').on('click', async () => {
     numDeployments++;
 
     $('#tatorDeploymentList').append(`
-        <div id="depList${numDeployments}">
+        <div id="depList${numDeployments}" class="addedDeploymentSelect">
             <div class="row d-inline-flex">
                 <div class="col-1"></div>
                 <div class="col-10 p-0">
-                    <select id="deployment${numDeployments}" name="section" class="sequenceName deploymentSelect" onchange="onDeploymentChange()"></select>
+                    <select id="deployment${numDeployments}" name="section" class="sequenceName deploymentSelect" onchange="updateTatorMedia()">
+                    </select>
                 </div>
                 <div class="col-1 ps-0">
                     <button id="xButton${numDeployments}" type="button" class="xButton">${Icons.x}</button>
@@ -279,41 +344,44 @@ $('#tatorPlusButton').on('click', async () => {
     const currentNum = numDeployments;
     $(`#xButton${numDeployments}`).on('click', async () => {
         $(`#depList${currentNum}`)[0].remove();
-        await updateTatorTransects();
+        if ($('#tatorFolder').val() === 'sub') {
+            await updateTatorMedia();
+        }
     });
 
-    await onDeploymentChange();
+    if ($('#tatorFolder').val() === 'sub') {
+        await updateTatorMedia();
+    }
 });
 
-$('#tatorPlusTransectButton').on('click', () => {
-    const prevSelectedTransect = $(`#transect${numTransects}`).val();
-    $('#tatorTransectLabel')[0].innerText = 'Transects:';
-    numTransects++;
+$('#tatorPlusMediaButton').on('click', () => {
+    $('#tatorMediaLabel')[0].innerText = 'Media:';
+    const prevSelected = $(`#media${numMedia}`).val();
+    numMedia++;
 
-    const newTransectSelectId = `transect${numTransects}`;
-    $('#tatorTransectList').append(`
-        <div id="tranList${numTransects}" class="addedTransectSelect">
+    $('#tatorMediaList').append(`
+        <div id="mediaList${numMedia}" class="addedMediaSelect">
             <div class="row d-inline-flex">
                 <div class="col-1"></div>
                 <div class="col-10 p-0">
-                    <select id="${newTransectSelectId}" name="transect" class="sequenceName transectSelect"></select>
+                    <select id="media${numMedia}" name="media_id" class="sequenceName"></select>
                 </div>
                 <div class="col-1 ps-0">
-                    <button id="xButton${numTransects}" type="button" class="xButton">${Icons.x}</button>
+                    <button id="xMediaButton${numMedia}" type="button" class="xButton">${Icons.x}</button>
                 </div>
             </div>
         </div>
     `);
-    for (const transect of tatorTransects) {
-        $(`#${newTransectSelectId}`).append(`<option value="${transect.id}">${transect.name}</option>`);
+    for (const media of tatorMedia) {
+        $(`#media${numMedia}`).append(`<option value="${media.id}">${media.name}</option>`);
     }
-    $(`#${newTransectSelectId}`).val(() => {
-        let index = tatorTransects.findIndex((trans) => trans.id?.toString() === prevSelectedTransect?.toString());
-        return index < 0 ? '' : tatorTransects[index + 1]?.id;
+    $(`#media${numMedia}`).val(() => {
+        const index = tatorMedia.findIndex(media => media.id?.toString() === prevSelected?.toString());
+        return index < 0 ? '' : tatorMedia[index + 1]?.id;
     });
 
-    const currentNum = numTransects;
-    $(`#xButton${numTransects}`).on('click', () => $(`#tranList${currentNum}`)[0].remove());
+    const currentNum = numMedia;
+    $(`#xMediaButton${numMedia}`).on('click', () => $(`#mediaList${currentNum}`)[0].remove());
 });
 
 $('#varsImageReviewButton').on('click', () => {

@@ -83,13 +83,13 @@ class TestTatorRestClient:
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_get_localizations_by_section(self, _):
         client = TatorRestClient(TATOR_URL, TOKEN)
-        result = client.get_localizations(project_id=1, section='abc123')
+        result = client.get_localizations(project_id=1, section=123)
         assert result == [{'id': 1}, {'id': 2}]
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_get_localizations_by_media_id(self, _):
         client = TatorRestClient(TATOR_URL, TOKEN)
-        result = client.get_localizations(project_id=1, media_id=[10, 20])
+        result = client.get_localizations(project_id=1, media_ids=[10, 20])
         assert result == [{'id': 3}]
 
     def test_get_localizations_no_args_raises(self):
@@ -100,19 +100,19 @@ class TestTatorRestClient:
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_get_section_by_id(self, _):
         client = TatorRestClient(TATOR_URL, TOKEN)
-        result = client.get_section_by_id('section123')
+        result = client.get_section_by_id(123)
         assert result == {'id': 'section123', 'name': 'Test Section'}
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_get_medias_for_section(self, _):
         client = TatorRestClient(TATOR_URL, TOKEN)
-        result = client.get_medias_for_section(project_id=1, section='section123')
+        result = client.get_medias_for_section(project_id=1, sections=[123])
         assert result == [{'id': 10}, {'id': 20}]
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_get_media_by_id(self, _):
         client = TatorRestClient(TATOR_URL, TOKEN)
-        result = client.get_media_by_id('10')
+        result = client.get_media_by_id(10)
         assert result == {'id': 10, 'name': 'test_media'}
 
     @patch('requests.get', side_effect=mocked_requests_get)
