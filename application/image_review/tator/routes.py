@@ -23,7 +23,7 @@ def tator_image_review():
         return redirect('/')
     project_id = int(request.args.get('project'))
     section_ids = request.args.getlist('section')
-    transect_ids = request.args.getlist('transect')
+    media_ids = request.args.getlist('media_id')
     try:
         api = tator.get_api(
             host=current_app.config.get('TATOR_URL'),
@@ -34,7 +34,7 @@ def tator_image_review():
             section_ids=section_ids,
             api=api,
             tator_url=current_app.config.get('TATOR_URL'),
-            transect_media=[{'id': int(transect_id)} for transect_id in transect_ids] if transect_ids else None,
+            transect_media=[{'id': int(mid)} for mid in media_ids] if media_ids else None,
         )
         localization_processor.fetch_localizations()
         localization_processor.process_records()
@@ -60,11 +60,11 @@ def tator_image_review():
     except requests.exceptions.ConnectionError:
         print('\nERROR: unable to connect to external review server\n')
     expedition_name = localization_processor.sections[0].expedition_name
-    if transect_ids:
-        transect_media = api.get_media_list(project_id, media_id=[int(tid) for tid in transect_ids])
-        transect_names = [media.name for media in transect_media]
-        deployments_str = ', '.join(transect_names)
-        tab_title = transect_names[0] if len(transect_names) == 1 else expedition_name
+    if media_ids:
+        media_list = api.get_media_list(project_id, media_id=[int(mid) for mid in media_ids])
+        media_names = [m.name for m in media_list]
+        deployments_str = ', '.join(media_names)
+        tab_title = media_names[0] if len(media_names) == 1 else expedition_name
     else:
         deployments_str = ', '.join([section.deployment_name for section in localization_processor.sections])
         tab_title = localization_processor.sections[0].deployment_name if len(localization_processor.sections) == 1 else expedition_name

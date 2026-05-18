@@ -10,15 +10,15 @@ document.addEventListener('DOMContentLoaded', (event) => {
     const url = new URL(window.location.href);
     const projectId = url.searchParams.get('project');
     const sectionIds = url.searchParams.getAll('section');
-    const transectIds = url.searchParams.getAll('transect');
+    const mediaIds = url.searchParams.getAll('media_id');
     const sectionParam = sectionIds.map(id => `section=${id}`).join('&');
-    const transectParam = transectIds.map(id => `transect=${id}`).join('&');
-    const urlParams = `project=${projectId}&${sectionParam}&${transectParam}`;
+    const mediaParam = mediaIds.map(id => `media_id=${id}`).join('&');
+    const urlParams = mediaParam ? `project=${projectId}&${sectionParam}&${mediaParam}` : `project=${projectId}&${sectionParam}`;
     const qaqcCheckRoute = '/qaqc/tator/sub/check';
 
     $('#localizationCount').html(formattedNumber(localizationCount));
     $('#individualCount').html(formattedNumber(individualCount));
-    $('#deploymentList').html(mediaNames.join(', '));
+    $('#deploymentList').html(deploymentList.join(', '));
 
     if (!localizationCount) {
         $('#404').show();
@@ -39,7 +39,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    transectIds: transectIds.join('&'),
+                    sectionIds: sectionIds.join('&'),
+                    mediaIds: mediaIds?.join('&'),
                     [checkbox]: checklist[checkbox],
                 }),
             });

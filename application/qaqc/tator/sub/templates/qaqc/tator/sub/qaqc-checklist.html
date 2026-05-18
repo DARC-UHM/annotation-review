@@ -112,8 +112,7 @@
     const localizationCount = {{ data.localization_count }};
     const individualCount = {{ data.individual_count }};
     const checklist = {{ data.checklist|safe }};
-    const mediaNames = {{ data.media_names|safe }};
-    const transectIds = {{ data.transect_ids|safe }};
+    const deploymentList = {{ data.deployment_list|safe }};
 </script>
 <script type="module" src="{{ url_for('qaqc.tator_qaqc.sub_qaqc.static', filename='qaqc-checklist.js') }}"></script>
 {% endblock scripts %}
