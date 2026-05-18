@@ -26,13 +26,13 @@ class MockResponse:
 
 def mocked_requests_get(*args, **kwargs):
     url = kwargs.get('url')
-    if url == f'{TATOR_URL}/rest/Localizations/1?section=abc123':
+    if url == f'{TATOR_URL}/rest/Localizations/1?section=123':
         return MockResponse(json_data=[{'id': 1}, {'id': 2}])
     if url == f'{TATOR_URL}/rest/Localizations/1?media_id=10,20':
         return MockResponse(json_data=[{'id': 3}])
-    if url == f'{TATOR_URL}/rest/Section/section123':
-        return MockResponse(json_data={'id': 'section123', 'name': 'Test Section'})
-    if url == f'{TATOR_URL}/rest/Medias/1?section=section123':
+    if url == f'{TATOR_URL}/rest/Section/123':
+        return MockResponse(json_data={'id': 123, 'name': 'Test Section'})
+    if url == f'{TATOR_URL}/rest/Medias/1?multi_section=123':
         return MockResponse(json_data=[{'id': 10}, {'id': 20}])
     if url == f'{TATOR_URL}/rest/Media/10':
         return MockResponse(json_data={'id': 10, 'name': 'test_media'})
@@ -101,7 +101,7 @@ class TestTatorRestClient:
     def test_get_section_by_id(self, _):
         client = TatorRestClient(TATOR_URL, TOKEN)
         result = client.get_section_by_id(123)
-        assert result == {'id': 'section123', 'name': 'Test Section'}
+        assert result == {'id': 123, 'name': 'Test Section'}
 
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_get_medias_for_section(self, _):
