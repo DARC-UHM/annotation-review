@@ -437,5 +437,6 @@ $(window).bind('pageshow', (event) => {
     if (!persisted) {
         return; // Not a bfcache/back-navigation restore
     }
+    $('select[name="media_id"]').prop('disabled', false);
     hideLoader();
 });
