@@ -173,13 +173,12 @@ async function updateTatorMedia() {
             return;
         }
         $('#media1').html(`
-            <option value="" selected disabled>Select media</option>
-            <option value="">All media</option>
+            <option value="" disabled>Select media</option>
+            <option value="" selected>All media</option>
         `);
         for (const media of tatorMedia) {
             $('#media1').append(`<option value="${media.id}">${media.name}</option>`);
         }
-        $('#media1').val(tatorMedia[0]?.id);
         $('#tatorMediaList').show();
     }
     hideLoader();

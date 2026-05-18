@@ -46,8 +46,8 @@ DARC_REVIEW_API_KEY = '...'
 4. Select an **Expedition** from the dropdown.
 5. Select a **Folder** (deployment type):
    - `dscm` — dropcam deployments
-   - `sub` — sub/transect deployments
-6. Select a **Deployment** from the dropdown. For sub/transect, also select a **Transect**.
+   - `sub` — sub deployments (exploratory or transect)
+6. Select a **Deployment** from the dropdown. For sub deployments, you can select one or more **Media**, or select **All Media** to process all the media in a deployment.
 7. Select either `QA/QC` or `Image Review`.
 
 Both the `QA/QC` and `Image Review` sections have the ability to edit annotations directly in the browser.
