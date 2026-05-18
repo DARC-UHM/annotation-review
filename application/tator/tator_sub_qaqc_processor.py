@@ -127,7 +127,7 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
         than one minute before the record.
         """
         self.process_records()
-        media = self.tator_client.get_media_by_id(self.final_records[0]['media_id'])
+        media = self.tator_client.get_media_by_id(int(self.final_records[0]['media_id']))
         fps = media['fps']  # assume all media in a deployment are the same FPS
         actual_final_records = []
         self.final_records.sort(key=lambda _record: (_record['media_id'], _record['frame']))

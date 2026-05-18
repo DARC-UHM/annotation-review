@@ -58,14 +58,14 @@ class TatorLocalizationProcessor:
             transect_media_ids = [int(media['id']) for media in self.transect_media]
             for i in range(0, len(transect_media_ids), 50):
                 batch = transect_media_ids[i:i + 50]
-                for localization in self.tator_client.get_localizations(self.project_id, media_id=batch):
+                for localization in self.tator_client.get_localizations(self.project_id, media_ids=batch):
                     section = section_map.get(localization.get('master_section'), self.sections[0])
                     section.localizations.append(localization)
             for section in self.sections:
                 print(f'Fetched {len(section.localizations)} localizations for deployment {section.deployment_name}')
         else:
             for section in self.sections:
-                section.localizations = self.tator_client.get_localizations(self.project_id, section=section.section_id)
+                section.localizations = self.tator_client.get_localizations(self.project_id, section=int(section.section_id))
                 print(f'Fetched {len(section.localizations)} localizations for deployment {section.deployment_name}')
 
     def process_records(

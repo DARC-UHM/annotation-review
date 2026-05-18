@@ -172,7 +172,10 @@ async function updateTatorMedia() {
             hideLoader();
             return;
         }
-        $('#media1').html('<option value="" selected disabled>Select media</option>');
+        $('#media1').html(`
+            <option value="" selected disabled>Select media</option>
+            <option value="">All media</option>
+        `);
         for (const media of tatorMedia) {
             $('#media1').append(`<option value="${media.id}">${media.name}</option>`);
         }
@@ -393,12 +396,14 @@ $('#varsQaqcButton').on('click', () => {
 });
 
 $('#tatorImageReviewButton').on('click', () => {
+    $('select[name="media_id"]').each((_, el) => { if (!el.value) el.disabled = true; });
     showLoader();
 });
 
 $('#tatorQaqcButton').on('click', () => {
     const isSub = $('#tatorFolder').val() === 'sub';
     $('#tatorQaqcButton').attr('formaction', isSub ? '/qaqc/tator/sub/checklist' : '/qaqc/tator/dropcam/checklist');
+    $('select[name="media_id"]').each((_, el) => { if (!el.value) el.disabled = true; });
     showLoader();
 });
 

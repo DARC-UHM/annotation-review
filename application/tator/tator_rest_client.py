@@ -29,9 +29,9 @@ class TatorRestClient:
         res.raise_for_status()
         return res.json()['token']
 
-    def get_localizations(self, project_id: int, section: str = None, media_id: list[int] = None) -> list:
-        if media_id is not None:
-            url = f'{self.base_url}/rest/Localizations/{project_id}?media_id={",".join(str(m) for m in media_id)}'
+    def get_localizations(self, project_id: int, section: int = None, media_ids: list[int] = None) -> list:
+        if media_ids is not None:
+            url = f'{self.base_url}/rest/Localizations/{project_id}?media_id={",".join(str(m) for m in media_ids)}'
         elif section is not None:
             url = f'{self.base_url}/rest/Localizations/{project_id}?section={section}'
         else:
@@ -40,19 +40,19 @@ class TatorRestClient:
         res.raise_for_status()
         return res.json()
 
-    def get_section_by_id(self, section_id: str) -> dict:
+    def get_section_by_id(self, section_id: int) -> dict:
         url = f'{self.base_url}/rest/Section/{section_id}'
         res = requests.get(url=url, headers=self._headers)
         res.raise_for_status()
         return res.json()
 
-    def get_medias_for_section(self, project_id: int, section: str) -> list:
-        url = f'{self.base_url}/rest/Medias/{project_id}?section={section}'
+    def get_medias_for_section(self, project_id: int, sections: list[int]) -> list:
+        url = f'{self.base_url}/rest/Medias/{project_id}?multi_section={",".join([str(s) for s in sections])}'
         res = requests.get(url=url, headers=self._headers)
         res.raise_for_status()
         return res.json()
 
-    def get_media_by_id(self, media_id: str) -> dict:
+    def get_media_by_id(self, media_id: int) -> dict:
         url = f'{self.base_url}/rest/Media/{media_id}'
         res = requests.get(url=url, headers=self._headers)
         res.raise_for_status()
@@ -60,7 +60,7 @@ class TatorRestClient:
 
     def get_substrates_for_medias(self, project_id: int, transect_media: list[dict]) -> list[dict]:
         """Returns substrates grouped by media ID, sorted by timestamp."""
-        states = self._get_states(project_id, [str(media['id']) for media in transect_media])
+        states = self._get_states(project_id, [media['id'] for media in transect_media])
         grouped: dict[int, list] = {}
         fps_map = {media['id']: media['fps'] for media in transect_media}
         for state in states:
@@ -77,8 +77,8 @@ class TatorRestClient:
             entries.sort(key=lambda entry: (entry['timestamp'] is None, entry['timestamp']))
         return [{'media_id': media_id, 'substrates': entries} for media_id, entries in grouped.items()]
 
-    def _get_states(self, project_id: int, media_ids: list[str]):
-        states_url = f'{self.base_url}/rest/States/{project_id}?media_id={",".join(media_ids)}'
+    def _get_states(self, project_id: int, media_ids: list[int]):
+        states_url = f'{self.base_url}/rest/States/{project_id}?media_id={",".join([str(m) for m in media_ids])}'
         states_res = requests.get(url=states_url, headers=self._headers)
         states_res.raise_for_status()
         return states_res.json()

@@ -151,9 +151,10 @@ def section_media():
         return {'error': 'project and section are required'}, 400
     tator_client = TatorRestClient(current_app.config.get('TATOR_URL'), session.get('tator_token'))
     try:
-        media_list = []
-        for section_id in section_ids:
-            media_list += tator_client.get_medias_for_section(project_id=int(project_id), sections=[int(section_id)])
+        media_list = tator_client.get_medias_for_section(
+            project_id=int(project_id),
+            sections=[int(section_id) for section_id in section_ids],
+        )
         media_list.sort(key=lambda x: x['name'])
         return [{'name': m['name'], 'id': m['id']} for m in media_list], 200
     except Exception as e:

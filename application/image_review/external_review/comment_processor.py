@@ -45,10 +45,10 @@ class CommentProcessor:
                 if 'all_localizations' in self.comments[comment].keys() and self.comments[comment]['all_localizations'] is not None:
                     # get the media id from the video url (not stored as its own field)
                     media_id = self.comments[comment]['video_url'].split('/')[-1].split('&')[0]
-                    media_ids.add(media_id)
+                    media_ids.add(int(media_id))
             for i in range(0, len(media_ids), 300):
                 chunk = list(media_ids)[i:i + 300]
-                localizations += self.tator_client.get_localizations(current_app.config.get('TATOR_PROJECT_ID'), media_id=chunk)
+                localizations += self.tator_client.get_localizations(current_app.config.get('TATOR_PROJECT_ID'), media_ids=chunk)
 
         # fetch all VARS annotations in parallel
         vars_uuids = [comment for comment in self.comments if self.is_vars_annotation(comment)]
