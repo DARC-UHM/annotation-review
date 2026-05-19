@@ -29,11 +29,11 @@ class TatorRestClient:
         res.raise_for_status()
         return res.json()['token']
 
-    def get_localizations(self, project_id: int, section: int = None, media_ids: list[int] = None) -> list:
+    def get_localizations(self, project_id: int, section_id: int = None, media_ids: list[int] = None) -> list:
         if media_ids is not None:
             url = f'{self.base_url}/rest/Localizations/{project_id}?media_id={",".join(str(m) for m in media_ids)}'
-        elif section is not None:
-            url = f'{self.base_url}/rest/Localizations/{project_id}?section={section}'
+        elif section_id is not None:
+            url = f'{self.base_url}/rest/Localizations/{project_id}?section={section_id}'
         else:
             raise ValueError('Must provide either section or media_id')
         res = requests.get(url=url, headers=self._headers)
@@ -46,8 +46,8 @@ class TatorRestClient:
         res.raise_for_status()
         return res.json()
 
-    def get_medias_for_section(self, project_id: int, sections: list[int]) -> list:
-        url = f'{self.base_url}/rest/Medias/{project_id}?multi_section={",".join([str(s) for s in sections])}'
+    def get_medias_for_sections(self, project_id: int, section_ids: list[int]) -> list:
+        url = f'{self.base_url}/rest/Medias/{project_id}?multi_section={",".join([str(s) for s in section_ids])}'
         res = requests.get(url=url, headers=self._headers)
         res.raise_for_status()
         return res.json()
@@ -58,11 +58,15 @@ class TatorRestClient:
         res.raise_for_status()
         return res.json()
 
-    def get_substrates_for_medias(self, project_id: int, transect_media: list[dict]) -> list[dict]:
+    def get_substrates(self, project_id: int, section_ids: list[int] = None, media_list: list[dict] = None) -> list[dict]:
         """Returns substrates grouped by media ID, sorted by timestamp."""
-        states = self._get_states(project_id, [media['id'] for media in transect_media])
+        if section_ids is None and media_list is None:
+            raise ValueError('Must provide either section_ids or media_ids')
+        if media_list is None:
+            media_list = self.get_medias_for_sections(project_id, section_ids)
+        states = self._get_states(project_id, [media['id'] for media in media_list])
         grouped: dict[int, list] = {}
-        fps_map = {media['id']: media['fps'] for media in transect_media}
+        fps_map = {media['id']: media['fps'] for media in media_list}
         for state in states:
             if state['type'] == TatorStateType.SUBSTRATE:
                 media_id = state['media'][0]

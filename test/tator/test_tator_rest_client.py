@@ -83,7 +83,7 @@ class TestTatorRestClient:
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_get_localizations_by_section(self, _):
         client = TatorRestClient(TATOR_URL, TOKEN)
-        result = client.get_localizations(project_id=1, section=123)
+        result = client.get_localizations(project_id=1, section_id=123)
         assert result == [{'id': 1}, {'id': 2}]
 
     @patch('requests.get', side_effect=mocked_requests_get)
@@ -104,9 +104,9 @@ class TestTatorRestClient:
         assert result == {'id': 123, 'name': 'Test Section'}
 
     @patch('requests.get', side_effect=mocked_requests_get)
-    def test_get_medias_for_section(self, _):
+    def test_get_medias_for_sections(self, _):
         client = TatorRestClient(TATOR_URL, TOKEN)
-        result = client.get_medias_for_section(project_id=1, sections=[123])
+        result = client.get_medias_for_sections(project_id=1, section_ids=[123])
         assert result == [{'id': 10}, {'id': 20}]
 
     @patch('requests.get', side_effect=mocked_requests_get)
@@ -122,7 +122,7 @@ class TestTatorRestClient:
             {'id': 10, 'fps': 30.0},
             {'id': 20, 'fps': 25.0},
         ]
-        result = client.get_substrates_for_medias(project_id=1, transect_media=transect_media)
+        result = client.get_substrates(project_id=1, media_list=transect_media)
         media_10 = next(r for r in result if r['media_id'] == 10)
         media_20 = next(r for r in result if r['media_id'] == 20)
         # substrates for media 10 should be sorted by timestamp (man @ 1s before sed @ 3s)

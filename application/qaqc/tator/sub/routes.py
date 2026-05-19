@@ -24,7 +24,10 @@ def _get_deployment_info(tator_client: TatorRestClient, project_id: int, section
         deployment_names.append(section['name'])
         if expedition_name is None:
             expedition_name = section['path'].split('.')[0]
-    media = [tator_client.get_media_by_id(int(media_id)) for media_id in media_ids] if media_ids else None
+    if media_ids:
+        media = [tator_client.get_media_by_id(int(media_id)) for media_id in media_ids]
+    else:
+        media = tator_client.get_medias_for_sections(project_id, [int(section_id) for section_id in section_ids])
     return media, deployment_names, expedition_name
 
 
@@ -37,22 +40,22 @@ def sub_qaqc_checklist():
         return redirect('/')
     media_ids = request.args.getlist('media_id')
     tator_client = TatorRestClient(current_app.config.get('TATOR_URL'), session['tator_token'])
-    media, deployment_names, expedition_name = _get_deployment_info(
+    media_list, deployment_names, expedition_name = _get_deployment_info(
         tator_client=tator_client,
         project_id=project_id,
         section_ids=section_ids,
         media_ids=media_ids,
     )
     localizations = []
-    if media is not None:
-        deployment_list = [media['name'] for media in media]
-        media_ids_for_fetch = [media['id'] for media in media]
+    if media_ids:
+        deployment_list = [media['name'] for media in media_list]
+        media_ids_for_fetch = [media['id'] for media in media_list]
         for i in range(0, len(media_ids_for_fetch), 50):
             localizations += tator_client.get_localizations(project_id, media_ids=media_ids_for_fetch[i:i + 50])
     else:
         deployment_list = deployment_names
         for section_id in section_ids:
-            localizations += tator_client.get_localizations(project_id, section=int(section_id))
+            localizations += tator_client.get_localizations(project_id, section_id=int(section_id))
     individual_count = 0
     for localization in localizations:
         if TatorLocalizationType.is_dot(localization['type']):
@@ -116,7 +119,7 @@ def sub_qaqc(check):
     if err:
         return err
     tator_client = TatorRestClient(current_app.config.get('TATOR_URL'), session['tator_token'])
-    media, deployment_names, expedition_name = _get_deployment_info(
+    media_list, deployment_names, expedition_name = _get_deployment_info(
         tator_client=tator_client,
         project_id=project_id,
         section_ids=section_ids,
@@ -126,7 +129,7 @@ def sub_qaqc(check):
     image_refs = None
     if check not in ['unique-taxa', 'sizes', 'image-guide']:
         comments, image_refs = get_comments_and_image_refs(deployment_names)
-    media_names = [m['name'] for m in media] if media else deployment_names
+    media_names = [media['name'] for media in media_list] if media_ids else deployment_names
     tab_title = media_names[0] if len(media_names) == 1 else expedition_name
     data = {
         'concepts': session.get('vars_concepts', []),
@@ -140,14 +143,18 @@ def sub_qaqc(check):
     }
     if check == 'media-attributes':
         # the one case where we don't want to initialize a TatorSubQaqcProcessor (no need to fetch localizations)
-        data['substrates'] = tator_client.get_substrates_for_medias(project_id, media)
+        data['substrates'] = tator_client.get_substrates(
+            project_id=project_id,
+            section_ids=[int(section_id) for section_id in section_ids],
+            media_list=media_list if media_ids else None,
+        )
         data['page_title'] = 'Media attributes'
-        data['media_attributes'] = media
+        data['media_attributes'] = media_list
         return render_template('qaqc/tator/qaqc-tables.html', data=data)
     qaqc_annos = TatorSubQaqcProcessor(
         project_id=project_id,
         section_ids=section_ids,
-        transect_media=media,
+        transect_media=media_list if media_ids else None,
         api=tator_api,
         darc_review_url=current_app.config.get('DARC_REVIEW_URL'),
         tator_url=current_app.config.get('TATOR_URL'),
@@ -202,7 +209,7 @@ def sub_qaqc(check):
             qaqc_annos.get_summary()
             data['page_title'] = 'Summary'
             data['annotations'] = qaqc_annos.final_records
-            data['media_id_names'] = {m['id']: m['name'] for m in media}
+            data['media_id_names'] = {media['id']: media['name'] for media in media_list}
             return render_template('qaqc/tator/qaqc-tables.html', data=data)
         case 'image-guide':
             presentation_data = BytesIO()

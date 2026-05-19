@@ -57,7 +57,7 @@ def dropcam_qaqc_checklist():
             print('ERROR: Unable to get QAQC checklist from external review server')
             checklist = {}
     for section_id in section_ids:
-        localizations += tator_client.get_localizations(project_id, section=int(section_id))
+        localizations += tator_client.get_localizations(project_id, section_id=int(section_id))
     for localization in localizations:
         if TatorLocalizationType.is_dot(localization['type']):
             individual_count += 1
@@ -130,7 +130,7 @@ def dropcam_qaqc(check):
         # the one case where we don't want to initialize a TatorDropcamQaqcProcessor (no need to fetch localizations)
         media_attributes = {}
         for section_id in section_ids:
-            media_attributes[section_id] = tator_client.get_medias_for_section(project_id, sections=[int(section_id)])
+            media_attributes[section_id] = tator_client.get_medias_for_sections(project_id, section_ids=[int(section_id)])
         data['page_title'] = 'Media attributes'
         data['media_attributes'] = media_attributes
         return render_template('qaqc/tator/qaqc-tables.html', data=data)

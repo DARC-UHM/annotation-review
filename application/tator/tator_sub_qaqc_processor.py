@@ -62,10 +62,13 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
         media (skips upons with "water").
         """
         self.process_records()
+        media_substrates = self.tator_client.get_substrates(
+            project_id=self.project_id,
+            section_ids=[section.section_id for section in self.sections],
+            media_list=self.transect_media,
+        )
         substrates = {
-            substrate['media_id']: substrate['substrates']
-            for substrate in
-            self.tator_client.get_substrates_for_medias(project_id=self.project_id, transect_media=self.transect_media)
+            substrate['media_id']: substrate['substrates'] for substrate in media_substrates
         }
         for media_id, substrate_entries in substrates.items():
             print(f'Substrates for media {media_id}:')
@@ -219,7 +222,11 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
         substrates = {
             substrate['media_id']: substrate['substrates']
             for substrate in
-            self.tator_client.get_substrates_for_medias(project_id=self.project_id, transect_media=self.transect_media)
+            self.tator_client.get_substrates(
+                project_id=self.project_id,
+                section_ids=[section.section_id for section in self.sections],
+                media_list=self.transect_media,
+            )
         }
         for section in self.sections:
             section.localizations = [

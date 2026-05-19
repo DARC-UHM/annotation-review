@@ -65,7 +65,7 @@ class TatorLocalizationProcessor:
                 print(f'Fetched {len(section.localizations)} localizations for deployment {section.deployment_name}')
         else:
             for section in self.sections:
-                section.localizations = self.tator_client.get_localizations(self.project_id, section=int(section.section_id))
+                section.localizations = self.tator_client.get_localizations(self.project_id, section_id=int(section.section_id))
                 print(f'Fetched {len(section.localizations)} localizations for deployment {section.deployment_name}')
 
     def process_records(
