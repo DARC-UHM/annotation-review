@@ -91,7 +91,14 @@ def populate_ctd(
             if 'not observed' in media['attributes']['Arrival'].lower():
                 bottom_time = video_start_timestamp
             else:
-                bottom_time = video_start_timestamp + timedelta(seconds=int(int(media['attributes']['Arrival'].split('|')[0]) / media_fps[media['id']]))
+                try:
+                    arrival_frame = int(media['attributes']['Arrival'].strip().split(' ')[0])
+                except ValueError:
+                    error_message = (f'Could not parse Arrival value for media "{media["name"]}". '
+                                     f'Expected format like "1234" or "not observed" but got "{media["attributes"]["Arrival"]}".')
+                    print(f'\n\n{TERM_RED}ERROR: {error_message}{TERM_NORMAL}')
+                    exit(1)
+                bottom_time = video_start_timestamp + timedelta(seconds=int(arrival_frame / media_fps[media['id']]))
             camera_bottom_unix_timestamp = time.mktime(bottom_time.timetuple())
     print(f'fetched {len(media_ids)} media IDs!')
 
