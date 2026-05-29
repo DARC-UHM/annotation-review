@@ -4,6 +4,7 @@ HURLSTOR_URL = 'https://hurlstor.soest.hawaii.edu'
 
 
 class Config:
+    ENV = os.environ.get('_FLASK_ENV', 'production')
     SESSION_TYPE = 'filesystem'
     SESSION_FILE_DIR = 'flask_session'
     SESSION_PERMANENT = False
@@ -19,7 +20,7 @@ class Config:
     DARC_REVIEW_HEADERS = {'API-Key': os.environ.get('DARC_REVIEW_API_KEY')}
     SECRET_KEY = os.environ.get('APP_SECRET_KEY')
 
-    if os.environ.get('_FLASK_ENV') == 'no_server_edits':
+    if ENV == 'no_server_edits':
         print('\n\nLOCAL DEVELOPMENT MODE: No server edits\n\n')
         ANNOSAURUS_CLIENT_SECRET = ''
         DARC_REVIEW_URL = 'http://127.0.0.1:5000'

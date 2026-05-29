@@ -86,12 +86,13 @@ def server_error(e):
     print('\nApplication error 😔')
     print(error)
     print(traceback.format_exc())
-    requests.post(
-        url=f'{current_app.config.get("DARC_REVIEW_URL")}/log-error',
-        headers=current_app.config.get('DARC_REVIEW_HEADERS'),
-        json={
-            'url': request.url,
-            'error': traceback.format_exc(),
-        },
-    )
+    if current_app.config.get('ENV') == 'production':
+        requests.post(
+            url=f'{current_app.config.get("DARC_REVIEW_URL")}/log-error',
+            headers=current_app.config.get('DARC_REVIEW_HEADERS'),
+            json={
+                'url': request.url,
+                'error': traceback.format_exc(),
+            },
+        )
     return render_template('errors/500.html', err=error), 500

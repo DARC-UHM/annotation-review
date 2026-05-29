@@ -1,4 +1,3 @@
-import os
 import webbrowser
 
 from application import create_app
@@ -10,9 +9,8 @@ if __name__ == '__main__':
     print('\nLaunching application...')
 
     PORT = 8000
-    env = os.environ.get('_FLASK_ENV')
 
-    if env in ('development', 'no_server_edits'):
+    if app.config.get('ENV') in ('development', 'no_server_edits'):
         app.run(debug=True, port=PORT)
     else:
         webbrowser.open_new(f'http://localhost:{PORT}')
