@@ -1,5 +1,5 @@
 """
-Sub/transect QA/QC endpoints
+Sub exploratory/transect QA/QC endpoints
 
 /qaqc/tator/sub/checklist [GET, PATCH]
 /qaqc/tator/sub/check/<check> [GET]
@@ -154,7 +154,7 @@ def sub_qaqc(check):
     qaqc_annos = TatorSubQaqcProcessor(
         project_id=project_id,
         section_ids=section_ids,
-        transect_media=media_list if media_ids else None,
+        media_list=media_list if media_ids else None,
         api=tator_api,
         darc_review_url=current_app.config.get('DARC_REVIEW_URL'),
         tator_url=current_app.config.get('TATOR_URL'),

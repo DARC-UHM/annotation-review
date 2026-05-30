@@ -12,7 +12,7 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
             api: tator.api,
             tator_url: str,
             darc_review_url: str = None,
-            transect_media: list[dict] = None,
+            media_list: list[dict] = None,
     ):
         super().__init__(
             project_id=project_id,
@@ -20,7 +20,7 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
             api=api,
             darc_review_url=darc_review_url,
             tator_url=tator_url,
-            transect_media=transect_media,
+            media_list=media_list,
         )
 
     def check_missing_ancillary_data(self):
@@ -65,7 +65,7 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
         media_substrates = self.tator_client.get_substrates(
             project_id=self.project_id,
             section_ids=[section.section_id for section in self.sections],
-            media_list=self.transect_media,
+            media_list=self.media_list,
         )
         substrates = {
             substrate['media_id']: substrate['substrates'] for substrate in media_substrates
@@ -225,11 +225,11 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
             self.tator_client.get_substrates(
                 project_id=self.project_id,
                 section_ids=[section.section_id for section in self.sections],
-                media_list=self.transect_media,
+                media_list=self.media_list,
             )
         }
         for section in self.sections:
             section.localizations = [
                 localization for localization in section.localizations if not TatorLocalizationType.is_box(localization['type'])
             ]
-        self.process_records(transect_substrates=substrates, get_timestamp=True)
+        self.process_records(media_substrates=substrates, get_timestamp=True)

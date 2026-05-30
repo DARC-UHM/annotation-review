@@ -118,11 +118,11 @@ class TestTatorRestClient:
     @patch('requests.get', side_effect=mocked_requests_get)
     def test_get_substrates_groups_and_sorts_by_timestamp(self, _):
         client = TatorRestClient(TATOR_URL, TOKEN)
-        transect_media = [
+        media_list = [
             {'id': 10, 'fps': 30.0},
             {'id': 20, 'fps': 25.0},
         ]
-        result = client.get_substrates(project_id=1, media_list=transect_media)
+        result = client.get_substrates(project_id=1, media_list=media_list)
         media_10 = next(r for r in result if r['media_id'] == 10)
         media_20 = next(r for r in result if r['media_id'] == 20)
         # substrates for media 10 should be sorted by timestamp (man @ 1s before sed @ 3s)

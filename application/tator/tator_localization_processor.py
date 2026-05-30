@@ -38,7 +38,7 @@ class TatorLocalizationProcessor:
         api: tator.api,
         tator_url: str,
         darc_review_url: str = None,
-        transect_media: list[dict] = None,
+        media_list: list[dict] = None,
     ):
         self.project_id = project_id
         self.tator_url = tator_url
@@ -48,16 +48,16 @@ class TatorLocalizationProcessor:
         self.tator_client = TatorRestClient(tator_url, session['tator_token'])
         self.final_records: list[dict]|dict = []  # final list formatted for review page
         self.phylogeny = PhylogenyCache()
-        self.transect_media = transect_media
+        self.media_list = media_list
 
     def fetch_localizations(self):
         print('Fetching localizations...')
         sys.stdout.flush()
-        if self.transect_media:  # list of transects, fetch by media IDs instead of section
+        if self.media_list:  # list of media, fetch by media IDs instead of section
             section_map = {int(section.section_id): section for section in self.sections}
-            transect_media_ids = [int(media['id']) for media in self.transect_media]
-            for i in range(0, len(transect_media_ids), 50):
-                batch = transect_media_ids[i:i + 50]
+            media_ids = [int(media['id']) for media in self.media_list]
+            for i in range(0, len(media_ids), 50):
+                batch = media_ids[i:i + 50]
                 for localization in self.tator_client.get_localizations(self.project_id, media_ids=batch):
                     section = section_map.get(localization.get('master_section'), self.sections[0])
                     section.localizations.append(localization)
@@ -72,24 +72,40 @@ class TatorLocalizationProcessor:
         self,
         no_match_records: set = None,
         get_timestamp: bool = False,
-        get_ctd: bool = False,
-        get_substrates: bool = False,
-        transect_substrates: dict = None,
+        get_dropcam_fieldbook_data: bool = False,
+        get_dropcam_substrates: bool = False,
+        media_substrates: dict = None,
     ):
+        """
+        Processes and organizes localizations.
+
+        :param no_match_records: Set of scientific names that have already been attempted to match to WoRMS and have no
+            match, to avoid redundant WoRMS API calls. This set will be updated with any new names that fail to match.
+        :param get_timestamp: Whether to calculate observation timestamps based on localization frame and media start
+            time.
+        :param get_dropcam_fieldbook_data: Whether to fetch data (lat/long, depth, bait type) from the dropcam fieldbook
+             on HURLSTOR and attach it to localizations.
+        :param get_dropcam_substrates: Whether to fetch substrate information for dropcam deployments from media
+            attributes. For dropcams, substrates are part of media attributes. We will fetch them inside this method.
+        :param media_substrates: A pre-fetched mapping of media IDs to their substrate information. For sub dives,
+            substrates are States. We expect the caller to fetch them and pass them in here.
+        """
         print('Processing localizations...', end='')
         sys.stdout.flush()
         formatted_localizations = []
         expedition_fieldbook = {}  # {section_id: deployments[]}
-        media_substrates = {}  # {media_id: substrates}
-        transect_media = {}  # {media_id: media}
+        media_id_map = {}  # {media_id: media}
         if 'media_fps' not in session:
             session['media_fps'] = {}
 
         if not no_match_records:
             no_match_records = set()
 
-        if self.transect_media:
-            transect_media = {int(media['id']): media for media in self.transect_media}
+        if self.media_list:
+            media_id_map = {int(media['id']): media for media in self.media_list}
+
+        if media_substrates is None:
+            media_substrates = {}
 
         for section in self.sections:
             for localization in section.localizations:
@@ -157,7 +173,7 @@ class TatorLocalizationProcessor:
                             print(f'{TERM_RED}Unknown categorical abundance: {localization_dict["categorical_abundance"]}{TERM_NORMAL}')
                 if get_timestamp:
                     if TatorLocalizationType.is_sub(localization_dict['type']):
-                        media = transect_media[localization['media']]
+                        media = media_id_map[localization['media']]
                         fps = media['fps'] or 30
                         if media['attributes'].get('Start Time'):
                             media_start_time = datetime.datetime.fromisoformat(media['attributes']['Start Time']).astimezone(datetime.timezone.utc)
@@ -184,7 +200,7 @@ class TatorLocalizationProcessor:
                                 days=time_diff.days,
                                 seconds=time_diff.seconds
                             )) if observation_timestamp > camera_bottom_arrival else '00:00:00'
-                if get_ctd:
+                if get_dropcam_fieldbook_data:
                     if not expedition_fieldbook.get(section.section_id):
                         fieldbook_res = requests.get(
                             url=f'{self.darc_review_url}/dropcam-fieldbook/{section.section_id}',
@@ -205,14 +221,14 @@ class TatorLocalizationProcessor:
                         localization_dict['long'] = deployment_ctd['long']
                         localization_dict['bait_type'] = deployment_ctd['bait_type']
                         localization_dict['depth_m'] = localization_dict['depth_m'] or deployment_ctd['depth_m']
-                if get_substrates:
+                if get_dropcam_substrates:
                     media_id = localization['media']
                     if not media_substrates.get(media_id):
                         media_substrates[media_id] = self.api.get_media(media_id).attributes
                     self._load_substrates(localization_dict, media_substrates[media_id])
-                elif transect_substrates:
+                elif media_substrates:
                     media_id = localization['media']
-                    substrates = self._get_substrate_for_frame(transect_substrates[media_id], localization['frame'])
+                    substrates = self._get_substrate_for_frame(media_substrates[media_id], localization['frame'])
                     if substrates:
                         self._load_substrates(localization_dict, substrates)
                 if scientific_name in self.phylogeny.data:

@@ -84,13 +84,13 @@ async function updateTatorDeployments(topLevelSectionId, folderName) {
 
     if (folderName === 'sub') {
         // sub structure: subfolder (exploratory/transect) -> deployments
-        const subFolderNames = Object.keys(folderData);
-        if (subFolderNames.length === 0) {
+        if (folderData === undefined || Object.keys(folderData).length === 0) {
             $('#tatorSubFolderContainer').hide();
             $('#deployment1').html('<option value="" selected disabled>No deployments found</option>');
             return;
         }
         $('#tatorSubFolder').html('');
+        const subFolderNames = Object.keys(folderData);
         for (const subFolderName of subFolderNames) {
             $('#tatorSubFolder').append(`<option value="${subFolderName}">${subFolderName}</option>`);
         }

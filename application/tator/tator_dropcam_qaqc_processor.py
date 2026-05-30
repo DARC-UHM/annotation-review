@@ -160,7 +160,7 @@ class TatorDropcamQaqcProcessor(TatorBaseQaqcProcessor):
         Finds the highest dot count for each unique scientific name, tentative ID, and morphospecies combo per
         deployment. Ignores non-attracted taxa.
         """
-        self.process_records(get_ctd=True)
+        self.process_records(get_dropcam_fieldbook_data=True)
         deployment_taxa = {}
         unique_taxa = {}
         for record in self.final_records:
@@ -217,7 +217,7 @@ class TatorDropcamQaqcProcessor(TatorBaseQaqcProcessor):
         deployment. Also shows species accumulation curve. Ignores non-attracted taxa.
         """
         self.fetch_start_times()
-        self.process_records(get_timestamp=True, get_ctd=True)
+        self.process_records(get_timestamp=True, get_dropcam_fieldbook_data=True)
         deployment_taxa = {}
         unique_taxa = {}
         unique_taxa_first_seen = {}
@@ -312,7 +312,7 @@ class TatorDropcamQaqcProcessor(TatorBaseQaqcProcessor):
             section.localizations = [
                 localization for localization in section.localizations if not TatorLocalizationType.is_box(localization['type'])
             ]
-        self.process_records(get_timestamp=True, get_ctd=True, get_substrates=True)
+        self.process_records(get_timestamp=True, get_dropcam_fieldbook_data=True, get_dropcam_substrates=True)
 
     def fetch_start_times(self):
         if 'media_timestamps' not in session.keys():
