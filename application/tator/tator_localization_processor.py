@@ -101,15 +101,12 @@ class TatorLocalizationProcessor:
         if not no_match_records:
             no_match_records = set()
 
-        if self.media_list:
-            media_id_map = {int(media['id']): media for media in self.media_list}
-
         if media_substrates is None:
             media_substrates = {}
 
         for section in self.sections:
             for localization in section.localizations:
-                if not TatorLocalizationType.is_relevant(localization['type']):
+                if not TatorLocalizationType.is_box_or_dot(localization['type']):
                     continue  # we only care about boxes and dots
                 attributes = localization['attributes']
                 scientific_name = attributes.get('Scientific Name')
@@ -173,6 +170,8 @@ class TatorLocalizationProcessor:
                             print(f'{TERM_RED}Unknown categorical abundance: {localization_dict["categorical_abundance"]}{TERM_NORMAL}')
                 if get_timestamp:
                     if TatorLocalizationType.is_sub(localization_dict['type']):
+                        if not media_id_map:
+                            media_id_map = self.get_media_id_map()
                         media = media_id_map[localization['media']]
                         fps = media['fps'] or 30
                         if media['attributes'].get('Start Time'):
@@ -227,8 +226,10 @@ class TatorLocalizationProcessor:
                         media_substrates[media_id] = self.api.get_media(media_id).attributes
                     self._load_substrates(localization_dict, media_substrates[media_id])
                 elif media_substrates:
-                    media_id = localization['media']
-                    substrates = self._get_substrate_for_frame(media_substrates[media_id], localization['frame'])
+                    substrates = self._get_substrate_for_frame(
+                        substrate_entries=media_substrates.get(localization_dict['media_id'], []),
+                        localization=localization_dict,
+                    )
                     if substrates:
                         self._load_substrates(localization_dict, substrates)
                 if scientific_name in self.phylogeny.data:
@@ -450,6 +451,17 @@ class TatorLocalizationProcessor:
             session.modified = True
         return session['tator_usernames'][user_id]
 
+    def get_media_id_map(self) -> dict:
+        if self.media_list:
+            media_id_map = {int(media['id']): media for media in self.media_list}
+        else:
+            media_list = self.tator_client.get_medias_for_sections(
+                project_id=26,
+                section_ids=[int(section.section_id) for section in self.sections],
+            )
+            media_id_map = {int(media['id']): media for media in media_list}
+        return media_id_map
+
     @staticmethod
     def _load_substrates(localization_dict: dict, substrate_dict: dict):
         localization_dict['primary_substrate'] = substrate_dict.get('Primary Substrate')
@@ -460,13 +472,16 @@ class TatorLocalizationProcessor:
         localization_dict['deployment_notes'] = substrate_dict.get('Deployment Notes')
 
     @staticmethod
-    def _get_substrate_for_frame(substrate_entries: list[dict], frame: int) -> dict:
+    def _get_substrate_for_frame(substrate_entries: list[dict], localization: dict) -> dict:
         """
         Returns the substrate state at the given frame, or None if there is no substrate state at or before that frame.
         """
         current_substrate = None
         for substrate in substrate_entries:
-            if substrate['frame'] > frame:
+            if substrate['frame'] > localization['frame']:
                 break
             current_substrate = substrate
+        if current_substrate is None:
+            print(f'{TERM_YELLOW}No substrate state found for "{localization["scientific_name"]}" '
+                  f'(media ID {localization["media_id"]}){TERM_NORMAL}')
         return current_substrate

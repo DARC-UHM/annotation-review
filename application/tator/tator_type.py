@@ -13,7 +13,7 @@ class TatorLocalizationType(IntEnum):
     SUB_DOT = 795
 
     @classmethod
-    def is_relevant(cls, localization_type: int) -> bool:
+    def is_box_or_dot(cls, localization_type: int) -> bool:
         """
         Returns whether the given localization type is one of the types that we consider relevant for processing
         (box, dot, sub-box, sub-dot).

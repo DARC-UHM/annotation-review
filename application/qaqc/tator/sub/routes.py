@@ -19,16 +19,19 @@ from application.qaqc.tator.util import init_tator_api, get_comments_and_image_r
 def _get_deployment_info(tator_client: TatorRestClient, project_id: int, section_ids: list[str], media_ids: list[str] = None):
     deployment_names = []
     expedition_name = None
+    is_transect = False
     for section_id in section_ids:
         section = tator_client.get_section_by_id(int(section_id))
         deployment_names.append(section['name'])
         if expedition_name is None:
             expedition_name = section['path'].split('.')[0]
+        if 'transect' in section['path'].lower():
+            is_transect = True
     if media_ids:
         media = [tator_client.get_media_by_id(int(media_id)) for media_id in media_ids]
     else:
         media = tator_client.get_medias_for_sections(project_id, [int(section_id) for section_id in section_ids])
-    return media, deployment_names, expedition_name
+    return media, deployment_names, expedition_name, is_transect
 
 
 @sub_qaqc_bp.get('/checklist')
@@ -40,7 +43,7 @@ def sub_qaqc_checklist():
         return redirect('/')
     media_ids = request.args.getlist('media_id')
     tator_client = TatorRestClient(current_app.config.get('TATOR_URL'), session['tator_token'])
-    media_list, deployment_names, expedition_name = _get_deployment_info(
+    media_list, deployment_names, expedition_name, is_transect = _get_deployment_info(
         tator_client=tator_client,
         project_id=project_id,
         section_ids=section_ids,
@@ -79,9 +82,10 @@ def sub_qaqc_checklist():
         else:
             print('ERROR: Unable to get QAQC checklist from external review server')
             checklist = {}
+    title_suffix = f' ({"transect" if is_transect else "exploratory"})'
     data = {
-        'title': expedition_name,
-        'tab_title': deployment_list[0] if len(deployment_list) == 1 else expedition_name,
+        'title': expedition_name + title_suffix,
+        'tab_title': (deployment_list[0] if len(deployment_list) == 1 else expedition_name) + title_suffix,
         'deployment_list': deployment_list,
         'localization_count': len(localizations),
         'individual_count': individual_count,
@@ -119,7 +123,7 @@ def sub_qaqc(check):
     if err:
         return err
     tator_client = TatorRestClient(current_app.config.get('TATOR_URL'), session['tator_token'])
-    media_list, deployment_names, expedition_name = _get_deployment_info(
+    media_list, deployment_names, expedition_name, is_transect = _get_deployment_info(
         tator_client=tator_client,
         project_id=project_id,
         section_ids=section_ids,
@@ -131,10 +135,11 @@ def sub_qaqc(check):
         comments, image_refs = get_comments_and_image_refs(deployment_names)
     media_names = [media['name'] for media in media_list] if media_ids else deployment_names
     tab_title = media_names[0] if len(media_names) == 1 else expedition_name
+    title_suffix = f' ({"transect" if is_transect else "exploratory"})'
     data = {
         'concepts': session.get('vars_concepts', []),
-        'title': check.replace('-', ' ').title(),
-        'tab_title': f'{tab_title} {check.replace("-", " ").title()}',
+        'title': check.replace('-', ' ').title() + title_suffix,
+        'tab_title': f'{tab_title} {check.replace("-", " ").title()}{title_suffix}',
         'media_names': media_names,
         'reviewers': session.get('reviewers', []),
         'comments': comments,

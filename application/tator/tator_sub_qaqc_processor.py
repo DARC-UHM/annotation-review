@@ -82,32 +82,41 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
             frame = record['frame']
             upon = record.get('upon')
             if upon and 'water' not in upon.lower():
-                is_upon_in_current_substrate = self._upon_matches_substrate(upon, substrates.get(media_id, []), frame)
+                is_upon_in_current_substrate = self._upon_matches_substrate(
+                    substrate_entries=substrates.get(media_id, []),
+                    localization=record,
+                )
                 is_upon_is_previous_animal = upon in seen_animals.get(media_id, set())
                 if is_upon_is_previous_animal:
                     print(f'Matched upon "{upon}" for record at frame {frame} to previously seen animal')
                 if not is_upon_in_current_substrate and not is_upon_is_previous_animal:
                     print(f'No match found for upon "{upon}" for record at frame {frame}')
                     record['problems'] = 'Upon'
-                    record['substrate'] = self._get_substrate_for_frame(substrates.get(media_id, []), frame)
+                    record['substrate'] = self._get_substrate_for_frame(
+                        substrate_entries=substrates.get(media_id, []),
+                        localization=record,
+                    )
                     actual_final_records.append(record)
             seen_animals.setdefault(media_id, set()).add(record['scientific_name'])
         self.final_records = actual_final_records
 
     @staticmethod
-    def _upon_matches_substrate(upon: str, substrate_entries: list[dict], frame: int) -> bool:
+    def _upon_matches_substrate(substrate_entries: list[dict], localization: dict) -> bool:
         """
         Returns True if upon is a substring of any substrate value in the current substrate state at the given frame.
         """
         invalid_values = {'--', '-', '', 'Not Set', 'None'}
-        current_substrate = TatorSubQaqcProcessor._get_substrate_for_frame(substrate_entries, frame)
+        current_substrate = TatorSubQaqcProcessor._get_substrate_for_frame(
+            substrate_entries=substrate_entries,
+            localization=localization,
+        )
         if current_substrate is None:
             return False
         for key, val in current_substrate.items():
             if key in ('frame', 'timestamp'):
                 continue
-            if val not in invalid_values and upon.lower() in val.lower():
-                print(f'Matched upon "{upon}" for record at frame {frame} to current {key} "{val}"')
+            if val not in invalid_values and localization["upon"].lower() in val.lower():
+                print(f'Matched upon "{localization["upon"]}" for record at frame {localization["frame"]} to current {key} "{val}"')
                 return True
         return False
 
@@ -228,8 +237,4 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
                 media_list=self.media_list,
             )
         }
-        for section in self.sections:
-            section.localizations = [
-                localization for localization in section.localizations if not TatorLocalizationType.is_box(localization['type'])
-            ]
         self.process_records(media_substrates=substrates, get_timestamp=True)
