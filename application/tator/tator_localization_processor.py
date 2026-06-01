@@ -179,10 +179,10 @@ class TatorLocalizationProcessor:
                             observation_timestamp = media_start_time + datetime.timedelta(seconds=localization['frame'] / fps)
                             localization_dict['timestamp'] = observation_timestamp.strftime(self.BOTTOM_TIME_FORMAT)
                         else:
-                            print(f'{TERM_YELLOW}No start time found for media {media["name"]}. Cannot calculate timestamps.{TERM_NORMAL}')
+                            print(f'{TERM_RED}No start time found for media {media["name"]}. Cannot calculate timestamps.{TERM_NORMAL}')
                     else:
                         if section.bottom_time is None:
-                            raise ValueError(f'No Arrival time found for section {section.deployment_name}. Cannot calculate timestamps.')
+                            print(f'{TERM_RED}No Arrival time found for section {section.deployment_name}. Cannot calculate timestamps.{TERM_NORMAL}')
                         media_id = localization['media']
                         if media_id in session['media_timestamps'].keys():
                             if media_id not in session['media_fps'].keys():
