@@ -22,7 +22,7 @@ Arguments:
 
 Examples:
     python populate_sub_ctd.py TUV_2025
-    python populate_sub_ctd.py TUV_2025 --days-offset 1 --dry-run
+    python populate_sub_ctd.py TUV_2025 --deployment-name TUV_2025_sub_01 --days-offset 1 --dry-run
 """
 
 import argparse
@@ -56,6 +56,7 @@ def populate_ctd(expedition_name: str, deployment_name: str|None, days_offset: i
     sys.stdout.flush()
 
     metadata_df = get_metadata_df(dropbox_client, expedition_sub_folder_path)[['filename', 'ps_site_id', 'creation_date', 'time_start_qinsy']]
+    metadata_df = metadata_df.dropna(subset=['creation_date', 'time_start_qinsy'])
     metadata_df['qinsy_timestamp'] = pd.to_datetime(metadata_df['creation_date'].astype(str) + ' ' + metadata_df['time_start_qinsy'].astype(str))
 
     deployment_names = [deployment_name] if deployment_name else metadata_df['ps_site_id'].unique()
@@ -84,6 +85,8 @@ def populate_ctd(expedition_name: str, deployment_name: str|None, days_offset: i
             localizations = get_localizations(media['id'])
 
             for localization in localizations:
+                if localization['type'] not in [794, 795]:  # only patch sub-box and sub-dot localizations
+                    continue
                 localization_timestamp = start_time + datetime.timedelta(
                     days=days_offset,
                     seconds=localization['frame'] / media['fps'],
@@ -91,7 +94,8 @@ def populate_ctd(expedition_name: str, deployment_name: str|None, days_offset: i
                 localization_timestamp = pd.Timestamp(localization_timestamp).round('s').to_pydatetime()
                 localization_timestamp = localization_timestamp.replace(tzinfo=None)
                 if localization_timestamp not in qinsy_df.index:
-                    print(f'{TERM_RED}No Qinsy data for timestamp {localization_timestamp} (localization {localization["id"]}), exiting{TERM_NORMAL}')
+                    print(f'\n{TERM_RED}No Qinsy data for timestamp {localization_timestamp} (localization {localization["id"]}), exiting{TERM_NORMAL}')
+                    print(f'Qinsy data timestamps range from {qinsy_df.index.min()} to {qinsy_df.index.max()}')
                     exit(1)
                 matched_row = qinsy_df.loc[localization_timestamp]
                 lat = parse_coord(matched_row['Steered Node Latitude'])
@@ -158,10 +162,10 @@ def get_section_media(expedition_name: str) -> list[dict]:
     media_res = requests.get(
         url=f'{TATOR_URL}/rest/Medias/26?multi_section={",".join(section_ids)}',
         headers=headers,
-    )
+    ).json()
 
     if section_res.status_code != 200:
-        print('Error connecting to Tator', media_res.json())
+        print('Error connecting to Tator', media_res)
         exit(1)
 
     return [
@@ -170,7 +174,7 @@ def get_section_media(expedition_name: str) -> list[dict]:
             'id': media['id'],
             'start_time': media['attributes']['Start Time'],
             'fps': media['fps'],
-        } for media in media_res.json()
+        } for media in media_res if 'Start Time' in media['attributes'].keys()
     ]
 
 
@@ -267,7 +271,7 @@ if __name__ == '__main__':
     TATOR_TOKEN = os.getenv('TATOR_TOKEN')
 
     parser = argparse.ArgumentParser(description='Syncs CTD data from Dropbox to Tator')
-    parser.add_argument('expedition_name', type=str, help='Name of the expedition (e.g. DOEX0112_Tuvalu)')
+    parser.add_argument('expedition_name', type=str, help='Name of the expedition (e.g. TUV_2025)')
     parser.add_argument('--deployment-name', type=str, help='Name of the deployment (e.g. TUV_2025_sub_03)')
     parser.add_argument('--days-offset', type=int, default=0, help='Number of days to offset the localization timestamps (default: 0)')
     parser.add_argument('--dry-run', action='store_true', help='Do not update Tator, just print the changes (for development)')
