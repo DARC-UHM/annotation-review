@@ -308,10 +308,6 @@ class TatorDropcamQaqcProcessor(TatorBaseQaqcProcessor):
 
     def get_summary(self):
         self.fetch_start_times()
-        for section in self.sections:
-            section.localizations = [
-                localization for localization in section.localizations if not TatorLocalizationType.is_box(localization['type'])
-            ]
         self.process_records(get_timestamp=True, get_dropcam_fieldbook_data=True, get_dropcam_substrates=True)
 
     def fetch_start_times(self):
