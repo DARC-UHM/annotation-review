@@ -246,6 +246,7 @@ $(document).ready(() => {
         $('#externalModalSubmitButton').prop('disabled', true);
         addReviewer(null);
         $('#externalObservationUuid').val(currentAnnotation.observation_uuid);
+        $('#externalPhylum').val(currentAnnotation.phylum);
         $('#externalSequence').val(currentAnnotation.video_sequence_name);
         $('#externalSectionId').val(currentAnnotation.section_id);
         $('#externalTatorOverlay').val(JSON.stringify(currentAnnotation.all_localizations));

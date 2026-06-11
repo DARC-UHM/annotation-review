@@ -154,6 +154,7 @@ def add_external_review():
         'all_localizations': request.values.get('all_localizations'),
         'section_id': request.values.get('section_id'),
         'sequence': request.values.get('sequence'),
+        'phylum': request.values.get('phylum'),
         'timestamp': request.values.get('timestamp'),
         'reviewers': request.values.get('reviewers'),
         'image_url': request.values.get('image_url'),
