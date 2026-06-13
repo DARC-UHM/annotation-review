@@ -171,7 +171,7 @@ function updateHash() {
         if (sortKey.includes('-desc')) {
             const tempSortKey = sortKey.split('-')[0];
             let filtered = annotations.filter((anno) => anno[tempSortKey]);
-            if (['count', 'depth_m'].includes(tempSortKey)) {
+            if (['count', 'depth_m', 'media_id'].includes(tempSortKey)) {
                 filtered.sort((a, b) => b[tempSortKey] > a[tempSortKey]);
             } else {
                 filtered.sort((a, b) => b[tempSortKey]?.localeCompare(a[tempSortKey]));
@@ -179,7 +179,7 @@ function updateHash() {
             sortedAnnotations = filtered.concat(annotations.filter((anno) => !anno[tempSortKey]));
         } else {
             let filtered = annotations.filter((anno) => anno[sortKey]);
-            if (['count', 'depth_m'].includes(sortKey)) {
+            if (['count', 'depth_m', 'media_id'].includes(sortKey)) {
                 filtered.sort((a, b) => b[sortKey] < a[sortKey]);
             } else {
                 filtered.sort((a, b) => a[sortKey]?.localeCompare(b[sortKey]));
@@ -207,7 +207,18 @@ function updateHash() {
                         ${sortKey=== 'scientific_name' ? caretUpFill : sortKey=== 'scientific_name-desc' ? caretDownFill : ''}
                     </div>
                 </th>
-                <th scope="col" style="cursor: default;">deployment</th>
+                <th scope="col" onclick="setSort('video_sequence_name')" class="table-header-hover">
+                    <div class="d-flex">
+                        deployment
+                        ${sortKey=== 'video_sequence_name' ? caretUpFill : sortKey=== 'video_sequence_name-desc' ? caretDownFill : ''}
+                    </div>
+                </th>
+                <th scope="col" onclick="setSort('media_id')" class="table-header-hover">
+                    <div class="d-flex">
+                        mediaName
+                        ${sortKey=== 'media_id' ? caretUpFill : sortKey=== 'media_id-desc' ? caretDownFill : ''}
+                    </div>
+                </th>
                 <th scope="col" onclick="setSort('rank')" class="table-header-hover">
                     <div class="d-flex">
                         taxonRank
@@ -419,6 +430,7 @@ function updateHash() {
                         </a>
                     </td>
                     <td style="z-index: 0;">${annotation.video_sequence_name}</td>
+                    <td>${mediaIdNames[annotation.media_id]}</td>
                     <td>${annotation.rank}</td>
                     <td>${annotation.aphia_id || '-'}</td>
                     <td>${annotation.phylum || '-'}</td>
@@ -468,6 +480,7 @@ function downloadSummaryTsv() {
     const headers = [
         'scientificName',
         'deployment',
+        'mediaName',
         'taxonRank',
         'aphiaId',
         'phylum',
@@ -510,6 +523,7 @@ function downloadSummaryTsv() {
     const rows = annotations.map((annotation) => [
         annotation.scientific_name,
         annotation.video_sequence_name,
+        mediaIdNames[annotation.media_id],
         annotation.rank,
         annotation.aphia_id,
         annotation.phylum,

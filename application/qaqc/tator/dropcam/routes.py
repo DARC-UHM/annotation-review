@@ -19,17 +19,18 @@ from application.tator.tator_rest_client import TatorRestClient
 from application.qaqc.tator.util import init_tator_api, get_comments_and_image_refs
 
 
-# TODO this is dumb. Cache this or at least call on different threads
-def _get_deployment_info(tator_api, section_ids):
+# TODO cache this or at least call on different threads
+def _get_deployment_info(tator_client: TatorRestClient, project_id: int, section_ids: list[str]):
     deployment_names = []
     expedition_name = None
     for section_id in section_ids:
         print(f'Getting deployment info for section {section_id}')
-        section = tator_api.get_section(id=int(section_id))
-        deployment_names.append(section.name)
+        section = tator_client.get_section_by_id(int(section_id))
+        deployment_names.append(section['name'])
         if expedition_name is None:
-            expedition_name = section.path.split('.')[0]
-    return deployment_names, expedition_name
+            expedition_name = section['path'].split('.')[0]
+    media = tator_client.get_medias_for_sections(project_id, [int(section_id) for section_id in section_ids])
+    return media, deployment_names, expedition_name
 
 
 # view QA/QC checklist for a specified project & section
@@ -40,11 +41,12 @@ def dropcam_qaqc_checklist():
     if not project_id or not section_ids:
         flash('Please select a project and section', 'info')
         return redirect('/')
-    tator_api, err = init_tator_api()
-    if err:
-        return err
-    deployment_names, expedition_name = _get_deployment_info(tator_api, section_ids)
     tator_client = TatorRestClient(current_app.config.get('TATOR_URL'), session['tator_token'])
+    _, deployment_names, expedition_name = _get_deployment_info(
+        tator_client=tator_client,
+        project_id=project_id,
+        section_ids=section_ids,
+    )
     localizations = []
     individual_count = 0
     with requests.get(
@@ -109,8 +111,12 @@ def dropcam_qaqc(check):
     tator_api, err = init_tator_api()
     if err:
         return err
-    deployment_names, expedition_name = _get_deployment_info(tator_api, section_ids)
     tator_client = TatorRestClient(current_app.config.get('TATOR_URL'), session['tator_token'])
+    media_list, deployment_names, expedition_name = _get_deployment_info(
+        tator_client=tator_client,
+        project_id=project_id,
+        section_ids=section_ids,
+    )
     comments = None
     image_refs = None
     if check not in ['unique-taxa', 'max-n', 'tofa', 'summary', 'image-guide']:
@@ -187,6 +193,7 @@ def dropcam_qaqc(check):
             qaqc_annos.get_summary()
             data['page_title'] = 'Summary'
             data['annotations'] = qaqc_annos.final_records
+            data['media_id_names'] = {media['id']: media['name'] for media in media_list}
             return render_template('qaqc/tator/qaqc-tables.html', data=data)
         case 'max-n':
             qaqc_annos.get_max_n()

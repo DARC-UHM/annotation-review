@@ -16,6 +16,7 @@ from application.tator.tator_type import TatorLocalizationType
 from application.qaqc.tator.util import init_tator_api, get_comments_and_image_refs
 
 
+# TODO cache this or at least call on different threads
 def _get_deployment_info(tator_client: TatorRestClient, project_id: int, section_ids: list[str], media_ids: list[str] = None):
     deployment_names = []
     expedition_name = None
