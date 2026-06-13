@@ -368,6 +368,8 @@ function updateHash() {
                         ${sortKey=== 'deployment_notes' ? caretUpFill : sortKey=== 'deployment_notes-desc' ? caretDownFill : ''}
                     </div>
                 </th>
+                <th scope="col" style="cursor: default;">tatorId</th>
+                <th scope="col" style="cursor: default;">tatorUrl</th>
             </tr>
         `);
         for (const annotation of sortedAnnotations) {
@@ -378,12 +380,13 @@ function updateHash() {
                     break;
                 }
             }
+            const localizationUrl = tatorLocalizationUrl(annotation.media_id, annotation.frame, annotation.observation_uuid);
             $('#annotationTable').find('tbody').append(`
                 <tr class="text-start">
                     <td style="position: sticky; left: 0; background: ${dark ? '#212730' : 'var(--darc-bg)'}; z-index: 5;">
                         <a
                             class="editButton"
-                            href="https://cloud.tator.io/26/annotation/${annotation.media_id}?frame=${annotation.frame}&selected_entity=${annotation.observation_uuid}"
+                            href="${localizationUrl}"
                             target="_blank"
                         >
                             ${annotation.scientific_name}
@@ -427,12 +430,17 @@ function updateHash() {
                     <td>${annotation.bedforms || '-'}</td>
                     <td>${annotation.substrate_notes || '-'}</td>
                     <td>${annotation.deployment_notes || '-'}</td>
+                    <td>${annotation.observation_uuid || '-'}</td>
+                    <td>${localizationUrl}</td>
                 </tr>
             `);
             dark = !dark;
         }
     }
 }
+
+const tatorLocalizationUrl = (mediaId, frame, observationUuid) =>
+    `https://cloud.tator.io/26/annotation/${mediaId}?frame=${frame}&selected_entity=${observationUuid}`;
 
 function downloadSummaryTsv() {
     const headers = [
@@ -475,6 +483,8 @@ function downloadSummaryTsv() {
         'bedforms',
         'substrateNotes',
         'deploymentNotes',
+        'tatorId',
+        'tatorUrl',
     ];
     const rows = annotations.map((annotation) => [
         annotation.scientific_name,
@@ -516,6 +526,8 @@ function downloadSummaryTsv() {
         annotation.bedforms,
         annotation.substrate_notes,
         annotation.deployment_notes,
+        annotation.observation_uuid,
+        tatorLocalizationUrl(annotation.media_id, annotation.frame, annotation.observation_uuid),
     ]);
     downloadTsv(headers, rows, 'summary');
 }
