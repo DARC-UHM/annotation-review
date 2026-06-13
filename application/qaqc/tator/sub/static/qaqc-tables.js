@@ -529,7 +529,7 @@ function downloadSummaryTsv() {
         annotation.observation_uuid,
         tatorLocalizationUrl(annotation.media_id, annotation.frame, annotation.observation_uuid),
     ]);
-    downloadTsv(headers, rows, 'summary');
+    downloadTsv(headers, rows, title);
 }
 
 document.addEventListener('DOMContentLoaded', () => {

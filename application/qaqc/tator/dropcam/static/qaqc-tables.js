@@ -575,7 +575,7 @@ function downloadSummaryTsv() {
         annotation.observation_uuid,
         tatorLocalizationUrl(annotation.media_id, annotation.frame, annotation.observation_uuid),
     ]);
-    downloadTsv(headers, rows, 'summary');
+    downloadTsv(headers, rows, `${title}${title.includes('dscm') ? '' : ' (dropcam)'}`);
 }
 
 function downloadMaxNTsv() {
@@ -591,7 +591,7 @@ function downloadMaxNTsv() {
         });
         return row;
     });
-    downloadTsv(headers, rows, 'max-n');
+    downloadTsv(headers, rows, title);
 }
 
 function downloadTofaTsv() {
@@ -607,7 +607,7 @@ function downloadTofaTsv() {
         });
         return row;
     });
-    downloadTsv(headers, rows, 'tofa');
+    downloadTsv(headers, rows, title);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
