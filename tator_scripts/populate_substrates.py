@@ -10,6 +10,7 @@ Usage: python populate_substrates.py <substrates csv file>
 """
 
 import csv
+import json
 import dotenv
 import os
 import requests
@@ -40,6 +41,11 @@ with open(CSV_FILE, newline='') as file:
         if section_id is None:
             print(f'WARNING: Unable to find section ID for deployment {deployment_name} in Tator. Will skip this deployment.')
             continue
+        secondary_substrate = row['secondarySubstrate'].replace('Substrate: ', '')
+        if 'secondarySubstrate2' in row.keys():
+            secondary_substrate2 = row['secondarySubstrate2'].replace('Substrate: ', '')
+            if secondary_substrate2:
+                secondary_substrate += f' | {secondary_substrate2}'
         attributes = {
             'FOV': row['FoV'],
             'Relief': row['relief'].replace('Relief: ', ''),
@@ -47,9 +53,9 @@ with open(CSV_FILE, newline='') as file:
             'Substrate': row['Substrate (Hard/Soft)'],
             'Substrate Notes': row['Notes'],
             'Primary Substrate': row['primarySubstrate'].replace('Substrate: ', ''),
-            'Secondary Substrate': row['secondarySubstrate'].replace('Substrate: ', ''),
+            'Secondary Substrate': secondary_substrate,
         }
-        print(f'Attributes: {attributes}')
+        print(f'Attributes: {json.dumps(attributes, indent=4)}')
         res = requests.get(
             f'https://cloud.tator.io/rest/Medias/26?section={section_id}',
             headers={
