@@ -247,6 +247,11 @@ $(document).ready(() => {
         addReviewer(null);
         $('#externalObservationUuid').val(currentAnnotation.observation_uuid);
         $('#externalPhylum').val(currentAnnotation.phylum);
+        $('#externalClass').val(currentAnnotation.class);
+        $('#externalOrder').val(currentAnnotation.order);
+        $('#externalFamily').val(currentAnnotation.family);
+        $('#externalGenus').val(currentAnnotation.genus);
+        $('#externalSpecies').val(currentAnnotation.species);
         $('#externalSequence').val(currentAnnotation.video_sequence_name);
         $('#externalSectionId').val(currentAnnotation.section_id);
         $('#externalTatorOverlay').val(JSON.stringify(currentAnnotation.all_localizations));
