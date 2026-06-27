@@ -13,16 +13,6 @@ from application.util.phylogeny_cache import PhylogenyCache
 from application.tator.tator_rest_client import TatorRestClient
 
 
-class Section:
-    def __init__(self, section_id: str, api: tator.api):
-        section_data = api.get_section(int(section_id))
-        self.section_id = section_id
-        self.deployment_name = section_data.name
-        self.expedition_name = section_data.path.split('.')[0]
-        self.localizations = []
-        self.bottom_time = None
-
-
 class TatorLocalizationProcessor:
     """
     Fetches all localization information for a given project/section/deployment list from Tator. Processes
@@ -44,7 +34,6 @@ class TatorLocalizationProcessor:
         self.tator_url = tator_url
         self.darc_review_url = darc_review_url
         self.sections = [Section(section_id, api) for section_id in section_ids]
-        self.api = api
         self.tator_client = TatorRestClient(tator_url, session['tator_token'])
         self.final_records: list[dict]|dict = []  # final list formatted for review page
         self.phylogeny = PhylogenyCache()
@@ -62,11 +51,11 @@ class TatorLocalizationProcessor:
                     section = section_map.get(localization.get('master_section'), self.sections[0])
                     section.localizations.append(localization)
             for section in self.sections:
-                print(f'Fetched {len(section.localizations)} localizations for deployment {section.deployment_name}')
+                print(f'Fetched {len(section.localizations)} localizations for {section.deployment_name}')
         else:
             for section in self.sections:
                 section.localizations = self.tator_client.get_localizations(self.project_id, section_id=int(section.section_id))
-                print(f'Fetched {len(section.localizations)} localizations for deployment {section.deployment_name}')
+                print(f'Fetched {len(section.localizations)} localizations for {section.deployment_name}')
 
     def process_records(
         self,
@@ -90,11 +79,9 @@ class TatorLocalizationProcessor:
         :param media_substrates: A pre-fetched mapping of media IDs to their substrate information. For sub dives,
             substrates are States. We expect the caller to fetch them and pass them in here.
         """
-        print('Processing localizations...', end='')
-        sys.stdout.flush()
+        print('Processing localizations...')
         formatted_localizations = []
         expedition_fieldbook = {}  # {section_id: deployments[]}
-        media_id_map = {}  # {media_id: media}
         if 'media_fps' not in session:
             session['media_fps'] = {}
 
@@ -104,13 +91,21 @@ class TatorLocalizationProcessor:
         if media_substrates is None:
             media_substrates = {}
 
+        if get_timestamp or get_dropcam_substrates:
+            media_id_map = self._get_media_id_map()  # {media_id: media}
+        else:
+            media_id_map = {}
+
         for section in self.sections:
+            print(f'Processing localizations for {section.deployment_name}...', end='')
+            sys.stdout.flush()
             for localization in section.localizations:
                 if not TatorLocalizationType.is_box_or_dot(localization['type']):
                     continue  # we only care about boxes and dots
                 attributes = localization['attributes']
                 scientific_name = attributes.get('Scientific Name')
                 cached_phylogeny = self.phylogeny.data.get(scientific_name)
+                media_id = localization['media']
                 if (cached_phylogeny is None or 'aphia_id' not in cached_phylogeny.keys())\
                         and scientific_name not in no_match_records:
                     if not self.phylogeny.fetch_worms(scientific_name):
@@ -145,7 +140,7 @@ class TatorLocalizationProcessor:
                     'annotator': self._get_annotator_name(localization['created_by']),
                     'frame': localization['frame'],
                     'frame_url': f'/tator/frame/{localization["media"]}/{localization["frame"]}',
-                    'media_id': localization['media'],
+                    'media_id': media_id,
                     'problems': localization['problems'] if 'problems' in localization.keys() else None,
                     'do_temp_c': attributes.get('DO Temperature (celsius)'),
                     'do_concentration_salin_comp_mol_L': attributes.get('DO Concentration Salin Comp (mol per L)'),
@@ -170,9 +165,7 @@ class TatorLocalizationProcessor:
                             print(f'{TERM_RED}Unknown categorical abundance: {localization_dict["categorical_abundance"]}{TERM_NORMAL}')
                 if get_timestamp:
                     if TatorLocalizationType.is_sub(localization_dict['type']):
-                        if not media_id_map:
-                            media_id_map = self.get_media_id_map()
-                        media = media_id_map[localization['media']]
+                        media = media_id_map[media_id]
                         fps = media['fps'] or 30
                         if media['attributes'].get('Start Time'):
                             media_start_time = datetime.datetime.fromisoformat(media['attributes']['Start Time']).astimezone(datetime.timezone.utc)
@@ -183,22 +176,17 @@ class TatorLocalizationProcessor:
                     else:
                         if section.bottom_time is None:
                             print(f'{TERM_RED}No Arrival time found for section {section.deployment_name}. Cannot calculate timestamps.{TERM_NORMAL}')
-                        media_id = localization['media']
-                        if media_id in session['media_timestamps'].keys():
-                            if media_id not in session['media_fps'].keys():
-                                session['media_fps'][media_id] = self.api.get_media(media_id).fps
-                                session.modified = True
-                            media_fps = session['media_fps'][media_id] or 30
-                            camera_bottom_arrival = datetime.datetime.strptime(section.bottom_time, self.BOTTOM_TIME_FORMAT).replace(tzinfo=datetime.timezone.utc)
-                            video_start_timestamp = datetime.datetime.fromisoformat(session['media_timestamps'][media_id]).astimezone(datetime.timezone.utc)
-                            observation_timestamp = video_start_timestamp + datetime.timedelta(seconds=localization['frame'] / media_fps)
-                            time_diff = observation_timestamp - camera_bottom_arrival
-                            localization_dict['timestamp'] = observation_timestamp.strftime(self.BOTTOM_TIME_FORMAT)
-                            localization_dict['camera_seafloor_arrival'] = camera_bottom_arrival.strftime(self.BOTTOM_TIME_FORMAT)
-                            localization_dict['animal_arrival'] = str(datetime.timedelta(
-                                days=time_diff.days,
-                                seconds=time_diff.seconds
-                            )) if observation_timestamp > camera_bottom_arrival else '00:00:00'
+                        media_fps = media_id_map[media_id]['fps'] or 30
+                        camera_bottom_arrival = datetime.datetime.strptime(section.bottom_time, self.BOTTOM_TIME_FORMAT).replace(tzinfo=datetime.timezone.utc)
+                        video_start_timestamp = datetime.datetime.fromisoformat(session['media_timestamps'][media_id]).astimezone(datetime.timezone.utc)
+                        observation_timestamp = video_start_timestamp + datetime.timedelta(seconds=localization['frame'] / media_fps)
+                        time_diff = observation_timestamp - camera_bottom_arrival
+                        localization_dict['timestamp'] = observation_timestamp.strftime(self.BOTTOM_TIME_FORMAT)
+                        localization_dict['camera_seafloor_arrival'] = camera_bottom_arrival.strftime(self.BOTTOM_TIME_FORMAT)
+                        localization_dict['animal_arrival'] = str(datetime.timedelta(
+                            days=time_diff.days,
+                            seconds=time_diff.seconds
+                        )) if observation_timestamp > camera_bottom_arrival else '00:00:00'
                 if get_dropcam_fieldbook_data:
                     if not expedition_fieldbook.get(section.section_id):
                         fieldbook_res = requests.get(
@@ -221,13 +209,14 @@ class TatorLocalizationProcessor:
                         localization_dict['bait_type'] = deployment_ctd['bait_type']
                         localization_dict['depth_m'] = localization_dict['depth_m'] or deployment_ctd['depth_m']
                 if get_dropcam_substrates:
-                    media_id = localization['media']
-                    if not media_substrates.get(media_id):
-                        media_substrates[media_id] = self.api.get_media(media_id).attributes
-                    self._load_substrates(localization_dict, media_substrates[media_id])
+                    substrates = media_substrates.get(media_id)
+                    if substrates is None:
+                        substrates = media_id_map[media_id]["attributes"]
+                        media_substrates[media_id] = substrates
+                    self._load_substrates(localization_dict, substrates)
                 elif media_substrates:
                     substrates = self._get_substrate_for_frame(
-                        substrate_entries=media_substrates.get(localization_dict['media_id'], []),
+                        substrate_entries=media_substrates.get(media_id, []),
                         localization=localization_dict,
                     )
                     if substrates:
@@ -237,6 +226,7 @@ class TatorLocalizationProcessor:
                         # split to account for worms 'Phylum (Division)' case
                         localization_dict[key.split(' ')[0]] = self.phylogeny.data[scientific_name][key]
                 formatted_localizations.append(localization_dict)
+            print('processed!')
 
         if not formatted_localizations:
             print('no records to process!')
@@ -434,7 +424,7 @@ class TatorLocalizationProcessor:
             }
             self.final_records.append({key: val for key, val in record.items() if is_populated(val)})
         self.phylogeny.save()
-        print('processed!')
+        print('Done!')
 
     def _get_annotator_name(self, user_id: int) -> str:
         if 'tator_usernames' not in session.keys():
@@ -451,15 +441,18 @@ class TatorLocalizationProcessor:
             session.modified = True
         return session['tator_usernames'][user_id]
 
-    def get_media_id_map(self) -> dict:
+    def _get_media_id_map(self) -> dict:
+        print('Fetching media ID map...', end='')
+        sys.stdout.flush()
         if self.media_list:
             media_id_map = {int(media['id']): media for media in self.media_list}
         else:
             media_list = self.tator_client.get_medias_for_sections(
-                project_id=26,
+                project_id=self.project_id,
                 section_ids=[int(section.section_id) for section in self.sections],
             )
             media_id_map = {int(media['id']): media for media in media_list}
+        print('fetched!')
         return media_id_map
 
     @staticmethod
@@ -485,3 +478,13 @@ class TatorLocalizationProcessor:
             print(f'{TERM_YELLOW}No substrate state found for "{localization["scientific_name"]}" '
                   f'(media ID {localization["media_id"]}){TERM_NORMAL}')
         return current_substrate
+
+
+class Section:
+    def __init__(self, section_id: str, api: tator.api):
+        section_data = api.get_section(int(section_id))
+        self.section_id = section_id
+        self.deployment_name = section_data.name
+        self.expedition_name = section_data.path.split('.')[0]
+        self.localizations = []
+        self.bottom_time = None

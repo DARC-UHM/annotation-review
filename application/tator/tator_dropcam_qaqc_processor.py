@@ -314,7 +314,7 @@ class TatorDropcamQaqcProcessor(TatorBaseQaqcProcessor):
         if 'media_timestamps' not in session.keys():
             session['media_timestamps'] = {}
         for section in self.sections:
-            print(f'Fetching media start times for deployment "{section.deployment_name}"...', end='')
+            print(f'Fetching media start times for {section.deployment_name}...', end='')
             sys.stdout.flush()
             for media in self.tator_client.get_medias_for_sections(project_id=self.project_id, section_ids=[int(section.section_id)]):
                 # get media start times
