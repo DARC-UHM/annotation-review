@@ -370,6 +370,7 @@ function updateHash() {
                 </th>
                 <th scope="col" style="cursor: default;">tatorId</th>
                 <th scope="col" style="cursor: default;">tatorUrl</th>
+                <th scope="col" style="cursor: default;">publicImageUrl</th>
             </tr>
         `);
         for (const annotation of sortedAnnotations) {
@@ -381,6 +382,7 @@ function updateHash() {
                 }
             }
             const localizationUrl = tatorLocalizationUrl(annotation.media_id, annotation.frame, annotation.observation_uuid);
+            const imageUrl = tatorFrameUrl(annotation.media_id, annotation.frame);
             $('#annotationTable').find('tbody').append(`
                 <tr class="text-start">
                     <td style="position: sticky; left: 0; background: ${dark ? '#212730' : 'var(--darc-bg)'}; z-index: 5;">
@@ -432,6 +434,7 @@ function updateHash() {
                     <td>${annotation.deployment_notes || '-'}</td>
                     <td>${annotation.observation_uuid || '-'}</td>
                     <td>${localizationUrl}</td>
+                    <td>${imageUrl}</td>
                 </tr>
             `);
             dark = !dark;
@@ -441,6 +444,9 @@ function updateHash() {
 
 const tatorLocalizationUrl = (mediaId, frame, observationUuid) =>
     `https://cloud.tator.io/26/annotation/${mediaId}?frame=${frame}&selected_entity=${observationUuid}`;
+
+const tatorFrameUrl = (mediaId, frame) =>
+    `https://darc.soest.hawaii.edu/tator-frame/${mediaId}/${frame}`;
 
 function downloadSummaryTsv() {
     const headers = [
@@ -485,6 +491,7 @@ function downloadSummaryTsv() {
         'deploymentNotes',
         'tatorId',
         'tatorUrl',
+        'publicImageUrl',
     ];
     const rows = annotations.map((annotation) => [
         annotation.scientific_name,
@@ -528,6 +535,7 @@ function downloadSummaryTsv() {
         annotation.deployment_notes,
         annotation.observation_uuid,
         tatorLocalizationUrl(annotation.media_id, annotation.frame, annotation.observation_uuid),
+        tatorFrameUrl(annotation.media_id, annotation.frame),
     ]);
     downloadTsv(headers, rows, title);
 }
