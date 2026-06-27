@@ -27,7 +27,7 @@ def vars_qaqc_checklist():
         'group_localizations': 0,  # number of annotations marked 'group: localization'
     }
     with requests.get(
-            url=f'{current_app.config.get("DARC_REVIEW_URL")}/vars-qaqc-checklist/{"&".join(request.args.getlist("sequence"))}',
+            url=f'{current_app.config.get("DARC_REVIEW_URL")}/qaqc-checklist/vars/{"&".join(request.args.getlist("sequence"))}',
             headers=current_app.config.get('DARC_REVIEW_HEADERS'),
     ) as checklist_res:
         if checklist_res.status_code == 200:
@@ -123,7 +123,7 @@ def patch_vars_qaqc_checklist():
         return {}, 400
     req_json.pop('sequences')
     res = requests.patch(
-        url=f'{current_app.config.get("DARC_REVIEW_URL")}/vars-qaqc-checklist/{sequences}',
+        url=f'{current_app.config.get("DARC_REVIEW_URL")}/qaqc-checklist/vars/{sequences}',
         headers=current_app.config.get('DARC_REVIEW_HEADERS'),
         json=req_json,
     )

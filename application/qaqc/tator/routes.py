@@ -46,7 +46,7 @@ def tator_qaqc_checklist():
     for deployment in deployments:
         media_ids += session[f'{project_id}_{section_id}'][deployment]
     with requests.get(
-            url=f'{current_app.config.get("DARC_REVIEW_URL")}/tator-qaqc-checklist/{"&".join(request.args.getlist("deployment"))}',
+            url=f'{current_app.config.get("DARC_REVIEW_URL")}/qaqc-checklist/tator-dropcam/{"&".join(request.args.getlist("deployment"))}',
             headers=current_app.config.get('DARC_REVIEW_HEADERS'),
     ) as checklist_res:
         if checklist_res.status_code == 200:
@@ -97,7 +97,7 @@ def patch_tator_qaqc_checklist():
         return {}, 400
     req_json.pop('deployments')
     res = requests.patch(
-        url=f'{current_app.config.get("DARC_REVIEW_URL")}/tator-qaqc-checklist/{deployments}',
+        url=f'{current_app.config.get("DARC_REVIEW_URL")}/qaqc-checklist/tator-dropcam/{deployments}',
         headers=current_app.config.get('DARC_REVIEW_HEADERS'),
         json=req_json,
     )
