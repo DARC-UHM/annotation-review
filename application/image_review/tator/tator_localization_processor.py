@@ -223,6 +223,8 @@ class TatorLocalizationProcessor:
                     localization_dict['lat'] = deployment_ctd['lat']
                     localization_dict['long'] = deployment_ctd['long']
                     localization_dict['bait_type'] = deployment_ctd['bait_type']
+                    if localization_dict['depth_m'] is None:
+                        localization_dict['depth_m'] = deployment_ctd['depth_m']
             if get_substrates and deployment_substrates:
                 localization_dict['primary_substrate'] = deployment_substrates[self.deployment_media_dict[localization['media']]].get('Primary Substrate')
                 localization_dict['secondary_substrate'] = deployment_substrates[self.deployment_media_dict[localization['media']]].get('Secondary Substrate')
