@@ -2,6 +2,11 @@
 {% block content %}
 {% include 'components/flash-container.html' %}
 {% include 'components/loading-fish.html' %}
+{% if is_update_available %}
+<div class="alert alert-warning text-center mb-0 small" role="alert">
+    <strong>Update available!</strong> Please restart the application to update to the latest version.
+</div>
+{% endif %}
 <div class="container mt-3 small d-flex justify-content-end">
     <div>
         <a href="/image-reference" class="aquaLink indexDropdownButton">

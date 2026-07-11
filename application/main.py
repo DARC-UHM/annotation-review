@@ -1,3 +1,5 @@
+import datetime
+import subprocess
 import traceback
 import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -32,6 +34,18 @@ def index():
             print(f'{TERM_RED}ERROR{TERM_NORMAL}: {msg}')
             return None, msg
 
+    def get_origin_commit_hash():
+        try:
+            subprocess.run(
+                ['git', 'fetch', 'origin'],
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+            return subprocess.check_output(['git', 'rev-parse', '@{u}']).decode().strip()
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            return None
+
     http_requests = [
         dict(name='reviewers', url=f'{current_app.config["DARC_REVIEW_URL"]}/reviewer/all', headers=current_app.config['DARC_REVIEW_HEADERS']),
         dict(name='stats', url=f'{current_app.config["DARC_REVIEW_URL"]}/stats', headers=current_app.config['DARC_REVIEW_HEADERS']),
@@ -59,6 +73,16 @@ def index():
     session['reviewers'] = results.get('reviewers') or []
     session['vars_video_sequences'] = results.get('sequences') or []
     session['vars_concepts'] = results.get('concepts') or []
+    is_update_available = current_app.config.get('UPDATE_AVAILABLE')
+
+    if is_update_available is False:
+        last_check = current_app.config.get('LAST_CHECKED_ORIGIN_AT')
+        if (last_check is not None
+                and datetime.datetime.now() - datetime.datetime.fromisoformat(last_check) > datetime.timedelta(hours=1)):
+            print(f'Checking for updates...')
+            is_update_available = get_origin_commit_hash() != current_app.config.get('LOCAL_COMMIT_HASH')
+            current_app.config['UPDATE_AVAILABLE'] = is_update_available
+            current_app.config['LAST_CHECKED_ORIGIN_AT'] = datetime.datetime.now().isoformat()
 
     return render_template(
         'index.html',
@@ -67,6 +91,7 @@ def index():
         read_comment_count=stats.get('read_comments', 0),
         total_comment_count=stats.get('total_comments', 0),
         active_reviewers=stats.get('active_reviewers', []),
+        is_update_available=is_update_available,
     )
 
 

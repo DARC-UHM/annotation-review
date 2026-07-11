@@ -5,6 +5,7 @@ HURLSTOR_URL = 'https://hurlstor.soest.hawaii.edu'
 
 class Config:
     ENV = os.environ.get('_FLASK_ENV', 'production')
+    UPDATE_AVAILABLE = False
     SESSION_TYPE = 'filesystem'
     SESSION_FILE_DIR = 'flask_session'
     SESSION_PERMANENT = False
