@@ -79,13 +79,17 @@ class TatorBaseQaqcProcessor(TatorLocalizationProcessor, ABC):
 
     def check_missing_qualifier(self):
         """
-        Finds records that are classified higher than species but don't have a qualifier set (usually '--'). This check
-        need to call process_records first to populate phylogeny.
+        Finds records that are classified higher than species but *don't* have a qualifier set (usually '--'). Also
+        finds records that are classified to species but *do* have a qualifier set. This check needs to call
+        process_records first to populate phylogeny.
         """
         self.process_records()
         actual_final_records = []
         for record in self.final_records:
             if not record.get('species') and record.get('qualifier', '--') == '--':
+                record['problems'] = 'Scientific Name, Qualifier'
+                actual_final_records.append(record)
+            elif record.get('species') and record.get('qualifier', '--') != '--':
                 record['problems'] = 'Scientific Name, Qualifier'
                 actual_final_records.append(record)
         self.final_records = actual_final_records

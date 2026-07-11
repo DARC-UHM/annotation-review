@@ -155,6 +155,7 @@ def dropcam_qaqc(check):
         case 'missing-qualifier':
             qaqc_annos.check_missing_qualifier()
             data['page_title'] = 'Records classified higher than species missing qualifier'
+            data['subtitle'] = '(also flags records classified to species that <i>have</i> a qualifier)'
         case 'stet-missing-reason':
             qaqc_annos.check_stet_reason()
             data['page_title'] = 'Records with a qualifier of \'stet\' missing \'Reason\''
