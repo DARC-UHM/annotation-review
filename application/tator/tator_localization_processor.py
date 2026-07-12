@@ -46,7 +46,13 @@ class TatorLocalizationProcessor:
             for i in range(0, len(media_ids), 50):
                 batch = media_ids[i:i + 50]
                 for localization in self.tator_client.get_localizations(self.project_id, media_ids=batch):
-                    section = section_map.get(localization.get('master_section'), self.sections[0])
+                    master_section = localization.get('master_section')
+                    section = section_map.get(master_section)
+                    if section is None:
+                        raise ValueError(
+                            f'Localization {localization.get("id")} has master_section {master_section}, which is '
+                            f'not among the requested sections {list(section_map.keys())}'
+                        )
                     section.localizations.append(localization)
             for section in self.sections:
                 print(f'Fetched {len(section.localizations)} localizations for {section.deployment_name}')
