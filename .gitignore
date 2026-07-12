@@ -8,3 +8,4 @@ scratch/
 *.pyc
 .DS_Store
 .env
+.coverage

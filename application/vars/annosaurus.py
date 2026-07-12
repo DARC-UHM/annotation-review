@@ -194,7 +194,7 @@ class Annosaurus(JWTAuthentication):
                 association=comment_association,
                 jwt=jwt
             )
-            if created['status'] != 200:
+            if created['status'] != 200:  # the VARS API returns a 200 on creation instead of a 201
                 print('Error creating comment')
             else:
                 print('Created comment')

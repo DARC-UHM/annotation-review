@@ -95,7 +95,7 @@ def mocked_requests_post(*args, **kwargs):
     return MockResponse(
         url=kwargs.get('url'),
         method='POST',
-        status_code=201,
+        status_code=200,  # the real Annosaurus /associations endpoint returns 200, not 201, on success
         headers=kwargs.get('headers'),
         data=kwargs.get('data'),
     )
@@ -116,6 +116,35 @@ def mocked_requests_delete(*args, **kwargs):
         url=kwargs.get('url'),
         method='DELETE',
         status_code=204,
+        headers=kwargs.get('headers'),
+    )
+
+
+def mocked_requests_post_fail(*args, **kwargs):
+    return MockResponse(
+        url=kwargs.get('url'),
+        method='POST',
+        status_code=500,
+        headers=kwargs.get('headers'),
+        data=kwargs.get('data'),
+    )
+
+
+def mocked_requests_put_fail(*args, **kwargs):
+    return MockResponse(
+        url=kwargs.get('url'),
+        method='PUT',
+        status_code=500,
+        headers=kwargs.get('headers'),
+        data=kwargs.get('data'),
+    )
+
+
+def mocked_requests_delete_fail(*args, **kwargs):
+    return MockResponse(
+        url=kwargs.get('url'),
+        method='DELETE',
+        status_code=500,
         headers=kwargs.get('headers'),
     )
 
@@ -159,7 +188,7 @@ class TestAnnosaurus:
             association=new_association,
             jwt='jwt',
         )
-        assert created['status'] == 201
+        assert created['status'] == 200
         assert created['json'] == {
             'link_name': 'test',
             'link_value': 'nil',
@@ -234,7 +263,7 @@ class TestAnnosaurus:
             reviewers=['Test Reviewer'],
             jwt='jwt',
         )
-        assert created['status'] == 201
+        assert created['status'] == 200
         assert created['json'] == {
             'link_name': 'comment',
             'link_value': 'Added for review: Test Reviewer',
@@ -251,7 +280,7 @@ class TestAnnosaurus:
             reviewers=['Test Reviewer', 'Ronald McDonald'],
             jwt='jwt',
         )
-        assert created['status'] == 201
+        assert created['status'] == 200
         assert created['json'] == {
             'link_name': 'comment',
             'link_value': 'Added for review: Test Reviewer, Ronald McDonald',
@@ -330,3 +359,36 @@ class TestAnnosaurus:
             'link_value': 'This is a weird lookin sponge thing!',
             'uuid': '297d23d7-5979-46e7-6f66-8f1fcf8ed41e'
         }
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.post', side_effect=mocked_requests_post_fail)
+    def test_update_annotation_comment_create_fails(self, _, __):
+        anno = Annosaurus('http://localhost:test')
+        created = anno.update_annotation_comment(
+            observation_uuid='0059f860-4799-485f-c06c-5830e5ddd31e',
+            reviewers=['Test Reviewer'],
+            jwt='jwt',
+        )
+        assert created['status'] == 500
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.put', side_effect=mocked_requests_put_fail)
+    def test_update_annotation_comment_update_fails(self, _, __):
+        anno = Annosaurus('http://localhost:test')
+        updated = anno.update_annotation_comment(
+            observation_uuid='0d9133d7-1d49-47d5-4b6d-6e4fb25dd41e',
+            reviewers=['J. Dolan'],
+            jwt='jwt',
+        )
+        assert updated['status'] == 500
+
+    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.delete', side_effect=mocked_requests_delete_fail)
+    def test_update_annotation_comment_delete_fails(self, _, __):
+        anno = Annosaurus('http://localhost:test')
+        deleted = anno.update_annotation_comment(
+            observation_uuid='080118db-baa2-468a-d06a-144249c1d41e',
+            reviewers=[],
+            jwt='jwt',
+        )
+        assert deleted['status'] == 500
