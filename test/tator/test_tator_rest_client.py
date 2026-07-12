@@ -125,7 +125,7 @@ class TestTatorRestClient:
         result = client.get_substrates(project_id=1, media_list=media_list)
         media_10 = next(r for r in result if r['media_id'] == 10)
         media_20 = next(r for r in result if r['media_id'] == 20)
-        # substrates for media 10 should be sorted by timestamp (man @ 1s before sed @ 3s)
+        # substrates for media 10 should be sorted by timestamp
         assert media_10['substrates'] == [
             {'Relief': 'Flat', 'timestamp': '00:01', 'frame': 30},
             {'Relief': 'Low / moderate: Low (<1m)', 'timestamp': '00:03', 'frame': 90},
