@@ -1,5 +1,7 @@
 from unittest.mock import patch
 
+import pytest
+
 from application.util.functions import parse_datetime
 from application.vars.vars_qaqc_processor import VarsQaqcProcessor
 from test.data.vars_responses import ex_23060001, ex_23060002
@@ -10,6 +12,7 @@ def mocked_requests_get(*args, **kwargs):
     return MockResponse(url=kwargs.get('url'))
 
 
+@pytest.mark.usefixtures('mock_phylogeny_cache')
 class TestVarsQaqcProcessor:
     def test_init(self):
         qaqc_processor = VarsQaqcProcessor(

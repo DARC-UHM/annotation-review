@@ -1,5 +1,7 @@
 from unittest.mock import patch
 
+import pytest
+
 from application.vars.vars_annotation_processor import VarsAnnotationProcessor
 from application.util.functions import parse_datetime
 from test.data.vars_responses import ex_23060001
@@ -10,6 +12,7 @@ def mocked_requests_get(*args, **kwargs):
     return MockResponse(url=kwargs.get('url'))
 
 
+@pytest.mark.usefixtures('mock_phylogeny_cache')
 class TestVarsAnnotationProcessor:
     def test_init(self):
         annotation_processor = VarsAnnotationProcessor(

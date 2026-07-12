@@ -17,7 +17,7 @@ def client(app):
     return app.test_client()
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def mock_phylogeny_cache():
     """
     PhylogenyCache reads/writes cache/phylogeny.json on the real filesystem. Without this, tests would read

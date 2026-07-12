@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from application.tator.tator_localization_processor import TatorLocalizationProcessor
 from application.tator.tator_rest_client import TatorRestClient
 
@@ -11,6 +13,7 @@ def mock_get_section_by_id(self, section_id):
     return {'id': section_id, 'name': f'Section {section_id}', 'path': f'Expedition1.Section{section_id}'}
 
 
+@pytest.mark.usefixtures('mock_phylogeny_cache')
 class TestTatorLocalizationProcessor:
     @patch.object(TatorRestClient, 'get_section_by_id', mock_get_section_by_id)
     def test_init(self):
