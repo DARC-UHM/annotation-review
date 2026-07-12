@@ -46,7 +46,7 @@ jobs:
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
       - name: Test with pytest
         run: |
-          pytest --cov=./ --cov-report xml:reports/coverage/coverage.xml --cov-report html:reports/coverage --junitxml=reports/junit/junit.xml --html=reports/junit/report.html test
+          pytest --cov=application --cov-report xml:reports/coverage/coverage.xml --cov-report html:reports/coverage --junitxml=reports/junit/junit.xml --html=reports/junit/report.html test
       - name: Gen Badges
         if: always()
         run: |
