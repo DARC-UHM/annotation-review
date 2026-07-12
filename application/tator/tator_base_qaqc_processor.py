@@ -2,8 +2,6 @@ from abc import abstractmethod, ABC
 
 import sys
 
-import tator
-
 from application.tator.image_guide_presentation import ImageGuidePresentation
 from application.tator.tator_localization_processor import TatorLocalizationProcessor
 
@@ -17,7 +15,6 @@ class TatorBaseQaqcProcessor(TatorLocalizationProcessor, ABC):
         self,
         project_id: int,
         section_ids: list[str],
-        api: tator.api,
         tator_url: str,
         darc_review_url: str = None,
         media_list: list[dict] = None,
@@ -25,7 +22,6 @@ class TatorBaseQaqcProcessor(TatorLocalizationProcessor, ABC):
         super().__init__(
             project_id=project_id,
             section_ids=section_ids,
-            api=api,
             darc_review_url=darc_review_url,
             tator_url=tator_url,
             media_list=media_list,

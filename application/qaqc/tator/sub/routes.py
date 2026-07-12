@@ -161,7 +161,6 @@ def sub_qaqc(check):
         project_id=project_id,
         section_ids=section_ids,
         media_list=media_list if media_ids else None,
-        api=tator_api,
         darc_review_url=current_app.config.get('DARC_REVIEW_URL'),
         tator_url=current_app.config.get('TATOR_URL'),
     )

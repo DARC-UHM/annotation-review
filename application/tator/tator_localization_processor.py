@@ -4,7 +4,6 @@ import os
 import pandas as pd
 import requests
 import sys
-import tator
 
 from flask import session
 from application.util.constants import TERM_RED, TERM_NORMAL, TERM_YELLOW
@@ -25,7 +24,6 @@ class TatorLocalizationProcessor:
         self,
         project_id: int,
         section_ids: list[str],
-        api: tator.api,
         tator_url: str,
         darc_review_url: str = None,
         media_list: list[dict] = None,
@@ -33,8 +31,8 @@ class TatorLocalizationProcessor:
         self.project_id = project_id
         self.tator_url = tator_url
         self.darc_review_url = darc_review_url
-        self.sections = [Section(section_id, api) for section_id in section_ids]
         self.tator_client = TatorRestClient(tator_url, session['tator_token'])
+        self.sections = [Section(section_id, self.tator_client) for section_id in section_ids]
         self.final_records: list[dict]|dict = []  # final list formatted for review page
         self.phylogeny = PhylogenyCache()
         self.media_list = media_list
@@ -481,10 +479,10 @@ class TatorLocalizationProcessor:
 
 
 class Section:
-    def __init__(self, section_id: str, api: tator.api):
-        section_data = api.get_section(int(section_id))
+    def __init__(self, section_id: str, tator_rest_client: TatorRestClient):
+        section_data = tator_rest_client.get_section_by_id(int(section_id))
         self.section_id = section_id
-        self.deployment_name = section_data.name
-        self.expedition_name = section_data.path.split('.')[0]
+        self.deployment_name = section_data['name']
+        self.expedition_name = section_data['path'].split('.')[0]
         self.localizations = []
         self.bottom_time = None

@@ -143,7 +143,6 @@ def dropcam_qaqc(check):
     qaqc_annos = TatorDropcamQaqcProcessor(
         project_id=project_id,
         section_ids=section_ids,
-        api=tator_api,
         darc_review_url=current_app.config.get('DARC_REVIEW_URL'),
         tator_url=current_app.config.get('TATOR_URL'),
     )

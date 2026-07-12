@@ -32,7 +32,6 @@ def tator_image_review():
         localization_processor = TatorLocalizationProcessor(
             project_id=project_id,
             section_ids=section_ids,
-            api=api,
             tator_url=current_app.config.get('TATOR_URL'),
             media_list=[{'id': int(mid)} for mid in media_ids] if media_ids else None,
         )
