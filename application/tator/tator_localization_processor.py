@@ -67,7 +67,7 @@ class TatorLocalizationProcessor:
         get_timestamp: bool = False,
         get_dropcam_fieldbook_data: bool = False,
         get_dropcam_substrates: bool = False,
-        media_substrates: dict = None,
+        sub_media_substrates: dict = None,
     ):
         """
         Processes and organizes localizations.
@@ -80,20 +80,19 @@ class TatorLocalizationProcessor:
              on HURLSTOR and attach it to localizations.
         :param get_dropcam_substrates: Whether to fetch substrate information for dropcam deployments from media
             attributes. For dropcams, substrates are part of media attributes. We will fetch them inside this method.
-        :param media_substrates: A pre-fetched mapping of media IDs to their substrate information. For sub dives,
-            substrates are States. We expect the caller to fetch them and pass them in here.
+        :param sub_media_substrates: A mapping of media IDs to their substrate state timeline (a list of entries, each
+            with a 'frame' key), for sub dives where substrate changes over the course of a video. Substrates are
+            States; the caller is expected to fetch them and pass them in here.
         """
         print('Processing localizations...')
         formatted_localizations = []
         expedition_fieldbook = {}  # {section_id: deployments[]}
+        dropcam_substrate_cache = {}  # {media_id: substrate_dict}, populated internally as media are looked up
         if 'media_fps' not in session:
             session['media_fps'] = {}
 
-        if not no_match_records:
+        if no_match_records is None:
             no_match_records = set()
-
-        if media_substrates is None:
-            media_substrates = {}
 
         if get_timestamp or get_dropcam_substrates:
             media_id_map = self._get_media_id_map()  # {media_id: media}
@@ -180,17 +179,18 @@ class TatorLocalizationProcessor:
                     else:
                         if section.bottom_time is None:
                             print(f'{TERM_RED}No Arrival time found for section {section.deployment_name}. Cannot calculate timestamps.{TERM_NORMAL}')
-                        media_fps = media_id_map[media_id]['fps'] or 30
-                        camera_bottom_arrival = datetime.datetime.strptime(section.bottom_time, self.BOTTOM_TIME_FORMAT).replace(tzinfo=datetime.timezone.utc)
-                        video_start_timestamp = datetime.datetime.fromisoformat(session['media_timestamps'][media_id]).astimezone(datetime.timezone.utc)
-                        observation_timestamp = video_start_timestamp + datetime.timedelta(seconds=localization['frame'] / media_fps)
-                        time_diff = observation_timestamp - camera_bottom_arrival
-                        localization_dict['timestamp'] = observation_timestamp.strftime(self.BOTTOM_TIME_FORMAT)
-                        localization_dict['camera_seafloor_arrival'] = camera_bottom_arrival.strftime(self.BOTTOM_TIME_FORMAT)
-                        localization_dict['animal_arrival'] = str(datetime.timedelta(
-                            days=time_diff.days,
-                            seconds=time_diff.seconds
-                        )) if observation_timestamp > camera_bottom_arrival else '00:00:00'
+                        else:
+                            media_fps = media_id_map[media_id]['fps'] or 30
+                            camera_bottom_arrival = datetime.datetime.strptime(section.bottom_time, self.BOTTOM_TIME_FORMAT).replace(tzinfo=datetime.timezone.utc)
+                            video_start_timestamp = datetime.datetime.fromisoformat(session['media_timestamps'][media_id]).astimezone(datetime.timezone.utc)
+                            observation_timestamp = video_start_timestamp + datetime.timedelta(seconds=localization['frame'] / media_fps)
+                            time_diff = observation_timestamp - camera_bottom_arrival
+                            localization_dict['timestamp'] = observation_timestamp.strftime(self.BOTTOM_TIME_FORMAT)
+                            localization_dict['camera_seafloor_arrival'] = camera_bottom_arrival.strftime(self.BOTTOM_TIME_FORMAT)
+                            localization_dict['animal_arrival'] = str(datetime.timedelta(
+                                days=time_diff.days,
+                                seconds=time_diff.seconds
+                            )) if observation_timestamp > camera_bottom_arrival else '00:00:00'
                 if get_dropcam_fieldbook_data:
                     if not expedition_fieldbook.get(section.section_id):
                         fieldbook_res = requests.get(
@@ -213,14 +213,14 @@ class TatorLocalizationProcessor:
                         localization_dict['bait_type'] = deployment_ctd['bait_type']
                         localization_dict['depth_m'] = localization_dict['depth_m'] or deployment_ctd['depth_m']
                 if get_dropcam_substrates:
-                    substrates = media_substrates.get(media_id)
+                    substrates = dropcam_substrate_cache.get(media_id)
                     if substrates is None:
                         substrates = media_id_map[media_id]["attributes"]
-                        media_substrates[media_id] = substrates
+                        dropcam_substrate_cache[media_id] = substrates
                     self._load_substrates(localization_dict, substrates)
-                elif media_substrates:
+                elif sub_media_substrates:
                     substrates = self._get_substrate_for_frame(
-                        substrate_entries=media_substrates.get(media_id, []),
+                        substrate_entries=sub_media_substrates.get(media_id, []),
                         localization=localization_dict,
                     )
                     if substrates:

@@ -233,4 +233,4 @@ class TatorSubQaqcProcessor(TatorBaseQaqcProcessor):
                 media_list=self.media_list,
             )
         }
-        self.process_records(media_substrates=substrates, get_timestamp=True)
+        self.process_records(sub_media_substrates=substrates, get_timestamp=True)
