@@ -129,17 +129,20 @@ class TatorBaseQaqcProcessor(TatorLocalizationProcessor, ABC):
             section.localizations = records_of_interest
         self.process_records()  # process first to make sure phylogeny is populated
         for localization in self.final_records:
+            tentative_id = localization.get('tentative_id')
+            if not tentative_id:
+                continue  # morphospecies-only record, no tentative ID phylogeny to check
             phylogeny_match = False
-            if localization['tentative_id'] not in self.phylogeny.data:
-                if localization['tentative_id'] not in no_match_records:
-                    if not self.phylogeny.fetch_worms(localization['tentative_id']):
-                        no_match_records.add(localization['tentative_id'])
+            if tentative_id not in self.phylogeny.data:
+                if tentative_id not in no_match_records:
+                    if not self.phylogeny.fetch_worms(tentative_id):
+                        no_match_records.add(tentative_id)
                         localization['problems'] += ' phylogeny no match'
                         continue
                 else:
                     localization['problems'] += ' phylogeny no match'
                     continue
-            for value in self.phylogeny.data[localization['tentative_id']].values():
+            for value in self.phylogeny.data[tentative_id].values():
                 if value == localization['scientific_name']:
                     phylogeny_match = True
                     break
