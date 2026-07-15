@@ -6,67 +6,7 @@ from application.tator.tator_localization_processor import TatorLocalizationProc
 from application.tator.tator_rest_client import TatorRestClient
 from application.tator.tator_type import TatorLocalizationType
 from test.data.tator_responses import fji_2025_dscm_03_localizations, fji_2025_dscm_03_section
-
-TATOR_URL = 'https://tator.url'
-DARC_REVIEW_URL = 'https://darc.review.url'
-
-
-def mock_get_section_by_id(_, section_id):
-    return {'id': section_id, 'name': f'Section_{section_id}', 'path': f'Expedition1.Section{section_id}'}
-
-
-def make_localization(*,
-                      localization_id=1,
-                      elemental_id='elemental-id',
-                      version=1,
-                      localization_type: int = TatorLocalizationType.DOT,
-                      media=100,
-                      frame=10,
-                      created_by=1,
-                      x=0.5,
-                      y=0.5,
-                      width=None,
-                      height=None,
-                      attributes=None):
-    # only the fields process_records() actually reads
-    return {
-        'id': localization_id,
-        'elemental_id': elemental_id,
-        'version': version,
-        'type': localization_type,
-        'media': media,
-        'frame': frame,
-        'created_by': created_by,
-        'x': x,
-        'y': y,
-        'width': width,
-        'height': height,
-        'attributes': attributes or {},
-    }
-
-
-class FakeSession(dict):
-    # flask.session behaves like a dict but also carries a ".modified" flag
-    modified = False
-
-
-@pytest.fixture
-def fake_session():
-    # flask.session is a werkzeug LocalProxy; unittest.mock.patch() can't auto-create a replacement for it
-    # outside a request context, so we patch in a real dict-like stand-in and keep the patch active for
-    # the whole test, since methods beyond __init__ (e.g. _get_annotator_name) also read/write session.
-    session = FakeSession({'tator_token': 'fake-token'})
-    with patch('application.tator.tator_localization_processor.session', new=session):
-        yield session
-
-
-@pytest.fixture
-def stub_worms_and_annotator():
-    # most process_records() tests don't care about phylogeny/annotator resolution; this keeps records simple
-    # by stubbing a WoRMS "match" that adds nothing to the cache, and a fixed annotator name.
-    with patch.object(TatorRestClient, 'get_user', return_value={'first_name': 'Joe', 'last_name': 'Diver'}), \
-            patch('application.util.phylogeny_cache.PhylogenyCache.fetch_worms', return_value=True):
-        yield
+from test.tator.conftest import DARC_REVIEW_URL, TATOR_URL, make_localization, mock_get_section_by_id
 
 
 @pytest.mark.usefixtures('mock_phylogeny_cache')
@@ -192,20 +132,18 @@ class TestTatorLocalizationProcessor:
         assert result == {5: fetched_media[0]}
 
     @patch.object(TatorRestClient, 'get_section_by_id', mock_get_section_by_id)
-    def test_get_annotator_name_fetches_and_caches(self, fake_session):
-        with patch.object(TatorRestClient, 'get_user',
-                          return_value={'first_name': 'Joe', 'last_name': 'Dirt'}) as mock_get_user:
-            tator_localization_processor = TatorLocalizationProcessor(
-                project_id=1,
-                section_ids=['1'],
-                tator_url=TATOR_URL,
-            )
-            first = tator_localization_processor._get_annotator_name(42)
-            second = tator_localization_processor._get_annotator_name(42)
+    def test_get_annotator_name_fetches_and_caches(self, fake_session, stub_annotator):
+        tator_localization_processor = TatorLocalizationProcessor(
+            project_id=1,
+            section_ids=['1'],
+            tator_url=TATOR_URL,
+        )
+        first = tator_localization_processor._get_annotator_name(42)
+        second = tator_localization_processor._get_annotator_name(42)
 
         assert first == 'Joe Dirt'
         assert second == 'Joe Dirt'
-        assert mock_get_user.call_count == 1  # second call was served from the session cache
+        assert stub_annotator.call_count == 1  # second call was served from the session cache
         assert fake_session['tator_usernames'] == {42: 'Joe Dirt'}
 
     @patch.object(TatorRestClient, 'get_section_by_id', mock_get_section_by_id)
@@ -366,7 +304,9 @@ class TestTatorLocalizationProcessor:
         assert tator_localization_processor.final_records == []
 
     @patch.object(TatorRestClient, 'get_section_by_id', mock_get_section_by_id)
-    def test_process_records_skips_unrecognized_localization_types(self, fake_session, stub_worms_and_annotator):
+    def test_process_records_skips_unrecognized_localization_types(
+            self, fake_session, stub_annotator, stub_worms_match
+    ):
         tator_localization_processor = TatorLocalizationProcessor(
             project_id=1,
             section_ids=['1'],
@@ -400,7 +340,7 @@ class TestTatorLocalizationProcessor:
         ('bogus-value', 0),  # unrecognized value hits the default case and is left at the default
     ])
     def test_process_records_maps_categorical_abundance_to_count(
-            self, fake_session, stub_worms_and_annotator, abundance, expected_count,
+            self, fake_session, stub_annotator, stub_worms_match, abundance, expected_count,
     ):
         tator_localization_processor = TatorLocalizationProcessor(
             project_id=1,
@@ -424,7 +364,7 @@ class TestTatorLocalizationProcessor:
         assert tator_localization_processor.final_records[0]['count'] == expected_count
 
     @patch.object(TatorRestClient, 'get_section_by_id', mock_get_section_by_id)
-    def test_process_records_sets_lat_long_from_position(self, fake_session, stub_worms_and_annotator):
+    def test_process_records_sets_lat_long_from_position(self, fake_session, stub_annotator, stub_worms_match):
         tator_localization_processor = TatorLocalizationProcessor(
             project_id=1,
             section_ids=['1'],
@@ -446,7 +386,7 @@ class TestTatorLocalizationProcessor:
         assert record['lat'] == 21.7654
 
     @patch.object(TatorRestClient, 'get_section_by_id', mock_get_section_by_id)
-    def test_process_records_calculates_timestamp_for_dropcam(self, fake_session, stub_worms_and_annotator):
+    def test_process_records_calculates_timestamp_for_dropcam(self, fake_session, stub_annotator, stub_worms_match):
         media_id = 100
         fake_session['media_timestamps'] = {media_id: '2025-01-01T00:00:00+00:00'}
         tator_localization_processor = TatorLocalizationProcessor(
@@ -473,7 +413,7 @@ class TestTatorLocalizationProcessor:
 
     @patch.object(TatorRestClient, 'get_section_by_id', mock_get_section_by_id)
     def test_process_records_skips_timestamp_population_for_dropcam_when_no_bottom_time(
-            self, fake_session, stub_worms_and_annotator
+            self, fake_session, stub_annotator, stub_worms_match
     ):
         media_id = 150
         tator_localization_processor = TatorLocalizationProcessor(
@@ -498,7 +438,7 @@ class TestTatorLocalizationProcessor:
         assert 'animal_arrival' not in record
 
     @patch.object(TatorRestClient, 'get_section_by_id', mock_get_section_by_id)
-    def test_process_records_calculates_timestamp_for_sub(self, fake_session, stub_worms_and_annotator):
+    def test_process_records_calculates_timestamp_for_sub(self, fake_session, stub_annotator, stub_worms_match):
         media_id = 200
         tator_localization_processor = TatorLocalizationProcessor(
             project_id=1,
@@ -531,7 +471,9 @@ class TestTatorLocalizationProcessor:
         assert 'camera_seafloor_arrival' not in record  # only the dropcam should set this
 
     @patch.object(TatorRestClient, 'get_section_by_id', mock_get_section_by_id)
-    def test_process_records_skips_timestamp_for_sub_when_no_start_time(self, fake_session, stub_worms_and_annotator):
+    def test_process_records_skips_timestamp_for_sub_when_no_start_time(
+            self, fake_session, stub_annotator, stub_worms_match
+    ):
         media_id = 250
         tator_localization_processor = TatorLocalizationProcessor(
             project_id=1,
@@ -561,7 +503,7 @@ class TestTatorLocalizationProcessor:
         assert 'timestamp' not in tator_localization_processor.final_records[0]
 
     @patch.object(TatorRestClient, 'get_section_by_id', mock_get_section_by_id)
-    def test_process_records_fetches_dropcam_fieldbook_data(self, fake_session, stub_worms_and_annotator):
+    def test_process_records_fetches_dropcam_fieldbook_data(self, fake_session, stub_annotator, stub_worms_match):
         tator_localization_processor = TatorLocalizationProcessor(
             project_id=1,
             section_ids=['1'],
@@ -597,7 +539,7 @@ class TestTatorLocalizationProcessor:
         assert record['depth_m'] == 1200
 
     @patch.object(TatorRestClient, 'get_section_by_id', mock_get_section_by_id)
-    def test_process_records_raises_when_fieldbook_fetch_fails(self, fake_session, stub_worms_and_annotator):
+    def test_process_records_raises_when_fieldbook_fetch_fails(self, fake_session, stub_annotator, stub_worms_match):
         tator_localization_processor = TatorLocalizationProcessor(
             project_id=1,
             section_ids=['1'],
@@ -617,7 +559,7 @@ class TestTatorLocalizationProcessor:
 
     @patch.object(TatorRestClient, 'get_section_by_id', mock_get_section_by_id)
     def test_process_records_loads_dropcam_substrates_from_media_attributes(
-            self, fake_session, stub_worms_and_annotator
+            self, fake_session, stub_annotator, stub_worms_match
     ):
         media_id = 300
         fetched_media = [
@@ -647,7 +589,7 @@ class TestTatorLocalizationProcessor:
 
     @patch.object(TatorRestClient, 'get_section_by_id', mock_get_section_by_id)
     def test_process_records_loads_substrate_for_frame_when_sub_media_substrates_given(
-            self, fake_session, stub_worms_and_annotator
+            self, fake_session, stub_annotator, stub_worms_match
     ):
         media_id = 400
         tator_localization_processor = TatorLocalizationProcessor(
@@ -674,11 +616,10 @@ class TestTatorLocalizationProcessor:
         assert tator_localization_processor.final_records[0]['relief'] == 'moderate'
 
     @patch.object(TatorRestClient, 'get_section_by_id', mock_get_section_by_id)
-    def test_process_records_tracks_unmatched_scientific_names(self, fake_session):
+    def test_process_records_tracks_unmatched_scientific_names(self, fake_session, stub_annotator):
         no_match_records = set()
 
-        with patch.object(TatorRestClient, 'get_user', return_value={'first_name': 'Joe', 'last_name': 'Dirt'}), \
-                patch('application.util.phylogeny_cache.PhylogenyCache.fetch_worms', return_value=False):
+        with patch('application.util.phylogeny_cache.PhylogenyCache.fetch_worms', return_value=False):
             tator_localization_processor = TatorLocalizationProcessor(
                 project_id=1,
                 section_ids=['1'],
