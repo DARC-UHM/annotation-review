@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 import pytest
 
@@ -19,7 +19,7 @@ class ConcreteQaqcProcessor(TatorBaseQaqcProcessor):
 class TestTatorBaseQaqcProcessor:
     @patch.object(TatorRestClient, 'get_section_by_id', mock_get_section_by_id)
     def test_check_names_accepted_flags_unmatched_scientific_name(self, fake_session, stub_annotator):
-        def fake_fetch_worms(self, scientific_name):
+        def fake_fetch_worms(scientific_name):
             return scientific_name == 'Matched'
 
         tator_qaqc_processor = ConcreteQaqcProcessor(
@@ -27,29 +27,46 @@ class TestTatorBaseQaqcProcessor:
             section_ids=['1'],
             tator_url=TATOR_URL,
         )
+        tator_qaqc_processor.phylogeny.data['PreCached'] = {}  # data already present in the cache
         tator_qaqc_processor.sections[0].localizations = [
             make_localization(
-                localization_id=1,
+                elemental_id=1,
                 frame=1,
                 attributes={'Scientific Name': 'Matched'},
             ),
             make_localization(
-                localization_id=2,
+                elemental_id=2,
                 frame=2,
                 attributes={'Scientific Name': 'Unmatched'},
             ),
+            # same unmatched name again -> should reuse the cached "known bad" result, not re-fetch (no_match_records)
+            make_localization(
+                elemental_id=3,
+                frame=3,
+                attributes={'Scientific Name': 'Unmatched'},
+            ),
+            make_localization(
+                elemental_id=4,
+                frame=4,
+                attributes={'Scientific Name': 'PreCached'},
+            ),
         ]
 
-        with patch('application.util.phylogeny_cache.PhylogenyCache.fetch_worms', fake_fetch_worms):
+        with patch(
+                'application.util.phylogeny_cache.PhylogenyCache.fetch_worms',
+                side_effect=fake_fetch_worms,
+        ) as mock_fetch_worms:
             tator_qaqc_processor.check_names_accepted()
 
-        assert len(tator_qaqc_processor.final_records) == 1
-        assert tator_qaqc_processor.final_records[0]['scientific_name'] == 'Unmatched'
-        assert tator_qaqc_processor.final_records[0]['problems'] == 'Scientific Name'
+        assert len(tator_qaqc_processor.final_records) == 2
+        problems_by_id = {record['observation_uuid']: record['problems'] for record in tator_qaqc_processor.final_records}
+        assert problems_by_id == {2: 'Scientific Name', 3: 'Scientific Name'}
+        # the repeated 'Unmatched' should be fetched only once, thanks to check_names_accepted's own dedup
+        assert mock_fetch_worms.call_args_list.count(call('Unmatched')) == 1
 
     @patch.object(TatorRestClient, 'get_section_by_id', mock_get_section_by_id)
     def test_check_names_accepted_flags_unmatched_tentative_id(self, fake_session, stub_annotator):
-        def fake_fetch_worms(self, scientific_name):
+        def fake_fetch_worms(scientific_name):
             return scientific_name != 'BadTentative'
 
         tator_qaqc_processor = ConcreteQaqcProcessor(
@@ -57,6 +74,7 @@ class TestTatorBaseQaqcProcessor:
             section_ids=['1'],
             tator_url=TATOR_URL,
         )
+        tator_qaqc_processor.phylogeny.data['PreCachedTentative'] = {}  # already resolved before this check runs
         tator_qaqc_processor.sections[0].localizations = [
             make_localization(
                 localization_id=1,
@@ -67,18 +85,42 @@ class TestTatorBaseQaqcProcessor:
                 },
             ),
             make_localization(
+                localization_id=2,
+                frame=2,
                 attributes={
                     'Scientific Name': 'Good',
                     'Tentative ID': 'BadTentative',
                 },
             ),
+            # same unmatched tentative ID again -> should reuse the cached "known bad" result, not re-fetch
+            make_localization(
+                localization_id=3,
+                frame=3,
+                attributes={
+                    'Scientific Name': 'Good',
+                    'Tentative ID': 'BadTentative',
+                },
+            ),
+            make_localization(
+                localization_id=4,
+                frame=4,
+                attributes={
+                    'Scientific Name': 'Good',
+                    'Tentative ID': 'PreCachedTentative',
+                },
+            ),
         ]
 
-        with patch('application.util.phylogeny_cache.PhylogenyCache.fetch_worms', fake_fetch_worms):
+        with patch(
+                'application.util.phylogeny_cache.PhylogenyCache.fetch_worms',
+                side_effect=fake_fetch_worms,
+        ) as mock_fetch_worms:
             tator_qaqc_processor.check_names_accepted()
 
-        assert len(tator_qaqc_processor.final_records) == 1
-        assert tator_qaqc_processor.final_records[0]['problems'] == 'Tentative ID'
+        assert len(tator_qaqc_processor.final_records) == 2
+        problems_by_frame = {record['frame']: record['problems'] for record in tator_qaqc_processor.final_records}
+        assert problems_by_frame == {2: 'Tentative ID', 3: 'Tentative ID'}
+        assert mock_fetch_worms.call_args_list.count(call('BadTentative')) == 1
 
     @patch.object(TatorRestClient, 'get_section_by_id', mock_get_section_by_id)
     @pytest.mark.parametrize('has_species,qualifier,expected_flagged', [
@@ -174,14 +216,14 @@ class TestTatorBaseQaqcProcessor:
                     'genus': 'Synaphobranchus',
                     'species': 'Synaphobranchus affinis',
                 }
-            elif scientific_name == 'Pseudocetonurus septifers':
-                self.data['Synaphobranchus affinis'] = {
+            elif scientific_name == 'Pseudocetonurus septifer':
+                self.data['Pseudocetonurus septifer'] = {
                     'order': 'Gadiformes',
                     'family': 'Macrourinae',
                     'genus': 'Pseudocetonurus',
                     'species': 'Pseudocetonurus septifer',
                 }
-            return scientific_name in {'Synaphobranchus', 'Synaphobranchus affinis', 'Pseudocetonurus septifers'}
+            return scientific_name in {'Synaphobranchus', 'Synaphobranchus affinis', 'Pseudocetonurus septifer'}
 
         tator_qaqc_processor = ConcreteQaqcProcessor(
             project_id=1,
@@ -199,7 +241,7 @@ class TestTatorBaseQaqcProcessor:
                     'Tentative ID': 'Synaphobranchus affinis',
                 },
             ),
-            # tentative ID's phylogeny has no rank matching the observed scientific name -> flagged
+            # tentative ID resolves via WoRMS but its phylogeny shares no rank with the scientific name -> flagged
             make_localization(
                 elemental_id=2,
                 frame=2,
@@ -208,10 +250,37 @@ class TestTatorBaseQaqcProcessor:
                     'Tentative ID': 'Pseudocetonurus septifer',
                 },
             ),
-            # not flagged
+            # tentative ID has no WoRMS match at all -> flagged
             make_localization(
                 elemental_id=3,
                 frame=3,
+                attributes={
+                    'Scientific Name': 'Synaphobranchus',
+                    'Tentative ID': 'Unknown genus',
+                },
+            ),
+            # same unmatched tentative ID again -> should reuse the cached "known no match" result, not re-fetch
+            make_localization(
+                elemental_id=4,
+                frame=4,
+                attributes={
+                    'Scientific Name': 'Synaphobranchus',
+                    'Tentative ID': 'Unknown genus',
+                },
+            ),
+            # morphospecies set, no tentative ID -> still a record of interest
+            make_localization(
+                elemental_id=5,
+                frame=5,
+                attributes={
+                    'Scientific Name': 'Synaphobranchus',
+                    'Morphospecies': 'sp. 1',
+                },
+            ),
+            # neither tentative ID nor morphospecies -> not a record of interest, excluded
+            make_localization(
+                elemental_id=6,
+                frame=6,
                 attributes={'Scientific Name': 'Synaphobranchus'},
             ),
         ]
@@ -219,10 +288,13 @@ class TestTatorBaseQaqcProcessor:
         with patch('application.util.phylogeny_cache.PhylogenyCache.fetch_worms', fake_fetch_worms):
             tator_qaqc_processor.get_all_tentative_ids_and_morphospecies()
 
-        assert len(tator_qaqc_processor.final_records) == 2
+        assert len(tator_qaqc_processor.final_records) == 5
         records_by_id = {record['observation_uuid']: record for record in tator_qaqc_processor.final_records}
         assert records_by_id[1]['problems'] == 'Tentative ID'
         assert records_by_id[2]['problems'] == 'Tentative ID phylogeny no match'
+        assert records_by_id[3]['problems'] == 'Tentative ID phylogeny no match'
+        assert records_by_id[4]['problems'] == 'Tentative ID phylogeny no match'
+        assert records_by_id[5]['problems'] == ' Morphospecies'
 
     @patch.object(TatorRestClient, 'get_section_by_id', mock_get_section_by_id)
     def test_get_all_notes_and_remarks(self, fake_session, stub_annotator, stub_worms_match):
