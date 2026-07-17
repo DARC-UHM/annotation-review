@@ -234,7 +234,7 @@ def tator_qaqc(check):
             return render_template('qaqc/tator/qaqc-tables.html', data=data)
         case 'image-guide':
             presentation_data = BytesIO()
-            qaqc_annos.download_image_guide(current_app).save(presentation_data)
+            qaqc_annos.download_image_guide(token=session['tator_token']).save(presentation_data)
             presentation_data.seek(0)
             return send_file(presentation_data, as_attachment=True, download_name='image-guide.pptx')
         case _:
