@@ -1,3 +1,4 @@
+import time
 from io import BytesIO
 
 from PIL import Image
@@ -44,9 +45,9 @@ class ImageGuidePresentation:
                     break
                 print(f'Processing image {i + 1}/{len(records)}')
                 try:
-                    image_data = self._fetch_normalized_image(localization)
+                    image_data = self._fetch_normalized_image_with_retry(localization)
                 except Exception as e:
-                    print(f'Error fetching image for localization {localization["id"]}: {e}')
+                    print(f'Error fetching image for localization {localization["observation_uuid"]}: {e}')
                     i += 1
                     continue
                 header_top = self.ROW_TOPS[j // 3]
@@ -137,6 +138,19 @@ class ImageGuidePresentation:
         run.font.color.rgb = RGBColor(0xff, 0xff, 0xff)
         run.font.italic = italic
         return run
+
+    def _fetch_normalized_image_with_retry(self, localization: dict) -> BytesIO:
+        retries = 3
+
+        for attempt in range(1, retries + 1):
+            try:
+                return self._fetch_normalized_image(localization)
+            except Exception as e:
+                if attempt == retries:
+                    raise
+                print(f'Retrying image fetch for localization {localization["observation_uuid"]} (attempt {attempt}/{retries}): {e}')
+                time.sleep(1)
+        raise RuntimeError('Failed to fetch image after 3 attempts')
 
     def _fetch_normalized_image(self, localization: dict) -> BytesIO:
         """Fetches full frame from Tator, crops to localization bounds, and expands to 16:9 aspect ratio."""
