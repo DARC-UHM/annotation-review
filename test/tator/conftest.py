@@ -1,16 +1,29 @@
+from datetime import datetime, timedelta
 from unittest.mock import patch
 
 import pytest
 
+from application.tator.tator_localization_processor import TatorLocalizationProcessor
 from application.tator.tator_rest_client import TatorRestClient
 from application.tator.tator_type import TatorLocalizationType
 
 TATOR_URL = 'https://tator.url'
 DARC_REVIEW_URL = 'https://darc.review.url'
+DEFAULT_MEDIA_START_TIME = '2025-01-01T00:00:00+00:00'
 
 
 def mock_get_section_by_id(_, section_id):
     return {'id': section_id, 'name': f'Section_{section_id}', 'path': f'Expedition1.Section{section_id}'}
+
+
+def formatted_start_time(*, start_time=DEFAULT_MEDIA_START_TIME, plus_seconds=0):
+    """
+    Renders a start_time (default DEFAULT_MEDIA_START_TIME) the way bottom_time/timestamp fields do, optionally
+    offset by plus_seconds, so assertions can express e.g. "10s after start" instead of a bare literal
+    """
+    return (datetime.fromisoformat(start_time) + timedelta(seconds=plus_seconds)).strftime(
+        TatorLocalizationProcessor.BOTTOM_TIME_FORMAT,
+    )
 
 
 def make_localization(*,
@@ -43,6 +56,23 @@ def make_localization(*,
     }
 
 
+def make_media(*,
+               media_id=1,
+               fps=30,
+               name='media',
+               start_time=DEFAULT_MEDIA_START_TIME,
+               arrival=None,
+               extra_attributes=None):
+    attributes = {}
+    if start_time is not None:
+        attributes['Start Time'] = start_time
+    if arrival is not None:
+        attributes['Arrival'] = arrival
+    if extra_attributes:
+        attributes.update(extra_attributes)
+    return {'id': media_id, 'name': name, 'fps': fps, 'attributes': attributes}
+
+
 class FakeSession(dict):
     # flask.session behaves like a dict but also carries a ".modified" flag
     modified = False
@@ -53,8 +83,10 @@ def fake_session():
     # flask.session is a werkzeug LocalProxy; unittest.mock.patch() can't auto-create a replacement for it
     # outside a request context, so we patch in a real dict-like stand-in and keep the patch active for
     # the whole test, since methods beyond __init__ (e.g. _get_annotator_name) also read/write session.
+    # Patched in every module that imports `session` directly, since each import is its own reference.
     session = FakeSession({'tator_token': 'fake-token'})
-    with patch('application.tator.tator_localization_processor.session', new=session):
+    with patch('application.tator.tator_localization_processor.session', new=session), \
+            patch('application.tator.tator_dropcam_qaqc_processor.session', new=session):
         yield session
 
 
