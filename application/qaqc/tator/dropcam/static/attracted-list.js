@@ -10,6 +10,8 @@ async function addAttractedConcept() {
     });
     if (response.ok) {
         location.reload();
+    } else if (response.status === 409) {
+        updateFlashMessages('Concept already exists', 'warning');
     } else {
         updateFlashMessages('Failed to add concept', 'danger');
     }
