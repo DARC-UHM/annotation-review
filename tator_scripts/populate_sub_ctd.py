@@ -51,10 +51,6 @@ def populate_ctd(expedition_name: str, deployment_name: str|None, days_offset: i
     expedition_sub_folder_path = f'/Pristine Seas Dropcam Data/sub/{expedition_name}'
     dropbox_client = dropbox.Dropbox(os.getenv('DROPBOX_ACCESS_TOKEN'))
 
-    # get the names of all the media in the expedition along with the time_start_qinsy
-    print('Fetching media information from Dropbox...', end='')
-    sys.stdout.flush()
-
     metadata_df = get_metadata_df(dropbox_client, expedition_sub_folder_path)[['filename', 'ps_site_id', 'creation_date', 'time_start_qinsy']]
     metadata_df = metadata_df.dropna(subset=['creation_date', 'time_start_qinsy'])
     metadata_df['qinsy_timestamp'] = pd.to_datetime(metadata_df['creation_date'].astype(str) + ' ' + metadata_df['time_start_qinsy'].astype(str))
@@ -114,6 +110,9 @@ def populate_ctd(expedition_name: str, deployment_name: str|None, days_offset: i
 
 
 def get_metadata_df(dropbox_client: dropbox.Dropbox, expedition_sub_folder_path: str) -> pd.DataFrame:
+    # get the names of all the media in the expedition along with the time_start_qinsy
+    print('Fetching media information from Dropbox...', end='')
+    sys.stdout.flush()
     try:
         folder_metadata = dropbox_client.files_list_folder(expedition_sub_folder_path)
         for entry in folder_metadata.entries:
@@ -187,7 +186,7 @@ def get_qinsy_df(dropbox_client: dropbox.Dropbox, qinsy_folder_path: str) -> pd.
                 path = os.path.join(qinsy_folder_path, entry.name)
                 _, res = dropbox_client.files_download(path)
                 print(f'Qinsy file location: {path}')
-                df = pd.read_csv(res.raw)
+                df = pd.read_csv(res.raw, delimiter='\t')
     except dropbox.exceptions.ApiError as e:
         print(f'\n{TERM_RED}Error connecting to Dropbox: {e}{TERM_NORMAL}')
         print(f'Tried looking for expedition metadata file in folder: {qinsy_folder_path}')
@@ -211,7 +210,7 @@ def get_qinsy_df(dropbox_client: dropbox.Dropbox, qinsy_folder_path: str) -> pd.
             exit(1)
     # just using pressure for depth, it's close enough
     df = df.rename(columns={'PRS Value': 'Depth'})
-    df['Timestamp'] = pd.to_datetime(df['Date'] + ' ' + df['Time'], format='%m/%d/%Y %H:%M:%S')
+    df['Timestamp'] = pd.to_datetime(df['Date'] + ' ' + df['Time'], format='%m/%d/%y %H:%M:%S')
     df = df.set_index('Timestamp')
     return df[['Steered Node Latitude', 'Steered Node Longitude', 'TMP Value', 'Depth']]
 
