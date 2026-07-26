@@ -31,6 +31,8 @@ import dotenv
 import dropbox
 import io
 import os
+
+import numpy as np
 import pandas as pd
 import requests
 import random
@@ -89,11 +91,20 @@ def populate_ctd(expedition_name: str, deployment_name: str|None, days_offset: i
                 )
                 localization_timestamp = pd.Timestamp(localization_timestamp).round('s').to_pydatetime()
                 localization_timestamp = localization_timestamp.replace(tzinfo=None)
-                if localization_timestamp not in qinsy_df.index:
-                    print(f'\n{TERM_RED}No Qinsy data for timestamp {localization_timestamp} (localization {localization["id"]}), exiting{TERM_NORMAL}')
-                    print(f'Qinsy data timestamps range from {qinsy_df.index.min()} to {qinsy_df.index.max()}')
-                    exit(1)
-                matched_row = qinsy_df.loc[localization_timestamp]
+                if localization_timestamp in qinsy_df.index:
+                    matched_row = qinsy_df.loc[localization_timestamp]
+                else:
+                    # try looking 5 seconds before and after the timestamp to find a match
+                    time_window = pd.date_range(localization_timestamp - pd.Timedelta(seconds=5), localization_timestamp + pd.Timedelta(seconds=5), freq='1s')
+                    matched_rows = qinsy_df.loc[qinsy_df.index.intersection(time_window)]
+                    if not matched_rows.empty:
+                        # find the closest match by timestamp
+                        matched_row = matched_rows.iloc[np.abs(matched_rows.index - localization_timestamp).argmin()]
+                        print(f'\n{TERM_YELLOW}No exact Qinsy data for timestamp {localization_timestamp} (localization {localization["id"]}), using closest match at {matched_row.name}{TERM_NORMAL}')
+                    else:
+                        print(f'\n{TERM_RED}No Qinsy data for timestamp {localization_timestamp} (localization {localization["id"]}){TERM_NORMAL}')
+                        print(f'Qinsy data timestamps range from {qinsy_df.index.min()} to {qinsy_df.index.max()}')
+                        continue
                 lat = parse_coord(matched_row['Steered Node Latitude'])
                 long = parse_coord(matched_row['Steered Node Longitude'])
                 temp_c = matched_row['TMP Value']
@@ -131,6 +142,7 @@ def get_metadata_df(dropbox_client: dropbox.Dropbox, expedition_sub_folder_path:
         exit(1)
     except dropbox.exceptions.AuthError as e:
         print(f'\n\n{TERM_RED}Error connecting to Dropbox: {e}{TERM_NORMAL}')
+        print('https://www.dropbox.com/developers/apps')
         exit(1)
 
 
@@ -186,7 +198,7 @@ def get_qinsy_df(dropbox_client: dropbox.Dropbox, qinsy_folder_path: str) -> pd.
                 path = os.path.join(qinsy_folder_path, entry.name)
                 _, res = dropbox_client.files_download(path)
                 print(f'Qinsy file location: {path}')
-                df = pd.read_csv(res.raw, delimiter='\t')
+                df = pd.read_csv(res.raw)
     except dropbox.exceptions.ApiError as e:
         print(f'\n{TERM_RED}Error connecting to Dropbox: {e}{TERM_NORMAL}')
         print(f'Tried looking for expedition metadata file in folder: {qinsy_folder_path}')
@@ -194,6 +206,7 @@ def get_qinsy_df(dropbox_client: dropbox.Dropbox, qinsy_folder_path: str) -> pd.
         exit(1)
     except dropbox.exceptions.AuthError as e:
         print(f'\n\n{TERM_RED}Error connecting to Dropbox: {e}{TERM_NORMAL}')
+        print('https://www.dropbox.com/developers/apps')
         exit(1)
     if df is None:
         print(f'\n{TERM_RED}No Qinsy CSV file found in Dropbox{TERM_NORMAL}')
@@ -210,7 +223,9 @@ def get_qinsy_df(dropbox_client: dropbox.Dropbox, qinsy_folder_path: str) -> pd.
             exit(1)
     # just using pressure for depth, it's close enough
     df = df.rename(columns={'PRS Value': 'Depth'})
-    df['Timestamp'] = pd.to_datetime(df['Date'] + ' ' + df['Time'], format='%m/%d/%y %H:%M:%S')
+    # if the date uses full year (e.g. 2025) then use format %m/%d/%Y, otherwise assume it uses 2-digit year (e.g. 25) and use format %m/%d/%y
+    date_format = '%m/%d/%Y %H:%M:%S' if df['Date'].str.contains(r'\d{4}').any() else '%m/%d/%y %H:%M:%S'
+    df['Timestamp'] = pd.to_datetime(df['Date'] + ' ' + df['Time'], format=date_format)
     df = df.set_index('Timestamp')
     return df[['Steered Node Latitude', 'Steered Node Longitude', 'TMP Value', 'Depth']]
 

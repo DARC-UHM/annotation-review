@@ -152,6 +152,7 @@ def populate_ctd(
         exit(1)
     except dropbox.exceptions.AuthError as e:
         print(f'\n\n{TERM_RED}Error connecting to Dropbox: {e}{TERM_NORMAL}')
+        print('https://www.dropbox.com/developers/apps')
         exit(1)
 
     if df is None:
