@@ -1,16 +1,16 @@
 import os
 
+from cachelib.file import FileSystemCache
+
 HURLSTOR_URL = 'https://hurlstor.soest.hawaii.edu'
 
 
 class Config:
     ENV = os.environ.get('_FLASK_ENV', 'production')
     UPDATE_AVAILABLE = False
-    SESSION_TYPE = 'filesystem'
-    SESSION_FILE_DIR = 'flask_session'
+    SESSION_TYPE = 'cachelib'
+    SESSION_CACHELIB = FileSystemCache(cache_dir='flask_session', threshold=10)
     SESSION_PERMANENT = False
-    SESSION_USE_SIGNER = True
-    SESSION_FILE_THRESHOLD = 10
     TATOR_URL = 'https://cloud.tator.io'
     TATOR_PROJECT_ID = 26
     VARS_ANNOSAURUS_URL = f'{HURLSTOR_URL}/anno/v1'
