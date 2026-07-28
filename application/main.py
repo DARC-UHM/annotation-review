@@ -80,8 +80,10 @@ def index():
         if (last_check is not None
                 and datetime.datetime.now() - datetime.datetime.fromisoformat(last_check) > datetime.timedelta(hours=1)):
             print(f'Checking for updates...')
-            is_update_available = get_origin_commit_hash() != current_app.config.get('LOCAL_COMMIT_HASH')
-            current_app.config['UPDATE_AVAILABLE'] = is_update_available
+            origin_commit_hash = get_origin_commit_hash()
+            if origin_commit_hash is not None:
+                is_update_available = origin_commit_hash != current_app.config.get('LOCAL_COMMIT_HASH')
+                current_app.config['UPDATE_AVAILABLE'] = is_update_available
             current_app.config['LAST_CHECKED_ORIGIN_AT'] = datetime.datetime.now().isoformat()
 
     return render_template(
