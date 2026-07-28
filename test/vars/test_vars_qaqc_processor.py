@@ -12,6 +12,36 @@ def mocked_requests_get(*args, **kwargs):
     return MockResponse(url=kwargs.get('url'))
 
 
+def make_annotation(
+        *,
+        observation_uuid='uuid-1',
+        concept='none',
+        group=None,
+        associations=None,
+        observer='NikkiCunanan',
+        recorded_timestamp='2023-08-24T18:36:14.245Z',
+        activity=None,
+        ancillary_data=None,
+        image_references=None,
+):
+    # only the fields process_working_records()/the find_* checks actually read
+    annotation = {
+        'observation_uuid': observation_uuid,
+        'concept': concept,
+        'associations': associations or [],
+        'observer': observer,
+        'recorded_timestamp': recorded_timestamp,
+        'image_references': image_references if image_references is not None else [],
+    }
+    if group is not None:
+        annotation['group'] = group
+    if activity is not None:
+        annotation['activity'] = activity
+    if ancillary_data is not None:
+        annotation['ancillary_data'] = ancillary_data
+    return annotation
+
+
 @pytest.mark.usefixtures('mock_phylogeny_cache')
 class TestVarsQaqcProcessor:
     def test_init(self):
@@ -530,3 +560,269 @@ class TestVarsQaqcProcessor:
                 },
             },
         ]
+
+    @pytest.mark.parametrize('method_name,triggering_associations', [
+        ('find_duplicate_associations', [
+            {'link_name': 'megahabitat', 'to_concept': 'X', 'link_value': 'nil'},
+            {'link_name': 'megahabitat', 'to_concept': 'Y', 'link_value': 'nil'},
+        ]),
+        ('find_identical_s1_s2', [
+            {'link_name': 's1', 'to_concept': 'sed', 'link_value': 'nil'},
+            {'link_name': 's2', 'to_concept': 'sed', 'link_value': 'nil'},
+        ]),
+        ('find_duplicate_s2', [
+            {'link_name': 's2', 'to_concept': 'sed', 'link_value': 'nil'},
+            {'link_name': 's2', 'to_concept': 'sed', 'link_value': 'nil'},
+        ]),
+        ('find_missing_upon_substrate', [
+            {'link_name': 'upon', 'to_concept': 'rock', 'link_value': 'nil'},
+        ]),
+        ('find_blank_associations', [
+            {'link_name': 'bounding box', 'to_concept': 'self', 'link_value': ''},
+        ]),
+        ('find_suspicious_hosts', [
+            {'link_name': 'upon', 'to_concept': 'SuspiciousConcept', 'link_value': 'nil'},
+        ]),
+    ])
+    def test_checks_skip_localization_group_annotations(self, method_name, triggering_associations):
+        # each of these association sets would flag the annotation if it weren't in the "localization" group
+        annotation = make_annotation(
+            concept='SuspiciousConcept',
+            group='localization',
+            associations=triggering_associations,
+        )
+        qaqc_processor = VarsQaqcProcessor(
+            sequence_names=['X'],
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
+        )
+
+        with patch.object(VarsQaqcProcessor, 'fetch_media_and_annotations', return_value=[annotation]):
+            getattr(qaqc_processor, method_name)()
+
+        assert qaqc_processor.working_records == []
+
+    def test_find_id_refs_different_concept_name_skips_localization_group_annotations(self):
+        # without the localization-group skip, these two different concept names sharing an id ref would flag
+        localization_annotation = make_annotation(
+            observation_uuid='loc-1',
+            concept='ConceptA',
+            group='localization',
+            associations=[{'link_name': 'identity-reference', 'to_concept': 'self', 'link_value': '1'}],
+        )
+        other_annotation = make_annotation(
+            observation_uuid='other-1',
+            concept='ConceptB',
+            associations=[{'link_name': 'identity-reference', 'to_concept': 'self', 'link_value': '1'}],
+        )
+        qaqc_processor = VarsQaqcProcessor(
+            sequence_names=['X'],
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
+        )
+
+        with patch.object(
+                VarsQaqcProcessor, 'fetch_media_and_annotations',
+                return_value=[localization_annotation, other_annotation],
+        ):
+            qaqc_processor.find_id_refs_different_concept_name()
+
+        assert qaqc_processor.working_records == []
+
+    def test_find_id_refs_conflicting_associations_skips_localization_group_annotations(self):
+        localization_annotation = make_annotation(
+            observation_uuid='loc-1',
+            group='localization',
+            associations=[
+                {'link_name': 'identity-reference', 'to_concept': 'self', 'link_value': '1'},
+                {'link_name': 'habitat', 'to_concept': 'X', 'link_value': 'nil'},
+            ],
+        )
+        other_annotation = make_annotation(
+            observation_uuid='other-1',
+            associations=[
+                {'link_name': 'identity-reference', 'to_concept': 'self', 'link_value': '1'},
+                {'link_name': 'habitat', 'to_concept': 'Y', 'link_value': 'nil'},  # would conflict, if not skipped
+            ],
+        )
+        qaqc_processor = VarsQaqcProcessor(
+            sequence_names=['X'],
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
+        )
+
+        with patch.object(
+                VarsQaqcProcessor, 'fetch_media_and_annotations',
+                return_value=[localization_annotation, other_annotation],
+        ):
+            qaqc_processor.find_id_refs_conflicting_associations()
+
+        assert qaqc_processor.working_records == []
+
+    def test_find_id_refs_conflicting_associations_compares_second_annotation_with_same_id_ref(self):
+        first_annotation = make_annotation(
+            observation_uuid='first',
+            associations=[
+                {'link_name': 'identity-reference', 'to_concept': 'self', 'link_value': '1'},
+                {'link_name': 's2', 'to_concept': 'sed', 'link_value': 'nil'},
+                {'link_name': 'sampled-by', 'to_concept': 'diver', 'link_value': 'nil'},
+                {'link_name': 'sample-reference', 'to_concept': 'self', 'link_value': 'ref-1'},
+                {'link_name': 'habitat', 'to_concept': 'X', 'link_value': 'nil'},
+                {'link_name': 'identity-certainty', 'to_concept': 'self', 'link_value': 'certain'},
+                {'link_name': 'guide-photo', 'to_concept': 'self', 'link_value': ''},
+            ],
+        )
+        second_annotation = make_annotation(
+            observation_uuid='second',
+            associations=[
+                {'link_name': 'identity-reference', 'to_concept': 'self', 'link_value': '1'},
+                {'link_name': 'guide-photo', 'to_concept': 'self', 'link_value': ''},
+                {'link_name': 's2', 'to_concept': 'mud', 'link_value': 'nil'},  # differs from first -> allowed
+                {'link_name': 'sampled-by', 'to_concept': 'diver', 'link_value': 'nil'},
+                {'link_name': 'sample-reference', 'to_concept': 'self', 'link_value': 'ref-1'},
+                # a to_concepts field the first annotation never set
+                {'link_name': 'megahabitat', 'to_concept': 'continental shelf', 'link_value': 'nil'},
+                # a non-to_concepts field the first annotation never set
+                {'link_name': 'comment', 'to_concept': 'self', 'link_value': 'a remark'},
+                # a non-to_concepts field that conflicts with the first annotation's value -> flags and stops
+                {'link_name': 'identity-certainty', 'to_concept': 'self', 'link_value': 'uncertain'},
+            ],
+        )
+        qaqc_processor = VarsQaqcProcessor(
+            sequence_names=['X'],
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
+        )
+
+        with patch.object(
+                VarsQaqcProcessor, 'fetch_media_and_annotations',
+                return_value=[first_annotation, second_annotation],
+        ):
+            qaqc_processor.find_id_refs_conflicting_associations()
+
+        assert {record['observation_uuid'] for record in qaqc_processor.working_records} == {'first', 'second'}
+
+    def test_find_mismatched_substrates_skips_localization_group_and_compares_s2_sets(self):
+        localization_annotation = make_annotation(
+            observation_uuid='loc-1',
+            group='localization',
+            recorded_timestamp='2023-08-24T18:00:00.000Z',
+        )
+        base_annotation = make_annotation(
+            observation_uuid='base',
+            recorded_timestamp='2023-08-24T18:36:14.100Z',
+            associations=[
+                {'link_name': 's1', 'to_concept': 'sed', 'link_value': 'nil'},
+                {'link_name': 's2', 'to_concept': 'x', 'link_value': 'nil'},
+            ],
+        )
+        matching_timestamp_annotation = make_annotation(
+            observation_uuid='match',
+            recorded_timestamp='2023-08-24T18:36:14.900Z',  # same second as base_annotation
+            associations=[
+                {'link_name': 's1', 'to_concept': 'sed', 'link_value': 'nil'},
+                {'link_name': 's2', 'to_concept': 'y', 'link_value': 'nil'},  # different substrate -> mismatch
+            ],
+        )
+        filler_annotation = make_annotation(
+            observation_uuid='filler',
+            recorded_timestamp='2023-08-24T18:40:00.000Z',
+        )
+        qaqc_processor = VarsQaqcProcessor(
+            sequence_names=['X'],
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
+        )
+
+        with patch.object(
+                VarsQaqcProcessor, 'fetch_media_and_annotations',
+                return_value=[localization_annotation, base_annotation, matching_timestamp_annotation, filler_annotation],
+        ):
+            qaqc_processor.find_mismatched_substrates()
+
+        assert {record['observation_uuid'] for record in qaqc_processor.working_records} == {'base', 'match'}
+
+    def test_find_missing_expected_association_skips_localization_group_annotations(self):
+        # 'Hydroidolina' is in the expected-association concept list and the lowercase, non-'dead' upon would
+        # otherwise flag this record as missing its expected host association, if it weren't in the "localization"
+        # group
+        annotation = make_annotation(concept='Hydroidolina', group='localization', associations=[
+            {'link_name': 'upon', 'to_concept': 'coral', 'link_value': 'nil'},
+        ])
+        qaqc_processor = VarsQaqcProcessor(
+            sequence_names=['X'],
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
+        )
+        qaqc_processor.phylogeny.data['Hydroidolina'] = {}  # skip the real WoRMS/VARS KB phylogeny fetch
+
+        with patch.object(VarsQaqcProcessor, 'fetch_media_and_annotations', return_value=[annotation]):
+            qaqc_processor.find_missing_expected_association()
+
+        assert qaqc_processor.final_records == []
+
+    def test_find_localizations_without_bounding_boxes(self):
+        bounding_box_association = [{'link_name': 'bounding box', 'to_concept': 'self', 'link_value': 'nil'}]
+        localization_with_box = make_annotation(
+            observation_uuid='loc-with-box', group='localization', associations=bounding_box_association,
+        )
+        localization_without_box = make_annotation(observation_uuid='loc-without-box', group='localization')
+        non_localization_with_box = make_annotation(
+            observation_uuid='non-loc-with-box', associations=bounding_box_association,
+        )
+        non_localization_without_box = make_annotation(observation_uuid='non-loc-without-box')
+        qaqc_processor = VarsQaqcProcessor(
+            sequence_names=['X'],
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
+        )
+
+        with patch.object(
+                VarsQaqcProcessor, 'fetch_media_and_annotations',
+                return_value=[
+                    localization_with_box, localization_without_box,
+                    non_localization_with_box, non_localization_without_box,
+                ],
+        ):
+            qaqc_processor.find_localizations_without_bounding_boxes()
+
+        assert {record['observation_uuid'] for record in qaqc_processor.working_records} == {
+            'loc-without-box', 'non-loc-with-box',
+        }
+
+    def test_find_unique_fields_handles_condition_comment_population_quantity_and_categorical_abundance(self):
+        annotations = [
+            make_annotation(observation_uuid='u1', concept='X', associations=[
+                {'link_name': 'condition-comment', 'to_concept': 'self', 'link_value': 'chipped shell'},
+                {'link_name': 'population-quantity', 'to_concept': 'self', 'link_value': '7'},
+            ]),
+            make_annotation(observation_uuid='u2', concept='X', associations=[
+                {'link_name': 'categorical-abundance', 'to_concept': 'self', 'link_value': '11-20'},
+            ]),
+            make_annotation(observation_uuid='u3', concept='X', associations=[
+                {'link_name': 'categorical-abundance', 'to_concept': 'self', 'link_value': '21-50'},
+            ]),
+            make_annotation(observation_uuid='u4', concept='X', associations=[
+                {'link_name': 'categorical-abundance', 'to_concept': 'self', 'link_value': '51-100'},
+            ]),
+            make_annotation(observation_uuid='u5', concept='X', associations=[
+                {'link_name': 'categorical-abundance', 'to_concept': 'self', 'link_value': '>100'},
+            ]),
+        ]
+        qaqc_processor = VarsQaqcProcessor(
+            sequence_names=['X'],
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
+        )
+
+        with patch.object(VarsQaqcProcessor, 'fetch_media_and_annotations', return_value=annotations):
+            qaqc_processor.find_unique_fields()
+
+        concept_names = next(r for r in qaqc_processor.final_records if 'concept-names' in r)['concept-names']
+        # population-quantity (7) + categorical-abundance buckets (15 + 35 + 75 + 100)
+        assert concept_names['X']['individuals'] == 232
+        assert concept_names['X']['records'] == 5
+        condition_comments = next(
+            r for r in qaqc_processor.final_records if 'condition-comments' in r
+        )['condition-comments']
+        assert condition_comments['chipped shell']['individuals'] == 7

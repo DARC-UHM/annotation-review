@@ -12,6 +12,15 @@ def mocked_requests_get(*args, **kwargs):
     return MockResponse(url=kwargs.get('url'))
 
 
+class MockJsonResponse:
+    def __init__(self, status_code=200, json_data=None):
+        self.status_code = status_code
+        self._json_data = json_data
+
+    def json(self):
+        return self._json_data
+
+
 @pytest.mark.usefixtures('mock_phylogeny_cache')
 class TestVarsAnnotationProcessor:
     def test_init(self):
@@ -264,3 +273,163 @@ class TestVarsAnnotationProcessor:
         )
         annotation_processor.process_sequences()
         assert annotation_processor.highest_id_ref == 13
+
+    def test_fetch_media_and_annotations_returns_empty_when_charybdis_request_fails(self):
+        annotation_processor = VarsAnnotationProcessor(
+            sequence_names=['Deep Discoverer 23060001'],
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
+        )
+
+        with patch('requests.get', return_value=MockJsonResponse(status_code=500)):
+            result = annotation_processor.fetch_media_and_annotations('Deep Discoverer 23060001', images_only=True)
+
+        assert result == []
+
+    def test_get_video_returns_empty_when_annotation_has_no_recorded_timestamp(self):
+        annotation_processor = VarsAnnotationProcessor(
+            sequence_names=['Deep Discoverer 23060001'],
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
+        )
+
+        assert annotation_processor.get_video({'concept': 'X'}) == {}
+
+    def test_fetch_vam_media_returns_empty_when_no_vam_url_configured(self):
+        annotation_processor = VarsAnnotationProcessor(
+            sequence_names=['Deep Discoverer 23060001'],
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
+        )
+
+        with patch('requests.get') as mock_get:
+            result = annotation_processor._fetch_vam_media('Deep Discoverer 23060001')
+
+        mock_get.assert_not_called()
+        assert result == []
+
+    def test_fetch_vam_media_returns_empty_when_vam_request_fails(self):
+        annotation_processor = VarsAnnotationProcessor(
+            sequence_names=['Deep Discoverer 23060001'],
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
+            vars_vam_url='https://vam.url',
+        )
+
+        with patch('requests.get', return_value=MockJsonResponse(status_code=500)):
+            result = annotation_processor._fetch_vam_media('Deep Discoverer 23060001')
+
+        assert result == []
+
+    def test_fetch_vam_media_formats_first_video_reference_per_video(self):
+        annotation_processor = VarsAnnotationProcessor(
+            sequence_names=['Deep Discoverer 23060001'],
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
+            vars_vam_url='https://vam.url',
+        )
+        vam_response = [
+            {
+                'start_timestamp': '2023-08-24T18:00:00Z',
+                'duration_millis': 7200000,
+                'video_references': [
+                    # only the first reference is used
+                    {'uuid': 'vam-uuid-1', 'uri': 'http://hurlstor.soest.hawaii.edu/videoarchive/vam-video.m4v'},
+                    {'uuid': 'vam-uuid-2', 'uri': 'http://hurlstor.soest.hawaii.edu/videoarchive/vam-video-alt.m4v'},
+                ],
+            },
+            {
+                # image-collection references are filtered out entirely
+                'start_timestamp': '2023-08-24T20:00:00Z',
+                'duration_millis': 3600000,
+                'video_references': [{'uuid': 'vam-uuid-3', 'uri': 'urn:imagecollection:org:foo'}],
+            },
+        ]
+
+        with patch('requests.get', return_value=MockJsonResponse(json_data=vam_response)) as mock_get:
+            result = annotation_processor._fetch_vam_media('Deep Discoverer 23060001')
+
+        mock_get.assert_called_once_with(
+            url='https://vam.url/videos/videosequence/name/Deep%20Discoverer%2023060001',
+        )
+        assert result == [
+            {
+                'start_timestamp': parse_datetime('2023-08-24T18:00:00Z'),
+                'uri': 'https://hurlvideo.soest.hawaii.edu/vam-video.m4v',
+                'sequence_name': 'Deep Discoverer 23060001',
+                'video_reference_uuid': 'vam-uuid-1',
+                'duration_millis': 7200000,
+            }
+        ]
+
+    def test_process_working_records_falls_back_to_vam_when_no_video_found(self):
+        annotation_processor = VarsAnnotationProcessor(
+            sequence_names=['Deep Discoverer 23060001'],
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
+            vars_vam_url='https://vam.url',
+        )
+        # Charybdis never returned any media for this sequence, so self.videos starts empty
+        annotation_processor.working_records = [
+            {
+                'observation_uuid': 'abc',
+                'concept': 'none',
+                'associations': [],
+                'recorded_timestamp': '2023-08-24T18:36:14.245Z',
+                'observer': 'NikkiCunanan',
+                'sequence_name': 'Deep Discoverer 23060001',
+                'image_references': [],
+            }
+        ]
+        vam_response = [
+            {
+                'start_timestamp': '2023-08-24T18:00:00Z',
+                'duration_millis': 7200000,
+                'video_references': [
+                    {'uuid': 'vam-uuid-1', 'uri': 'http://hurlstor.soest.hawaii.edu/videoarchive/vam-video.m4v'},
+                ],
+            }
+        ]
+
+        with patch('requests.get', return_value=MockJsonResponse(json_data=vam_response)):
+            formatted_records = annotation_processor.process_working_records()
+
+        assert annotation_processor.videos[0]['video_reference_uuid'] == 'vam-uuid-1'
+        # 18:36:14.245 - 18:00:00 = 36m 14.245s = 2174.245s, truncated to whole seconds
+        assert formatted_records[0]['video_url'] == 'https://hurlvideo.soest.hawaii.edu/vam-video.m4v#t=2174'
+
+    def test_process_working_records_only_fetches_vam_once_per_sequence(self):
+        annotation_processor = VarsAnnotationProcessor(
+            sequence_names=['Deep Discoverer 23060001'],
+            vars_charybdis_url=MockResponse.VARS_CHARYBDIS_URL,
+            vars_kb_url=MockResponse.VARS_KB_URL,
+            vars_vam_url='https://vam.url',
+        )
+        make_annotation = lambda uuid, timestamp: {
+            'observation_uuid': uuid,
+            'concept': 'none',
+            'associations': [],
+            'recorded_timestamp': timestamp,
+            'observer': 'NikkiCunanan',
+            'sequence_name': 'Deep Discoverer 23060001',
+            'image_references': [],
+        }
+        annotation_processor.working_records = [
+            make_annotation('abc', '2023-08-24T18:36:14.245Z'),
+            make_annotation('def', '2023-08-24T18:40:00Z'),
+        ]
+        vam_response = [
+            {
+                'start_timestamp': '2023-08-24T18:00:00Z',
+                'duration_millis': 7200000,
+                'video_references': [
+                    {'uuid': 'vam-uuid-1', 'uri': 'http://hurlstor.soest.hawaii.edu/videoarchive/vam-video.m4v'},
+                ],
+            }
+        ]
+
+        with patch('requests.get', return_value=MockJsonResponse(json_data=vam_response)) as mock_get:
+            formatted_records = annotation_processor.process_working_records()
+
+        assert mock_get.call_count == 1
+        assert all(record['video_url'] for record in formatted_records)
