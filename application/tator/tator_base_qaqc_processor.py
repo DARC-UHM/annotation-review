@@ -4,6 +4,7 @@ import sys
 
 from application.tator.image_guide_presentation import ImageGuidePresentation
 from application.tator.tator_localization_processor import TatorLocalizationProcessor
+from application.tator.tator_type import TatorLocalizationType
 
 
 class TatorBaseQaqcProcessor(TatorLocalizationProcessor, ABC):
@@ -181,6 +182,34 @@ class TatorBaseQaqcProcessor(TatorLocalizationProcessor, ABC):
             records_of_interest = []
             for localization in section.localizations:
                 if localization['attributes'].get('Reason') == 'To be re-examined':
+                    records_of_interest.append(localization)
+            section.localizations = records_of_interest
+        self.process_records()
+
+    def get_missing_good_image(self):
+        """
+        Finds all scientific name, tentative ID, and morphospecies combos that don't have a good image associated with them.
+        """
+        taxa_image_map = {}
+        for section in self.sections:
+            for localization in section.localizations:
+                scientific_name = localization['attributes'].get('Scientific Name')
+                tentative_id = localization['attributes'].get('Tentative ID')
+                morphospecies = localization['attributes'].get('Morphospecies')
+                key = (scientific_name, tentative_id, morphospecies)
+                has_good_image = localization['attributes'].get('Good Image', False)
+                if key not in taxa_image_map:
+                    taxa_image_map[key] = has_good_image
+                else:
+                    taxa_image_map[key] = taxa_image_map[key] or has_good_image
+        for section in self.sections:
+            records_of_interest = []
+            for localization in section.localizations:
+                scientific_name = localization['attributes'].get('Scientific Name')
+                tentative_id = localization['attributes'].get('Tentative ID')
+                morphospecies = localization['attributes'].get('Morphospecies')
+                key = (scientific_name, tentative_id, morphospecies)
+                if taxa_image_map.get(key, False) is False and TatorLocalizationType.is_box(localization['type']):
                     records_of_interest.append(localization)
             section.localizations = records_of_interest
         self.process_records()

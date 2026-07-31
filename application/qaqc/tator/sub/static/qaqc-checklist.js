@@ -67,6 +67,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
     $('#missingUponAnchor').on('click', () => showLoader());
     $('#uponNotSubstrateAnchor').attr('href', `${qaqcCheckRoute}/upon-not-substrate?${urlParams}`);
     $('#uponNotSubstrateAnchor').on('click', () => showLoader());
+    $('#missingGoodImageAnchor').attr('href', `${qaqcCheckRoute}/missing-good-image?${urlParams}`);
+    $('#missingGoodImageAnchor').on('click', () => showLoader());
     $('#suspiciousHostAnchor').attr('href', `${qaqcCheckRoute}/suspicious-hosts?${urlParams}`);
     $('#suspiciousHostAnchor').on('click', () => showLoader());
     $('#timeDiffHostUponAnchor').attr('href', `${qaqcCheckRoute}/host-associate-time-diff?${urlParams}`);

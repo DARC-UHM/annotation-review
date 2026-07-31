@@ -4,6 +4,7 @@ import pytest
 
 from application.tator.tator_base_qaqc_processor import TatorBaseQaqcProcessor
 from application.tator.tator_rest_client import TatorRestClient
+from application.tator.tator_type import TatorLocalizationType
 from test.tator.conftest import TATOR_URL, make_localization, mock_get_section_by_id
 
 
@@ -429,3 +430,65 @@ class TestTatorBaseQaqcProcessor:
         assert tator_qaqc_processor.final_records[1]['observation_uuid'] == 3
         mock_presentation_cls.return_value.build.assert_called_once_with(tator_qaqc_processor.final_records)
         assert result == 'a real cool presentation'
+
+    @patch.object(TatorRestClient, 'get_section_by_id', mock_get_section_by_id)
+    def test_get_missing_good_image(self, fake_session, stub_annotator, stub_worms_match):
+        tator_qaqc_processor = ConcreteQaqcProcessor(
+            project_id=1,
+            section_ids=['1'],
+            tator_url=TATOR_URL,
+        )
+        tator_qaqc_processor.sections[0].localizations = [
+            # combo has a good image on another box -> neither box for this combo is flagged
+            make_localization(
+                elemental_id=1,
+                frame=1,
+                width=1,
+                height=1,
+                localization_type=TatorLocalizationType.BOX,
+                attributes={'Scientific Name': 'Squalus', 'Good Image': False},
+            ),
+            make_localization(
+                elemental_id=2,
+                frame=2,
+                width=1,
+                height=1,
+                localization_type=TatorLocalizationType.BOX,
+                attributes={'Scientific Name': 'Squalus', 'Good Image': True},
+            ),
+            # only box for this combo, no good image anywhere -> flagged
+            make_localization(
+                elemental_id=3,
+                frame=3,
+                width=1,
+                height=1,
+                localization_type=TatorLocalizationType.BOX,
+                attributes={'Scientific Name': 'Mustelus', 'Good Image': False},
+            ),
+            # combo's good image lives on a dot, not the box -> the box is still not flagged
+            make_localization(
+                elemental_id=4,
+                frame=4,
+                localization_type=TatorLocalizationType.DOT,
+                attributes={'Scientific Name': 'Carcharhinus', 'Good Image': True},
+            ),
+            make_localization(
+                elemental_id=5,
+                frame=5,
+                width=1,
+                height=1,
+                localization_type=TatorLocalizationType.BOX,
+                attributes={'Scientific Name': 'Carcharhinus', 'Good Image': False},
+            ),
+            # no box exists for this combo at all -> the dot itself is never eligible to be flagged
+            make_localization(
+                elemental_id=6,
+                frame=6,
+                localization_type=TatorLocalizationType.DOT,
+                attributes={'Scientific Name': 'Prionace', 'Good Image': False},
+            ),
+        ]
+
+        tator_qaqc_processor.get_missing_good_image()
+
+        assert [record['observation_uuid'] for record in tator_qaqc_processor.final_records] == [3]

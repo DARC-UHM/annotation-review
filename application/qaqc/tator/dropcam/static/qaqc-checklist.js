@@ -63,6 +63,8 @@ document.addEventListener('DOMContentLoaded',  (event) => {
     $('#nonTargetNotAttractedAnchor').on('click', () => showLoader());
     $('#existsInImageRefsAnchor').attr('href', `/qaqc/tator/dropcam/check/exists-in-image-references?${urlParams}`);
     $('#existsInImageRefsAnchor').on('click', () => showLoader());
+    $('#missingGoodImageAnchor').attr('href', `/qaqc/tator/dropcam/check/missing-good-image?${urlParams}`);
+    $('#missingGoodImageAnchor').on('click', () => showLoader());
     $('#attractedAnchor').attr('href', `/qaqc/tator/dropcam/check/attracted-not-attracted?${urlParams}`);
     $('#attractedAnchor').on('click', () => showLoader());
     $('#tentativeIdAnchor').attr('href', `/qaqc/tator/dropcam/check/all-tentative-ids?${urlParams}`);

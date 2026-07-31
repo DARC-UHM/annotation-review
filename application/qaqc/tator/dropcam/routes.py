@@ -168,6 +168,10 @@ def dropcam_qaqc(check):
             qaqc_annos.check_exists_in_image_references(image_refs)
             data['page_title'] = 'Records that do not exist in image references'
             data['subtitle'] = '(also flags records that have both a tentative ID and a morphospecies)'
+        case 'missing-good-image':
+            qaqc_annos.get_missing_good_image()
+            data['page_title'] = 'Records missing a good image'
+            data['subtitle'] = 'Keyed by combination of scientific name, tentative ID, and morphospecies (only boxes are displayed)'
         case 'same-name-qualifier':
             qaqc_annos.check_same_name_qualifier()
             data['page_title'] = 'Records with the same scientific name/tentative ID but different qualifiers'

@@ -184,6 +184,10 @@ def sub_qaqc(check):
         case 'upon-not-substrate':
             qaqc_annos.check_upons_are_current_substrate_or_previous_animal()
             data['page_title'] = 'Records where upon is not the current substrate or an animal that was previously recorded'
+        case 'missing-good-image':
+            qaqc_annos.get_missing_good_image()
+            data['page_title'] = 'Records missing a good image'
+            data['subtitle'] = 'Keyed by combination of scientific name, tentative ID, and morphospecies (only boxes are displayed)'
         case 'suspicious-hosts':
             qaqc_annos.get_suspicious_records()
             data['page_title'] = 'Records with a suspicious upon (host upon itself)'
