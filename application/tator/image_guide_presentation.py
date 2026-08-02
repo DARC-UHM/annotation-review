@@ -1,4 +1,5 @@
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from io import BytesIO
 
 from PIL import Image
@@ -24,6 +25,7 @@ class ImageGuidePresentation:
     IMAGE_HEADER_HEIGHT = Inches(0.45)
     ROW_TOPS = [Inches(1.5), Inches(4.25)]  # header top for each row
     BORDER_WIDTH = Pt(1.5)
+    MAX_FETCH_WORKERS = 12
 
     def __init__(self, tator_client: TatorRestClient):
         self.tator_client = tator_client
@@ -31,6 +33,7 @@ class ImageGuidePresentation:
     def build(self, records: list[dict]):
         pres = Presentation()
         image_slide_layout = pres.slide_layouts[6]
+        fetched_images = self._fetch_all_images(records)
 
         i = 0
         while i < len(records):
@@ -41,13 +44,10 @@ class ImageGuidePresentation:
                 if i >= len(records):
                     break
                 localization = records[i]
-                if localization.get('phylum') != current_phylum and current_phylum != 'UNKNOWN PHYLUM':
+                if (localization.get('phylum') or 'UNKNOWN PHYLUM') != current_phylum:
                     break
-                print(f'Processing image {i + 1}/{len(records)}')
-                try:
-                    image_data = self._fetch_normalized_image_with_retry(localization)
-                except Exception as e:
-                    print(f'Error fetching image for localization {localization["observation_uuid"]}: {e}')
+                image_data = fetched_images.get(localization['observation_uuid'])
+                if image_data is None:
                     i += 1
                     continue
                 header_top = self.ROW_TOPS[j // 3]
@@ -60,6 +60,23 @@ class ImageGuidePresentation:
                     self._add_not_attracted_overlay(slide, left, image_top)
                 i += 1
         return pres
+
+    def _fetch_all_images(self, records: list[dict]) -> dict[str, BytesIO]:
+        """Fetches images for all records concurrently. A failed fetch has no entry in the result."""
+        images = {}
+        with ThreadPoolExecutor(max_workers=self.MAX_FETCH_WORKERS) as executor:
+            future_to_uuid = {
+                executor.submit(self._fetch_normalized_image_with_retry, localization): localization['observation_uuid']
+                for localization in records
+            }
+            for n, future in enumerate(as_completed(future_to_uuid), start=1):
+                observation_uuid = future_to_uuid[future]
+                print(f'Processing image {n}/{len(records)}')
+                try:
+                    images[observation_uuid] = future.result()
+                except Exception as e:
+                    print(f'Error fetching image for localization {observation_uuid}: {e}')
+        return images
 
     def _add_phylum_header(self, slide, phylum: str):
         text_box = slide.shapes.add_textbox(Inches(0.5), Inches(0.5), Inches(9), Inches(0.5))

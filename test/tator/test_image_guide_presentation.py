@@ -1,3 +1,4 @@
+import time
 from io import BytesIO
 from unittest.mock import patch
 
@@ -103,6 +104,37 @@ class TestImageGuidePresentation:
 
         assert len(presentation.slides) == 1
         assert len(pictures(presentation.slides[0])) == 2
+
+    def test_fetch_all_images_keys_by_observation_uuid_despite_out_of_order_completion(
+            self, image_guide_presentation,
+    ):
+        records = [{'observation_uuid': f'uuid-{i}'} for i in range(5)]
+
+        # delays are deliberately inverted so results complete in the opposite order they were submitted in
+        def fetch(localization):
+            index = int(localization['observation_uuid'].split('-')[1])
+            time.sleep((len(records) - index) * 0.01)
+            return f'image-{localization["observation_uuid"]}'
+
+        with patch.object(ImageGuidePresentation, '_fetch_normalized_image_with_retry', side_effect=fetch):
+            images = image_guide_presentation._fetch_all_images(records)
+
+        assert images == {f'uuid-{i}': f'image-uuid-{i}' for i in range(5)}
+
+    def test_fetch_all_images_omits_entry_for_failed_fetch_without_disturbing_others(
+            self, image_guide_presentation,
+    ):
+        records = [{'observation_uuid': f'uuid-{i}'} for i in range(3)]
+
+        def fetch(localization):
+            if localization['observation_uuid'] == 'uuid-1':
+                raise ValueError('oh no!')
+            return f'image-{localization["observation_uuid"]}'
+
+        with patch.object(ImageGuidePresentation, '_fetch_normalized_image_with_retry', side_effect=fetch):
+            images = image_guide_presentation._fetch_all_images(records)
+
+        assert images == {'uuid-0': 'image-uuid-0', 'uuid-2': 'image-uuid-2'}
 
     @pytest.mark.parametrize('localization_type,attracted,expect_overlay', [
         (TatorLocalizationType.DOT, None, True),  # dropcam, no attracted value at all -> overlay

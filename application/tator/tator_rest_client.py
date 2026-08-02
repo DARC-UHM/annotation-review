@@ -1,5 +1,3 @@
-import base64
-
 import requests
 
 from application.tator.tator_type import TatorStateType
@@ -102,15 +100,13 @@ class TatorRestClient:
             params['quality'] = quality
         res = requests.get(url=url, headers=self._headers, params=params)
         res.raise_for_status()
-        base64_image = base64.b64encode(res.content).decode('utf-8')
-        return base64.b64decode(base64_image)
+        return res.content
 
     def get_localization_graphic(self, localization_id: int) -> bytes:
         url = f'{self.base_url}/rest/LocalizationGraphic/{localization_id}'
         res = requests.get(url=url, headers=self._headers)
         res.raise_for_status()
-        base64_image = base64.b64encode(res.content).decode('utf-8')
-        return base64.b64decode(base64_image)
+        return res.content
 
     @staticmethod
     def _format_timestamp(seconds: float) -> str:
