@@ -1,4 +1,3 @@
-import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from io import BytesIO
 
@@ -66,7 +65,7 @@ class ImageGuidePresentation:
         images = {}
         with ThreadPoolExecutor(max_workers=self.MAX_FETCH_WORKERS) as executor:
             future_to_uuid = {
-                executor.submit(self._fetch_normalized_image_with_retry, localization): localization['observation_uuid']
+                executor.submit(self._fetch_normalized_image, localization): localization['observation_uuid']
                 for localization in records
             }
             for n, future in enumerate(as_completed(future_to_uuid), start=1):
@@ -155,19 +154,6 @@ class ImageGuidePresentation:
         run.font.color.rgb = RGBColor(0xff, 0xff, 0xff)
         run.font.italic = italic
         return run
-
-    def _fetch_normalized_image_with_retry(self, localization: dict) -> BytesIO:
-        retries = 3
-
-        for attempt in range(1, retries + 1):
-            try:
-                return self._fetch_normalized_image(localization)
-            except Exception as e:
-                if attempt == retries:
-                    raise
-                print(f'Retrying image fetch for localization {localization["observation_uuid"]} (attempt {attempt}/{retries}): {e}')
-                time.sleep(1)
-        raise RuntimeError('Failed to fetch image after 3 attempts')
 
     def _fetch_normalized_image(self, localization: dict) -> BytesIO:
         """Fetches full frame from Tator, crops to localization bounds, and expands to 16:9 aspect ratio."""

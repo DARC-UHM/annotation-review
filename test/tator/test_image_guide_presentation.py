@@ -55,7 +55,7 @@ class TestImageGuidePresentation:
         ]
 
         with patch.object(
-                ImageGuidePresentation, '_fetch_normalized_image_with_retry',
+                ImageGuidePresentation, '_fetch_normalized_image',
                 side_effect=lambda localization: make_jpeg_bytes(),
         ):
             presentation = image_guide_presentation.build(records)
@@ -73,7 +73,7 @@ class TestImageGuidePresentation:
         ]
 
         with patch.object(
-                ImageGuidePresentation, '_fetch_normalized_image_with_retry',
+                ImageGuidePresentation, '_fetch_normalized_image',
                 side_effect=lambda localization: make_jpeg_bytes(),
         ):
             presentation = image_guide_presentation.build(records)
@@ -98,7 +98,7 @@ class TestImageGuidePresentation:
             return make_jpeg_bytes()
 
         with patch.object(
-                ImageGuidePresentation, '_fetch_normalized_image_with_retry', side_effect=fetch_or_fail,
+                ImageGuidePresentation, '_fetch_normalized_image', side_effect=fetch_or_fail,
         ):
             presentation = image_guide_presentation.build(records)
 
@@ -116,7 +116,7 @@ class TestImageGuidePresentation:
             time.sleep((len(records) - index) * 0.01)
             return f'image-{localization["observation_uuid"]}'
 
-        with patch.object(ImageGuidePresentation, '_fetch_normalized_image_with_retry', side_effect=fetch):
+        with patch.object(ImageGuidePresentation, '_fetch_normalized_image', side_effect=fetch):
             images = image_guide_presentation._fetch_all_images(records)
 
         assert images == {f'uuid-{i}': f'image-uuid-{i}' for i in range(5)}
@@ -131,7 +131,7 @@ class TestImageGuidePresentation:
                 raise ValueError('oh no!')
             return f'image-{localization["observation_uuid"]}'
 
-        with patch.object(ImageGuidePresentation, '_fetch_normalized_image_with_retry', side_effect=fetch):
+        with patch.object(ImageGuidePresentation, '_fetch_normalized_image', side_effect=fetch):
             images = image_guide_presentation._fetch_all_images(records)
 
         assert images == {'uuid-0': 'image-uuid-0', 'uuid-2': 'image-uuid-2'}
@@ -156,7 +156,7 @@ class TestImageGuidePresentation:
         ]
 
         with patch.object(
-                ImageGuidePresentation, '_fetch_normalized_image_with_retry',
+                ImageGuidePresentation, '_fetch_normalized_image',
                 side_effect=lambda localization: make_jpeg_bytes(),
         ):
             presentation = image_guide_presentation.build(records)
@@ -168,7 +168,7 @@ class TestImageGuidePresentation:
         records = [{'observation_uuid': 1, 'scientific_name': 'A'}]  # no 'phylum' key
 
         with patch.object(
-                ImageGuidePresentation, '_fetch_normalized_image_with_retry',
+                ImageGuidePresentation, '_fetch_normalized_image',
                 side_effect=lambda localization: make_jpeg_bytes(),
         ):
             presentation = image_guide_presentation.build(records)
@@ -275,35 +275,6 @@ class TestImageGuidePresentation:
             ('sp. 1', True),
             (')', False),
         ]
-
-    def test_fetch_normalized_image_with_retry_succeeds_first_try(self, image_guide_presentation):
-        localization = {'observation_uuid': 1}
-        with patch.object(ImageGuidePresentation, '_fetch_normalized_image', return_value='the-image') as mock_fetch:
-            result = image_guide_presentation._fetch_normalized_image_with_retry(localization)
-
-        assert result == 'the-image'
-        assert mock_fetch.call_count == 1
-
-    def test_fetch_normalized_image_with_retry_succeeds_after_transient_failures(self, image_guide_presentation):
-        localization = {'observation_uuid': 1}
-        with patch.object(
-                ImageGuidePresentation, '_fetch_normalized_image',
-                side_effect=[ValueError('oh no!'), ValueError('OHHH NOOOOO!!'), 'image'],
-        ) as mock_fetch, patch('time.sleep'):
-            result = image_guide_presentation._fetch_normalized_image_with_retry(localization)
-
-        assert result == 'image'
-        assert mock_fetch.call_count == 3
-
-    def test_fetch_normalized_image_with_retry_raises_after_exhausting_retries(self, image_guide_presentation):
-        localization = {'observation_uuid': 1}
-        with patch.object(
-                ImageGuidePresentation, '_fetch_normalized_image', side_effect=ValueError('oh no!'),
-        ) as mock_fetch, patch('time.sleep'):
-            with pytest.raises(ValueError):
-                image_guide_presentation._fetch_normalized_image_with_retry(localization)
-
-        assert mock_fetch.call_count == 3
 
     def test_fetch_normalized_image_crops_without_expansion_when_box_matches_target_aspect(
             self, image_guide_presentation,

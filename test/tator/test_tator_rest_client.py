@@ -3,7 +3,7 @@ from unittest.mock import patch
 import pytest
 import requests
 
-from application.tator.tator_rest_client import TatorRestClient
+from application.tator.tator_rest_client import DEFAULT_TIMEOUT, TatorRestClient
 from application.tator.tator_type import TatorStateType
 
 TATOR_URL = 'https://whats.tator.precious'
@@ -70,23 +70,43 @@ class TestTatorRestClient:
             'Authorization': f'Token {TOKEN}',
         }
 
-    @patch('requests.post', side_effect=mocked_requests_post)
+    def test_session_retries_on_5xx_status_and_connection_errors(self):
+        client = TatorRestClient(TATOR_URL, TOKEN)
+        retry = client._session.get_adapter(TATOR_URL).max_retries
+        assert retry.total == 3
+        assert retry.status == 3
+        assert retry.connect == 3
+        assert retry.read == 3
+        assert set(retry.status_forcelist) == {500, 502, 503, 504}
+
+    @patch('requests.Session.get', return_value=MockResponse(json_data={'id': 42, 'username': 'testuser'}))
+    def test_requests_pass_default_timeout(self, mock_get):
+        client = TatorRestClient(TATOR_URL, TOKEN)
+        client.get_user(42)
+        assert mock_get.call_args.kwargs['timeout'] == DEFAULT_TIMEOUT
+
+    @patch('requests.Session.post', return_value=MockResponse(json_data={'token': 'my-token'}))
+    def test_login_passes_default_timeout(self, mock_post):
+        TatorRestClient.login(TATOR_URL, 'testuser', 'password')
+        assert mock_post.call_args.kwargs['timeout'] == DEFAULT_TIMEOUT
+
+    @patch('requests.Session.post', side_effect=mocked_requests_post)
     def test_login(self, _):
         token = TatorRestClient.login(TATOR_URL, 'testuser', 'password')
         assert token == 'my-token'
 
-    @patch('requests.post', side_effect=mocked_requests_post)
+    @patch('requests.Session.post', side_effect=mocked_requests_post)
     def test_login_invalid_credentials(self, _):
         with pytest.raises(requests.exceptions.HTTPError):
             TatorRestClient.login(TATOR_URL, 'baduser', 'badpass')
 
-    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.Session.get', side_effect=mocked_requests_get)
     def test_get_localizations_by_section(self, _):
         client = TatorRestClient(TATOR_URL, TOKEN)
         result = client.get_localizations(project_id=1, section_id=123)
         assert result == [{'id': 1}, {'id': 2}]
 
-    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.Session.get', side_effect=mocked_requests_get)
     def test_get_localizations_by_media_id(self, _):
         client = TatorRestClient(TATOR_URL, TOKEN)
         result = client.get_localizations(project_id=1, media_ids=[10, 20])
@@ -97,25 +117,25 @@ class TestTatorRestClient:
         with pytest.raises(ValueError):
             client.get_localizations(project_id=1)
 
-    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.Session.get', side_effect=mocked_requests_get)
     def test_get_section_by_id(self, _):
         client = TatorRestClient(TATOR_URL, TOKEN)
         result = client.get_section_by_id(123)
         assert result == {'id': 123, 'name': 'Test Section'}
 
-    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.Session.get', side_effect=mocked_requests_get)
     def test_get_medias_for_sections(self, _):
         client = TatorRestClient(TATOR_URL, TOKEN)
         result = client.get_medias_for_sections(project_id=1, section_ids=[123])
         assert result == [{'id': 10}, {'id': 20}]
 
-    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.Session.get', side_effect=mocked_requests_get)
     def test_get_media_by_id(self, _):
         client = TatorRestClient(TATOR_URL, TOKEN)
         result = client.get_media_by_id(10)
         assert result == {'id': 10, 'name': 'test_media'}
 
-    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.Session.get', side_effect=mocked_requests_get)
     def test_get_substrates_groups_and_sorts_by_timestamp(self, _):
         client = TatorRestClient(TATOR_URL, TOKEN)
         media_list = [
@@ -134,19 +154,19 @@ class TestTatorRestClient:
             {'Relief': 'Flat', 'timestamp': '00:02', 'frame': 50},
         ]
 
-    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.Session.get', side_effect=mocked_requests_get)
     def test_get_user(self, _):
         client = TatorRestClient(TATOR_URL, TOKEN)
         result = client.get_user(42)
         assert result == {'id': 42, 'username': 'testuser'}
 
-    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.Session.get', side_effect=mocked_requests_get)
     def test_get_frame(self, _):
         client = TatorRestClient(TATOR_URL, TOKEN)
         result = client.get_frame(media_id=10)
         assert result == b'fake-frame-bytes'
 
-    @patch('requests.get', side_effect=mocked_requests_get)
+    @patch('requests.Session.get', side_effect=mocked_requests_get)
     def test_get_localization_graphic(self, _):
         client = TatorRestClient(TATOR_URL, TOKEN)
         result = client.get_localization_graphic(localization_id=99)

@@ -1,6 +1,11 @@
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 from application.tator.tator_type import TatorStateType
+
+RETRYABLE_STATUS_CODES = frozenset({500, 502, 503, 504})
+DEFAULT_TIMEOUT = (10, 30)  # (connect, read) seconds
 
 
 class TatorRestClient:
@@ -15,14 +20,33 @@ class TatorRestClient:
             'Content-Type': 'application/json',
             'Authorization': f'Token {token}',
         }
+        self._session = self._build_session()
+
+    @staticmethod
+    def _build_session() -> requests.Session:
+        """Session that retries transient 5xx/connection/read errors with backoff."""
+        session = requests.Session()
+        retry = Retry(
+            total=3,
+            connect=3,
+            read=3,
+            status=3,
+            backoff_factor=1,
+            status_forcelist=RETRYABLE_STATUS_CODES,
+        )
+        adapter = HTTPAdapter(max_retries=retry)
+        session.mount('https://', adapter)
+        session.mount('http://', adapter)
+        return session
 
     @staticmethod
     def login(tator_url: str, username: str, password: str) -> str:
         """Returns a Tator API token for the given credentials, or raises HTTPError on failure."""
-        res = requests.post(
+        res = TatorRestClient._build_session().post(
             url=f'{tator_url}/rest/Token',
             headers={'Content-Type': 'application/json'},
             json={'username': username, 'password': password, 'refresh': True},
+            timeout=DEFAULT_TIMEOUT,
         )
         res.raise_for_status()
         return res.json()['token']
@@ -34,25 +58,25 @@ class TatorRestClient:
             url = f'{self.base_url}/rest/Localizations/{project_id}?section={section_id}'
         else:
             raise ValueError('Must provide either section or media_id')
-        res = requests.get(url=url, headers=self._headers)
+        res = self._session.get(url=url, headers=self._headers, timeout=DEFAULT_TIMEOUT)
         res.raise_for_status()
         return res.json()
 
     def get_section_by_id(self, section_id: int) -> dict:
         url = f'{self.base_url}/rest/Section/{section_id}'
-        res = requests.get(url=url, headers=self._headers)
+        res = self._session.get(url=url, headers=self._headers, timeout=DEFAULT_TIMEOUT)
         res.raise_for_status()
         return res.json()
 
     def get_medias_for_sections(self, project_id: int, section_ids: list[int]) -> list:
         url = f'{self.base_url}/rest/Medias/{project_id}?multi_section={",".join([str(s) for s in section_ids])}'
-        res = requests.get(url=url, headers=self._headers)
+        res = self._session.get(url=url, headers=self._headers, timeout=DEFAULT_TIMEOUT)
         res.raise_for_status()
         return res.json()
 
     def get_media_by_id(self, media_id: int) -> dict:
         url = f'{self.base_url}/rest/Media/{media_id}'
-        res = requests.get(url=url, headers=self._headers)
+        res = self._session.get(url=url, headers=self._headers, timeout=DEFAULT_TIMEOUT)
         res.raise_for_status()
         return res.json()
 
@@ -81,13 +105,13 @@ class TatorRestClient:
 
     def _get_states(self, project_id: int, media_ids: list[int]):
         states_url = f'{self.base_url}/rest/States/{project_id}?media_id={",".join([str(m) for m in media_ids])}'
-        states_res = requests.get(url=states_url, headers=self._headers)
+        states_res = self._session.get(url=states_url, headers=self._headers, timeout=DEFAULT_TIMEOUT)
         states_res.raise_for_status()
         return states_res.json()
 
     def get_user(self, user_id: int) -> dict:
         url = f'{self.base_url}/rest/User/{user_id}'
-        res = requests.get(url=url, headers=self._headers)
+        res = self._session.get(url=url, headers=self._headers, timeout=DEFAULT_TIMEOUT)
         res.raise_for_status()
         return res.json()
 
@@ -98,13 +122,13 @@ class TatorRestClient:
             params['frames'] = frame
         if quality is not None:
             params['quality'] = quality
-        res = requests.get(url=url, headers=self._headers, params=params)
+        res = self._session.get(url=url, headers=self._headers, params=params, timeout=DEFAULT_TIMEOUT)
         res.raise_for_status()
         return res.content
 
     def get_localization_graphic(self, localization_id: int) -> bytes:
         url = f'{self.base_url}/rest/LocalizationGraphic/{localization_id}'
-        res = requests.get(url=url, headers=self._headers)
+        res = self._session.get(url=url, headers=self._headers, timeout=DEFAULT_TIMEOUT)
         res.raise_for_status()
         return res.content
 
