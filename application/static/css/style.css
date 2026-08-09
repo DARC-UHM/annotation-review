@@ -765,3 +765,12 @@ select:active {
     font-size: calc(.6 * var(--size));
     line-height: 0;
 }
+
+.header-link {
+    color: #ffffff50;
+    transition: 0.1s;
+}
+
+.header-link:hover {
+    color: #ffffff80;
+}
