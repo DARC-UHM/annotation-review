@@ -253,11 +253,11 @@ class TestImageGuidePresentation:
         image_guide_presentation._add_image_header(slide, localization, Inches(0.5), Inches(1.5))
 
         paragraph = slide.shapes[1].text_frame.paragraphs[0]
+        # tentative_id is already a full binomial -> no ' sp.' appended
         assert run_texts(paragraph) == [
             ('Cydippida', False),
             (' (', False),
             ('Bathocyroe fosteri', True),
-            (' sp.', False),
             ('?)', False),
         ]
 
@@ -274,6 +274,48 @@ class TestImageGuidePresentation:
             (' (', False),
             ('sp. 1', True),
             (')', False),
+        ]
+
+    def test_add_image_header_tentative_id_or_prefix(self, image_guide_presentation):
+        slide = make_slide()
+        localization = {
+            'scientific_name': 'Cydippida',
+            'tentative_id': 'or Bathocyroe',
+            'family': 'Bathocyroidae',
+        }
+
+        image_guide_presentation._add_image_header(slide, localization, Inches(0.5), Inches(1.5))
+
+        paragraph = slide.shapes[1].text_frame.paragraphs[0]
+        assert run_texts(paragraph) == [
+            ('Cydippida', False),
+            (' (', False),
+            ('or ', False),
+            ('Bathocyroe', True),
+            (' sp.', False),
+            ('?)', False),
+        ]
+
+    def test_add_image_header_tentative_id_or_infix(self, image_guide_presentation):
+        slide = make_slide()
+        localization = {
+            'scientific_name': 'Cydippida',
+            'tentative_id': 'Bathocyroe or Bolinopsis',
+            'family': 'Bathocyroidae',
+        }
+
+        image_guide_presentation._add_image_header(slide, localization, Inches(0.5), Inches(1.5))
+
+        paragraph = slide.shapes[1].text_frame.paragraphs[0]
+        assert run_texts(paragraph) == [
+            ('Cydippida', False),
+            (' (', False),
+            ('Bathocyroe', True),
+            (' sp.', False),
+            (' or ', False),
+            ('Bolinopsis', True),
+            (' sp.', False),
+            ('?)', False),
         ]
 
     def test_fetch_normalized_image_crops_without_expansion_when_box_matches_target_aspect(

@@ -117,19 +117,34 @@ class ImageGuidePresentation:
         paragraph.alignment = PP_ALIGN.CENTER
         tentative_id = localization.get('tentative_id')
         morphospecies = localization.get('morphospecies')
-        self._make_run(paragraph, localization['scientific_name'], italic=bool(localization.get('genus')))
-        if localization.get('genus') and not localization.get('species'):
+        has_genus = bool(localization.get('genus'))
+        has_family = bool(localization.get('family'))
+        has_species = bool(localization.get('species'))
+        self._make_run(paragraph, localization['scientific_name'], italic=has_genus)
+        if has_genus and not has_species:
             self._make_run(paragraph, ' sp.', italic=False)
-        if tentative_id or morphospecies:
-            extra_id = tentative_id or morphospecies
+        if tentative_id:
             self._make_run(paragraph, ' (', italic=False)
-            self._make_run(paragraph, extra_id, italic=bool(localization.get('family')))
-            if localization.get('family') and not morphospecies:
-                self._make_run(paragraph, ' sp.', italic=False)
-            if tentative_id:
-                self._make_run(paragraph, '?)', italic=False)
+            if tentative_id.startswith('or '):
+                self._make_run(paragraph, 'or ', italic=False)
+                self._write_tentative_segment(paragraph, tentative_id[3:], has_family, has_genus)
+            elif ' or ' in tentative_id:
+                first, second = tentative_id.split(' or ')
+                self._write_tentative_segment(paragraph, first, has_family, has_genus)
+                self._make_run(paragraph, ' or ', italic=False)
+                self._write_tentative_segment(paragraph, second, has_family, has_genus)
             else:
-                self._make_run(paragraph, ')', italic=False)
+                self._write_tentative_segment(paragraph, tentative_id, has_family, has_genus)
+            self._make_run(paragraph, '?)', italic=False)
+        elif morphospecies:
+            self._make_run(paragraph, ' (', italic=False)
+            self._make_run(paragraph, morphospecies, italic=has_family)
+            self._make_run(paragraph, ')', italic=False)
+
+    def _write_tentative_segment(self, paragraph, text, has_family, has_genus):
+        self._make_run(paragraph, text, italic=has_family)
+        if has_family and not has_genus and ' ' not in text.strip():
+            self._make_run(paragraph, ' sp.', italic=False)
 
     def _add_not_attracted_overlay(self, slide, left, image_top):
         overlay_height = Inches(0.35)
