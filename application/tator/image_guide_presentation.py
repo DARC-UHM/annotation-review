@@ -6,6 +6,8 @@ from pptx import Presentation
 from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_AUTO_SHAPE_TYPE
 from pptx.enum.text import MSO_ANCHOR, PP_ALIGN
+from pptx.slide import Slide
+from pptx.text.text import _Paragraph
 from pptx.util import Inches, Pt
 
 from application.tator.tator_rest_client import TatorRestClient
@@ -77,24 +79,12 @@ class ImageGuidePresentation:
                     print(f'Error fetching image for localization {observation_uuid}: {e}')
         return images
 
-    def _add_phylum_header(self, slide, phylum: str):
-        text_box = slide.shapes.add_textbox(Inches(0.5), Inches(0.5), Inches(9), Inches(0.5))
-        text_frame = text_box.text_frame
-        paragraph = text_frame.paragraphs[0]
-        paragraph.alignment = PP_ALIGN.CENTER
-        run = paragraph.add_run()
-        run.text = ' '.join(list(phylum.upper()))
-        font = run.font
-        font.name = 'Arial'
-        font.size = Pt(32)
-        font.color.rgb = RGBColor(0, 0, 0)
-
-    def _add_image(self, slide, image_data: BytesIO, left, top):
+    def _add_image(self, slide: Slide, image_data: BytesIO, left, top):
         picture = slide.shapes.add_picture(image_data, left, top, width=self.IMAGE_WIDTH, height=self.IMAGE_HEIGHT)
         picture.line.color.rgb = RGBColor(0, 0, 0)
         picture.line.width = self.BORDER_WIDTH
 
-    def _add_image_header(self, slide, localization: dict, left, top):
+    def _add_image_header(self, slide: Slide, localization: dict, left: Inches, top: Inches):
         # Black background rectangle
         rect = slide.shapes.add_shape(
             autoshape_type_id=MSO_AUTO_SHAPE_TYPE.RECTANGLE,
@@ -122,31 +112,31 @@ class ImageGuidePresentation:
         has_species = bool(localization.get('species'))
         self._make_run(paragraph, localization['scientific_name'], italic=has_genus)
         if has_genus and not has_species:
-            self._make_run(paragraph, ' sp.', italic=False)
+            self._make_run(paragraph, ' sp.')
         if tentative_id:
-            self._make_run(paragraph, ' (', italic=False)
+            self._make_run(paragraph, ' (')
             if tentative_id.startswith('or '):
-                self._make_run(paragraph, 'or ', italic=False)
+                self._make_run(paragraph, 'or ')
                 self._write_tentative_segment(paragraph, tentative_id[3:], has_family, has_genus)
             elif ' or ' in tentative_id:
                 first, second = tentative_id.split(' or ')
                 self._write_tentative_segment(paragraph, first, has_family, has_genus)
-                self._make_run(paragraph, ' or ', italic=False)
+                self._make_run(paragraph, ' or ')
                 self._write_tentative_segment(paragraph, second, has_family, has_genus)
             else:
                 self._write_tentative_segment(paragraph, tentative_id, has_family, has_genus)
-            self._make_run(paragraph, '?)', italic=False)
+            self._make_run(paragraph, '?)')
         elif morphospecies:
-            self._make_run(paragraph, ' (', italic=False)
+            self._make_run(paragraph, ' (')
             self._make_run(paragraph, morphospecies, italic=has_family)
-            self._make_run(paragraph, ')', italic=False)
+            self._make_run(paragraph, ')')
 
-    def _write_tentative_segment(self, paragraph, text, has_family, has_genus):
+    def _write_tentative_segment(self, paragraph: _Paragraph, text: str, has_family: bool, has_genus: bool):
         self._make_run(paragraph, text, italic=has_family)
         if has_family and not has_genus and ' ' not in text.strip():
-            self._make_run(paragraph, ' sp.', italic=False)
+            self._make_run(paragraph, ' sp.')
 
-    def _add_not_attracted_overlay(self, slide, left, image_top):
+    def _add_not_attracted_overlay(self, slide: Slide, left: Inches, image_top: Inches):
         overlay_height = Inches(0.35)
         text_box = slide.shapes.add_textbox(left, image_top + self.IMAGE_HEIGHT - overlay_height, self.IMAGE_WIDTH, overlay_height)
         text_frame = text_box.text_frame
@@ -159,16 +149,6 @@ class ImageGuidePresentation:
         font.size = Pt(14)
         font.color.rgb = RGBColor(0xff, 0x0, 0x0)
         font.bold = True
-
-    @staticmethod
-    def _make_run(paragraph, text, italic):
-        run = paragraph.add_run()
-        run.text = text
-        run.font.name = 'Arial'
-        run.font.size = Pt(12)
-        run.font.color.rgb = RGBColor(0xff, 0xff, 0xff)
-        run.font.italic = italic
-        return run
 
     def _fetch_normalized_image(self, localization: dict) -> BytesIO:
         """Fetches full frame from Tator, crops to localization bounds, and expands to 16:9 aspect ratio."""
@@ -214,3 +194,26 @@ class ImageGuidePresentation:
         img.save(output, format='JPEG')
         output.seek(0)
         return output
+
+    @staticmethod
+    def _add_phylum_header(slide: Slide, phylum: str):
+        text_box = slide.shapes.add_textbox(Inches(0.5), Inches(0.5), Inches(9), Inches(0.5))
+        text_frame = text_box.text_frame
+        paragraph = text_frame.paragraphs[0]
+        paragraph.alignment = PP_ALIGN.CENTER
+        run = paragraph.add_run()
+        run.text = ' '.join(list(phylum.upper()))
+        font = run.font
+        font.name = 'Arial'
+        font.size = Pt(32)
+        font.color.rgb = RGBColor(0, 0, 0)
+
+    @staticmethod
+    def _make_run(paragraph: _Paragraph, text: str, italic: bool = False):
+        run = paragraph.add_run()
+        run.text = text
+        run.font.name = 'Arial'
+        run.font.size = Pt(12)
+        run.font.color.rgb = RGBColor(0xff, 0xff, 0xff)
+        run.font.italic = italic
+        return run
