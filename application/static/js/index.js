@@ -94,6 +94,7 @@ async function updateTatorDeployments(topLevelSectionId, folderName) {
         for (const subFolderName of subFolderNames) {
             $('#tatorSubFolder').append(`<option value="${subFolderName}">${subFolderName}</option>`);
         }
+        $('#tatorSubFolder').append(`<option value="combined">combined</option>`);
         let subFolderName = subFolderNames[0];
         const stored = localStorage.getItem(TATOR_SUBFOLDER_STORAGE_KEY);
         if (stored && subFolderNames.includes(stored)) {
@@ -126,8 +127,17 @@ async function updateTatorDeployments(topLevelSectionId, folderName) {
 }
 
 async function updateSubDeployments(topLevelSectionId, subFolderData, subFolderName) {
-    deploymentList = subFolderData[subFolderName] || [];
     const localStorageKey = `${TATOR_DEPLOYMENT_STORAGE_KEY_PREFIX}_${topLevelSectionId}_sub_${subFolderName}`;
+
+    if (subFolderName === 'combined') {
+        deploymentList = [];
+        for (const [type, deployments] of Object.entries(subFolderData)) {
+            const typeDeployments = deployments.map((deployment) => ({ ...deployment, name: `${deployment.name} (${type})` }));
+            deploymentList.push(...typeDeployments);
+        }
+    } else {
+        deploymentList = subFolderData[subFolderName] || [];
+    }
 
     if (deploymentList.length === 0) {
         $('#deployment1').html('<option value="" selected disabled>No deployments found</option>');
