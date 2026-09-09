@@ -12,7 +12,8 @@ $('#deleteImageReferenceModal').on('show.bs.modal', function (e) {
             ' (This will not delete the other photos that are part of this record.)')
     } else {
         $('#deleteImageRefTitle').text('Delete Image Reference');
-        $('#deleteFromImageReferenceBody').text('Are you sure you want to delete this record from image references?')
+        $('#deleteFromImageReferenceBody').text('Are you sure you want to delete this record from image references?' +
+            ' (This will delete the entire record and all associated photos.)')
     }
     $('#imageRefDeleteScientificName').val(anno.scientific_name);
     $('#imageRefDeleteTentativeId').val(anno.tentative_id);
