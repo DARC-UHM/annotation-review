@@ -155,6 +155,9 @@
     </div>
     <div id="imageGrid" class="row d-flex my-3 mx-5">
     </div>
+    <div class="text-center text-muted mt-2 mb-4" style="font-size: 0.75rem;">
+        Last updated <span id="lastUpdated">N/A</span>
+    </div>
 </div>
 {% endblock content %}
 {% block scripts %}
@@ -164,6 +167,7 @@
     const True = true;
     const False = false;
     const imageReferences = {{ image_references|safe or None }};
+    const lastUpdated = "{{ last_updated }}";
 </script>
 <script type="module" src="{{ url_for('image_reference.static', filename='image-references.js') }}"></script>
 <script type="module" src="https://darc.soest.hawaii.edu/static/js/image-references.js"></script>

@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 import requests
 from flask import current_app, flash, render_template, redirect, request
 
@@ -10,7 +12,16 @@ def image_reference_page():
     if res.status_code != 200:
         flash('Error retrieving image reference data', 'error')
         return redirect('/')
-    return render_template('image_reference/image-reference.html', image_references=res.text)
+    image_refs = res.json()
+    latest_updated_at = max(image_refs, key=lambda x: x['updated_at'])['updated_at']
+    last_updated = datetime.fromisoformat(latest_updated_at) if latest_updated_at else None
+    if last_updated and last_updated.tzinfo is None:
+        last_updated = last_updated.replace(tzinfo=timezone.utc)
+    return render_template(
+        'image_reference/image-reference.html',
+        image_references=image_refs,
+        last_updated=last_updated,
+    )
 
 
 @image_reference_bp.post('')
