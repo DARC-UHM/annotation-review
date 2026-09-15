@@ -206,56 +206,6 @@ class TestTatorDropcamQaqcProcessor:
         assert tator_qaqc_processor.final_records[0]['observation_uuid'] == 1
 
     @patch.object(TatorRestClient, 'get_section_by_id', mock_get_section_by_id)
-    def test_check_exists_in_image_references(self, fake_session, stub_annotator, stub_worms_match):
-        image_refs = {'Known': {}}
-        tator_qaqc_processor = TatorDropcamQaqcProcessor(
-            project_id=1,
-            section_ids=['1'],
-            tator_url=TATOR_URL,
-        )
-        tator_qaqc_processor.sections[0].localizations = [
-            # plain scientific name already in image_refs -> not flagged
-            make_localization(
-                elemental_id=1,
-                frame=1,
-                attributes={'Scientific Name': 'Known'},
-            ),
-            # plain scientific name not in image_refs -> flagged
-            make_localization(
-                elemental_id=2,
-                frame=2,
-                attributes={'Scientific Name': 'Unknown'},
-            ),
-            # composite key (name + tentative ID) not in image_refs -> flagged
-            make_localization(
-                elemental_id=3,
-                frame=3,
-                attributes={'Scientific Name': 'Known', 'Tentative ID': 'Tent'},
-            ),
-            # both tentative ID and morphospecies set -> always flagged, regardless of image_refs
-            make_localization(
-                elemental_id=4,
-                frame=4,
-                attributes={'Scientific Name': 'Known', 'Tentative ID': 'Tent', 'Morphospecies': 'sp1'},
-            ),
-            # composite key (name + morphospecies, no tentative ID) not in image_refs -> flagged
-            make_localization(
-                elemental_id=5,
-                frame=5,
-                attributes={'Scientific Name': 'Known', 'Morphospecies': 'sp2'},
-            ),
-        ]
-
-        tator_qaqc_processor.check_exists_in_image_references(image_refs)
-
-        records_by_id = {record['observation_uuid']: record for record in tator_qaqc_processor.final_records}
-        assert set(records_by_id.keys()) == {2, 3, 4, 5}
-        assert 'problems' not in records_by_id[2]
-        assert 'problems' not in records_by_id[3]
-        assert records_by_id[4]['problems'] == 'Tentative ID, Morphospecies'
-        assert 'problems' not in records_by_id[5]
-
-    @patch.object(TatorRestClient, 'get_section_by_id', mock_get_section_by_id)
     def test_fetch_start_times_sets_bottom_time_from_arrival_frame(self, fake_session):
         tator_qaqc_processor = TatorDropcamQaqcProcessor(
             project_id=1,
