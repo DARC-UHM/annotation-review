@@ -193,6 +193,10 @@ def sub_qaqc(check):
         case 'upon-not-substrate':
             qaqc_annos.check_upons_are_current_substrate_or_previous_animal()
             data['page_title'] = 'Records where upon is not the current substrate or an animal that was previously recorded'
+        case 'exists-in-image-references':
+            qaqc_annos.check_exists_in_image_references(image_refs)
+            data['page_title'] = 'Records that do not exist in image references'
+            data['subtitle'] = '(also flags records that have both a tentative ID and a morphospecies)'
         case 'missing-good-image':
             qaqc_annos.get_missing_good_image()
             data['page_title'] = 'Records missing a good image'
