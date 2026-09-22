@@ -23,7 +23,7 @@ from application.image_review.external_review.comment_processor import CommentPr
 # displays comments in the external review db
 @external_review_bp.get('')
 def get_external_review():
-    comments = []
+    comments = {}
     unread_comments = 0
     read_comments = 0
     total_comments = 0
@@ -40,48 +40,32 @@ def get_external_review():
     try:
         print('Fetching external comments...', end='')
         sys.stdout.flush()
-        with requests.get(
-                url=f'{current_app.config.get("DARC_REVIEW_URL")}/stats',
-                headers=current_app.config.get('DARC_REVIEW_HEADERS'),
-        ) as stats_res:
-            stats_json = stats_res.json()
-            unread_comments = stats_json['unread_comments']
-            read_comments = stats_json['read_comments']
-            total_comments = stats_json['total_comments']
+        stats_query = f'?reviewer={request.args.get("reviewer")}' if request.args.get('reviewer') else ''
+        stats_res = requests.get(
+            url=f'{current_app.config.get("DARC_REVIEW_URL")}/stats{stats_query}',
+            headers=current_app.config.get('DARC_REVIEW_HEADERS'),
+        )
+        stats_json = stats_res.json()
+        unread_comments = stats_json['unread_comments']
+        read_comments = stats_json['read_comments']
+        total_comments = stats_json['total_comments']
         # get a list of comments from external review db
+        query_parts = []
         if request.args.get('reviewer'):
-            query = ''
-            if request.args.get('read'):
-                query += '?read=true'
-            elif request.args.get('unread'):
-                query += '?unread=true'
-            comments_res = requests.get(
-                url=f'{current_app.config.get("DARC_REVIEW_URL")}/comment/reviewer/{request.args.get("reviewer")}{query}',
-                headers=current_app.config.get('DARC_REVIEW_HEADERS'),
-            )
-            comments_json = comments_res.json()
-            comments = comments_json['comments']
-            unread_comments = comments_json['unread_comments']
-            read_comments = comments_json['read_comments']
-            total_comments = comments_json['total_comments']
+            query_parts.append(f'reviewer={request.args.get("reviewer")}')
+        if request.args.get('read'):
+            query_parts.append('read=true')
         elif request.args.get('unread'):
-            unread_comments_res = requests.get(
-                url=f'{current_app.config.get("DARC_REVIEW_URL")}/comment/unread',
-                headers=current_app.config.get('DARC_REVIEW_HEADERS'),
-            )
-            comments = unread_comments_res.json()
-        elif request.args.get('read'):
-            read_comments_res = requests.get(
-                url=f'{current_app.config.get("DARC_REVIEW_URL")}/comment/read',
-                headers=current_app.config.get('DARC_REVIEW_HEADERS'),
-            )
-            comments = read_comments_res.json()
+            query_parts.append('unread=true')
+        if query_parts:
+            query = '?' + '&'.join(query_parts)
         else:
-            all_comments_res = requests.get(
-                url=f'{current_app.config.get("DARC_REVIEW_URL")}/comment/all',
-                headers=current_app.config.get('DARC_REVIEW_HEADERS'),
-            )
-            comments = all_comments_res.json()
+            query = ''
+        all_comments_res = requests.get(
+            url=f'{current_app.config.get("DARC_REVIEW_URL")}/comment{query}',
+            headers=current_app.config.get('DARC_REVIEW_HEADERS'),
+        )
+        comments = {comment['uuid']: comment for comment in all_comments_res.json()}
         print('fetched!')
         image_ref_res = requests.get(f'{current_app.config.get("DARC_REVIEW_URL")}/image-reference/quick')
         if image_ref_res.status_code != 200:

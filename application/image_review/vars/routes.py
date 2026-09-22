@@ -20,10 +20,10 @@ def view_images():
     try:
         for sequence in sequences:
             with requests.get(
-                    url=f'{current_app.config.get("DARC_REVIEW_URL")}/comment/sequence/{sequence}',
+                    url=f'{current_app.config.get("DARC_REVIEW_URL")}/comment?sequence={sequence}',
                     headers=current_app.config.get('DARC_REVIEW_HEADERS'),
             ) as res:
-                comments = comments | res.json()  # merge dicts
+                comments = comments | {comment['uuid']: comment for comment in res.json()}  # merge dicts
             if sequence not in session.get('vars_video_sequences', []):
                 return render_template('errors/404.html', err='dive'), 404
     except requests.exceptions.ConnectionError:

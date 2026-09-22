@@ -28,12 +28,12 @@ def get_comments_and_image_refs(deployment_names: list[str]) -> tuple[dict, dict
         for deployment in deployment_names:
             print(f'Getting comments for deployment {deployment}...')
             comment_res = requests.get(
-                url=f'{current_app.config.get("DARC_REVIEW_URL")}/comment/sequence/{deployment}',
+                url=f'{current_app.config.get("DARC_REVIEW_URL")}/comment?sequence={deployment}',
                 headers=current_app.config.get('DARC_REVIEW_HEADERS'),
             )
             if comment_res.status_code != 200:
                 raise requests.exceptions.ConnectionError
-            comments |= comment_res.json()
+            comments |= {comment['uuid']: comment for comment in comment_res.json()}
         image_ref_res = requests.get(f'{current_app.config.get("DARC_REVIEW_URL")}/image-reference/quick')
         if image_ref_res.status_code != 200:
             raise requests.exceptions.ConnectionError
