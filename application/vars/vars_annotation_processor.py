@@ -115,8 +115,7 @@ class VarsAnnotationProcessor:
             if '.png' in annotation['image_references'][i]['url']:
                 image_url = annotation['image_references'][i]['url']
                 break
-        # return image_url.replace('http://hurlstor.soest.hawaii.edu/imagearchive', 'https://hurlimage.soest.hawaii.edu')
-        return image_url.replace('https://hurlimage.soest.hawaii.edu', 'http://hurlstor.soest.hawaii.edu/imagearchive')
+        return image_url.replace('http://hurlstor.soest.hawaii.edu/imagearchive', 'https://hurlimage.soest.hawaii.edu')
 
     def get_video(self, annotation: dict) -> dict:
         """
