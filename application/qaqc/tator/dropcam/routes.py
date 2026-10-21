@@ -56,6 +56,7 @@ def dropcam_qaqc_checklist():
         if checklist_res.status_code == 200:
             checklist = checklist_res.json()
         else:
+            flash(f'Unable to get QAQC checklist from external review server: {checklist_res.text}', 'danger')
             print('ERROR: Unable to get QAQC checklist from external review server')
             checklist = {}
     for section_id in section_ids:

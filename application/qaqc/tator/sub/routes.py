@@ -90,6 +90,7 @@ def sub_qaqc_checklist():
         if checklist_res.status_code == 200:
             checklist = checklist_res.json()
         else:
+            flash(f'Unable to get QAQC checklist from external review server: {checklist_res.text}', 'danger')
             print('ERROR: Unable to get QAQC checklist from external review server')
             checklist = {}
     title_suffix = f' ({sub_type})'

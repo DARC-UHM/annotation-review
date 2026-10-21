@@ -9,7 +9,7 @@ VARS-specific QA/QC endpoints
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import requests
-from flask import current_app, render_template, request, session
+from flask import current_app, render_template, request, session, flash
 
 from . import vars_qaqc_bp
 from application.vars.vars_qaqc_processor import VarsQaqcProcessor
@@ -33,6 +33,7 @@ def vars_qaqc_checklist():
         if checklist_res.status_code == 200:
             checklist = checklist_res.json()
         else:
+            flash(f'Unable to get QAQC checklist from external review server: {checklist_res.text}', 'danger')
             print('ERROR: Unable to get QAQC checklist from external review server')
             checklist = {}
     # get counts
