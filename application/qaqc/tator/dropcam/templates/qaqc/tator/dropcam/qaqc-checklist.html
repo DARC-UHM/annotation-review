@@ -13,8 +13,6 @@
                 <div style="font-weight: 600;">QA/QC Checklist</div>
             </div>
             <div class="col text-end mt-auto small">
-                <span>Total Localizations:&nbsp;&nbsp;<span id="localizationCount" style="font-weight: 600;"></span></span><br>
-                <span>Total Individuals:&nbsp;&nbsp;~<span id="individualCount" style="font-weight: 600;"></span></span><br>
                 <span>Checks Complete:&nbsp;&nbsp;<span style="font-weight: 600;"><span id="tasksComplete">0</span> / <span>13</span></span></span>
             </div>
         </div>
@@ -25,9 +23,6 @@
                 <path d="M40-440v-80h240v80H40Zm270-154-84-84 56-56 84 84-56 56Zm130-86v-240h80v240h-80Zm210 86-56-56 84-84 56 56-84 84Zm30 154v-80h240v80H680Zm-200 80q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm198 134-84-84 56-56 84 84-56 56Zm-396 0-56-56 84-84 56 56-84 84ZM440-40v-240h80v240h-80Z"/>
             </svg>
         </button>
-    </div>
-    <div id="404" style="display: none;" class="my-5">
-        <h3>No records found for given dive<br></h3>
     </div>
     <div class="m-auto" style="max-width: 800px;">
         <div>
@@ -106,8 +101,6 @@
 {% block scripts %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/fireworks.css') }}" />
 <script>
-    const localizationCount = {{ data.localization_count }};
-    const individualCount = {{ data.individual_count }};
     const checklist = {{ data.checklist|safe }};
     const deploymentNames = {{ data.deployment_names|safe }};
 </script>
