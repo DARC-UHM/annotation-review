@@ -161,12 +161,12 @@ def add_external_review():
             data=data,
     ) as post_comment_res:
         if post_comment_res.status_code == 409:  # comment already exists in the db, update record
-            put_comment_res = requests.put(
-                url=f'{current_app.config.get("DARC_REVIEW_URL")}/comment/reviewers/{data["uuid"]}',
+            patch_comment_res = requests.patch(
+                url=f'{current_app.config.get("DARC_REVIEW_URL")}/comment/{data["uuid"]}',
                 headers=current_app.config.get('DARC_REVIEW_HEADERS'),
-                data=data,
+                json={'reviewers': json.loads(data['reviewers'])},
             )
-            if put_comment_res.status_code == 200:
+            if patch_comment_res.status_code == 200:
                 return add_vars_or_tator_comment(200)
         elif post_comment_res.status_code == 201:  # comment added to db, update VARS "comment" field
             return add_vars_or_tator_comment(201)
