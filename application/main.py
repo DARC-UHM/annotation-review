@@ -1,5 +1,4 @@
 import datetime
-import subprocess
 import traceback
 import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -7,7 +6,7 @@ from json import JSONDecodeError
 
 from flask import Blueprint, current_app, flash, render_template, request, session
 
-from application.util.constants import TERM_NORMAL, TERM_RED
+from application.util.constants import TERM_NORMAL, TERM_RED, TERM_YELLOW
 
 
 main_bp = Blueprint('main_bp', __name__)
@@ -34,17 +33,19 @@ def index():
             print(f'{TERM_RED}ERROR{TERM_NORMAL}: {msg}')
             return None, msg
 
-    def get_origin_commit_hash():
+    def is_behind_github(local_commit_hash):
+        # 404s if the local commit was never pushed, which we treat as no update
         try:
-            subprocess.run(
-                ['git', 'fetch', 'origin'],
-                check=True,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL
+            res = requests.get(
+                f'{current_app.config["GITHUB_REPO_API_URL"]}/compare/{local_commit_hash}...main',
+                headers={'Accept': 'application/vnd.github+json'},
+                timeout=5,
             )
-            return subprocess.check_output(['git', 'rev-parse', '@{u}']).decode().strip()
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            return None
+            res.raise_for_status()
+            return res.json()['ahead_by'] > 0  # number of commits on main that the local commit doesn't have
+        except (requests.exceptions.RequestException, JSONDecodeError, KeyError) as e:
+            print(f'{TERM_YELLOW}WARNING{TERM_NORMAL}: Unable to check GitHub for updates: {e}')
+            return False
 
     http_requests = [
         dict(name='reviewers', url=f'{current_app.config["DARC_REVIEW_URL"]}/reviewer/all', headers=current_app.config['DARC_REVIEW_HEADERS']),
@@ -79,11 +80,9 @@ def index():
         last_check = current_app.config.get('LAST_CHECKED_ORIGIN_AT')
         if (last_check is not None
                 and datetime.datetime.now() - datetime.datetime.fromisoformat(last_check) > datetime.timedelta(hours=1)):
-            print(f'Checking for updates...')
-            origin_commit_hash = get_origin_commit_hash()
-            if origin_commit_hash is not None:
-                is_update_available = origin_commit_hash != current_app.config.get('LOCAL_COMMIT_HASH')
-                current_app.config['UPDATE_AVAILABLE'] = is_update_available
+            print('Checking for updates...')
+            is_update_available = is_behind_github(current_app.config.get('LOCAL_COMMIT_HASH'))
+            current_app.config['UPDATE_AVAILABLE'] = is_update_available
             current_app.config['LAST_CHECKED_ORIGIN_AT'] = datetime.datetime.now().isoformat()
 
     return render_template(

@@ -2,8 +2,10 @@ import datetime
 from json import JSONDecodeError
 from unittest.mock import patch
 
+import pytest
 import requests
 
+from application import create_app
 from application.main import server_error
 
 
@@ -38,6 +40,16 @@ def mocked_get(url, headers=None):
     if 'concept' in url:
         return MockMainResponse(['Concept1'])
     return MockMainResponse({})
+
+
+def mocked_get_with_github(github_response):
+    def _get(url, headers=None, timeout=None):
+        if 'api.github.com' in url:
+            if isinstance(github_response, Exception):
+                raise github_response
+            return github_response
+        return mocked_get(url, headers)
+    return _get
 
 
 class TestMain:
@@ -100,29 +112,53 @@ class TestMain:
         assert response.status_code == 200
         assert b'Failed to parse JSON' in response.data
 
-    @patch('application.main.requests.get', side_effect=mocked_get)
-    def test_index_checks_for_updates_when_stale(self, mock_get, app, client):
+    def test_create_app_records_local_commit_for_update_check(self):
+        with patch('application.subprocess.check_output', return_value=b'abc123\n'):
+            app = create_app()
+
+        assert app.config['LOCAL_COMMIT_HASH'] == 'abc123'
+        assert app.config['LAST_CHECKED_ORIGIN_AT'] is not None
+
+    def test_index_shows_update_banner_when_github_main_is_ahead(self, app, client):
         app.config['UPDATE_AVAILABLE'] = False
         app.config['LAST_CHECKED_ORIGIN_AT'] = (datetime.datetime.now() - datetime.timedelta(hours=2)).isoformat()
         app.config['LOCAL_COMMIT_HASH'] = 'abc123'
+        github_response = MockMainResponse({'status': 'ahead', 'ahead_by': 2, 'behind_by': 0})
 
-        with patch('subprocess.run') as mock_run, patch('subprocess.check_output', return_value=b'def456\n'):
+        with patch('application.main.requests.get', side_effect=mocked_get_with_github(github_response)) as mock_get:
             response = client.get('/')
 
         assert response.status_code == 200
-        mock_run.assert_called_once()
-        assert app.config['UPDATE_AVAILABLE'] is True  # 'def456' != 'abc123'
+        assert app.config['UPDATE_AVAILABLE'] is True
+        assert b'Update available!' in response.data
+        assert any('compare/abc123...main' in call.args[0] for call in mock_get.call_args_list)
 
-    @patch('application.main.requests.get', side_effect=mocked_get)
-    def test_index_treats_git_fetch_failure_as_no_update_available(self, mock_get, app, client):
+    @pytest.mark.parametrize('github_response', [
+        MockMainResponse({'status': 'identical', 'ahead_by': 0, 'behind_by': 0}),
+        MockMainResponse({'status': 'behind', 'ahead_by': 0, 'behind_by': 3}),  # local has unreleased commits
+        MockMainResponse(status_code=404),  # local commit was never pushed
+        requests.exceptions.ConnectionError('no internet'),
+    ])
+    def test_index_no_update_banner_when_not_behind_github(self, github_response, app, client):
         app.config['UPDATE_AVAILABLE'] = False
         app.config['LAST_CHECKED_ORIGIN_AT'] = (datetime.datetime.now() - datetime.timedelta(hours=2)).isoformat()
         app.config['LOCAL_COMMIT_HASH'] = 'abc123'
 
-        with patch('subprocess.run', side_effect=FileNotFoundError('git not found')):
+        with patch('application.main.requests.get', side_effect=mocked_get_with_github(github_response)):
             response = client.get('/')
 
         assert response.status_code == 200
         assert app.config['UPDATE_AVAILABLE'] is False
+        assert b'Update available!' not in response.data
         # check marked as having run so it doesn't retry on every single request
-        assert app.config['LAST_CHECKED_ORIGIN_AT'] is not None
+        last_check = datetime.datetime.fromisoformat(app.config['LAST_CHECKED_ORIGIN_AT'])
+        assert datetime.datetime.now() - last_check < datetime.timedelta(minutes=1)
+
+    def test_index_skips_update_check_when_recently_checked(self, app, client):
+        app.config['UPDATE_AVAILABLE'] = False
+        app.config['LAST_CHECKED_ORIGIN_AT'] = datetime.datetime.now().isoformat()
+
+        with patch('application.main.requests.get', side_effect=mocked_get) as mock_get:
+            client.get('/')
+
+        assert not any('api.github.com' in call.args[0] for call in mock_get.call_args_list)

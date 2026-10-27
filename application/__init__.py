@@ -1,4 +1,6 @@
+import datetime
 import os
+import subprocess
 from pathlib import Path
 from time import time
 
@@ -32,6 +34,16 @@ def create_app():
 
     app.register_error_handler(404, page_not_found)
     app.register_error_handler(Exception, server_error)
+
+    # record the commit we're running so the index page can check GitHub for updates
+    try:
+        app.config['LOCAL_COMMIT_HASH'] = subprocess.check_output(
+            args=['git', 'rev-parse', 'HEAD'],
+            cwd=Path(__file__).parent,
+        ).decode().strip()
+        app.config['LAST_CHECKED_ORIGIN_AT'] = datetime.datetime.now().isoformat()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        print('Warning: Unable to retrieve local commit hash.')
 
     # clean VARS frame cache
     try:
