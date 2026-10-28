@@ -1,4 +1,5 @@
 import { getCheckboxName, updateCheckbox, updateTaskCount } from '../../../static/qaqcCheckboxes.js';
+import { formattedNumber } from '../../../../static/js/util/formattedNumber.js';
 
 function showLoader() {
     $('#load-overlay').removeClass('loader-bg-hidden');
@@ -15,6 +16,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
     const urlParams = mediaParam ? `project=${projectId}&${sectionParam}&${mediaParam}` : `project=${projectId}&${sectionParam}`;
     const qaqcCheckRoute = '/qaqc/tator/sub/check';
 
+    $('#localizationCount').html(formattedNumber(localizationCount));
+    $('#individualCount').html(formattedNumber(individualCount));
     $('#deploymentList').html(deploymentList.join(', '));
 
     for (const checkbox of Object.keys(checklist)) {

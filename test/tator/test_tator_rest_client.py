@@ -34,6 +34,12 @@ def mocked_requests_get(*args, **kwargs):
         return MockResponse(json_data={'id': 123, 'name': 'Test Section'})
     if url == f'{TATOR_URL}/rest/Medias/1?multi_section=123':
         return MockResponse(json_data=[{'id': 10}, {'id': 20}])
+    if url == f'{TATOR_URL}/rest/LocalizationCount/1?multi_section=10,11':
+        return MockResponse(json_data=42)
+    if url == f'{TATOR_URL}/rest/LocalizationCount/1?multi_section=10,11&type=49&attribute=Categorical%20Abundance::20-49':
+        return MockResponse(json_data=3)
+    if url == f'{TATOR_URL}/rest/LocalizationCount/1?multi_section=10,11&type=49&attribute=Categorical%20Abundance::1000%2B':
+        return MockResponse(json_data=1)
     if url == f'{TATOR_URL}/rest/Media/10':
         return MockResponse(json_data={'id': 10, 'name': 'test_media'})
     if url == f'{TATOR_URL}/rest/States/1?media_id=10,20':
@@ -128,6 +134,30 @@ class TestTatorRestClient:
         client = TatorRestClient(TATOR_URL, TOKEN)
         result = client.get_medias_for_sections(project_id=1, section_ids=[123])
         assert result == [{'id': 10}, {'id': 20}]
+
+    @patch('requests.Session.get', side_effect=mocked_requests_get)
+    def test_get_localization_count(self, _):
+        client = TatorRestClient(TATOR_URL, TOKEN)
+        result = client.get_localization_count(project_id=1, section_ids=[10, 11])
+        assert result == 42
+
+    @patch('requests.Session.get', side_effect=mocked_requests_get)
+    def test_get_localization_count_filters_by_type_and_attribute(self, _):
+        client = TatorRestClient(TATOR_URL, TOKEN)
+        bucket = client.get_localization_count(
+            project_id=1,
+            section_ids=[10, 11],
+            localization_type=49,
+            attribute='Categorical Abundance::20-49',
+        )
+        thousand = client.get_localization_count(
+            project_id=1,
+            section_ids=[10, 11],
+            localization_type=49,
+            attribute='Categorical Abundance::1000+',
+        )
+        assert bucket == 3
+        assert thousand == 1
 
     @patch('requests.Session.get', side_effect=mocked_requests_get)
     def test_get_media_by_id(self, _):

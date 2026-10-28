@@ -1,4 +1,5 @@
 import { getCheckboxName, updateCheckbox, updateTaskCount } from '../../../static/qaqcCheckboxes.js';
+import { formattedNumber } from '../../../../static/js/util/formattedNumber.js';
 
 function showLoader() {
     $('#load-overlay').removeClass('loader-bg-hidden');
@@ -12,6 +13,8 @@ document.addEventListener('DOMContentLoaded',  (event) => {
     const sectionParam = sectionIds.map(id => `section=${id}`).join('&');
     const urlParams = `project=${projectId}&${sectionParam}`;
 
+    $('#localizationCount').html(formattedNumber(localizationCount));
+    $('#individualCount').html(formattedNumber(individualCount));
     $('#deploymentList').html(deploymentNames.join(', '));
 
     for (const checkbox of Object.keys(checklist)) { // checklist was passed from the server

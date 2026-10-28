@@ -20,6 +20,27 @@ def init_tator_api():
         return None, redirect('/')
 
 
+_ABUNDANCE_WEIGHTS = (
+    ('20-49', 35),
+    ('50-99', 75),
+    ('100-999', 500),
+    ('1000+', 1000),
+)
+
+
+def get_individual_count(tator_client, project_id: int, section_ids: list[int], dot_type: int) -> int:
+    """Checklist individual total: one per dot, plus the abundance weight for the larger buckets."""
+    total = tator_client.get_localization_count(project_id, section_ids, localization_type=dot_type)
+    for abundance, weight in _ABUNDANCE_WEIGHTS:
+        total += weight * tator_client.get_localization_count(
+            project_id,
+            section_ids,
+            localization_type=dot_type,
+            attribute=f'Categorical Abundance::{abundance}',
+        )
+    return total
+
+
 # TODO - either update review server to allow batch requests by sequence, or use threading to make this faster
 def get_comments_and_image_refs(deployment_names: list[str]) -> tuple[dict, dict]:
     comments = {}

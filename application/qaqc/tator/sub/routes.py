@@ -12,7 +12,8 @@ from flask import current_app, flash, redirect, render_template, request, sessio
 from application.tator.tator_sub_qaqc_processor import TatorSubQaqcProcessor
 from . import sub_qaqc_bp
 from application.tator.tator_rest_client import TatorRestClient
-from application.qaqc.tator.util import init_tator_api, get_comments_and_image_refs
+from application.tator.tator_type import TatorLocalizationType
+from application.qaqc.tator.util import init_tator_api, get_comments_and_image_refs, get_individual_count
 
 
 # TODO cache this or at least call on different threads
@@ -60,6 +61,9 @@ def sub_qaqc_checklist():
         section_ids=section_ids,
         include_media=False,
     )
+    section_id_ints = [int(section_id) for section_id in section_ids]
+    localization_count = tator_client.get_localization_count(project_id, section_id_ints)
+    individual_count = get_individual_count(tator_client, project_id, section_id_ints, TatorLocalizationType.SUB_DOT)
     with requests.get(
             url=f'{current_app.config.get("DARC_REVIEW_URL")}/qaqc-checklist/tator-sub/{"&".join(media_ids or section_ids)}',
             headers=current_app.config.get('DARC_REVIEW_HEADERS'),
@@ -75,6 +79,8 @@ def sub_qaqc_checklist():
         'title': expedition_name + title_suffix,
         'tab_title': (deployment_names[0] if len(deployment_names) == 1 else expedition_name) + title_suffix,
         'deployment_list': deployment_names,
+        'localization_count': localization_count,
+        'individual_count': individual_count,
         'checklist': checklist,
     }
     return render_template('qaqc/tator/sub/qaqc-checklist.html', data=data)
