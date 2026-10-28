@@ -32,6 +32,8 @@ def mocked_requests_get(*args, **kwargs):
         return MockResponse(json_data=[{'id': 3}])
     if url == f'{TATOR_URL}/rest/Section/123':
         return MockResponse(json_data={'id': 123, 'name': 'Test Section'})
+    if url == f'{TATOR_URL}/rest/Sections/1':
+        return MockResponse(json_data=[{'id': 10, 'name': 'Deploy 10'}, {'id': 11, 'name': 'Deploy 11'}])
     if url == f'{TATOR_URL}/rest/Medias/1?multi_section=123':
         return MockResponse(json_data=[{'id': 10}, {'id': 20}])
     if url == f'{TATOR_URL}/rest/LocalizationCount/1?multi_section=10,11':
@@ -128,6 +130,12 @@ class TestTatorRestClient:
         client = TatorRestClient(TATOR_URL, TOKEN)
         result = client.get_section_by_id(123)
         assert result == {'id': 123, 'name': 'Test Section'}
+
+    @patch('requests.Session.get', side_effect=mocked_requests_get)
+    def test_get_sections(self, _):
+        client = TatorRestClient(TATOR_URL, TOKEN)
+        result = client.get_sections(project_id=1)
+        assert result == [{'id': 10, 'name': 'Deploy 10'}, {'id': 11, 'name': 'Deploy 11'}]
 
     @patch('requests.Session.get', side_effect=mocked_requests_get)
     def test_get_medias_for_sections(self, _):
