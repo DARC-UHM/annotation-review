@@ -1,3 +1,5 @@
+from urllib.parse import quote
+
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
@@ -70,6 +72,16 @@ class TatorRestClient:
 
     def get_medias_for_sections(self, project_id: int, section_ids: list[int]) -> list:
         url = f'{self.base_url}/rest/Medias/{project_id}?multi_section={",".join([str(s) for s in section_ids])}'
+        res = self._session.get(url=url, headers=self._headers, timeout=DEFAULT_TIMEOUT)
+        res.raise_for_status()
+        return res.json()
+
+    def get_localization_count(self, project_id: int, section_ids: list[int], localization_type: int = None, attribute: str = None) -> int:
+        url = f'{self.base_url}/rest/LocalizationCount/{project_id}?multi_section={",".join([str(s) for s in section_ids])}'
+        if localization_type is not None:
+            url += f'&type={localization_type}'
+        if attribute is not None:
+            url += f'&attribute={quote(attribute, safe=":")}'
         res = self._session.get(url=url, headers=self._headers, timeout=DEFAULT_TIMEOUT)
         res.raise_for_status()
         return res.json()
