@@ -70,6 +70,12 @@ class TatorRestClient:
         res.raise_for_status()
         return res.json()
 
+    def get_sections(self, project_id: int) -> list:
+        url = f'{self.base_url}/rest/Sections/{project_id}'
+        res = self._session.get(url=url, headers=self._headers, timeout=DEFAULT_TIMEOUT)
+        res.raise_for_status()
+        return res.json()
+
     def get_medias_for_sections(self, project_id: int, section_ids: list[int]) -> list:
         url = f'{self.base_url}/rest/Medias/{project_id}?multi_section={",".join([str(s) for s in section_ids])}'
         res = self._session.get(url=url, headers=self._headers, timeout=DEFAULT_TIMEOUT)

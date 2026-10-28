@@ -18,12 +18,13 @@ from application.qaqc.tator.util import init_tator_api, get_comments_and_image_r
 
 # TODO cache this or at least call on different threads
 def _get_deployment_info(tator_client: TatorRestClient, project_id: int, section_ids: list[str], media_ids: list[str] = None, include_media: bool = True):
+    sections_by_id = {section['id']: section for section in tator_client.get_sections(project_id)}
     deployment_names = []
     expedition_name = None
     has_transect = False
     has_exploratory = False
     for section_id in section_ids:
-        section = tator_client.get_section_by_id(int(section_id))
+        section = sections_by_id[int(section_id)]
         deployment_names.append(section['name'])
         if expedition_name is None:
             expedition_name = section['path'].split('.')[0]
