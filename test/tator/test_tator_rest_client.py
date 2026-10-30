@@ -30,6 +30,8 @@ def mocked_requests_get(*args, **kwargs):
         return MockResponse(json_data=[{'id': 1}, {'id': 2}])
     if url == f'{TATOR_URL}/rest/Localizations/1?media_id=10,20':
         return MockResponse(json_data=[{'id': 3}])
+    if url == f'{TATOR_URL}/rest/Localizations/1?multi_section=10,11&type=49':
+        return MockResponse(json_data=[{'id': 4}])
     if url == f'{TATOR_URL}/rest/Section/123':
         return MockResponse(json_data={'id': 123, 'name': 'Test Section'})
     if url == f'{TATOR_URL}/rest/Sections/1':
@@ -38,6 +40,8 @@ def mocked_requests_get(*args, **kwargs):
         return MockResponse(json_data=[{'id': 10}, {'id': 20}])
     if url == f'{TATOR_URL}/rest/LocalizationCount/1?multi_section=10,11':
         return MockResponse(json_data=42)
+    if url == f'{TATOR_URL}/rest/LocalizationCount/1?media_id=9001,9002':
+        return MockResponse(json_data=7)
     if url == f'{TATOR_URL}/rest/LocalizationCount/1?multi_section=10,11&type=49&attribute=Categorical%20Abundance::20-49':
         return MockResponse(json_data=3)
     if url == f'{TATOR_URL}/rest/LocalizationCount/1?multi_section=10,11&type=49&attribute=Categorical%20Abundance::1000%2B':
@@ -120,6 +124,12 @@ class TestTatorRestClient:
         result = client.get_localizations(project_id=1, media_ids=[10, 20])
         assert result == [{'id': 3}]
 
+    @patch('requests.Session.get', side_effect=mocked_requests_get)
+    def test_get_localizations_by_sections(self, _):
+        client = TatorRestClient(TATOR_URL, TOKEN)
+        result = client.get_localizations(project_id=1, section_ids=[10, 11], localization_type=49)
+        assert result == [{'id': 4}]
+
     def test_get_localizations_no_args_raises(self):
         client = TatorRestClient(TATOR_URL, TOKEN)
         with pytest.raises(ValueError):
@@ -148,6 +158,12 @@ class TestTatorRestClient:
         client = TatorRestClient(TATOR_URL, TOKEN)
         result = client.get_localization_count(project_id=1, section_ids=[10, 11])
         assert result == 42
+
+    @patch('requests.Session.get', side_effect=mocked_requests_get)
+    def test_get_localization_count_by_media_ids(self, _):
+        client = TatorRestClient(TATOR_URL, TOKEN)
+        result = client.get_localization_count(project_id=1, media_ids=[9001, 9002])
+        assert result == 7
 
     @patch('requests.Session.get', side_effect=mocked_requests_get)
     def test_get_localization_count_filters_by_type_and_attribute(self, _):

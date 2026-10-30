@@ -53,13 +53,17 @@ class TatorRestClient:
         res.raise_for_status()
         return res.json()['token']
 
-    def get_localizations(self, project_id: int, section_id: int = None, media_ids: list[int] = None) -> list:
+    def get_localizations(self, project_id: int, section_id: int = None, section_ids: list[int] = None, media_ids: list[int] = None, localization_type: int = None) -> list:
         if media_ids is not None:
             url = f'{self.base_url}/rest/Localizations/{project_id}?media_id={",".join(str(m) for m in media_ids)}'
+        elif section_ids is not None:
+            url = f'{self.base_url}/rest/Localizations/{project_id}?multi_section={",".join(str(s) for s in section_ids)}'
         elif section_id is not None:
             url = f'{self.base_url}/rest/Localizations/{project_id}?section={section_id}'
         else:
-            raise ValueError('Must provide either section or media_id')
+            raise ValueError('Must provide either section, section_ids, or media_id')
+        if localization_type is not None:
+            url += f'&type={localization_type}'
         res = self._session.get(url=url, headers=self._headers, timeout=DEFAULT_TIMEOUT)
         res.raise_for_status()
         return res.json()
@@ -82,8 +86,13 @@ class TatorRestClient:
         res.raise_for_status()
         return res.json()
 
-    def get_localization_count(self, project_id: int, section_ids: list[int], localization_type: int = None, attribute: str = None) -> int:
-        url = f'{self.base_url}/rest/LocalizationCount/{project_id}?multi_section={",".join([str(s) for s in section_ids])}'
+    def get_localization_count(self, project_id: int, section_ids: list[int] = None, localization_type: int = None, attribute: str = None, media_ids: list[int] = None) -> int:
+        if media_ids is not None:
+            url = f'{self.base_url}/rest/LocalizationCount/{project_id}?media_id={",".join(str(m) for m in media_ids)}'
+        elif section_ids is not None:
+            url = f'{self.base_url}/rest/LocalizationCount/{project_id}?multi_section={",".join([str(s) for s in section_ids])}'
+        else:
+            raise ValueError('Must provide either section_ids or media_ids')
         if localization_type is not None:
             url += f'&type={localization_type}'
         if attribute is not None:

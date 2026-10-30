@@ -16,7 +16,7 @@ from . import dropcam_qaqc_bp
 from application.tator.tator_dropcam_qaqc_processor import TatorDropcamQaqcProcessor
 from application.tator.tator_rest_client import TatorRestClient
 from application.tator.tator_type import TatorLocalizationType
-from application.qaqc.tator.util import init_tator_api, get_comments_and_image_refs, get_individual_count
+from application.qaqc.tator.util import init_tator_api, get_comments_and_image_refs, get_counts
 
 
 # TODO cache this or at least call on different threads
@@ -51,8 +51,7 @@ def dropcam_qaqc_checklist():
         include_media=False,
     )
     section_id_ints = [int(section_id) for section_id in section_ids]
-    localization_count = tator_client.get_localization_count(project_id, section_id_ints)
-    individual_count = get_individual_count(tator_client, project_id, section_id_ints, TatorLocalizationType.DOT)
+    localization_count, individual_count = get_counts(tator_client, project_id, section_id_ints, TatorLocalizationType.DOT)
     with requests.get(
             url=f'{current_app.config.get("DARC_REVIEW_URL")}/qaqc-checklist/tator-dropcam/{"&".join(deployment_names)}',
             headers=current_app.config.get('DARC_REVIEW_HEADERS'),
