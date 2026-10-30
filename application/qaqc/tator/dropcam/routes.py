@@ -14,22 +14,24 @@ from flask import current_app, flash, redirect, render_template, request, send_f
 
 from . import dropcam_qaqc_bp
 from application.tator.tator_dropcam_qaqc_processor import TatorDropcamQaqcProcessor
-from application.tator.tator_type import TatorLocalizationType
 from application.tator.tator_rest_client import TatorRestClient
-from application.qaqc.tator.util import init_tator_api, get_comments_and_image_refs
+from application.tator.tator_type import TatorLocalizationType
+from application.qaqc.tator.util import init_tator_api, get_comments_and_image_refs, get_counts
 
 
 # TODO cache this or at least call on different threads
-def _get_deployment_info(tator_client: TatorRestClient, project_id: int, section_ids: list[str]):
+def _get_deployment_info(tator_client: TatorRestClient, project_id: int, section_ids: list[str], include_media: bool = True):
+    sections_by_id = {section['id']: section for section in tator_client.get_sections(project_id)}
     deployment_names = []
     expedition_name = None
     for section_id in section_ids:
-        print(f'Getting deployment info for section {section_id}')
-        section = tator_client.get_section_by_id(int(section_id))
+        section = sections_by_id[int(section_id)]
         deployment_names.append(section['name'])
         if expedition_name is None:
             expedition_name = section['path'].split('.')[0]
-    media = tator_client.get_medias_for_sections(project_id, [int(section_id) for section_id in section_ids])
+    media = []
+    if include_media:
+        media = tator_client.get_medias_for_sections(project_id, [int(section_id) for section_id in section_ids])
     return media, deployment_names, expedition_name
 
 
@@ -46,9 +48,10 @@ def dropcam_qaqc_checklist():
         tator_client=tator_client,
         project_id=project_id,
         section_ids=section_ids,
+        include_media=False,
     )
-    localizations = []
-    individual_count = 0
+    section_id_ints = [int(section_id) for section_id in section_ids]
+    localization_count, individual_count = get_counts(tator_client, project_id, section_id_ints, TatorLocalizationType.DOT)
     with requests.get(
             url=f'{current_app.config.get("DARC_REVIEW_URL")}/qaqc-checklist/tator-dropcam/{"&".join(deployment_names)}',
             headers=current_app.config.get('DARC_REVIEW_HEADERS'),
@@ -59,26 +62,11 @@ def dropcam_qaqc_checklist():
             flash(f'Unable to get QAQC checklist from external review server: {checklist_res.text}', 'danger')
             print('ERROR: Unable to get QAQC checklist from external review server')
             checklist = {}
-    for section_id in section_ids:
-        localizations += tator_client.get_localizations(project_id, section_id=int(section_id))
-    for localization in localizations:
-        if TatorLocalizationType.is_dot(localization['type']):
-            individual_count += 1
-            if localization['attributes'].get('Categorical Abundance', '--') != '--':
-                match localization['attributes']['Categorical Abundance']:
-                    case '20-49':
-                        individual_count += 35
-                    case '50-99':
-                        individual_count += 75
-                    case '100-999':
-                        individual_count += 500
-                    case '1000+':
-                        individual_count += 1000
     data = {
         'title': expedition_name,
         'tab_title': deployment_names[0] if len(deployment_names) == 1 else expedition_name,
         'deployment_names': deployment_names,
-        'localization_count': len(localizations),
+        'localization_count': localization_count,
         'individual_count': individual_count,
         'checklist': checklist,
     }

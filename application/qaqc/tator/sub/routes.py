@@ -13,17 +13,18 @@ from application.tator.tator_sub_qaqc_processor import TatorSubQaqcProcessor
 from . import sub_qaqc_bp
 from application.tator.tator_rest_client import TatorRestClient
 from application.tator.tator_type import TatorLocalizationType
-from application.qaqc.tator.util import init_tator_api, get_comments_and_image_refs
+from application.qaqc.tator.util import init_tator_api, get_comments_and_image_refs, get_counts
 
 
 # TODO cache this or at least call on different threads
-def _get_deployment_info(tator_client: TatorRestClient, project_id: int, section_ids: list[str], media_ids: list[str] = None):
+def _get_deployment_info(tator_client: TatorRestClient, project_id: int, section_ids: list[str], media_ids: list[str] = None, include_media: bool = True):
+    sections_by_id = {section['id']: section for section in tator_client.get_sections(project_id)}
     deployment_names = []
     expedition_name = None
     has_transect = False
     has_exploratory = False
     for section_id in section_ids:
-        section = tator_client.get_section_by_id(int(section_id))
+        section = sections_by_id[int(section_id)]
         deployment_names.append(section['name'])
         if expedition_name is None:
             expedition_name = section['path'].split('.')[0]
@@ -31,7 +32,9 @@ def _get_deployment_info(tator_client: TatorRestClient, project_id: int, section
             has_transect = True
         elif 'exploratory' in section['path'].lower():
             has_exploratory = True
-    if media_ids:
+    if not include_media:
+        media = []
+    elif media_ids:
         media = [tator_client.get_media_by_id(int(media_id)) for media_id in media_ids]
     else:
         media = tator_client.get_medias_for_sections(project_id, [int(section_id) for section_id in section_ids])
@@ -53,36 +56,22 @@ def sub_qaqc_checklist():
         return redirect('/')
     media_ids = request.args.getlist('media_id')
     tator_client = TatorRestClient(current_app.config.get('TATOR_URL'), session['tator_token'])
-    media_list, deployment_names, expedition_name, sub_type = _get_deployment_info(
+    media, deployment_names, expedition_name, sub_type = _get_deployment_info(
         tator_client=tator_client,
         project_id=project_id,
         section_ids=section_ids,
         media_ids=media_ids,
+        include_media=bool(media_ids),
     )
-    localizations = []
-    if media_ids:
-        deployment_list = [media['name'] for media in media_list]
-        media_ids_for_fetch = [media['id'] for media in media_list]
-        for i in range(0, len(media_ids_for_fetch), 50):
-            localizations += tator_client.get_localizations(project_id, media_ids=media_ids_for_fetch[i:i + 50])
-    else:
-        deployment_list = deployment_names
-        for section_id in section_ids:
-            localizations += tator_client.get_localizations(project_id, section_id=int(section_id))
-    individual_count = 0
-    for localization in localizations:
-        if TatorLocalizationType.is_dot(localization['type']):
-            individual_count += 1
-            if localization['attributes'].get('Categorical Abundance', '--') != '--':
-                match localization['attributes']['Categorical Abundance']:
-                    case '20-49':
-                        individual_count += 35
-                    case '50-99':
-                        individual_count += 75
-                    case '100-999':
-                        individual_count += 500
-                    case '1000+':
-                        individual_count += 1000
+    section_id_ints = [int(section_id) for section_id in section_ids]
+    localization_count, individual_count = get_counts(
+        tator_client,
+        project_id,
+        section_id_ints,
+        TatorLocalizationType.SUB_DOT,
+        media_ids=[int(media_id) for media_id in media_ids] or None,
+    )
+    deployment_list = [item['name'] for item in media] if media_ids else deployment_names
     with requests.get(
             url=f'{current_app.config.get("DARC_REVIEW_URL")}/qaqc-checklist/tator-sub/{"&".join(media_ids or section_ids)}',
             headers=current_app.config.get('DARC_REVIEW_HEADERS'),
@@ -98,7 +87,7 @@ def sub_qaqc_checklist():
         'title': expedition_name + title_suffix,
         'tab_title': (deployment_list[0] if len(deployment_list) == 1 else expedition_name) + title_suffix,
         'deployment_list': deployment_list,
-        'localization_count': len(localizations),
+        'localization_count': localization_count,
         'individual_count': individual_count,
         'checklist': checklist,
     }
