@@ -17,6 +17,12 @@ document.addEventListener('DOMContentLoaded',  (event) => {
     $('#individualCount').html(formattedNumber(individualCount));
     $('#deploymentList').html(deploymentNames.join(', '));
 
+    if (!localizationCount) {
+        $('#404').show();
+    } else {
+        $('#404').hide();
+    }
+
     for (const checkbox of Object.keys(checklist)) { // checklist was passed from the server
         const checkboxName = getCheckboxName(checkbox);
         $(`#${checkboxName}`).html(updateCheckbox(checklist[checkbox]));

@@ -19,16 +19,13 @@ def _sections_for(folder, *section_ids):
     return [_section(section_id, folder) for section_id in section_ids] + [_section(99, 'other')]
 
 
-def _localization_counts(project_id, section_ids, localization_type=None, attribute=None):
-    if localization_type is None:
-        return 100
-    if attribute is None:
-        return 4
-    if attribute.endswith('20-49'):
-        return 1
-    if attribute.endswith('1000+'):
-        return 1
-    return 0
+def _dots():
+    return [
+        {'attributes': {'Categorical Abundance': '1-19'}},
+        {'attributes': {'Categorical Abundance': '--'}},
+        {'attributes': {'Categorical Abundance': '20-49'}},
+        {'attributes': {'Categorical Abundance': '1000+'}},
+    ]
 
 
 class TestQaqcChecklist:
@@ -37,7 +34,8 @@ class TestQaqcChecklist:
     def test_dropcam_checklist_skips_localizations_and_media(self, mock_rest_client, mock_get, client):
         rest = mock_rest_client.return_value
         rest.get_sections.return_value = _sections_for('dscm', 11, 10)
-        rest.get_localization_count.side_effect = _localization_counts
+        rest.get_localization_count.return_value = 100
+        rest.get_localizations.return_value = _dots()
         mock_get.return_value = _checklist_response()
 
         with client.session_transaction() as session:
@@ -48,7 +46,7 @@ class TestQaqcChecklist:
         assert b'Checks Complete' in response.data
         assert b'Total Localizations' in response.data
         assert b'Total Individuals' in response.data
-        assert b'No records found' not in response.data
+        assert b'No localizations found for given dive' in response.data
         assert b'const localizationCount = 100' in response.data
         assert b'const individualCount = 1039' in response.data
         assert b'deploy-10' in response.data
@@ -56,13 +54,8 @@ class TestQaqcChecklist:
         assert b"['deploy-10', 'deploy-11']" in response.data
         rest.get_sections.assert_called_once_with(26)
         rest.get_section_by_id.assert_not_called()
-        rest.get_localization_count.assert_any_call(26, [10, 11])
-        rest.get_localization_count.assert_any_call(26, [10, 11], localization_type=TatorLocalizationType.DOT)
-        rest.get_localization_count.assert_any_call(
-            26, [10, 11], localization_type=TatorLocalizationType.DOT, attribute='Categorical Abundance::20-49',
-        )
-        assert rest.get_localization_count.call_count == 6
-        rest.get_localizations.assert_not_called()
+        rest.get_localization_count.assert_called_once_with(26, [10, 11])
+        rest.get_localizations.assert_called_once_with(26, section_ids=[10, 11], localization_type=TatorLocalizationType.DOT)
         rest.get_medias_for_sections.assert_not_called()
 
     @patch('application.qaqc.tator.sub.routes.requests.get')
@@ -70,7 +63,8 @@ class TestQaqcChecklist:
     def test_sub_checklist_skips_localizations_and_media(self, mock_rest_client, mock_get, client):
         rest = mock_rest_client.return_value
         rest.get_sections.return_value = _sections_for('exploratory', 11, 10)
-        rest.get_localization_count.side_effect = _localization_counts
+        rest.get_localization_count.return_value = 100
+        rest.get_localizations.return_value = _dots()
         mock_get.return_value = _checklist_response()
 
         with client.session_transaction() as session:
@@ -81,17 +75,15 @@ class TestQaqcChecklist:
         assert b'Checks Complete' in response.data
         assert b'Total Localizations' in response.data
         assert b'Total Individuals' in response.data
-        assert b'No records found' not in response.data
+        assert b'No localizations found for given transect' in response.data
         assert b'const localizationCount = 100' in response.data
         assert b'const individualCount = 1039' in response.data
         assert b'deploy-99' not in response.data
         assert b'(exploratory)' in response.data
         rest.get_sections.assert_called_once_with(26)
         rest.get_section_by_id.assert_not_called()
-        rest.get_localization_count.assert_any_call(26, [10, 11])
-        rest.get_localization_count.assert_any_call(26, [10, 11], localization_type=TatorLocalizationType.SUB_DOT)
-        assert rest.get_localization_count.call_count == 6
-        rest.get_localizations.assert_not_called()
+        rest.get_localization_count.assert_called_once_with(26, [10, 11])
+        rest.get_localizations.assert_called_once_with(26, section_ids=[10, 11], localization_type=TatorLocalizationType.SUB_DOT)
         rest.get_medias_for_sections.assert_not_called()
         rest.get_media_by_id.assert_not_called()
 
@@ -100,7 +92,12 @@ class TestQaqcChecklist:
     def test_sub_checklist_with_media_ids_does_not_download_section_media(self, mock_rest_client, mock_get, client):
         rest = mock_rest_client.return_value
         rest.get_sections.return_value = _sections_for('transect', 10)
-        rest.get_localization_count.side_effect = _localization_counts
+        rest.get_localization_count.return_value = 100
+        rest.get_localizations.return_value = _dots()
+        rest.get_media_by_id.side_effect = [
+            {'id': 9001, 'name': 'clip-9001'},
+            {'id': 9002, 'name': 'clip-9002'},
+        ]
         mock_get.return_value = _checklist_response()
 
         with client.session_transaction() as session:
@@ -109,12 +106,12 @@ class TestQaqcChecklist:
 
         assert response.status_code == 200
         assert b'const individualCount = 1039' in response.data
+        assert b"['clip-9001', 'clip-9002']" in response.data
         assert b'deploy-99' not in response.data
         rest.get_sections.assert_called_once_with(26)
         rest.get_section_by_id.assert_not_called()
-        rest.get_localization_count.assert_any_call(26, [10])
-        rest.get_localization_count.assert_any_call(26, [10], localization_type=TatorLocalizationType.SUB_DOT)
-        assert rest.get_localization_count.call_count == 6
-        rest.get_localizations.assert_not_called()
+        rest.get_localization_count.assert_called_once_with(26, media_ids=[9001, 9002])
+        rest.get_localizations.assert_called_once_with(26, media_ids=[9001, 9002], localization_type=TatorLocalizationType.SUB_DOT)
+        rest.get_media_by_id.assert_any_call(9001)
+        rest.get_media_by_id.assert_any_call(9002)
         rest.get_medias_for_sections.assert_not_called()
-        rest.get_media_by_id.assert_not_called()

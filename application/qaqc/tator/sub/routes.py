@@ -13,7 +13,7 @@ from application.tator.tator_sub_qaqc_processor import TatorSubQaqcProcessor
 from . import sub_qaqc_bp
 from application.tator.tator_rest_client import TatorRestClient
 from application.tator.tator_type import TatorLocalizationType
-from application.qaqc.tator.util import init_tator_api, get_comments_and_image_refs, get_individual_count
+from application.qaqc.tator.util import init_tator_api, get_comments_and_image_refs, get_counts
 
 
 # TODO cache this or at least call on different threads
@@ -56,15 +56,22 @@ def sub_qaqc_checklist():
         return redirect('/')
     media_ids = request.args.getlist('media_id')
     tator_client = TatorRestClient(current_app.config.get('TATOR_URL'), session['tator_token'])
-    _, deployment_names, expedition_name, sub_type = _get_deployment_info(
+    media, deployment_names, expedition_name, sub_type = _get_deployment_info(
         tator_client=tator_client,
         project_id=project_id,
         section_ids=section_ids,
-        include_media=False,
+        media_ids=media_ids,
+        include_media=bool(media_ids),
     )
     section_id_ints = [int(section_id) for section_id in section_ids]
-    localization_count = tator_client.get_localization_count(project_id, section_id_ints)
-    individual_count = get_individual_count(tator_client, project_id, section_id_ints, TatorLocalizationType.SUB_DOT)
+    localization_count, individual_count = get_counts(
+        tator_client,
+        project_id,
+        section_id_ints,
+        TatorLocalizationType.SUB_DOT,
+        media_ids=[int(media_id) for media_id in media_ids] or None,
+    )
+    deployment_list = [item['name'] for item in media] if media_ids else deployment_names
     with requests.get(
             url=f'{current_app.config.get("DARC_REVIEW_URL")}/qaqc-checklist/tator-sub/{"&".join(media_ids or section_ids)}',
             headers=current_app.config.get('DARC_REVIEW_HEADERS'),
@@ -78,8 +85,8 @@ def sub_qaqc_checklist():
     title_suffix = f' ({sub_type})'
     data = {
         'title': expedition_name + title_suffix,
-        'tab_title': (deployment_names[0] if len(deployment_names) == 1 else expedition_name) + title_suffix,
-        'deployment_list': deployment_names,
+        'tab_title': (deployment_list[0] if len(deployment_list) == 1 else expedition_name) + title_suffix,
+        'deployment_list': deployment_list,
         'localization_count': localization_count,
         'individual_count': individual_count,
         'checklist': checklist,
