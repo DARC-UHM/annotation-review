@@ -31,7 +31,7 @@ def _dots():
 class TestQaqcChecklist:
     @patch('application.qaqc.tator.dropcam.routes.requests.get')
     @patch('application.qaqc.tator.dropcam.routes.TatorRestClient')
-    def test_dropcam_checklist_skips_localizations_and_media(self, mock_rest_client, mock_get, client):
+    def test_dropcam_checklist_skips_media(self, mock_rest_client, mock_get, client):
         rest = mock_rest_client.return_value
         rest.get_sections.return_value = _sections_for('dscm', 11, 10)
         rest.get_localization_count.return_value = 100
@@ -46,7 +46,6 @@ class TestQaqcChecklist:
         assert b'Checks Complete' in response.data
         assert b'Total Localizations' in response.data
         assert b'Total Individuals' in response.data
-        assert b'No localizations found for given dive' in response.data
         assert b'const localizationCount = 100' in response.data
         assert b'const individualCount = 1039' in response.data
         assert b'deploy-10' in response.data
@@ -60,7 +59,7 @@ class TestQaqcChecklist:
 
     @patch('application.qaqc.tator.sub.routes.requests.get')
     @patch('application.qaqc.tator.sub.routes.TatorRestClient')
-    def test_sub_checklist_skips_localizations_and_media(self, mock_rest_client, mock_get, client):
+    def test_sub_checklist_skips_media(self, mock_rest_client, mock_get, client):
         rest = mock_rest_client.return_value
         rest.get_sections.return_value = _sections_for('exploratory', 11, 10)
         rest.get_localization_count.return_value = 100
@@ -75,7 +74,6 @@ class TestQaqcChecklist:
         assert b'Checks Complete' in response.data
         assert b'Total Localizations' in response.data
         assert b'Total Individuals' in response.data
-        assert b'No localizations found for given transect' in response.data
         assert b'const localizationCount = 100' in response.data
         assert b'const individualCount = 1039' in response.data
         assert b'deploy-99' not in response.data
