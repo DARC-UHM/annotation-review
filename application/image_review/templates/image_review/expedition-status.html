@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Expedition Status | DARC Image Review{% endblock title %}
+{% block content %}
+{% include 'components/back-to-home-button.html' %}
+{% include 'components/flash-container.html' %}
+<div class="my-3 mx-5">
+    <div class="text-center mt-3">
+        <h3 style="font-weight: 600;">Expedition annotation status</h3>
+        <div class="d-flex justify-content-center align-items-center gap-4 mt-3 small">
+            <div class="d-inline-flex align-items-center gap-2">
+                <span class="expedition-status-key pe-none" data-status="0" aria-hidden="true"></span>
+                <span>Not started</span>
+            </div>
+            <div class="d-inline-flex align-items-center gap-2">
+                <span class="expedition-status-key pe-none" data-status="1" aria-hidden="true"></span>
+                <span>In progress</span>
+            </div>
+            <div class="d-inline-flex align-items-center gap-2">
+                <span class="expedition-status-key pe-none" data-status="2" aria-hidden="true"></span>
+                <span>Submitted</span>
+            </div>
+        </div>
+    </div>
+    <div class="col d-flex justify-content-center mt-3">
+        {% if statuses %}
+        <table class="table table-striped" style="max-width: 720px;">
+            <thead class="thead-dark" style="background-color: #393E46; color: #EEEEEE;">
+                <tr>
+                    <th style="font-weight: 500;" scope="col">Expedition</th>
+                    <th style="font-weight: 500; width: 6rem;" scope="col">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in statuses %}
+                <tr>
+                    <td>{{ item.expedition_name }}</td>
+                    <td
+                        class="expedition-status-checkbox"
+                        data-expedition="{{ item.expedition_name }}"
+                        data-status="{{ item.status }}"
+                        style="cursor: pointer;"
+                    ></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="mt-4">No expeditions found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock content %}
+{% block scripts %}
+<script type="module" src="{{ url_for('image_review.static', filename='expedition-status.js') }}"></script>
+{% endblock scripts %}

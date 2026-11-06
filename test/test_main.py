@@ -88,6 +88,7 @@ class TestMain:
         response = client.get('/')
 
         assert response.status_code == 200
+        assert b'/image-review/expedition-status' in response.data
         with client.session_transaction() as session:
             assert session['vars_video_sequences'] == ['Dive 1']
             assert session['vars_concepts'] == ['Concept1']
