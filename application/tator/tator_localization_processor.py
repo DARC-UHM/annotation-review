@@ -167,8 +167,8 @@ class TatorLocalizationProcessor:
                         case _:
                             print(f'{TERM_RED}Unknown categorical abundance: {localization_dict["categorical_abundance"]}{TERM_NORMAL}')
                 if get_timestamp:
+                    media = media_id_map[media_id]
                     if TatorLocalizationType.is_sub(localization_dict['type']):
-                        media = media_id_map[media_id]
                         fps = media['fps'] or 30
                         if media['attributes'].get('Start Time'):
                             media_start_time = datetime.datetime.fromisoformat(media['attributes']['Start Time']).astimezone(datetime.timezone.utc)
@@ -180,6 +180,8 @@ class TatorLocalizationProcessor:
                         if section.bottom_time is None:
                             print(f'{TERM_RED}No Arrival time found for section {section.deployment_name}. Cannot calculate timestamps.{TERM_NORMAL}')
                         else:
+                            if media_id not in session['media_timestamps']:
+                                raise ValueError(f'Media ID {media["name"]} is missing a "Start Time" in Tator - cannot calculate observation timestamps.')
                             media_fps = media_id_map[media_id]['fps'] or 30
                             camera_bottom_arrival = datetime.datetime.strptime(section.bottom_time, self.BOTTOM_TIME_FORMAT).replace(tzinfo=datetime.timezone.utc)
                             video_start_timestamp = datetime.datetime.fromisoformat(session['media_timestamps'][media_id]).astimezone(datetime.timezone.utc)
