@@ -9,7 +9,7 @@ Streamlined QA/QC and image review for annotations made in [VARS](https://github
 
 ### Installation
 
-_Requirements: Python ≥ 3.10_
+_Requirements: Python ≥ 3.11_
 
 1. Clone this repository.
 2. Activate your Python virtual environment (optional).
