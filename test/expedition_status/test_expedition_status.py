@@ -4,9 +4,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 import requests
 
-from application.image_review.expedition_status.routes import REVIEW_SERVER_TIMEOUT
+from application.expedition_status.routes import REVIEW_SERVER_TIMEOUT
 
-ROUTES = 'application.image_review.expedition_status.routes'
+ROUTES = 'application.expedition_status.routes'
 
 
 def _response(payload=None, status_code=200, text='error'):
@@ -38,7 +38,7 @@ class TestExpeditionStatusPage:
             {'expedition_name': 'VUT_2025', 'status': 0},
         ])
 
-        response = client.get('/image-review/expedition-status')
+        response = client.get('/expedition-status')
 
         assert response.status_code == 200
         html = response.get_data(as_text=True)
@@ -57,7 +57,7 @@ class TestExpeditionStatusPage:
     def test_escapes_expedition_names(self, mock_get, client):
         mock_get.return_value = _response([{'expedition_name': '<script>x</script>', 'status': 0}])
 
-        html = client.get('/image-review/expedition-status').get_data(as_text=True)
+        html = client.get('/expedition-status').get_data(as_text=True)
 
         assert '<script>x</script>' not in html
         assert '&lt;script&gt;x&lt;/script&gt;' in html
@@ -66,7 +66,7 @@ class TestExpeditionStatusPage:
     def test_server_error_flashes(self, mock_get, client):
         mock_get.return_value = _response({}, status_code=503)
 
-        response = client.get('/image-review/expedition-status')
+        response = client.get('/expedition-status')
 
         assert response.status_code == 200
         html = response.get_data(as_text=True)
@@ -81,7 +81,7 @@ class TestExpeditionStatusPage:
     def test_unreachable_server_flashes(self, mock_get, client, failure):
         mock_get.side_effect = failure
 
-        response = client.get('/image-review/expedition-status')
+        response = client.get('/expedition-status')
 
         assert response.status_code == 200
         assert 'Unable to reach the external review server.' in response.get_data(as_text=True)
@@ -90,7 +90,7 @@ class TestExpeditionStatusPage:
     def test_non_json_response_flashes(self, mock_get, client):
         mock_get.return_value = _response(ValueError('not json'))
 
-        response = client.get('/image-review/expedition-status')
+        response = client.get('/expedition-status')
 
         assert response.status_code == 200
         assert 'Unable to reach the external review server.' in response.get_data(as_text=True)
@@ -102,7 +102,7 @@ class TestPatchExpeditionStatus:
     def test_forwards_status_to_the_review_server(self, mock_patch, client, status):
         mock_patch.return_value = _response({'expedition_name': 'Deep Discoverer-2605', 'status': status})
 
-        response = client.patch('/image-review/expedition-status', json={
+        response = client.patch('/expedition-status', json={
             'expedition_name': 'Deep Discoverer-2605',
             'status': status,
         })
@@ -117,7 +117,7 @@ class TestPatchExpeditionStatus:
     def test_quotes_slashes_in_the_name(self, mock_patch, client):
         mock_patch.return_value = _response({'expedition_name': 'a/b', 'status': 1})
 
-        client.patch('/image-review/expedition-status', json={'expedition_name': 'a/b', 'status': 1})
+        client.patch('/expedition-status', json={'expedition_name': 'a/b', 'status': 1})
 
         assert mock_patch.call_args.kwargs['url'].endswith('/expedition-status/a%2Fb')
 
@@ -136,7 +136,7 @@ class TestPatchExpeditionStatus:
     ])
     @patch(f'{ROUTES}.requests.patch')
     def test_rejects_bad_bodies(self, mock_patch, client, body):
-        response = client.patch('/image-review/expedition-status', json=body)
+        response = client.patch('/expedition-status', json=body)
 
         assert response.status_code == 400
         mock_patch.assert_not_called()
@@ -145,7 +145,7 @@ class TestPatchExpeditionStatus:
     def test_unreachable_server_is_502(self, mock_patch, client):
         mock_patch.side_effect = requests.ConnectionError('down')
 
-        response = client.patch('/image-review/expedition-status', json={'expedition_name': 'VUT_2025', 'status': 1})
+        response = client.patch('/expedition-status', json={'expedition_name': 'VUT_2025', 'status': 1})
 
         assert response.status_code == 502
         assert response.json == {'error': 'Unable to reach the external review server'}
@@ -154,7 +154,7 @@ class TestPatchExpeditionStatus:
     def test_non_json_error_keeps_the_status_code(self, mock_patch, client):
         mock_patch.return_value = _response(ValueError('not json'), status_code=500)
 
-        response = client.patch('/image-review/expedition-status', json={'expedition_name': 'VUT_2025', 'status': 1})
+        response = client.patch('/expedition-status', json={'expedition_name': 'VUT_2025', 'status': 1})
 
         assert response.status_code == 500
         assert response.json == {'error': 'External review server returned 500'}
@@ -163,7 +163,7 @@ class TestPatchExpeditionStatus:
     def test_review_server_errors_are_passed_through(self, mock_patch, client):
         mock_patch.return_value = _response({'error': 'Unauthorized'}, status_code=401)
 
-        response = client.patch('/image-review/expedition-status', json={'expedition_name': 'VUT_2025', 'status': 1})
+        response = client.patch('/expedition-status', json={'expedition_name': 'VUT_2025', 'status': 1})
 
         assert response.status_code == 401
         assert response.json == {'error': 'Unauthorized'}

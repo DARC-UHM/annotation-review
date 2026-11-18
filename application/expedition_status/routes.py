@@ -1,7 +1,7 @@
 """
 Expedition annotation status for the office.
 
-/image-review/expedition-status [GET, PATCH]
+/expedition-status [GET, PATCH]
 
 The external review server works out the expedition names (application/expedition_name.py in external-image-review),
 so the names here always match the expedition filter on the reviewer page.
@@ -43,7 +43,7 @@ def expedition_status_page():
     except (requests.RequestException, ValueError) as error:  # ValueError covers a response that isn't JSON
         current_app.logger.info(f'Unable to load expedition statuses: {error}')
         flash('Unable to reach the external review server.', 'danger')
-    return render_template('image_review/expedition-status.html', statuses=statuses)
+    return render_template('expedition_status/expedition-status.html', statuses=statuses)
 
 
 @expedition_status_bp.patch('')
