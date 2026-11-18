@@ -20,6 +20,7 @@ def create_app():
 
     from application.main import main_bp, page_not_found, server_error
     from application.image_reference import image_reference_bp
+    from application.expedition_status import expedition_status_bp
     from application.image_review import image_review_bp
     from application.qaqc import qaqc_bp
     from application.vars import vars_bp
@@ -27,6 +28,7 @@ def create_app():
 
     app.register_blueprint(main_bp)
     app.register_blueprint(image_reference_bp, url_prefix='/image-reference')
+    app.register_blueprint(expedition_status_bp, url_prefix='/expedition-status')
     app.register_blueprint(image_review_bp, url_prefix='/image-review')
     app.register_blueprint(qaqc_bp, url_prefix='/qaqc')
     app.register_blueprint(vars_bp, url_prefix='/vars')
