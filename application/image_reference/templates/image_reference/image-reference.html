@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}DARC Image Reference{% endblock title %}
 {% block css %}
-<link rel="stylesheet" href="https://hurlstor.soest.hawaii.edu:5000/static/css/image-reference.css" />
+<link rel="stylesheet" href="https://darc.soest.hawaii.edu/static/css/image-reference.css" />
 {% endblock css %}
 {% block content %}
 {% include 'components/flash-container.html' %}
@@ -228,5 +228,5 @@
     const lastUpdated = "{{ last_updated }}";
 </script>
 <script type="module" src="{{ url_for('image_reference.static', filename='image-references.js') }}"></script>
-<script type="module" src="https://hurlstor.soest.hawaii.edu:5000/static/js/image-references.js"></script>
+<script type="module" src="https://darc.soest.hawaii.edu/static/js/image-references.js"></script>
 {% endblock scripts %}
