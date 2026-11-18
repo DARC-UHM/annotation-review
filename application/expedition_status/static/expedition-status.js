@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
             $box.html(updateCheckbox(nextStatus)).css('opacity', 0.5).attr('aria-busy', 'true');
 
             try {
-                const res = await fetch('/image-review/expedition-status', {
+                const res = await fetch('/expedition-status', {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
