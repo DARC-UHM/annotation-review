@@ -111,7 +111,7 @@ def video_frame():
                 mimetype='image/jpeg',
                 as_attachment=False
             )
-    cap = cv2.VideoCapture(video_url)
+    cap = cv2.VideoCapture(video_url, cv2.CAP_FFMPEG)
     if not cap.isOpened():
         print('Could not open video file')
         return {}, 500
