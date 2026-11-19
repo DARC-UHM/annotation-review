@@ -28,8 +28,7 @@ class Config:
         DARC_REVIEW_URL = 'http://127.0.0.1:5000'
     else:
         ANNOSAURUS_CLIENT_SECRET = os.environ.get('ANNOSAURUS_CLIENT_SECRET')
-        # DARC_REVIEW_URL = 'https://hurlstor.soest.hawaii.edu:5000'
-        DARC_REVIEW_URL = 'https://darc.soest.hawaii.edu'
+        DARC_REVIEW_URL = 'https://hurlstor.soest.hawaii.edu:5000'
         # https://hurlstor.soest.hawaii.edu:5000 == https://darc.soest.hawaii.edu
         # We set up a proxy to point darc.soest.hawaii.edu to hurlstor.soest.hawaii.edu:5000. External reviewers should
         # access their page using the darc.soest.hawaii.edu URL. This app primarily uses the hurlstor URL. This can be

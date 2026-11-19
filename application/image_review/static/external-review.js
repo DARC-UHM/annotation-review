@@ -90,7 +90,7 @@ async function updateExternalReviewers() {
             comments[formData.get('observation_uuid')] = {};
         }
         // refetch the comments for the observation
-        const externalCommentsRes = await fetch(`https://darc.soest.hawaii.edu/comment/${formData.get('observation_uuid')}`);
+        const externalCommentsRes = await fetch(`https://hurlstor.soest.hawaii.edu:5000/comment/${formData.get('observation_uuid')}`);
         comments[formData.get('observation_uuid')] = await externalCommentsRes.json();
 
         // update the comments/notes to include the new reviewer
@@ -118,7 +118,7 @@ async function markCommentRead(commentUuid) {
     const url = new URL(window.location.href);
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
-    const res = await fetch(`https://darc.soest.hawaii.edu/comment/mark-read/${commentUuid}`, {
+    const res = await fetch(`https://hurlstor.soest.hawaii.edu:5000/comment/mark-read/${commentUuid}`, {
         method: 'PUT',
     });
     if (res.status === 200) {
@@ -146,7 +146,7 @@ async function markCommentUnread(commentUuid) {
     const url = new URL(window.location.href);
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
-    const res = await fetch(`https://darc.soest.hawaii.edu/comment/mark-unread/${commentUuid}`, {
+    const res = await fetch(`https://hurlstor.soest.hawaii.edu:5000/comment/mark-unread/${commentUuid}`, {
         method: 'PUT',
     });
     if (res.status === 200) {
@@ -241,7 +241,7 @@ $(document).ready(() => {
         currentAnnotation = $(e.relatedTarget).data('anno');
         if (currentAnnotation.all_localizations && currentAnnotation.all_localizations !== '') {
             // tator annotation
-            currentAnnotation.video_url = `https://darc.soest.hawaii.edu/video?link=/tator-video/${currentAnnotation.media_id}&time=${Math.round(currentAnnotation.frame / 30)}`;
+            currentAnnotation.video_url = `https://hurlstor.soest.hawaii.edu:5000/video?link=/tator-video/${currentAnnotation.media_id}&time=${Math.round(currentAnnotation.frame / 30)}`;
         }
         $('#externalModalSubmitButton').prop('disabled', true);
         addReviewer(null);
