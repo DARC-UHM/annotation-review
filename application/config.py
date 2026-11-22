@@ -17,10 +17,12 @@ class Config:
     VARS_KNOWLEDGE_BASE_URL = f'{HURLSTOR_URL}/kb/v1'
     VARS_VAMPIRE_SQUID_URL = f'{HURLSTOR_URL}/vam/v1'
     VARS_CHARYBDIS_URL = f'{HURLSTOR_URL}/references'
+    VARS_BEHOLDER_URL = f'{HURLSTOR_URL}/capture'
     GITHUB_REPO_API_URL = 'https://api.github.com/repos/DARC-UHM/annotation-review'
 
     DARC_REVIEW_HEADERS = {'API-Key': os.environ.get('DARC_REVIEW_API_KEY')}
     SECRET_KEY = os.environ.get('APP_SECRET_KEY')
+    BEHOLDER_API_KEY = os.environ.get('BEHOLDER_API_KEY')
 
     if ENV == 'no_server_edits':
         print('\n\nLOCAL DEVELOPMENT MODE: No server edits\n\n')

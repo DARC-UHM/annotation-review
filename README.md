@@ -20,6 +20,7 @@ _Requirements: Python ≥ 3.11_
 
 ```python
 ANNOSAURUS_CLIENT_SECRET = '...'
+BEHOLDER_API_KEY = '...'
 _FLASK_ENV = '...'
 APP_SECRET_KEY = '...'
 DARC_REVIEW_API_KEY = '...'

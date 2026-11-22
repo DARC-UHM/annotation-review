@@ -17,6 +17,7 @@ from flask import current_app, request, send_file
 
 from . import vars_bp
 from application.vars.annosaurus import Annosaurus
+from application.vars.beholder import Beholder
 
 
 # get a single VARS annotation
@@ -87,17 +88,11 @@ def delete_association(uuid):
     return deleted['json'], deleted['status']
 
 
-# gets a frame from a VARS video for annotations without an image. caches images locally
+# gets a frame from a VARS video for annotations without an image (via Beholder). caches images locally
 @vars_bp.get('/video-frame')
 def video_frame():
-    try:
-        import cv2
-        from PIL import Image
-    except ModuleNotFoundError:
-        print('To display video frames, install cv2 and PIL by running the command "pip install -r requirements.txt"')
-        return {}, 500
     video_url = request.args.get('url')
-    timestamp = int(request.args.get('time', 0))
+    timestamp = int(request.args.get('time', 0))  # seconds
     if not video_url:
         print('Missing video URL')
         return {}, 400
@@ -111,22 +106,15 @@ def video_frame():
                 mimetype='image/jpeg',
                 as_attachment=False
             )
-    cap = cv2.VideoCapture(video_url, cv2.CAP_FFMPEG)
-    if not cap.isOpened():
-        print('Could not open video file')
-        return {}, 500
-    frame_number = int(timestamp * cap.get(cv2.CAP_PROP_FPS))  # calc frame number
-    cap.set(cv2.CAP_PROP_POS_FRAMES, frame_number)  # set to frame
-    ret, frame = cap.read()  # get frame
-    cap.release()  # release video
-    if not ret:
-        print(f'Could not read frame at timestamp {timestamp}')
-        return {}, 500
-    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert BGR to RGB
-    img = Image.fromarray(frame)
-    img_byte_arr = BytesIO()
-    img.save(img_byte_arr, format='JPEG')
-    frame_data = img_byte_arr.getvalue()
+    beholder = Beholder(
+        base_url=current_app.config.get('VARS_BEHOLDER_URL'),
+        api_key=current_app.config.get('BEHOLDER_API_KEY'),
+    )
+    try:
+        frame_data = beholder.get_frame(video_url=video_url, elapsed_time_millis=timestamp * 1000)
+    except (ValueError, requests.exceptions.RequestException) as e:
+        print(f'Could not capture frame at timestamp {timestamp} from {video_url}: {e}')
+        return {}, 502
     with open(cache_path, 'wb') as f:
         f.write(frame_data)
     return send_file(

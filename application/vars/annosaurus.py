@@ -62,7 +62,7 @@ class JWTAuthentication(object):
 
 class Annosaurus(JWTAuthentication):
     """
-    Encapsulate REST calls to the annotation service
+    Stores and retrieves annotation information from VARS.
     """
 
     def __init__(self, base_url: str):
